@@ -1,9 +1,9 @@
 import { Controller, Get, Post, Query } from '@nestjs/common';
 import { AppService } from '../services/app.service';
 import { BroadcastRequest } from '../dtos/requests/broadcast.request';
-import { CreateMultisigRequest } from '../dtos/requests/createMultisig.request';
-import { CreateTransactionRequest } from '../dtos/requests/createTransaction.request';
-import { SingleSignRequest } from '../dtos/requests/singleSign.request';
+import { CreateMultisigRequest } from '../dtos/requests//createMultisig.request';
+import { CreateTransactionRequest } from '../dtos/requests//createTransaction.request';
+import { SingleSignRequest } from '../dtos/requests//singleSign.request';
 
 @Controller()
 export class AppController {

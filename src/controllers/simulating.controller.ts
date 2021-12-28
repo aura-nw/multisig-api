@@ -1,12 +1,16 @@
 import { Controller, Get, Post, Query, Inject, Body } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { CONTROLLER_CONSTANTS } from 'src/common/constants/api.constant';
 import { MODULE_REQUEST, SERVICE_INTERFACE } from 'src/module.config';
 import { ISimulatingService } from 'src/services/isimulating.service';
 
-@Controller()
+@Controller(CONTROLLER_CONSTANTS.SIMULATING)
+@ApiTags(CONTROLLER_CONSTANTS.SIMULATING)
 export class SimulatingController {
     constructor(@Inject(SERVICE_INTERFACE.ISIMULATING_SERVICE) private simulatingService: ISimulatingService) { }
 
-	@Post("simulating")
+	@Post()
+	@ApiOperation({ summary: 'simulating creating a multisig wallet and make a transaction' })
 	async simulateMultisigTransactions(@Body() request: MODULE_REQUEST.SimulatingMultisigRequest) {
 		return await this.simulatingService.simulating(request);
 	}

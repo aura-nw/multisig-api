@@ -40,7 +40,7 @@ export class SimulatingService implements ISimulatingService {
 				typeUrl: "/cosmos.bank.v1beta1.MsgSend",
 				value: msgSend,
 			};
-			const gasLimit = 200000;
+			const gasLimit = 1;
 			const fee = {
 				amount: coins(1, "stake"),
 				gas: gasLimit.toString(),
