@@ -1,6 +1,8 @@
 # Multisig-api
 Multisignature backend api 
 
+## Design architecture
+Click [here](docs/README.md) to see the design architecture.
 ## Installation
 
 ```bash
@@ -29,3 +31,6 @@ $ npm run test:e2e
 # test coverage
 $ npm run test:cov
 ```
+
+
+
