@@ -8,3 +8,6 @@
 ![image](pics/3.sign_transaction.png)
 4. Broadcast transaction
 ![image](pics/4.broadcast_transaction.png)
+
+# Entity-diagram
+![image](pics/multisig_db.png)
