@@ -7,35 +7,35 @@ import { SingleSignRequest } from '../dtos/requests//singleSign.request';
 
 @Controller()
 export class AppController {
-	constructor(private readonly appService: AppService) { }
+  constructor(private readonly appService: AppService) {}
 
-	@Get()
-	getHello(): string {
-		return this.appService.getHello();
-	}
+  @Get()
+  getHello(): string {
+    return this.appService.getHello();
+  }
 
-	@Post("transaction")
-	async createTransaction(@Query() req: CreateTransactionRequest) {
-		return await this.appService.createTransaction(req);
-	}
+  @Post('transaction')
+  async createTransaction(@Query() req: CreateTransactionRequest) {
+    return await this.appService.createTransaction(req);
+  }
 
-	@Post("multisig")
-	async createMultisigWallet(@Query() req: CreateMultisigRequest) {
-		return await this.appService.createMultisigWallet(req);
-	}
+  @Post('multisig')
+  async createMultisigWallet(@Query() req: CreateMultisigRequest) {
+    return await this.appService.createMultisigWallet(req);
+  }
 
-	@Post("sign")
-	async singleSign(@Query() req: SingleSignRequest) {
-		return await this.appService.singleSign(req);
-	}
+  @Post('sign')
+  async singleSign(@Query() req: SingleSignRequest) {
+    return await this.appService.singleSign(req);
+  }
 
-	@Post("broadcast")
-	async broadcast(@Query() req: BroadcastRequest) {
-		return await this.appService.broadcast(req);
-	}
+  @Post('broadcast')
+  async broadcast(@Query() req: BroadcastRequest) {
+    return await this.appService.broadcast(req);
+  }
 
-	@Post("simulating")
-	async simulateMultisigTransactions() {
-		return await this.appService.simulateMultisigTransaction();
-	}
+  @Post('simulating')
+  async simulateMultisigTransactions() {
+    return await this.appService.simulateMultisigTransaction();
+  }
 }
