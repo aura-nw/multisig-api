@@ -13,5 +13,6 @@ export class Safe extends BaseEntityAutoId {
   threshold: number;
 
   @Column({ name: 'Pubkey' })
+  @Column('varchar', { length: 800 })
   pubkey: string;
 }

@@ -6,12 +6,13 @@ import { SimulatingController } from './controllers/simulating.controller';
 import { TransactionController } from './controllers/transaction.controller';
 import { OwnerController } from './controllers/owner.controller';
 import { NotificationController } from './controllers/notification.controller';
-import { SERVICE_INTERFACE } from './module.config';
+import { ENTITIES_CONFIG, SERVICE_INTERFACE } from './module.config';
 import { AppService } from './services/app.service';
 import { MultisigWalletService } from './services/impls/multisig-wallet.service';
 import { SimulatingService } from './services/impls/simulating.service';
 import { TransactionService } from './services/impls/transaction.service';
 import { SharedModule } from './shared/shared.module';
+import { ConfigService } from './shared/services/config.service';
 
 const controllers = [
   SimulatingController,
@@ -21,13 +22,18 @@ const controllers = [
   NotificationController,
   // AppController,
 ];
-const entities = [];
+const entities = [ENTITIES_CONFIG.SAFE];
 const providers = [];
 @Module({
   imports: [
     CacheModule.register({ ttl: 10000 }),
     SharedModule,
     TypeOrmModule.forFeature([...entities]),
+    TypeOrmModule.forRootAsync({
+      imports: [SharedModule],
+      useFactory: (configService: ConfigService) => configService.typeOrmConfig,
+      inject: [ConfigService],
+    }),
   ],
   controllers: [...controllers],
   providers: [

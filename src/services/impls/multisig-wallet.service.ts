@@ -1,38 +1,63 @@
-import { Inject, Injectable, Logger } from "@nestjs/common";
-import { ResponseDto } from "src/dtos/responses/response.dto";
-import { ErrorMap } from "../../common/error.map";
-import { MODULE_REQUEST, REPOSITORY_INTERFACE } from "../../module.config";
-import { ConfigService } from "src/shared/services/config.service";
-import { IMultisigWalletService } from "../imultisig-wallet.service";
-import { createMultisigThresholdPubkey, pubkeyToAddress, SinglePubkey } from "@cosmjs/amino";
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { ResponseDto } from 'src/dtos/responses/response.dto';
+import { ErrorMap } from '../../common/error.map';
+import { ConfigService } from 'src/shared/services/config.service';
+import { IMultisigWalletService } from '../imultisig-wallet.service';
+import {
+  createMultisigThresholdPubkey,
+  Pubkey,
+  SinglePubkey,
+} from '@cosmjs/amino';
+import { InjectRepository } from '@nestjs/typeorm';
+import { ObjectLiteral, Repository } from 'typeorm';
+import { ENTITIES_CONFIG, MODULE_REQUEST } from 'src/module.config';
+import { CommonUtil } from 'src/utils/common.util';
 @Injectable()
 export class MultisigWalletService implements IMultisigWalletService {
-    private readonly _logger = new Logger(MultisigWalletService.name);
-    constructor(
-        private configService: ConfigService,
-    ){
-        this._logger.log("============== Constructor Multisig Wallet Service ==============");
+  private readonly _logger = new Logger(MultisigWalletService.name);
+  private _commonUtil: CommonUtil = new CommonUtil();
+  constructor(
+    private configService: ConfigService = new ConfigService(),
+    @InjectRepository(ENTITIES_CONFIG.SAFE)
+    private readonly repos: Repository<ObjectLiteral>,
+  ) {
+    this._logger.log(
+      '============== Constructor Multisig Wallet Service ==============',
+    );
+  }
+  async createMultisigWallet(
+    request: MODULE_REQUEST.CreateMultisigWalletRequest,
+  ): Promise<ResponseDto> {
+    const { threshold, pubkeys } = request;
+
+    const arrPubkeys = pubkeys.map(this.createPubkeys);
+
+    const multisigPubkey = createMultisigThresholdPubkey(arrPubkeys, threshold);
+    const multiSigWalletAddress =
+      this._commonUtil.pubkeyToAddress(multisigPubkey);
+    let result = {
+      pubkey: JSON.stringify(multisigPubkey),
+      address: multiSigWalletAddress,
+    };
+
+    for (const pubkey of arrPubkeys) {
+      const safe = new ENTITIES_CONFIG.SAFE();
+      safe.address = multiSigWalletAddress;
+      safe.pubkey = JSON.stringify(multisigPubkey);
+      safe.threshold = threshold;
+      safe.owner = this._commonUtil.pubkeyToAddress(pubkey);
+      this.repos.save(safe);
     }
-	async createMultisigWallet(request: MODULE_REQUEST.CreateMultisigWalletRequest): Promise<ResponseDto> {
-        let { pubkeys, name } = request;
-        let arrPubkeys = pubkeys.map(this.createPubkeys);
-		const multisigPubkey = createMultisigThresholdPubkey(
-			arrPubkeys,
-			request.threshold,
-		);
-		let result = {
-			pubkey: JSON.stringify(multisigPubkey),
-			address: pubkeyToAddress(multisigPubkey, 'aura'),
-		}
-        const res = new ResponseDto();
-		return res.return(ErrorMap.SUCCESSFUL.Code, result);
-	}
-    
-    createPubkeys(value1: string): SinglePubkey {
-		let result: SinglePubkey = {
-			type: 'tendermint/PubKeySecp256k1',
-			value: value1
-		}
-		return result
-	}
+
+    const res = new ResponseDto();
+    return res.return(ErrorMap.SUCCESSFUL.Code, result);
+  }
+
+  createPubkeys(value: string): SinglePubkey {
+    const result: SinglePubkey = {
+      type: 'tendermint/PubKeySecp256k1',
+      value,
+    };
+    return result;
+  }
 }
