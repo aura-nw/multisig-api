@@ -1,3 +1,5 @@
-import { IBaseRepository } from './ibase.repository';
+import { IBaseRepository } from "./ibase.repository";
 
-export interface ISafeRepository extends IBaseRepository {}
+export interface ISafeRepository extends IBaseRepository {
+
+}

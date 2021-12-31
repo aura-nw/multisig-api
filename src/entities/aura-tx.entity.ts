@@ -1,8 +1,8 @@
-import { Column, Entity } from "typeorm";
+import { Column, Entity, PrimaryColumn } from "typeorm";
 
 @Entity({ name: 'AuraTx' })
 export class AuraTx {
-    @Column({name: 'Id'})
+    @PrimaryColumn({name: 'Id'})
     id: string;
  
     @Column({name: 'Code'})
