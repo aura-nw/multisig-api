@@ -101,11 +101,14 @@ export class MultisigWalletService
 
   async getMultisigWalletsByOwner(ownerAddress: string): Promise<ResponseDto> {
     const res = new ResponseDto();
-    const safes = await this.repos.findByCondition({
+    const result = await this.repos.findByCondition({
       address: ownerAddress,
     });
-    if (safes) {
-      return res.return(ErrorMap.SUCCESSFUL, safes);
+    if (result) {
+      const safes = result.map((s) => {
+        return s.address;
+      });
+      return res.return(ErrorMap.SUCCESSFUL, { safes });
     }
     return res.return(ErrorMap.NOTFOUND);
   }
