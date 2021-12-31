@@ -1,43 +1,43 @@
-import { Column, Entity, PrimaryColumn } from "typeorm";
+import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity({ name: 'AuraTx' })
 export class AuraTx {
-    @PrimaryColumn({name: 'Id'})
-    id: string;
- 
-    @Column({name: 'Code'})
-    code: string;
+  @PrimaryColumn({ name: 'Id' })
+  id: string;
 
-    @Column({name: 'CodeSpace'})
-    codeSpace: string;
+  @Column({ name: 'Code' })
+  code: string;
 
-    @Column({name: 'Data'})
-    data: string;
+  @Column({ name: 'CodeSpace' })
+  codeSpace: string;
 
-    @Column({name: 'GasUsed', type: 'float'})
-    gasUsed: number;
+  @Column({ name: 'Data' })
+  data: string;
 
-    @Column({name: 'GasWanted', type: 'float'})
-    gasWanted: number;
+  @Column({ name: 'GasUsed', type: 'float' })
+  gasUsed: number;
 
-    @Column({name: 'Height'})
-    height: string;
+  @Column({ name: 'GasWanted', type: 'float' })
+  gasWanted: number;
 
-    @Column({name: 'Info'})
-    info: string;
+  @Column({ name: 'Height' })
+  height: string;
 
-    @Column({name: 'Logs'})
-    logs: string;
+  @Column({ name: 'Info' })
+  info: string;
 
-    @Column({name: 'RawLogs'})
-    rawLogs: string;
+  @Column({ name: 'Logs' })
+  logs: string;
 
-    @Column({name: 'TimeStamp', type: 'timestamp'})
-    timeStamp: Date;
+  @Column({ name: 'RawLogs' })
+  rawLogs: string;
 
-    @Column({name: 'Tx'})
-    tx: string;
+  @Column({ name: 'TimeStamp', type: 'timestamp' })
+  timeStamp: Date;
 
-    @Column({name: 'TxHash'})
-    txHash: string;
+  @Column({ name: 'Tx' })
+  tx: string;
+
+  @Column({ name: 'TxHash' })
+  txHash: string;
 }

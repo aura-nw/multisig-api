@@ -15,7 +15,7 @@ import { SimulatingService } from './services/impls/simulating.service';
 import { TransactionService } from './services/impls/transaction.service';
 import { SharedModule } from './shared/shared.module';
 import { ConfigService } from './shared/services/config.service';
-import { AuthenticationRepository } from './repositories/impls/safe.repository';
+import { MultisigWalletRepository } from './repositories/impls/multisig-wallet.repository';
 
 const controllers = [
   SimulatingController,
@@ -41,8 +41,8 @@ const entities = [ENTITIES_CONFIG.SAFE];
   providers: [
     //repository
     {
-      provide: REPOSITORY_INTERFACE.ISAFE_REPOSITORY,
-      useClass: AuthenticationRepository,
+      provide: REPOSITORY_INTERFACE.IMULTISIG_WALLET_REPOSITORY,
+      useClass: MultisigWalletRepository,
     },
     //service
     {
@@ -59,4 +59,4 @@ const entities = [ENTITIES_CONFIG.SAFE];
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}

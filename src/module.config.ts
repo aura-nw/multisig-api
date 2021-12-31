@@ -32,7 +32,7 @@ export const SERVICE_INTERFACE = {
 };
 
 export const REPOSITORY_INTERFACE = {
-  ISAFE_REPOSITORY: 'ISafeRepository',
+  IMULTISIG_WALLET_REPOSITORY: 'IMultisigWalletRepository',
 };
 
 export const PROVIDER_INTERFACE = {};

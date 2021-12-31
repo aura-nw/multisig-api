@@ -30,7 +30,7 @@ export class MultisigWalletController {
   @Get(':address')
   @ApiOperation({ summary: 'Get status of the multisig wallet' })
   async getMultisigWallet(@Param('address') address: string) {
-    return `Get status of the multisig wallet ${address}`;
+    return await this.multisigWalletService.getMultisigWallet(address);
   }
 
   @Get(':address/balance')

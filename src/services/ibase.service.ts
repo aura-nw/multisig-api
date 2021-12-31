@@ -1,31 +1,30 @@
-import { PaginatorResponse } from '../dtos/responses/paginator.response';
-import { DeleteResult } from 'typeorm';
+import { ResponseDto } from '../dtos/responses/response.dto';
 
-export interface IBaseRepository {
+export interface IBaseService {
   /**
    * findOne
    * @param id
    */
-  findOne(id: any): Promise<any>;
+  findOne(id: any): Promise<ResponseDto>;
 
   /**
    * findByCondition
    * @param filterCondition
    * @param orderBy
    */
-  findByCondition(filterCondition: any, orderBy?: any): Promise<any[]>;
+  findByCondition(filterCondition: any, orderBy: any): Promise<ResponseDto>;
 
   /**
    * findAll
    * @param orderBy
    */
-  findAll(orderBy?: any): Promise<any[]>;
+  findAll(orderBy?: any): Promise<ResponseDto>;
 
   /**
    * findWithRelations
    * @param relations
    */
-  findWithRelations(relations: any): Promise<any[]>;
+  findWithRelations(relations: any): Promise<ResponseDto>;
 
   /**
    * findAndCount
@@ -39,23 +38,23 @@ export interface IBaseRepository {
     pageSize: number,
     condition: any,
     orderBy: any,
-  ): Promise<PaginatorResponse>;
+  ): Promise<ResponseDto>;
 
   /**
    * create
    * @param data
    */
-  create(data: any | any): Promise<any>;
+  create<T>(data: T | any): Promise<ResponseDto>;
 
   /**
    * update
    * @param data
    */
-  update(data: any | any): Promise<any>;
+  update<T>(data: T | any): Promise<ResponseDto>;
 
   /**
    * remove
    * @param id
    */
-  remove(id: any): Promise<DeleteResult>;
+  remove(id: any): Promise<ResponseDto>;
 }
