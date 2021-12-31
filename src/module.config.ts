@@ -31,6 +31,8 @@ export const SERVICE_INTERFACE = {
   ITRANSACTION_SERVICE: 'ITransactionService',
 };
 
-export const REPOSITORY_INTERFACE = {};
+export const REPOSITORY_INTERFACE = {
+  ISAFE_REPOSITORY: 'ISafeRepository',
+};
 
 export const PROVIDER_INTERFACE = {};

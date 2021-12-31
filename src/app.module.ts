@@ -6,13 +6,18 @@ import { SimulatingController } from './controllers/simulating.controller';
 import { TransactionController } from './controllers/transaction.controller';
 import { OwnerController } from './controllers/owner.controller';
 import { NotificationController } from './controllers/notification.controller';
-import { ENTITIES_CONFIG, SERVICE_INTERFACE } from './module.config';
+import {
+  ENTITIES_CONFIG,
+  SERVICE_INTERFACE,
+  REPOSITORY_INTERFACE,
+} from './module.config';
 import { AppService } from './services/app.service';
 import { MultisigWalletService } from './services/impls/multisig-wallet.service';
 import { SimulatingService } from './services/impls/simulating.service';
 import { TransactionService } from './services/impls/transaction.service';
 import { SharedModule } from './shared/shared.module';
 import { ConfigService } from './shared/services/config.service';
+import { SafeRepository } from './repositories/impls/safe.repository';
 
 const controllers = [
   SimulatingController,
@@ -39,10 +44,10 @@ const providers = [];
   providers: [
     // AppService,
     //repository
-    // {
-    //     provide: REPOSITORY_INTERFACE.xxx,
-    //     useClass: xxx
-    // },
+    {
+      provide: REPOSITORY_INTERFACE.ISAFE_REPOSITORY,
+      useClass: SafeRepository,
+    },
     //service
     {
       provide: SERVICE_INTERFACE.ISIMULATING_SERVICE,

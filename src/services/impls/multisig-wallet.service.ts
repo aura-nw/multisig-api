@@ -3,6 +3,7 @@ import { ResponseDto } from 'src/dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { ConfigService } from 'src/shared/services/config.service';
 import { IMultisigWalletService } from '../imultisig-wallet.service';
+import { ISafeRepository } from 'src/repositories/isafe.repository';
 import {
   createMultisigThresholdPubkey,
   Pubkey,
@@ -10,7 +11,11 @@ import {
 } from '@cosmjs/amino';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ObjectLiteral, Repository } from 'typeorm';
-import { ENTITIES_CONFIG, MODULE_REQUEST } from 'src/module.config';
+import {
+  ENTITIES_CONFIG,
+  MODULE_REQUEST,
+  REPOSITORY_INTERFACE,
+} from 'src/module.config';
 import { CommonUtil } from 'src/utils/common.util';
 @Injectable()
 export class MultisigWalletService implements IMultisigWalletService {
@@ -18,8 +23,8 @@ export class MultisigWalletService implements IMultisigWalletService {
   private _commonUtil: CommonUtil = new CommonUtil();
   constructor(
     private configService: ConfigService = new ConfigService(),
-    @InjectRepository(ENTITIES_CONFIG.SAFE)
-    private readonly repos: Repository<ObjectLiteral>,
+    @Inject(REPOSITORY_INTERFACE.ISAFE_REPOSITORY)
+    private _safeRepos: ISafeRepository,
   ) {
     this._logger.log(
       '============== Constructor Multisig Wallet Service ==============',
@@ -46,7 +51,7 @@ export class MultisigWalletService implements IMultisigWalletService {
       safe.pubkey = JSON.stringify(multisigPubkey);
       safe.threshold = threshold;
       safe.owner = this._commonUtil.pubkeyToAddress(pubkey);
-      this.repos.save(safe);
+      this._safeRepos.create(safe);
     }
 
     const res = new ResponseDto();
