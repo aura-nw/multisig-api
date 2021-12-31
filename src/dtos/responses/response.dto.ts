@@ -7,12 +7,12 @@ export class ResponseDto {
   AdditionalData: any;
 
   return?(
-    keyMassage: string | string,
+    errorMap: typeof ErrorMap.SUCCESSFUL,
     data?: any,
     additionalData?: any,
   ): ResponseDto {
-    this.ErrorCode = ErrorMap[keyMassage].Code;
-    this.Message = ErrorMap[keyMassage].Message;
+    this.ErrorCode = errorMap.Code;
+    this.Message = errorMap.Message;
     this.Data = data || {};
     this.AdditionalData = additionalData || [];
     return this;

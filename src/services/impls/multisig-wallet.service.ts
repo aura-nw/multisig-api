@@ -61,11 +61,11 @@ export class MultisigWalletService
         owner: safe.owner,
       });
       if (checkSafe.length > 0) {
-        return res.return('E002', {});
+        return res.return(ErrorMap.EXISTS, {});
       }
       this.repos.create(safe);
     }
-    return res.return(ErrorMap.SUCCESSFUL.Code, result);
+    return res.return(ErrorMap.SUCCESSFUL, result);
   }
 
   createPubkeys(value: string): SinglePubkey {
@@ -77,9 +77,14 @@ export class MultisigWalletService
   }
 
   async getMultisigWallet(address: string): Promise<ResponseDto> {
+    const res = new ResponseDto();
     const safes = await this.repos.findByCondition({
       address: address,
     });
+
+    if (safes && safes.length === 0) {
+      return res.return(ErrorMap.NOTFOUND);
+    }
 
     const owners = safes.map((safe) => {
       return safe.owner;
@@ -91,7 +96,17 @@ export class MultisigWalletService
     safeInfo.owners = owners;
     safeInfo.threshold = safes[0].threshold;
 
+    return res.return(ErrorMap.SUCCESSFUL, safeInfo);
+  }
+
+  async getMultisigWalletsByOwner(ownerAddress: string): Promise<ResponseDto> {
     const res = new ResponseDto();
-    return res.return(ErrorMap.SUCCESSFUL.Code, safeInfo);
+    const safes = await this.repos.findByCondition({
+      address: ownerAddress,
+    });
+    if (safes) {
+      return res.return(ErrorMap.SUCCESSFUL, safes);
+    }
+    return res.return(ErrorMap.NOTFOUND);
   }
 }

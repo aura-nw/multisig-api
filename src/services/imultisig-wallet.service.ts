@@ -15,4 +15,10 @@ export interface IMultisigWalletService {
    * @param request
    */
   getMultisigWallet(address: string): Promise<ResponseDto>;
+
+  /**
+   * Return Safes where the address is an owner
+   * @param ownerAddress string
+   */
+  getMultisigWalletsByOwner(ownerAddress: string): Promise<ResponseDto>;
 }

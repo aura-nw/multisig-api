@@ -18,7 +18,7 @@ export class BaseService implements IBaseService {
   public async findOne(id: any): Promise<ResponseDto> {
     const response = new ResponseDto();
     const result = await this._repos.findOne(id);
-    return response.return(ErrorMap.SUCCESSFUL.Code, result);
+    return response.return(ErrorMap.SUCCESSFUL, result);
   }
 
   /**
@@ -33,7 +33,7 @@ export class BaseService implements IBaseService {
   ): Promise<ResponseDto> {
     const response = new ResponseDto();
     const result = await this._repos.findByCondition(condition, orderBy);
-    return response.return(ErrorMap.SUCCESSFUL.Code, result);
+    return response.return(ErrorMap.SUCCESSFUL, result);
   }
 
   /**
@@ -44,7 +44,7 @@ export class BaseService implements IBaseService {
   public async findWithRelations(relations: any): Promise<ResponseDto> {
     const response = new ResponseDto();
     const result = await this._repos.findWithRelations(relations);
-    return response.return(ErrorMap.SUCCESSFUL.Code, result);
+    return response.return(ErrorMap.SUCCESSFUL, result);
   }
 
   /**
@@ -55,7 +55,7 @@ export class BaseService implements IBaseService {
   public async findAll(orderBy?: any): Promise<ResponseDto> {
     const response = new ResponseDto();
     const result = await this._repos.findAll(orderBy);
-    return response.return(ErrorMap.SUCCESSFUL.Code, result);
+    return response.return(ErrorMap.SUCCESSFUL, result);
   }
 
   /**
@@ -79,7 +79,7 @@ export class BaseService implements IBaseService {
       condition,
       orderBy,
     );
-    return response.return(ErrorMap.SUCCESSFUL.Code, result);
+    return response.return(ErrorMap.SUCCESSFUL, result);
   }
 
   /**
@@ -90,7 +90,7 @@ export class BaseService implements IBaseService {
   public async create<T>(data: T | any): Promise<ResponseDto> {
     const response = new ResponseDto();
     const result = await this._repos.create(data);
-    return response.return(ErrorMap.SUCCESSFUL.Code, result);
+    return response.return(ErrorMap.SUCCESSFUL, result);
   }
 
   /**
@@ -101,7 +101,7 @@ export class BaseService implements IBaseService {
   public async update<T>(data: T | any): Promise<ResponseDto> {
     const response = new ResponseDto();
     const result = await this._repos.update(data);
-    return response.return(ErrorMap.SUCCESSFUL.Code, result);
+    return response.return(ErrorMap.SUCCESSFUL, result);
   }
 
   /**
@@ -112,6 +112,6 @@ export class BaseService implements IBaseService {
   public async remove(id: any): Promise<ResponseDto> {
     const response = new ResponseDto();
     const result = await this._repos.remove(id);
-    return response.return(ErrorMap.SUCCESSFUL.Code, result);
+    return response.return(ErrorMap.SUCCESSFUL, result);
   }
 }

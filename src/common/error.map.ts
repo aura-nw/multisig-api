@@ -7,9 +7,13 @@ export const ErrorMap = {
     Code: 'E001',
     Message: `Invalid address`,
   },
-  E002: {
+  EXISTS: {
     Code: 'E002',
     Message: 'Safe already exists',
+  },
+  NOTFOUND: {
+    Code: 'E003',
+    Message: 'Not found',
   },
   C001: {
     Code: 'C001',

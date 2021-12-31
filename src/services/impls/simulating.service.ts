@@ -121,7 +121,7 @@ export class SimulatingService implements ISimulatingService {
       );
       this._logger.log('result', result);
       const res = new ResponseDto();
-      return res.return(ErrorMap.SUCCESSFUL.Code, result);
+      return res.return(ErrorMap.SUCCESSFUL, result);
     }
   }
 
