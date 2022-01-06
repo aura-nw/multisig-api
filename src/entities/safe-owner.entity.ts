@@ -11,4 +11,6 @@ export class SafeOwner {
   @Column({ name: 'OwnerPubkey' })
   @Column('varchar', { length: 800 })
   ownerPubkey: string;
+
+  // index: [safeId]
 }

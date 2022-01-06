@@ -76,70 +76,29 @@ export class MultisigWalletService
     } catch (err) {
       return res.return(ErrorMap.SOMETHING_WENT_WRONG, {});
     }
-    return res.return(ErrorMap.SUCCESSFUL, {});
+    return res.return(ErrorMap.SUCCESSFUL, safe);
   }
 
-  async insertSafe(
-    safe: any,
-  ): Promise<{ error: typeof ErrorMap.SUCCESSFUL; safe?: any }> {
-    const checkSafe = await this.safeRepo.findByCondition({
-      safeAddress: safe.safeAddress,
-    });
-    if (checkSafe.length > 0) {
-      return { error: ErrorMap.EXISTS };
-    }
-    try {
-      const result = await this.safeRepo.create(safe);
-      return { error: ErrorMap.SUCCESSFUL, safe: result };
-    } catch (err) {
-      return { error: ErrorMap.SOMETHING_WENT_WRONG };
-    }
-  }
-
-  createSafeAddressAndPubkey(
-    pubKeyArrString: string[],
-    threshold: number,
-  ): {
-    pubkey: string;
-    address: string;
-  } {
-    const arrPubkeys = pubKeyArrString.map(this.createPubkeys);
-    const multisigPubkey = createMultisigThresholdPubkey(arrPubkeys, threshold);
-    const multiSigWalletAddress =
-      this._commonUtil.pubkeyToAddress(multisigPubkey);
-    return {
-      pubkey: JSON.stringify(multisigPubkey),
-      address: multiSigWalletAddress,
-    };
-  }
-
-  createPubkeys(value: string): SinglePubkey {
-    const result: SinglePubkey = {
-      type: 'tendermint/PubKeySecp256k1',
-      value,
-    };
-    return result;
-  }
-
-  async getMultisigWallet(address: string): Promise<ResponseDto> {
+  async getMultisigWallet(safeId: string): Promise<ResponseDto> {
+    let condition = this.calculateCondition(safeId);
     const res = new ResponseDto();
-    const safes = await this.safeRepo.findByCondition({
-      address: address,
-    });
+    const safes = await this.safeRepo.findByCondition(condition);
 
     if (safes && safes.length === 0) {
       return res.return(ErrorMap.NOTFOUND);
     }
+    const safe = safes[0];
 
-    const owners = safes.map((safe) => {
-      return safe.owner;
+    const owners = await this.safeOwnerRepo.findByCondition({
+      safeId: safe.id,
     });
 
     const safeInfo = new GetMultisigWalletResponse();
-    safeInfo.address = safes[0].address;
-    safeInfo.pubkeys = safes[0].pubkeys;
-    safeInfo.owners = owners;
-    safeInfo.threshold = safes[0].threshold;
+    safeInfo.address = safe.safeAddress;
+    safeInfo.pubkeys = safe.safePubkey;
+    safeInfo.owners = owners.map((o) => o.ownerAddress);
+    safeInfo.threshold = safe.threshold;
+    safeInfo.status = safe.status;
 
     return res.return(ErrorMap.SUCCESSFUL, safeInfo);
   }
@@ -156,5 +115,57 @@ export class MultisigWalletService
       return res.return(ErrorMap.SUCCESSFUL, { safes });
     }
     return res.return(ErrorMap.NOTFOUND);
+  }
+
+  private calculateCondition(safeId: string) {
+    return isNaN(Number(safeId))
+      ? {
+          safeAddress: safeId,
+        }
+      : {
+          id: safeId,
+        };
+  }
+
+  private async insertSafe(
+    safe: any,
+  ): Promise<{ error: typeof ErrorMap.SUCCESSFUL; safe?: any }> {
+    const checkSafe = await this.safeRepo.findByCondition({
+      safeAddress: safe.safeAddress,
+    });
+    if (checkSafe.length > 0) {
+      return { error: ErrorMap.EXISTS };
+    }
+    try {
+      const result = await this.safeRepo.create(safe);
+      return { error: ErrorMap.SUCCESSFUL, safe: result };
+    } catch (err) {
+      return { error: ErrorMap.SOMETHING_WENT_WRONG };
+    }
+  }
+
+  private createSafeAddressAndPubkey(
+    pubKeyArrString: string[],
+    threshold: number,
+  ): {
+    pubkey: string;
+    address: string;
+  } {
+    const arrPubkeys = pubKeyArrString.map(this.createPubkeys);
+    const multisigPubkey = createMultisigThresholdPubkey(arrPubkeys, threshold);
+    const multiSigWalletAddress =
+      this._commonUtil.pubkeyToAddress(multisigPubkey);
+    return {
+      pubkey: JSON.stringify(multisigPubkey),
+      address: multiSigWalletAddress,
+    };
+  }
+
+  private createPubkeys(value: string): SinglePubkey {
+    const result: SinglePubkey = {
+      type: 'tendermint/PubKeySecp256k1',
+      value,
+    };
+    return result;
   }
 }

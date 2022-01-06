@@ -27,10 +27,10 @@ export class MultisigWalletController {
     return await this.multisigWalletService.createMultisigWallet(request);
   }
 
-  @Get(':address')
-  @ApiOperation({ summary: 'Get status of the multisig wallet' })
-  async getMultisigWallet(@Param('address') address: string) {
-    return await this.multisigWalletService.getMultisigWallet(address);
+  @Get(':safeId')
+  @ApiOperation({ summary: 'Get status of the multisig wallet by safeId' })
+  async getMultisigWalletById(@Param('safeId') safeId: string) {
+    return await this.multisigWalletService.getMultisigWallet(safeId);
   }
 
   @Get(':address/balance')

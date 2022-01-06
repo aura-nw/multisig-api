@@ -18,4 +18,6 @@ export class Safe extends BaseEntityAutoId {
 
   @Column({ name: 'Status' })
   status: string;
+
+  // index: [SafeAddress]
 }
