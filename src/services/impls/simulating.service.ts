@@ -14,6 +14,8 @@ import {
   Secp256k1HdWallet,
   Secp256k1Pubkey,
   SinglePubkey,
+  StdSignDoc,
+  serializeSignDoc,
 } from '@cosmjs/amino';
 import {
   makeMultisignedTx,
@@ -23,11 +25,13 @@ import {
   StargateClient,
 } from '@cosmjs/stargate';
 
+import { Secp256k1, Secp256k1Signature, sha256 } from '@cosmjs/crypto';
+
 import { MsgSend } from 'cosmjs-types/cosmos/bank/v1beta1/tx';
 import { coins } from '@cosmjs/proto-signing';
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { Cache } from 'cache-manager';
-import { Bech32, fromHex, toBase64 } from '@cosmjs/encoding';
+import { fromBase64, toUtf8 } from '@cosmjs/encoding';
 import { assert } from '@cosmjs/utils';
 import { ConfigService } from 'src/shared/services/config.service';
 @Injectable()
@@ -150,5 +154,59 @@ export class SimulatingService implements ISimulatingService {
       signerData,
     );
     return [pubkey, signatures[0], bb];
+  }
+
+  async simulateSignDeleteSafe(
+    request: MODULE_REQUEST.SimulatingSignMsgRequest,
+  ) {
+    const res = new ResponseDto();
+    const { mnemonic, safeId } = request;
+
+    const actionMsg = JSON.stringify({
+      delete: true,
+      safeId,
+    });
+
+    const client = await StargateClient.connect(
+      this.configService.get('TENDERMINT_URL'),
+    );
+
+    const wallet = await Secp256k1HdWallet.fromMnemonic(mnemonic, {
+      prefix: this._prefix,
+    });
+
+    const { address, pubkey } = (await wallet.getAccounts())[0];
+
+    const accountOnChain = await client.getAccount(address);
+    assert(accountOnChain, 'Account does not exist on chain');
+
+    const signDoc = {
+      msgs: [],
+      fee: { amount: [], gas: '0' },
+      chain_id: await client.getChainId(),
+      memo: actionMsg,
+      account_number: accountOnChain.accountNumber.toString(),
+      sequence: accountOnChain.sequence.toString(),
+    };
+
+    const result: { signed; signature } = await wallet.signAmino(
+      address,
+      signDoc,
+    );
+    // console.log('signed: ', result.signed);
+    // console.log('signature: ', result.signature);
+
+    const msg = sha256(serializeSignDoc(result.signed));
+    console.log('msg: ', msg);
+
+    const valid = await Secp256k1.verifySignature(
+      Secp256k1Signature.fromFixedLength(
+        fromBase64(result.signature.signature),
+      ),
+      msg,
+      pubkey,
+    );
+
+    return res.return(ErrorMap.SUCCESSFUL, { ...result, valid });
   }
 }

@@ -17,4 +17,19 @@ export class MultisigWalletRepository
   ) {
     super(repos);
   }
+
+  async getMultisigWalletsByOwner(ownerAddress: string) {
+    let sqlQuerry = this.repos
+      .createQueryBuilder('safe')
+      .innerJoin(
+        ENTITIES_CONFIG.SAFE_OWNER,
+        'safeOwner',
+        'safe.id = safeOwner.safeId',
+      )
+      .where('safeOwner.ownerAddress = :ownerAddress', { ownerAddress })
+      .select();
+
+    let resultData = await sqlQuerry.getRawMany();
+    return resultData;
+  }
 }
