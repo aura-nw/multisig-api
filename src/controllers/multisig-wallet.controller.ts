@@ -6,6 +6,7 @@ import {
   Inject,
   Body,
   Param,
+  Delete,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CONTROLLER_CONSTANTS } from 'src/common/constants/api.constant';
@@ -42,15 +43,25 @@ export class MultisigWalletController {
     return await this.multisigWalletService.confirm(safeId, request);
   }
 
-  @Get(':address/balance')
-  @ApiOperation({ summary: 'Get balance for Aura tokens' })
-  async getBalance(@Param('address') address: string) {
-    return `Get balance for Aura tokens of ${address}`;
+  @Delete(':safeId')
+  @ApiOperation({ summary: 'Delete pending multisig wallet' })
+  async deletePendingMultisigWallet(
+    @Param('safeId') safeId: string,
+    // @Body() request: MODULE_REQUEST.ConfirmMultisigWalletRequest,
+  ) {
+    return `Delete safe ${safeId}`;
+    // return await this.multisigWalletService.confirm(safeId, request);
   }
 
-  @Get(':address/creation')
-  @ApiOperation({ summary: 'Get creation information of Safe' })
-  async getCreation(@Param('address') address: string) {
-    return `Get creation information of ${address}`;
-  }
+  // @Get(':address/balance')
+  // @ApiOperation({ summary: 'Get balance for Aura tokens' })
+  // async getBalance(@Param('address') address: string) {
+  //   return `Get balance for Aura tokens of ${address}`;
+  // }
+
+  // @Get(':address/creation')
+  // @ApiOperation({ summary: 'Get creation information of Safe' })
+  // async getCreation(@Param('address') address: string) {
+  //   return `Get creation information of ${address}`;
+  // }
 }
