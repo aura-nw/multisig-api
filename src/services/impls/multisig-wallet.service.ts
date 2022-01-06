@@ -66,7 +66,7 @@ export class MultisigWalletService
     }
     const safeId = result.safe?.id;
 
-    // insert safe_owner
+    // insert safe_creator
     const safeCreator = new ENTITIES_CONFIG.SAFE_OWNER();
     safeCreator.ownerAddress = creatorAddress;
     safeCreator.ownerPubkey = creatorPubkey;
@@ -76,6 +76,19 @@ export class MultisigWalletService
     } catch (err) {
       return res.return(ErrorMap.SOMETHING_WENT_WRONG, {});
     }
+
+    // insert safe_owner
+    for (const ownerAddress of otherOwnersAddress) {
+      const safeOwner = new ENTITIES_CONFIG.SAFE_OWNER();
+      safeOwner.ownerAddress = ownerAddress;
+      safeOwner.safeId = safeId;
+      try {
+        await this.safeOwnerRepo.create(safeOwner);
+      } catch (err) {
+        return res.return(ErrorMap.SOMETHING_WENT_WRONG, {});
+      }
+    }
+
     return res.return(ErrorMap.SUCCESSFUL, safe);
   }
 

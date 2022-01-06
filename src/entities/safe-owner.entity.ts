@@ -9,7 +9,7 @@ export class SafeOwner {
   ownerAddress: string;
 
   @Column({ name: 'OwnerPubkey' })
-  @Column('varchar', { length: 800 })
+  @Column('varchar', { length: 800, nullable: true })
   ownerPubkey: string;
 
   // index: [safeId]
