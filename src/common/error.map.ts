@@ -15,6 +15,10 @@ export const ErrorMap = {
     Code: 'E003',
     Message: 'Not found',
   },
+  SOMETHING_WENT_WRONG: {
+    Code: 'E004',
+    Message: 'Something went wrong',
+  },
   C001: {
     Code: 'C001',
     Message: `Missing result from Chaincode`,

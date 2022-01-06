@@ -4,13 +4,13 @@ import { ErrorMap } from '../../common/error.map';
 import { ConfigService } from 'src/shared/services/config.service';
 import { IMultisigWalletService } from '../imultisig-wallet.service';
 import { IMultisigWalletRepository } from 'src/repositories/imultisig-wallet.repository';
+import { IMultisigWalletOwnerRepository } from 'src/repositories/imultisig-wallet-owner.repository';
+import { SAFE_STATUS } from 'src/common/constants/app.constant';
 import {
   createMultisigThresholdPubkey,
   Pubkey,
   SinglePubkey,
 } from '@cosmjs/amino';
-import { InjectRepository } from '@nestjs/typeorm';
-import { ObjectLiteral, Repository } from 'typeorm';
 import {
   ENTITIES_CONFIG,
   MODULE_REQUEST,
@@ -29,9 +29,11 @@ export class MultisigWalletService
   constructor(
     private configService: ConfigService = new ConfigService(),
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_REPOSITORY)
-    private repos: IMultisigWalletRepository,
+    private safeRepo: IMultisigWalletRepository,
+    @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_OWNER_REPOSITORY)
+    private safeOwnerRepo: IMultisigWalletOwnerRepository, //
   ) {
-    super(repos);
+    super(safeRepo);
     this._logger.log(
       '============== Constructor Multisig Wallet Service ==============',
     );
@@ -40,32 +42,75 @@ export class MultisigWalletService
     request: MODULE_REQUEST.CreateMultisigWalletRequest,
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
-    const { threshold, pubkeys } = request;
-    const arrPubkeys = pubkeys.map(this.createPubkeys);
+    const { creatorAddress, creatorPubkey, otherOwnersAddress, threshold } =
+      request;
+
+    // insert safe
+    const safe = new ENTITIES_CONFIG.SAFE();
+    safe.creatorAddress = creatorAddress;
+    safe.threshold = threshold;
+    if (otherOwnersAddress.length === 0) {
+      const safeInfo = this.createSafeAddressAndPubkey(
+        [creatorPubkey],
+        threshold,
+      );
+      safe.safeAddress = safeInfo.address;
+      safe.safePubkey = safeInfo.pubkey;
+      safe.status = SAFE_STATUS.CREATED;
+    } else {
+      safe.status = SAFE_STATUS.PENDING;
+    }
+    const result = await this.insertSafe(safe);
+    if (result.error !== ErrorMap.SUCCESSFUL) {
+      return res.return(result.error, {});
+    }
+    const safeId = result.safe?.id;
+
+    // insert safe_owner
+    const safeCreator = new ENTITIES_CONFIG.SAFE_OWNER();
+    safeCreator.ownerAddress = creatorAddress;
+    safeCreator.ownerPubkey = creatorPubkey;
+    safeCreator.safeId = safeId;
+    try {
+      await this.safeOwnerRepo.create(safeCreator);
+    } catch (err) {
+      return res.return(ErrorMap.SOMETHING_WENT_WRONG, {});
+    }
+    return res.return(ErrorMap.SUCCESSFUL, {});
+  }
+
+  async insertSafe(
+    safe: any,
+  ): Promise<{ error: typeof ErrorMap.SUCCESSFUL; safe?: any }> {
+    const checkSafe = await this.safeRepo.findByCondition({
+      safeAddress: safe.safeAddress,
+    });
+    if (checkSafe.length > 0) {
+      return { error: ErrorMap.EXISTS };
+    }
+    try {
+      const result = await this.safeRepo.create(safe);
+      return { error: ErrorMap.SUCCESSFUL, safe: result };
+    } catch (err) {
+      return { error: ErrorMap.SOMETHING_WENT_WRONG };
+    }
+  }
+
+  createSafeAddressAndPubkey(
+    pubKeyArrString: string[],
+    threshold: number,
+  ): {
+    pubkey: string;
+    address: string;
+  } {
+    const arrPubkeys = pubKeyArrString.map(this.createPubkeys);
     const multisigPubkey = createMultisigThresholdPubkey(arrPubkeys, threshold);
     const multiSigWalletAddress =
       this._commonUtil.pubkeyToAddress(multisigPubkey);
-    let result = {
+    return {
       pubkey: JSON.stringify(multisigPubkey),
       address: multiSigWalletAddress,
     };
-
-    for (const pubkey of arrPubkeys) {
-      const safe = new ENTITIES_CONFIG.SAFE();
-      safe.address = multiSigWalletAddress;
-      safe.pubkey = JSON.stringify(multisigPubkey);
-      safe.threshold = threshold;
-      safe.owner = this._commonUtil.pubkeyToAddress(pubkey);
-      const checkSafe = await this.repos.findByCondition({
-        address: safe.address,
-        owner: safe.owner,
-      });
-      if (checkSafe.length > 0) {
-        return res.return(ErrorMap.EXISTS, {});
-      }
-      this.repos.create(safe);
-    }
-    return res.return(ErrorMap.SUCCESSFUL, result);
   }
 
   createPubkeys(value: string): SinglePubkey {
@@ -78,7 +123,7 @@ export class MultisigWalletService
 
   async getMultisigWallet(address: string): Promise<ResponseDto> {
     const res = new ResponseDto();
-    const safes = await this.repos.findByCondition({
+    const safes = await this.safeRepo.findByCondition({
       address: address,
     });
 
@@ -101,7 +146,7 @@ export class MultisigWalletService
 
   async getMultisigWalletsByOwner(ownerAddress: string): Promise<ResponseDto> {
     const res = new ResponseDto();
-    const result = await this.repos.findByCondition({
+    const result = await this.safeRepo.findByCondition({
       address: ownerAddress,
     });
     if (result) {
