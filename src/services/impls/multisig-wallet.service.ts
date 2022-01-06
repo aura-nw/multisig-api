@@ -19,6 +19,8 @@ import {
 import { CommonUtil } from 'src/utils/common.util';
 import { BaseService } from './base.service';
 import { GetMultisigWalletResponse } from 'src/dtos/responses/multisig-wallet/get-multisig-wallet.response';
+import { Safe } from 'src/entities/safe.entity';
+import { SafeOwner } from 'src/entities/safe-owner.entity';
 @Injectable()
 export class MultisigWalletService
   extends BaseService
@@ -114,6 +116,59 @@ export class MultisigWalletService
     safeInfo.status = safe.status;
 
     return res.return(ErrorMap.SUCCESSFUL, safeInfo);
+  }
+
+  async confirm(
+    safeId: string,
+    request: MODULE_REQUEST.ConfirmMultisigWalletRequest,
+  ): Promise<ResponseDto> {
+    const res = new ResponseDto();
+    const { myAddress, myPubkey } = request;
+    const condition = this.calculateCondition(safeId);
+    try {
+      // find safe
+      const safes = (await this.safeRepo.findByCondition(condition)) as Safe[];
+      if (safes.length === 0) return res.return(ErrorMap.NOTFOUND);
+      const safe = safes[0];
+
+      // check safe was created
+      if (safe.status === SAFE_STATUS.CREATED)
+        return res.return(ErrorMap.SAFE_WAS_CREATED);
+
+      // get safe owners
+      const safeOwners = (await this.safeOwnerRepo.findByCondition({
+        safeId: safe.id,
+      })) as SafeOwner[];
+      if (safeOwners.length === 0) return res.return(ErrorMap.NOTFOUND);
+
+      // get safe owner by address
+      const safeOwner = safeOwners.find((s) => s.ownerAddress === myAddress);
+      if (!safeOwner) return res.return(ErrorMap.NOTFOUND);
+      if (safeOwner.ownerPubkey !== null)
+        return res.return(ErrorMap.SAFE_OWNER_PUBKEY_NOT_EMPTY);
+
+      // update safe owner
+      safeOwner.ownerPubkey = myPubkey;
+      const updateResult = await this.safeOwnerRepo.update(safeOwner);
+      if (!updateResult) return res.return(ErrorMap.SOMETHING_WENT_WRONG, {});
+
+      // calculate owner pubKey array
+      const pubkeys = safeOwners.map((s) => {
+        return s.ownerAddress === myAddress ? myPubkey : s.ownerPubkey;
+      });
+
+      // generate safe address and pubkey
+      const safeInfo = this.createSafeAddressAndPubkey(pubkeys, safe.threshold);
+      safe.safeAddress = safeInfo.address;
+      safe.safePubkey = safeInfo.pubkey;
+      safe.status = SAFE_STATUS.CREATED;
+
+      // update safe
+      const result = this.safeRepo.update(safe);
+      return res.return(ErrorMap.SUCCESSFUL, result);
+    } catch (err) {
+      return res.return(ErrorMap.SOMETHING_WENT_WRONG, {});
+    }
   }
 
   async getMultisigWalletsByOwner(ownerAddress: string): Promise<ResponseDto> {

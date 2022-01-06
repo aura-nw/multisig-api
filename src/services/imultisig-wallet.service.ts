@@ -12,13 +12,23 @@ export interface IMultisigWalletService {
 
   /**
    * get multisig wallet
-   * @param request
+   * @param safeId string - id/address of safe
    */
-  getMultisigWallet(address: string): Promise<ResponseDto>;
+  getMultisigWallet(safeId: string): Promise<ResponseDto>;
 
   /**
    * Return Safes where the address is an owner
    * @param ownerAddress string
    */
   getMultisigWalletsByOwner(ownerAddress: string): Promise<ResponseDto>;
+
+  /**
+   * Confirm
+   * @param safeId string - id/address of safe
+   * @param request
+   */
+  confirm(
+    safeId: string,
+    request: MODULE_REQUEST.ConfirmMultisigWalletRequest,
+  ): Promise<ResponseDto>;
 }

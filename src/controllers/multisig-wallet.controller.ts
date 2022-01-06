@@ -29,8 +29,17 @@ export class MultisigWalletController {
 
   @Get(':safeId')
   @ApiOperation({ summary: 'Get status of the multisig wallet by safeId' })
-  async getMultisigWalletById(@Param('safeId') safeId: string) {
+  async getMultisigWallet(@Param('safeId') safeId: string) {
     return await this.multisigWalletService.getMultisigWallet(safeId);
+  }
+
+  @Post(':safeId/confirm')
+  @ApiOperation({ summary: 'Confirm multisig wallet' })
+  async confirmMultisigWallet(
+    @Param('safeId') safeId: string,
+    @Body() request: MODULE_REQUEST.ConfirmMultisigWalletRequest,
+  ) {
+    return await this.multisigWalletService.confirm(safeId, request);
   }
 
   @Get(':address/balance')

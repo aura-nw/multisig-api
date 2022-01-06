@@ -19,6 +19,14 @@ export const ErrorMap = {
     Code: 'E004',
     Message: 'Something went wrong',
   },
+  SAFE_WAS_CREATED: {
+    Code: 'E005',
+    Message: 'This safe was created',
+  },
+  SAFE_OWNER_PUBKEY_NOT_EMPTY: {
+    Code: 'E006',
+    Message: 'The pubkey of this safe owner is not empty',
+  },
   C001: {
     Code: 'C001',
     Message: `Missing result from Chaincode`,
