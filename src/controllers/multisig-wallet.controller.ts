@@ -7,9 +7,11 @@ import {
   Body,
   Param,
   Delete,
-  Logger
+  Logger,
+  HttpCode,
+  HttpStatus
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CONTROLLER_CONSTANTS, URL_CONSTANTS } from 'src/common/constants/api.constant';
 import { MODULE_REQUEST, SERVICE_INTERFACE } from 'src/module.config';
 import { IMultisigWalletService } from 'src/services/imultisig-wallet.service';
@@ -66,4 +68,15 @@ export class MultisigWalletController {
   // async getCreation(@Param('address') address: string) {
   //   return `Get creation information of ${address}`;
   // }
+
+  @Post()
+  @ApiOperation({ summary: 'Connect multisig wallet' })
+  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  @HttpCode(HttpStatus.OK)
+  async createIAO(@Body() request: MODULE_REQUEST.ConnectMultisigWalletRequest) {
+    this._logger.log('========== Connect multisig wallet ==========');
+      return await this.multisigWalletService.connectMultisigWalletByAddress(request);
+  }
+
+
 }

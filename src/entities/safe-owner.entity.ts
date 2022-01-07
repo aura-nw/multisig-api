@@ -5,7 +5,7 @@ export class SafeOwner {
   @PrimaryColumn({ name: 'SafeId' })
   safeId: string;
 
-  @PrimaryColumn({ name: 'OwnerAddress' })
+  @Column({ name: 'OwnerAddress' })
   ownerAddress: string;
 
   @Column({ name: 'OwnerPubkey' })
