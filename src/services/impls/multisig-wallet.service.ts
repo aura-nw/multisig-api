@@ -203,16 +203,9 @@ export class MultisigWalletService
 
   async getMultisigWalletsByOwner(ownerAddress: string): Promise<ResponseDto> {
     const res = new ResponseDto();
-    const result = await this.safeRepo.findByCondition({
-      address: ownerAddress,
-    });
-    if (result) {
-      const safes = result.map((s) => {
-        return s.address;
-      });
-      return res.return(ErrorMap.SUCCESSFUL, { safes });
-    }
-    return res.return(ErrorMap.NOTFOUND);
+    const result = await this.safeRepo.getMultisigWalletsByOwner(ownerAddress);
+    // const groupResult = this._commonUtil.groupBy(result, 'status');
+    return res.return(ErrorMap.SUCCESSFUL, result);
   }
 
   private calculateCondition(safeId: string) {

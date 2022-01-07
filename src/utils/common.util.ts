@@ -13,4 +13,17 @@ export class CommonUtil {
   public pubkeyToAddress(pubkey: Pubkey): string {
     return pubkeyToAddress(pubkey, this.configService.get('PREFIX'));
   }
+
+  /**
+   * https://stackoverflow.com/a/34890276
+   * @param xs
+   * @param key
+   * @returns
+   */
+  public groupBy<TItem>(xs: TItem[], key: string): { [key: string]: TItem[] } {
+    return xs.reduce(function (rv, x) {
+      (rv[x[key]] = rv[x[key]] || []).push(x);
+      return rv;
+    }, {});
+  }
 }

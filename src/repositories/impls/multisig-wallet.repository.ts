@@ -27,7 +27,13 @@ export class MultisigWalletRepository
         'safe.id = safeOwner.safeId',
       )
       .where('safeOwner.ownerAddress = :ownerAddress', { ownerAddress })
-      .select();
+      .select([
+        'safe.id as id',
+        'safe.safeAddress as safeAddress',
+        'safe.creatorAddress as creatorAddress',
+        'safe.status as status',
+        'safeOwner.ownerAddress as ownerAddress',
+      ]);
 
     let resultData = await sqlQuerry.getRawMany();
     return resultData;
