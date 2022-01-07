@@ -131,9 +131,9 @@ export class MultisigWalletService
       if (safes.length === 0) return res.return(ErrorMap.NOTFOUND);
       const safe = safes[0];
 
-      // check safe was created
-      if (safe.status === SAFE_STATUS.CREATED)
-        return res.return(ErrorMap.SAFE_WAS_CREATED);
+      // check safe
+      if (safe.status !== SAFE_STATUS.PENDING)
+        return res.return(ErrorMap.SAFE_NOT_PENDING);
 
       // get safe owners
       const safeOwners = (await this.safeOwnerRepo.findByCondition({
@@ -168,6 +168,36 @@ export class MultisigWalletService
       return res.return(ErrorMap.SUCCESSFUL, result);
     } catch (err) {
       return res.return(ErrorMap.SOMETHING_WENT_WRONG, {});
+    }
+  }
+
+  async deletePending(
+    safeId: string,
+    request: MODULE_REQUEST.DeleteMultisigWalletRequest,
+  ): Promise<ResponseDto> {
+    const res = new ResponseDto();
+    const { myAddress } = request;
+    const condition = this.calculateCondition(safeId);
+
+    // get safe & check
+    const safes = await this.safeRepo.findByCondition(condition);
+    if (safes.length === 0) return res.return(ErrorMap.NOTFOUND);
+    const safe = safes[0] as Safe;
+    console.log(safe);
+    if (safe.creatorAddress !== myAddress)
+      return res.return(ErrorMap.ADDRESS_NOT_CREATOR);
+    if (safe.status !== SAFE_STATUS.PENDING)
+      return res.return(ErrorMap.SAFE_NOT_PENDING);
+
+    // update status pending => deleted
+    safe.status = SAFE_STATUS.DELETED;
+
+    try {
+      await this.safeRepo.update(safe);
+      res.return(ErrorMap.SUCCESSFUL, {});
+    } catch (err) {
+      this._logger.error(err);
+      return res.return(ErrorMap.SOMETHING_WENT_WRONG);
     }
   }
 

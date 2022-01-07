@@ -34,7 +34,7 @@ export class MultisigWalletController {
     return await this.multisigWalletService.getMultisigWallet(safeId);
   }
 
-  @Post(':safeId/confirm')
+  @Post(':safeId')
   @ApiOperation({ summary: 'Confirm multisig wallet' })
   async confirmMultisigWallet(
     @Param('safeId') safeId: string,
@@ -47,10 +47,9 @@ export class MultisigWalletController {
   @ApiOperation({ summary: 'Delete pending multisig wallet' })
   async deletePendingMultisigWallet(
     @Param('safeId') safeId: string,
-    // @Body() request: MODULE_REQUEST.ConfirmMultisigWalletRequest,
+    @Body() request: MODULE_REQUEST.DeleteMultisigWalletRequest,
   ) {
-    return `Delete safe ${safeId}`;
-    // return await this.multisigWalletService.confirm(safeId, request);
+    return await this.multisigWalletService.deletePending(safeId, request);
   }
 
   // @Get(':address/balance')

@@ -27,6 +27,18 @@ export const ErrorMap = {
     Code: 'E006',
     Message: 'The pubkey of this safe owner is not empty',
   },
+  SAFE_NOT_PENDING: {
+    Code: 'E007',
+    Message: 'The status of this safe is not pending',
+  },
+  ADDRESS_NOT_CREATOR: {
+    Code: 'E008',
+    Message: 'You do not have permission. Require creator!',
+  },
+  SAFE_WAS_DELETED: {
+    Code: 'E009',
+    Message: 'This safe was created',
+  },
   C001: {
     Code: 'C001',
     Message: `Missing result from Chaincode`,

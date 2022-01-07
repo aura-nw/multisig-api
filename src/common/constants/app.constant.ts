@@ -11,4 +11,5 @@ export enum DATABASE_TYPE {
 export enum SAFE_STATUS {
   PENDING = 'pending',
   CREATED = 'created',
+  DELETED = 'deleted',
 }
