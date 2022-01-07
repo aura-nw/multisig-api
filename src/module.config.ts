@@ -1,3 +1,4 @@
+import { ConnectMultisigWalletRequest } from './dtos/requests/multisig-wallet/connect-multisig-wallet.request';
 import { CreateMultisigWalletRequest } from './dtos/requests/multisig-wallet/create-multisig-wallet.request';
 import { ConfirmMultisigWalletRequest } from './dtos/requests/multisig-wallet/confirm-multisig-wallet.request';
 import { DeleteMultisigWalletRequest } from './dtos/requests/multisig-wallet/delete-multisig-wallet.request';
@@ -23,6 +24,7 @@ export const REQUEST_CONFIG = {
   CREATE_TRANSACTION_REQUEST: CreateTransactionRequest,
   SINGLE_SIGN_TRANSACTION_REQUEST: SingleSignTransactionRequest,
   BROADCAST_TRANSACTION_REQUEST: BroadcastTransactionRequest,
+  CONNECT_WALLET_TO_GET_INFORMATION: ConnectMultisigWalletRequest
 };
 
 export module MODULE_REQUEST {
@@ -34,6 +36,7 @@ export module MODULE_REQUEST {
   export abstract class CreateTransactionRequest extends REQUEST_CONFIG.CREATE_TRANSACTION_REQUEST {}
   export abstract class SingleSignTransactionRequest extends REQUEST_CONFIG.SINGLE_SIGN_TRANSACTION_REQUEST {}
   export abstract class BroadcastTransactionRequest extends REQUEST_CONFIG.BROADCAST_TRANSACTION_REQUEST {}
+  export abstract class ConnectMultisigWalletRequest extends REQUEST_CONFIG.CONNECT_WALLET_TO_GET_INFORMATION {}
 }
 
 export const SERVICE_INTERFACE = {

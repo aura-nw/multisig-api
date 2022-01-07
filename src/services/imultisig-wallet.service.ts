@@ -23,6 +23,10 @@ export interface IMultisigWalletService {
   getMultisigWalletsByOwner(ownerAddress: string): Promise<ResponseDto>;
 
   /**
+   * Connect to multisig wallet
+   */
+  connectMultisigWalletByAddress(request: MODULE_REQUEST.ConnectMultisigWalletRequest): Promise<ResponseDto>;
+  /** 
    * Confirm
    * @param safeId string - id/address of safe
    * @param request

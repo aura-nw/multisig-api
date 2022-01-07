@@ -40,6 +40,11 @@ export class MultisigWalletService
       '============== Constructor Multisig Wallet Service ==============',
     );
   }
+
+  async connectMultisigWalletByAddress(request: MODULE_REQUEST.ConnectMultisigWalletRequest): Promise<ResponseDto> {
+    throw new Error('Method not implemented.');
+  }
+
   async createMultisigWallet(
     request: MODULE_REQUEST.CreateMultisigWalletRequest,
   ): Promise<ResponseDto> {

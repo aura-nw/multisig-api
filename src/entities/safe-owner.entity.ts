@@ -1,11 +1,12 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity } from 'typeorm';
+import { BaseEntityAutoId } from './base/base.entity';
 
 @Entity({ name: 'SafeOwner' })
-export class SafeOwner {
-  @PrimaryColumn({ name: 'SafeId' })
+export class SafeOwner extends BaseEntityAutoId {
+  @Column({ name: 'SafeId' })
   safeId: string;
 
-  @PrimaryColumn({ name: 'OwnerAddress' })
+  @Column({ name: 'OwnerAddress' })
   ownerAddress: string;
 
   @Column({ name: 'OwnerPubkey' })
