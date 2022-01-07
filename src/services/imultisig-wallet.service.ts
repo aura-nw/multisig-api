@@ -21,4 +21,9 @@ export interface IMultisigWalletService {
    * @param ownerAddress string
    */
   getMultisigWalletsByOwner(ownerAddress: string): Promise<ResponseDto>;
+
+  /**
+   * Connect to multisig wallet
+   */
+  connectMultisigWalletByAddress(request: MODULE_REQUEST.ConnectMultisigWalletRequest): Promise<ResponseDto>;
 }

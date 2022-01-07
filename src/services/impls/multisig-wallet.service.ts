@@ -36,6 +36,7 @@ export class MultisigWalletService
       '============== Constructor Multisig Wallet Service ==============',
     );
   }
+
   async createMultisigWallet(
     request: MODULE_REQUEST.CreateMultisigWalletRequest,
   ): Promise<ResponseDto> {
@@ -52,13 +53,13 @@ export class MultisigWalletService
 
     for (const pubkey of arrPubkeys) {
       const safe = new ENTITIES_CONFIG.SAFE();
-      safe.address = multiSigWalletAddress;
+      safe.safe_address = multiSigWalletAddress;
       safe.pubkey = JSON.stringify(multisigPubkey);
       safe.threshold = threshold;
-      safe.owner = this._commonUtil.pubkeyToAddress(pubkey);
+      safe.owner_address = this._commonUtil.pubkeyToAddress(pubkey);
       const checkSafe = await this.repos.findByCondition({
-        address: safe.address,
-        owner: safe.owner,
+        safe_address: safe.safe_address,
+        owner_address: safe.owner_address,
       });
       if (checkSafe.length > 0) {
         return res.return(ErrorMap.EXISTS, {});
@@ -111,5 +112,17 @@ export class MultisigWalletService
       return res.return(ErrorMap.SUCCESSFUL, { safes });
     }
     return res.return(ErrorMap.NOTFOUND);
+  }
+
+  async connectMultisigWalletByAddress(request: MODULE_REQUEST.ConnectMultisigWalletRequest): Promise<ResponseDto> {
+    const res = new ResponseDto();
+    try {
+      
+    } catch (error) {
+      this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
+      this._logger.error(`${error.name}: ${error.message}`);
+      this._logger.error(`${error.stack}`);
+      return res.return(ErrorMap.E500);
+    }
   }
 }

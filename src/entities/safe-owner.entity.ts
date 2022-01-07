@@ -2,7 +2,7 @@ import { BaseEntityAutoId } from "./base/base.entity";
 import { Column, Entity } from "typeorm";
 
 @Entity({ name: 'Safe_Owner' })
-export class Owner extends BaseEntityAutoId {
+export class SafeOwner extends BaseEntityAutoId {
     @Column({name: 'Safe_Id'})
     safeId: string;
 

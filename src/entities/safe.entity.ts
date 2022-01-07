@@ -3,16 +3,18 @@ import { Column, Entity } from 'typeorm';
 
 @Entity({ name: 'Safe' })
 export class Safe extends BaseEntityAutoId {
-  @Column({ name: 'Address' })
-  address: string;
+  @Column({ name: 'SafeAddress' })
+  safe_address: string;
 
-  @Column({ name: 'Owner' })
-  owner: string;
+  @Column({ name: 'OwnerAddress' })
+  owner_address: string;
 
   @Column({ name: 'Threshold' })
   threshold: number;
 
-  @Column({ name: 'Pubkey' })
-  @Column('varchar', { length: 800 })
+  @Column({ name: 'OwnerPubkey' })
   pubkey: string;
+
+  @Column({ name: 'Status' })
+  status: string;
 }
