@@ -16,8 +16,24 @@ export class MultisigWalletRepository extends BaseRepository implements IMultisi
     super(repos);
   }
 
+<<<<<<< HEAD
   async getMultisigWalletInformation(safe_address: string, chainId: string, pubkeys: string) {
     let query = this.repos.createQueryBuilder("safe").innerJoin(SafeOwner, "safeOwner", "safe.safeId = safe.id")
                           .where("safe.")
+=======
+  async getMultisigWalletsByOwner(ownerAddress: string) {
+    let sqlQuerry = this.repos
+      .createQueryBuilder('safe')
+      .innerJoin(
+        ENTITIES_CONFIG.SAFE_OWNER,
+        'safeOwner',
+        'safe.id = safeOwner.safeId',
+      )
+      .where('safeOwner.ownerAddress = :ownerAddress', { ownerAddress })
+      .select();
+
+    let resultData = await sqlQuerry.getRawMany();
+    return resultData;
+>>>>>>> ffcfc9ac72d198e1e86c34312c7c19e6a0e5c430
   }
 }

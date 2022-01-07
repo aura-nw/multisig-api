@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Inject, Body, Param, Logger} from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Query,
+  Inject,
+  Body,
+  Param,
+  Delete,
+  Logger
+} from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CONTROLLER_CONSTANTS, URL_CONSTANTS } from 'src/common/constants/api.constant';
 import { MODULE_REQUEST, SERVICE_INTERFACE } from 'src/module.config';
@@ -21,28 +31,39 @@ export class MultisigWalletController {
     return await this.multisigWalletService.createMultisigWallet(request);
   }
 
-  @Get(':address')
-  @ApiOperation({ summary: 'Get status of the multisig wallet' })
-  async getMultisigWallet(@Param('address') address: string) {
-    return await this.multisigWalletService.getMultisigWallet(address);
+  @Get(':safeId')
+  @ApiOperation({ summary: 'Get status of the multisig wallet by safeId' })
+  async getMultisigWallet(@Param('safeId') safeId: string) {
+    return await this.multisigWalletService.getMultisigWallet(safeId);
   }
 
-  @Get(':address/balance')
-  @ApiOperation({ summary: 'Get balance for Aura tokens' })
-  async getBalance(@Param('address') address: string) {
-    return `Get balance for Aura tokens of ${address}`;
+  @Post(':safeId')
+  @ApiOperation({ summary: 'Confirm multisig wallet' })
+  async confirmMultisigWallet(
+    @Param('safeId') safeId: string,
+    @Body() request: MODULE_REQUEST.ConfirmMultisigWalletRequest,
+  ) {
+    return await this.multisigWalletService.confirm(safeId, request);
   }
 
-  @Get(':address/creation')
-  @ApiOperation({ summary: 'Get creation information of Safe' })
-  async getCreation(@Param('address') address: string) {
-    return `Get creation information of ${address}`;
+  @Delete(':safeId')
+  @ApiOperation({ summary: 'Delete pending multisig wallet' })
+  async deletePendingMultisigWallet(
+    @Param('safeId') safeId: string,
+    @Body() request: MODULE_REQUEST.DeleteMultisigWalletRequest,
+  ) {
+    return await this.multisigWalletService.deletePending(safeId, request);
   }
 
-  @Post(URL_CONSTANTS.CONNECT_WALLET)
-  @ApiOperation({ summary: 'Connect wallet then get information of Safe' })
-  async connectWallet(@Body() request: MODULE_REQUEST.ConnectMultisigWalletRequest) {
-    this._logger.log('========== Update asset ==========');
-    return await this.multisigWalletService.connectMultisigWalletByAddress(request);
-  }
+  // @Get(':address/balance')
+  // @ApiOperation({ summary: 'Get balance for Aura tokens' })
+  // async getBalance(@Param('address') address: string) {
+  //   return `Get balance for Aura tokens of ${address}`;
+  // }
+
+  // @Get(':address/creation')
+  // @ApiOperation({ summary: 'Get creation information of Safe' })
+  // async getCreation(@Param('address') address: string) {
+  //   return `Get creation information of ${address}`;
+  // }
 }

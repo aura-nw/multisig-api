@@ -1,12 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateMultisigWalletRequest {
-    @ApiProperty()
-    name: string;
+  @ApiProperty()
+  creatorAddress: string;
 
-    @ApiProperty({ type: [String] })
-    pubkeys: string[];
+  @ApiProperty()
+  creatorPubkey: string;
 
-    @ApiProperty()
-    threshold: number;
+  @ApiProperty({ type: [String] })
+  otherOwnersAddress: string[];
+
+  @ApiProperty()
+  threshold: number;
 }

@@ -1,15 +1,16 @@
-import { BaseEntityAutoId } from "./base/base.entity";
-import { Column, Entity } from "typeorm";
+import { Column, Entity, PrimaryColumn } from 'typeorm';
 
-@Entity({ name: 'Safe_Owner' })
-export class SafeOwner extends BaseEntityAutoId {
-    @Column({name: 'Safe_Id'})
-    safeId: string;
+@Entity({ name: 'SafeOwner' })
+export class SafeOwner {
+  @PrimaryColumn({ name: 'SafeId' })
+  safeId: string;
 
-    @Column({name: 'Owner_Address'})
-    ownerAddress: string;
- 
-    @Column({name: 'Owner_Pubkey'})
-    ownerPubkey: string;
+  @PrimaryColumn({ name: 'OwnerAddress' })
+  ownerAddress: string;
+
+  @Column({ name: 'OwnerPubkey' })
+  @Column('varchar', { length: 800, nullable: true })
+  ownerPubkey: string;
+
+  // index: [safeId]
 }
-

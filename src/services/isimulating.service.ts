@@ -9,4 +9,12 @@ export interface ISimulatingService {
   simulating(
     request: MODULE_REQUEST.SimulatingMultisigRequest,
   ): Promise<ResponseDto>;
+
+  /**
+   * simulating sign msg
+   * @param request
+   */
+  simulateSignDeleteSafe(
+    request: MODULE_REQUEST.SimulatingSignMsgRequest,
+  ): Promise<any>;
 }

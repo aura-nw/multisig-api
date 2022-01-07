@@ -15,6 +15,30 @@ export const ErrorMap = {
     Code: 'E003',
     Message: 'Not found',
   },
+  SOMETHING_WENT_WRONG: {
+    Code: 'E004',
+    Message: 'Something went wrong',
+  },
+  SAFE_WAS_CREATED: {
+    Code: 'E005',
+    Message: 'This safe was created',
+  },
+  SAFE_OWNER_PUBKEY_NOT_EMPTY: {
+    Code: 'E006',
+    Message: 'The pubkey of this safe owner is not empty',
+  },
+  SAFE_NOT_PENDING: {
+    Code: 'E007',
+    Message: 'The status of this safe is not pending',
+  },
+  ADDRESS_NOT_CREATOR: {
+    Code: 'E008',
+    Message: 'You do not have permission. Require creator!',
+  },
+  SAFE_WAS_DELETED: {
+    Code: 'E009',
+    Message: 'This safe was created',
+  },
   C001: {
     Code: 'C001',
     Message: `Missing result from Chaincode`,

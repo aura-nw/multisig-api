@@ -12,9 +12,9 @@ export interface IMultisigWalletService {
 
   /**
    * get multisig wallet
-   * @param request
+   * @param safeId string - id/address of safe
    */
-  getMultisigWallet(address: string): Promise<ResponseDto>;
+  getMultisigWallet(safeId: string): Promise<ResponseDto>;
 
   /**
    * Return Safes where the address is an owner
@@ -26,4 +26,23 @@ export interface IMultisigWalletService {
    * Connect to multisig wallet
    */
   connectMultisigWalletByAddress(request: MODULE_REQUEST.ConnectMultisigWalletRequest): Promise<ResponseDto>;
+  /** 
+   * Confirm
+   * @param safeId string - id/address of safe
+   * @param request
+   */
+  confirm(
+    safeId: string,
+    request: MODULE_REQUEST.ConfirmMultisigWalletRequest,
+  ): Promise<ResponseDto>;
+
+  /**
+   * Delete pending multisig wallet
+   * @param safeId string - id/address of safe
+   * @param request
+   */
+  deletePending(
+    safeId: string,
+    request: MODULE_REQUEST.DeleteMultisigWalletRequest,
+  ): Promise<ResponseDto>;
 }

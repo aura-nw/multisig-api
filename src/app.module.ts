@@ -16,6 +16,7 @@ import { TransactionService } from './services/impls/transaction.service';
 import { SharedModule } from './shared/shared.module';
 import { ConfigService } from './shared/services/config.service';
 import { MultisigWalletRepository } from './repositories/impls/multisig-wallet.repository';
+import { MultisigWalletOwnerRepository } from './repositories/impls/multisig-wallet-owner.repository';
 
 const controllers = [
   SimulatingController,
@@ -25,7 +26,7 @@ const controllers = [
   NotificationController,
   // AppController,
 ];
-const entities = [ENTITIES_CONFIG.SAFE];
+const entities = [ENTITIES_CONFIG.SAFE, ENTITIES_CONFIG.SAFE_OWNER];
 @Module({
   imports: [
     CacheModule.register({ ttl: 10000 }),
@@ -43,6 +44,10 @@ const entities = [ENTITIES_CONFIG.SAFE];
     {
       provide: REPOSITORY_INTERFACE.IMULTISIG_WALLET_REPOSITORY,
       useClass: MultisigWalletRepository,
+    },
+    {
+      provide: REPOSITORY_INTERFACE.IMULTISIG_WALLET_OWNER_REPOSITORY,
+      useClass: MultisigWalletOwnerRepository,
     },
     //service
     {
