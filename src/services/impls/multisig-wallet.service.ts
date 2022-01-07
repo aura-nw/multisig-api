@@ -41,7 +41,9 @@ export class MultisigWalletService
     );
   }
 
-  async connectMultisigWalletByAddress(request: MODULE_REQUEST.ConnectMultisigWalletRequest): Promise<ResponseDto> {
+  async connectMultisigWalletByAddress(
+    request: MODULE_REQUEST.ConnectMultisigWalletRequest,
+  ): Promise<ResponseDto> {
     throw new Error('Method not implemented.');
   }
 
@@ -55,6 +57,7 @@ export class MultisigWalletService
     // insert safe
     const safe = new ENTITIES_CONFIG.SAFE();
     safe.creatorAddress = creatorAddress;
+    safe.creatorPubkey = creatorPubkey;
     safe.threshold = threshold;
     if (otherOwnersAddress.length === 0) {
       const safeInfo = this.createSafeAddressAndPubkey(
