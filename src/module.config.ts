@@ -11,12 +11,14 @@ import { Safe } from './entities/safe.entity';
 import { SafeOwner } from './entities/safe-owner.entity';
 import { CreateTransactionRequest } from './dtos/requests/createTransaction.request';
 import { MultisigConfirm, MultisigTransaction } from './entities';
+import { Chain } from './entities/chain.entity';
 
 export const ENTITIES_CONFIG = {
   SAFE: Safe,
   SAFE_OWNER: SafeOwner,
   MULTISIG_TRANSACTION: MultisigTransaction,
-  MULTISIG_CONFIRM: MultisigConfirm
+  MULTISIG_CONFIRM: MultisigConfirm,
+  CHAIN: Chain,
 };
 
 export const REQUEST_CONFIG = {
@@ -56,7 +58,8 @@ export const REPOSITORY_INTERFACE = {
   IMULTISIG_WALLET_REPOSITORY: 'IMultisigWalletRepository',
   IMULTISIG_WALLET_OWNER_REPOSITORY: 'IMultisigWalletOwnerRepository',
   IMULTISIG_TRANSACTION_REPOSITORY: 'IMultisigTransactionsRepository',
-  IMULTISIG_CONFIRM_REPOSITORY: 'IMultisigConfirmRepository'
+  IMULTISIG_CONFIRM_REPOSITORY: 'IMultisigConfirmRepository',
+  IGENERAL_REPOSITORY: 'IGeneralRepository',
 };
 
 export const PROVIDER_INTERFACE = {};
