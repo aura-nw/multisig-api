@@ -9,10 +9,12 @@ import { CreateTransactionRequest } from './dtos/requests/transaction/create-tra
 import { SingleSignTransactionRequest } from './dtos/requests/transaction/single-sign-transaction.request';
 import { Safe } from './entities/safe.entity';
 import { SafeOwner } from './entities/safe-owner.entity';
+import { Chain } from './entities/chain.entity';
 
 export const ENTITIES_CONFIG = {
   SAFE: Safe,
   SAFE_OWNER: SafeOwner,
+  CHAIN: Chain,
 };
 
 export const REQUEST_CONFIG = {
@@ -49,6 +51,7 @@ export const SERVICE_INTERFACE = {
 export const REPOSITORY_INTERFACE = {
   IMULTISIG_WALLET_REPOSITORY: 'IMultisigWalletRepository',
   IMULTISIG_WALLET_OWNER_REPOSITORY: 'IMultisigWalletOwnerRepository',
+  IGENERAL_REPOSITORY: 'IGeneralRepository',
 };
 
 export const PROVIDER_INTERFACE = {};
