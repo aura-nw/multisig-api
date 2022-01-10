@@ -16,8 +16,12 @@ export class MultisigWalletRepository extends BaseRepository implements IMultisi
     super(repos);
   }
   
-  getMultisigWalletInformation(safe_address: string, chainId: string, pubkeys: string) {
-    throw new Error('Method not implemented.');
+  async checkOwnerMultisigWallet(owner_address: string, safe_address: string, pubkeys: string) {
+    let sqlQuerry = this.repos.createQueryBuilder('safe').innerJoin(SafeOwner, 'safeOwner', 'safe.id = safeOwner.safeId')
+                              .where('safe.safeAddress = :safeAddress', {safe_address});
+
+    let resultData = await sqlQuerry.getRawMany();
+    return resultData;
   }
 
   async getMultisigWalletsByOwner(ownerAddress: string) {

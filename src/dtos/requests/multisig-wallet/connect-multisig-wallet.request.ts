@@ -2,11 +2,11 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class ConnectMultisigWalletRequest {
     @ApiProperty()
-    safe_address: string;
-
-    @ApiProperty()
-    pubkeys: string;
+    owner_address: string;
 
     @ApiProperty()
     chainId: string;
+
+    @ApiProperty()
+    safe_address: string;
 }

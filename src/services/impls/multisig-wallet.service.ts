@@ -44,7 +44,18 @@ export class MultisigWalletService
   async connectMultisigWalletByAddress(
     request: MODULE_REQUEST.ConnectMultisigWalletRequest,
   ): Promise<ResponseDto> {
-    throw new Error('Method not implemented.');
+    const res = new ResponseDto();
+    try {
+      let ownerMultisig = await this.safeRepo.checkOwnerMultisigWallet(request.owner_address, request.safe_address, request.chainId);
+
+      return res.return(ErrorMap.SUCCESSFUL, ownerMultisig);
+    } catch (error) {
+      this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
+      this._logger.error(`${error.name}: ${error.message}`);
+      this._logger.error(`${error.stack}`);
+      return res.return(ErrorMap.E500);
+
+    }
   }
 
   async createMultisigWallet(

@@ -32,5 +32,9 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
+## List API
+
+https://docs.google.com/spreadsheets/d/1cV5aQpoWi_B4P_voIIfgw8I9qte7j_-fpMj676Bj7so/edit#gid=0
+
 
 

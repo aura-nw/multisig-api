@@ -9,9 +9,9 @@ export interface IMultisigWalletRepository extends IBaseRepository {
   /**
    * get multisig wallet information
    */
-  getMultisigWalletInformation(
+  checkOwnerMultisigWallet(
+    owner_address: string,
     safe_address: string,
-    chainId: string,
     pubkeys: string,
   );
 }
