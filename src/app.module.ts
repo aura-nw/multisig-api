@@ -12,6 +12,7 @@ import { MultisigWalletService } from './services/impls/multisig-wallet.service'
 import { SimulatingService } from './services/impls/simulating.service';
 import { TransactionService } from './services/impls/transaction.service';
 import { SharedModule } from './shared/shared.module';
+import { GeneralService } from './services/impls/general.service';
 
 const controllers = [
   SimulatingController,
@@ -49,6 +50,10 @@ const providers = [];
     {
       provide: SERVICE_INTERFACE.IMULTISIG_WALLET_SERVICE,
       useClass: MultisigWalletService,
+    },
+    {
+      provide: SERVICE_INTERFACE.IGENERAL_SERVICE,
+      useClass: GeneralService,
     },
   ],
 })
