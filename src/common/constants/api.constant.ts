@@ -4,6 +4,7 @@ export const CONTROLLER_CONSTANTS = {
   TRANSACTION: 'transaction',
   OWNER: 'owner',
   NOTIFICATION: 'notification',
+  GENERAL: 'general',
 };
 export const URL_CONSTANTS = {
   broadcasting: 'broadcasting',

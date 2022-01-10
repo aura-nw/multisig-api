@@ -19,6 +19,7 @@ import { MultisigWalletRepository } from './repositories/impls/multisig-wallet.r
 import { MultisigWalletOwnerRepository } from './repositories/impls/multisig-wallet-owner.repository';
 import { MultisigTransactionRepository } from './repositories/impls/multisig-transaction.repository';
 import { MultisigConfirmRepository } from './repositories/impls/multisig-confirm.repository';
+import { GeneralService } from './services/impls/general.service';
 
 const controllers = [
   SimulatingController,
@@ -71,6 +72,10 @@ const entities = [ENTITIES_CONFIG.SAFE, ENTITIES_CONFIG.SAFE_OWNER, ENTITIES_CON
     {
       provide: SERVICE_INTERFACE.IMULTISIG_WALLET_SERVICE,
       useClass: MultisigWalletService,
+    },
+    {
+      provide: SERVICE_INTERFACE.IGENERAL_SERVICE,
+      useClass: GeneralService,
     },
   ],
 })

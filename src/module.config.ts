@@ -46,10 +46,11 @@ export module MODULE_REQUEST {
 }
 
 export const SERVICE_INTERFACE = {
-  ISIMULATING_SERVICE: 'ISimulatingService',
-  IMULTISIG_WALLET_SERVICE: 'IMultisigWalletService',
-  ITRANSACTION_SERVICE: 'ITransactionService',
-};
+    ISIMULATING_SERVICE: "ISimulatingService",
+    IMULTISIG_WALLET_SERVICE: "IMultisigWalletService",
+    ITRANSACTION_SERVICE: "ITransactionService",
+    IGENERAL_SERVICE: "IGeneralService",
+}
 
 export const REPOSITORY_INTERFACE = {
   IMULTISIG_WALLET_REPOSITORY: 'IMultisigWalletRepository',
