@@ -1,18 +1,23 @@
 import { CacheModule, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppController } from './controllers/app.controller';
 import { MultisigWalletController } from './controllers/multisig-wallet.controller';
 import { SimulatingController } from './controllers/simulating.controller';
 import { TransactionController } from './controllers/transaction.controller';
 import { OwnerController } from './controllers/owner.controller';
 import { NotificationController } from './controllers/notification.controller';
-import { SERVICE_INTERFACE } from './module.config';
-import { AppService } from './services/app.service';
+import {
+  ENTITIES_CONFIG,
+  REPOSITORY_INTERFACE,
+  SERVICE_INTERFACE,
+} from './module.config';
 import { MultisigWalletService } from './services/impls/multisig-wallet.service';
 import { SimulatingService } from './services/impls/simulating.service';
 import { TransactionService } from './services/impls/transaction.service';
 import { SharedModule } from './shared/shared.module';
 import { GeneralService } from './services/impls/general.service';
+import { ConfigService } from './shared/services/config.service';
+import { MultisigWalletRepository } from './repositories/impls/multisig-wallet.repository';
+import { MultisigWalletOwnerRepository } from './repositories/impls/multisig-wallet-owner.repository';
 
 const controllers = [
   SimulatingController,
@@ -22,22 +27,29 @@ const controllers = [
   NotificationController,
   // AppController,
 ];
-const entities = [];
-const providers = [];
+const entities = [ENTITIES_CONFIG.SAFE, ENTITIES_CONFIG.SAFE_OWNER];
 @Module({
   imports: [
     CacheModule.register({ ttl: 10000 }),
     SharedModule,
     TypeOrmModule.forFeature([...entities]),
+    TypeOrmModule.forRootAsync({
+      imports: [SharedModule],
+      useFactory: (configService: ConfigService) => configService.typeOrmConfig,
+      inject: [ConfigService],
+    }),
   ],
   controllers: [...controllers],
   providers: [
-    // AppService,
     //repository
-    // {
-    //     provide: REPOSITORY_INTERFACE.xxx,
-    //     useClass: xxx
-    // },
+    {
+      provide: REPOSITORY_INTERFACE.IMULTISIG_WALLET_REPOSITORY,
+      useClass: MultisigWalletRepository,
+    },
+    {
+      provide: REPOSITORY_INTERFACE.IMULTISIG_WALLET_OWNER_REPOSITORY,
+      useClass: MultisigWalletOwnerRepository,
+    },
     //service
     {
       provide: SERVICE_INTERFACE.ISIMULATING_SERVICE,

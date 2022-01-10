@@ -9,4 +9,5 @@ export const CONTROLLER_CONSTANTS = {
 export const URL_CONSTANTS = {
   broadcasting: 'broadcasting',
   signing: 'signing',
+  CONNECT_WALLET: 'connect_wallet'
 };

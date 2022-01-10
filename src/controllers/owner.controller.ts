@@ -10,16 +10,20 @@ import {
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CONTROLLER_CONSTANTS } from 'src/common/constants/api.constant';
 import { MODULE_REQUEST, SERVICE_INTERFACE } from 'src/module.config';
+import { IMultisigWalletService } from 'src/services/imultisig-wallet.service';
 @Controller(CONTROLLER_CONSTANTS.OWNER)
 @ApiTags(CONTROLLER_CONSTANTS.OWNER)
 export class OwnerController {
-  constructor() {}
+  constructor(
+    @Inject(SERVICE_INTERFACE.IMULTISIG_WALLET_SERVICE)
+    private multisigWalletService: IMultisigWalletService,
+  ) {}
 
-  @Get(':address​/safes​/')
+  @Get(':address/safes')
   @ApiOperation({
     summary: 'Return Safes where the address provided is an owner',
   })
   async getSafes(@Param('address') address: string) {
-    return `Return Safes where the address: ${address} is an owner `;
+    return await this.multisigWalletService.getMultisigWalletsByOwner(address);
   }
 }
