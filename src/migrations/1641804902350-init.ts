@@ -16,7 +16,7 @@ export class init1641804902350 implements MigrationInterface {
             Height varchar(255) COLLATE utf8_unicode_ci,
             Info varchar(255) COLLATE utf8_unicode_ci,
             Logs varchar(255) COLLATE utf8_unicode_ci,
-            RawLogs varchar(255) COLLATE utf8_unicode_ci,
+            RawLogs LONGTEXT COLLATE utf8_unicode_ci,
             TimeStamp timestamp,
             Tx varchar(255) COLLATE utf8_unicode_ci,
             TxHash varchar(255) COLLATE utf8_unicode_ci,
