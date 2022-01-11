@@ -5,9 +5,15 @@ export interface ITransactionService {
 
     /**
      * create transaction
-     * @param request
+     * @param request 
      */
     createTransaction(request: MODULE_REQUEST.CreateTransactionRequest): Promise<ResponseDto>;
+
+    /**
+     * send transaction
+     * @param request
+     */
+    sendTransaction(request: MODULE_REQUEST.SendTransactionRequest): Promise<ResponseDto>;
 
     /**
      * single sign to a transaction

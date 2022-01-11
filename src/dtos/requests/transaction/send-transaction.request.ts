@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateTransactionRequest {
+export class SendTransactionRequest {
     @ApiProperty()
     from: string;
 
@@ -11,8 +11,14 @@ export class CreateTransactionRequest {
     amount: number;
 
     @ApiProperty()
+    denom: string;
+
+    @ApiProperty()
     fee: number;
 
     @ApiProperty()
     gasLimit: number;
+
+    @ApiProperty()
+    memo: string;
 }

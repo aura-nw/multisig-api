@@ -9,6 +9,11 @@ Click [here](docs/README.md) to see the design architecture.
 $ npm install
 ```
 
+## Create migrations
+```bash
+$ typeorm migration:create -n <name migrations>
+```
+
 ## Running the app
 
 ```bash
