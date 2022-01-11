@@ -123,7 +123,7 @@ export class SimulatingService implements ISimulatingService {
       const result = await broadcaster.broadcastTx(
         Uint8Array.from(TxRaw.encode(signedTx).finish()),
       );
-      this._logger.log('result', result);
+      this._logger.log('result', JSON.stringify(result));
       const res = new ResponseDto();
       return res.return(ErrorMap.SUCCESSFUL, result);
     }
