@@ -42,8 +42,8 @@ export class MultisigTransaction extends BaseEntityAutoId {
     @Column({name: 'MultisigPubkey'})
     multisigPubkey: string;
 
-    @Column({name: 'AuraTxId'})
-    auraTxId: number;
+    @Column({name: 'TxHash'})
+    txHash: string;
 
     @Column({name: 'Map'})
     map: string;

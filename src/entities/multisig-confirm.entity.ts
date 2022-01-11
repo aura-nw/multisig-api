@@ -3,6 +3,12 @@ import { Column, Entity } from "typeorm";
 
 @Entity({ name: 'MultisigConfirm' })
 export class MultisigConfirm extends BaseEntityAutoId {
+    @Column({name: 'CreatedAt'})
+    createdAt: Date;
+
+    @Column({name: 'UpdatedAt'})
+    updatedAt: Date;
+
     @Column({name: 'OwnerAddress'})
     ownerAddress: string;
  
