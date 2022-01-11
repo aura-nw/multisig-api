@@ -1,10 +1,8 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { BaseEntityAutoId } from './base/base.entity';
 
 @Entity({ name: 'AuraTx' })
-export class AuraTx {
-  @PrimaryColumn({ name: 'Id' })
-  id: string;
-
+export class AuraTx extends BaseEntityAutoId {
   @Column({ name: 'Code' })
   code: string;
 

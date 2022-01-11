@@ -5,6 +5,8 @@ export class init1641804902350 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
           CREATE TABLE AuraTx (
+            CreatedAt timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+            UpdatedAt timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
             Id int(11) NOT NULL AUTO_INCREMENT,
             Code varchar(255) COLLATE utf8_unicode_ci,
             CodeSpace varchar(255) COLLATE utf8_unicode_ci,
