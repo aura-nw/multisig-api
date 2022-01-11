@@ -79,7 +79,8 @@ export class TransactionController {
     summary: 'Get the list of signatures for a multisig transaction',
   })
   async getSignsOfMultisigTx(@Param('internalTxHash') internalTxHash: string) {
-    return `Get the list of signatures for a multisig transaction`;
+    // return `Get the list of signatures for a multisig transaction`;
+    return await this.transactionService.getListConfirmMultisigTransaction(internalTxHash);
   }
 
   @Get('transfers')

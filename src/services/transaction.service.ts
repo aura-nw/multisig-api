@@ -20,4 +20,10 @@ export interface ITransactionService {
     * @param request
     */
     broadcastTransaction(request: MODULE_REQUEST.BroadcastTransactionRequest): Promise<ResponseDto>;
+
+    /**
+     * Get list of confirmation of Multisig Transaction
+     * @param request
+     */
+    getListConfirmMultisigTransaction(internalTxHash: string): Promise<ResponseDto>;
 }

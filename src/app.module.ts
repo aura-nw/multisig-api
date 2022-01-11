@@ -20,6 +20,7 @@ import { MultisigWalletRepository } from './repositories/impls/multisig-wallet.r
 import { MultisigWalletOwnerRepository } from './repositories/impls/multisig-wallet-owner.repository';
 import { GeneralController } from './controllers/general.controller';
 import { GeneralRepository } from './repositories/impls/general.repository';
+import { TransactionRepository } from './repositories/impls/transaction.repository';
 
 const controllers = [
   SimulatingController,
@@ -30,7 +31,13 @@ const controllers = [
   GeneralController,
   // AppController,
 ];
-const entities = [ENTITIES_CONFIG.SAFE, ENTITIES_CONFIG.SAFE_OWNER, ENTITIES_CONFIG.CHAIN];
+const entities = [
+  ENTITIES_CONFIG.SAFE, 
+  ENTITIES_CONFIG.SAFE_OWNER, 
+  ENTITIES_CONFIG.CHAIN,
+  ENTITIES_CONFIG.MULTISIG_CONFIRM,
+  ENTITIES_CONFIG.MULTISIG_TRANSACTION,
+];
 @Module({
   imports: [
     CacheModule.register({ ttl: 10000 }),
@@ -56,6 +63,10 @@ const entities = [ENTITIES_CONFIG.SAFE, ENTITIES_CONFIG.SAFE_OWNER, ENTITIES_CON
     {
       provide: REPOSITORY_INTERFACE.IGENERAL_REPOSITORY,
       useClass: GeneralRepository,
+    },
+    {
+      provide: REPOSITORY_INTERFACE.ITRANSACTION_REPOSITORY,
+      useClass: TransactionRepository,
     },
     //service
     {

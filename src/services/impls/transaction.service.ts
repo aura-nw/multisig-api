@@ -18,14 +18,22 @@ import {
   MultisigThresholdPubkey,
   Secp256k1HdWallet,
 } from '@cosmjs/amino';
+import { ITransactionRepository } from 'src/repositories/itransaction.repository';
+import { BaseService } from './base.service';
 @Injectable()
-export class TransactionService implements ITransactionService {
+export class TransactionService extends BaseService implements ITransactionService {
   private readonly _logger = new Logger(TransactionService.name);
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    @Inject(REPOSITORY_INTERFACE.ITRANSACTION_REPOSITORY)
+    private transactionRepo: ITransactionRepository,
+  ) {
+    super(transactionRepo);
     this._logger.log(
       '============== Constructor Transaction Service ==============',
     );
   }
+  
   async createTransaction(
     request: MODULE_REQUEST.CreateTransactionRequest,
   ): Promise<ResponseDto> {
@@ -138,6 +146,15 @@ export class TransactionService implements ITransactionService {
 
     let result = {};
     const res = new ResponseDto();
+    return res.return(ErrorMap.SUCCESSFUL, result);
+  }
+  
+  async getListConfirmMultisigTransaction(
+    internalTxHash: string,
+  ): Promise<ResponseDto> {
+    const res = new ResponseDto();
+    const id = await this.transactionRepo.getMultisigTxId(internalTxHash);
+    const result = await this.transactionRepo.getListConfirmMultisigTransaction(id);
     return res.return(ErrorMap.SUCCESSFUL, result);
   }
 }
