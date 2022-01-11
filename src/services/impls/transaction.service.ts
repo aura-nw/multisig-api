@@ -18,54 +18,24 @@ import {
   MultisigThresholdPubkey,
   Secp256k1HdWallet,
 } from '@cosmjs/amino';
-import { MultisigConfirm, MultisigTransaction } from 'src/entities';
-import { IMultisigTransactionsRepository } from 'src/repositories/imultisig-transaction.repository';
-import { DENOM, TRANSACTION_STATUS } from 'src/common/constants/api.constant';
-import { IMultisigConfirmRepository } from 'src/repositories/imultisig-confirm.repository';
+import { ITransactionRepository } from 'src/repositories/itransaction.repository';
+import { BaseService } from './base.service';
 @Injectable()
-export class TransactionService implements ITransactionService {
+export class TransactionService extends BaseService implements ITransactionService {
   private readonly _logger = new Logger(TransactionService.name);
   constructor(
     private configService: ConfigService,
-    @Inject(REPOSITORY_INTERFACE.IMULTISIG_TRANSACTION_REPOSITORY) private multisigTransactionRepos : IMultisigTransactionsRepository,
-    @Inject(REPOSITORY_INTERFACE.IMULTISIG_CONFIRM_REPOSITORY) private multisigConfirmRepos : IMultisigConfirmRepository
+    @Inject(REPOSITORY_INTERFACE.ITRANSACTION_REPOSITORY)
+    private transactionRepo: ITransactionRepository,
   ) {
+    super(transactionRepo);
     this._logger.log(
       '============== Constructor Transaction Service ==============',
     );
   }
-
-  async createTransaction(request: MODULE_REQUEST.CreateTransactionRequest): Promise<ResponseDto> {
-    const res = new ResponseDto();
-    try {
-      //check balance
-      // let client = await StargateClient.connect(this.configService.get('TENDERMINT_URL'));
-
-      // let multisigBalance = client.getBalance(request.from, DENOM.uaura);
-
-      let transaction = new MultisigTransaction();
-
-      transaction.fromAddress = request.from;
-      transaction.toAddress = request.to;
-      transaction.amount = request.amount;
-      transaction.gas = request.gasLimit;
-      transaction.gasAmount = request.fee;
-      transaction.denom = DENOM.uaura;
-      transaction.status = TRANSACTION_STATUS.PENDING;
-
-      await this.multisigTransactionRepos.create(transaction);
-
-    } catch (error) {
-      this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
-      this._logger.error(`${error.name}: ${error.message}`);
-      this._logger.error(`${error.stack}`);
-      return res.return(ErrorMap.E500);
-
-    }
-  }
-
-  async sendTransaction(
-    request: MODULE_REQUEST.SendTransactionRequest,
+  
+  async createTransaction(
+    request: MODULE_REQUEST.CreateTransactionRequest,
   ): Promise<ResponseDto> {
     const signingInstruction = await (async () => {
       const client = await StargateClient.connect(
@@ -189,6 +159,15 @@ export class TransactionService implements ITransactionService {
 
     let result = {};
     const res = new ResponseDto();
+    return res.return(ErrorMap.SUCCESSFUL, result);
+  }
+  
+  async getListConfirmMultisigTransaction(
+    internalTxHash: string,
+  ): Promise<ResponseDto> {
+    const res = new ResponseDto();
+    const id = await this.transactionRepo.getMultisigTxId(internalTxHash);
+    const result = await this.transactionRepo.getListConfirmMultisigTransaction(id);
     return res.return(ErrorMap.SUCCESSFUL, result);
   }
 }
