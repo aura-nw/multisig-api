@@ -20,6 +20,8 @@ import {
 } from '@cosmjs/amino';
 import { ITransactionRepository } from 'src/repositories/itransaction.repository';
 import { BaseService } from './base.service';
+import { MultisigTransaction } from 'src/entities';
+import { IMultisigTransactionsRepository } from 'src/repositories/imultisig-transaction.repository';
 @Injectable()
 export class TransactionService extends BaseService implements ITransactionService {
   private readonly _logger = new Logger(TransactionService.name);
@@ -27,15 +29,38 @@ export class TransactionService extends BaseService implements ITransactionServi
     private configService: ConfigService,
     @Inject(REPOSITORY_INTERFACE.ITRANSACTION_REPOSITORY)
     private transactionRepo: ITransactionRepository,
+    @Inject(REPOSITORY_INTERFACE.IMULTISIG_TRANSACTION_REPOSITORY) private multisigTransactionRepos : IMultisigTransactionsRepository
   ) {
     super(transactionRepo);
     this._logger.log(
       '============== Constructor Transaction Service ==============',
     );
   }
-  
-  async createTransaction(
-    request: MODULE_REQUEST.CreateTransactionRequest,
+
+  async createTransaction(request: MODULE_REQUEST.CreateTransactionRequest): Promise<ResponseDto> {
+    const res = new ResponseDto();
+    try {
+      let transaction = new MultisigTransaction();
+
+      transaction.fromAddress = request.from;
+      transaction.toAddress = request.to;
+      transaction.amount = request.amount;
+      transaction.gas = request.gasLimit;
+      transaction.gasAmount = request.fee;
+
+      await this.multisigTransactionRepos.create(transaction);
+
+    } catch (error) {
+      this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
+      this._logger.error(`${error.name}: ${error.message}`);
+      this._logger.error(`${error.stack}`);
+      return res.return(ErrorMap.E500);
+
+    }
+  }
+
+  async sendTransaction(
+    request: MODULE_REQUEST.SendTransactionRequest,
   ): Promise<ResponseDto> {
     const signingInstruction = await (async () => {
       const client = await StargateClient.connect(
@@ -109,6 +134,7 @@ export class TransactionService extends BaseService implements ITransactionServi
     const res = new ResponseDto();
     return res.return(ErrorMap.SUCCESSFUL, result);
   }
+  
   async broadcastTransaction(
     request: MODULE_REQUEST.BroadcastTransactionRequest,
   ): Promise<ResponseDto> {

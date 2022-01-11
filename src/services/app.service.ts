@@ -62,7 +62,7 @@ export class AppService {
 			const msgSend: MsgSend = {
 				fromAddress: req.from,
 				toAddress: req.to,
-				amount: coins(req.amount, req.denom),
+				amount: coins(req.amount, 'uatom'),
 			};
 			const msg: MsgSendEncodeObject = {
 				typeUrl: "/cosmos.bank.v1beta1.MsgSend",
@@ -70,7 +70,7 @@ export class AppService {
 			};
 			const gasLimit = req.gasLimit;
 			const fee = {
-				amount: coins(req.fee, req.denom),
+				amount: coins(req.fee, 'uatom'),
 				gas: req.gasLimit,
 			};
 			let result = {

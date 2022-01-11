@@ -6,8 +6,11 @@ import {
   Inject,
   Body,
   Param,
+  HttpStatus,
+  HttpCode,
+  Logger,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   CONTROLLER_CONSTANTS,
   URL_CONSTANTS,
@@ -19,6 +22,8 @@ import { ITransactionService } from 'src/services/transaction.service';
 @Controller(CONTROLLER_CONSTANTS.TRANSACTION)
 @ApiTags(CONTROLLER_CONSTANTS.TRANSACTION)
 export class TransactionController {
+  public readonly _logger = new Logger(TransactionController.name);
+
   constructor(
     @Inject(SERVICE_INTERFACE.ITRANSACTION_SERVICE)
     private transactionService: ITransactionService,
@@ -87,5 +92,14 @@ export class TransactionController {
   @ApiOperation({ summary: 'Returns aura tokens transfers for a Safe' })
   async getTokenTransferTxs() {
     return `Returns aura tokens transfers for a Safe`;
+  }
+
+  @Post()
+  @ApiOperation({ summary: 'Send transaction to AURA' })
+  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  @HttpCode(HttpStatus.OK)
+  async createIAO(@Body() request: MODULE_REQUEST.SendTransactionRequest) {
+    this._logger.log('========== Send transaction to AURA ==========');
+      return await this.transactionService.sendTransaction(request);
   }
 }

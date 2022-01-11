@@ -21,6 +21,7 @@ import { MultisigWalletOwnerRepository } from './repositories/impls/multisig-wal
 import { GeneralController } from './controllers/general.controller';
 import { GeneralRepository } from './repositories/impls/general.repository';
 import { TransactionRepository } from './repositories/impls/transaction.repository';
+import { MultisigTransactionRepository } from './repositories/impls/multisig-transaction.repository';
 
 const controllers = [
   SimulatingController,
@@ -67,6 +68,10 @@ const entities = [
     {
       provide: REPOSITORY_INTERFACE.ITRANSACTION_REPOSITORY,
       useClass: TransactionRepository,
+    },
+    {
+      provide: REPOSITORY_INTERFACE.IMULTISIG_TRANSACTION_REPOSITORY,
+      useClass: MultisigTransactionRepository,
     },
     //service
     {
