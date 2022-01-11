@@ -59,7 +59,7 @@ export class ConfigService {
       database: this.get('DB_DATABASE'),
       migrationsRun: true,
       connectTimeout: 1000,
-      synchronize: true,
+      synchronize: false,
       logging: this.nodeEnv === 'development',
       namingStrategy: new PascalCaseStrategy(),
       multipleStatements: true,
