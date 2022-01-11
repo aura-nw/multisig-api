@@ -56,7 +56,7 @@ export class init1641804902350 implements MigrationInterface {
             FromAddress varchar(255) COLLATE utf8_unicode_ci NOT NULL,
             ToAddress varchar(255) COLLATE utf8_unicode_ci NOT NULL,
             Signature varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-            ChainId varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+            ChainId int(11) NOT NULL,
             Gas float NOT NULL,
             GasAmount float NOT NULL,
             MultisigPubkey varchar(255) COLLATE utf8_unicode_ci NOT NULL,
@@ -76,6 +76,7 @@ export class init1641804902350 implements MigrationInterface {
             Id int(11) NOT NULL AUTO_INCREMENT,
             Name varchar(255) COLLATE utf8_unicode_ci NOT NULL,
             Pubkey varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+            ChainId int(11) NOT NULL,
             PRIMARY KEY (Id)
           ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
           
@@ -101,6 +102,7 @@ export class init1641804902350 implements MigrationInterface {
             Safe_Id varchar(255) COLLATE utf8_unicode_ci NOT NULL,
             Owner_Address varchar(255) COLLATE utf8_unicode_ci NOT NULL,
             Owner_Pubkey varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+            ChainId int(11) NOT NULL,
             PRIMARY KEY (Id)
           ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
         `);
