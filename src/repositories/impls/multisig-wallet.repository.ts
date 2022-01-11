@@ -4,7 +4,7 @@ import { BaseRepository } from './base.repository';
 import { ObjectLiteral, Repository } from 'typeorm';
 import { IMultisigWalletRepository } from '../imultisig-wallet.repository';
 import { ENTITIES_CONFIG } from 'src/module.config';
-import { SafeOwner } from 'src/entities/safe-owner.entity';
+import { SafeOwner } from 'src/entities';
 
 @Injectable()
 export class MultisigWalletRepository extends BaseRepository implements IMultisigWalletRepository{
@@ -18,8 +18,8 @@ export class MultisigWalletRepository extends BaseRepository implements IMultisi
   
   async checkOwnerMultisigWallet(owner_address: string, safe_address: string, pubkeys: string) {
     let sqlQuerry = this.repos.createQueryBuilder('safe').innerJoin(SafeOwner, 'safeOwner', 'safe.id = safeOwner.safeId')
-                              .where('safe.safeAddress = :safeAddress', {safe_address});
-
+                              .where('safe.safeAddress = :safeAddress', {safe_address})
+                              .andWhere('safe.creatorAddress = :creatorAddress', {owner_address}).orWhere('')
     let resultData = await sqlQuerry.getRawMany();
     return resultData;
   }
