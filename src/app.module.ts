@@ -20,6 +20,8 @@ import { MultisigWalletOwnerRepository } from './repositories/impls/multisig-wal
 import { MultisigTransactionRepository } from './repositories/impls/multisig-transaction.repository';
 import { MultisigConfirmRepository } from './repositories/impls/multisig-confirm.repository';
 import { GeneralService } from './services/impls/general.service';
+import { GeneralController } from './controllers/general.controller';
+import { GeneralRepository } from './repositories/impls/general.repository';
 
 const controllers = [
   SimulatingController,
@@ -27,6 +29,7 @@ const controllers = [
   TransactionController,
   OwnerController,
   NotificationController,
+  GeneralController,
   // AppController,
 ];
 const entities = [ENTITIES_CONFIG.SAFE, ENTITIES_CONFIG.SAFE_OWNER, ENTITIES_CONFIG.MULTISIG_TRANSACTION, ENTITIES_CONFIG.MULTISIG_CONFIRM];
@@ -59,6 +62,10 @@ const entities = [ENTITIES_CONFIG.SAFE, ENTITIES_CONFIG.SAFE_OWNER, ENTITIES_CON
     {
       provide: REPOSITORY_INTERFACE.IMULTISIG_CONFIRM_REPOSITORY,
       useClass: MultisigConfirmRepository
+    },
+    {
+      provide: REPOSITORY_INTERFACE.IGENERAL_REPOSITORY,
+      useClass: GeneralRepository,
     },
     //service
     {

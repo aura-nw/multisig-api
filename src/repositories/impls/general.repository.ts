@@ -18,6 +18,7 @@ export class GeneralRepository extends BaseRepository implements IGeneralReposit
         let sqlQuerry = this.repos
             .createQueryBuilder('chain')
             .select([
+                'chain.id as id',
                 'chain.name as name',
                 'chain.rest as rest',
                 'chain.rpc as rpc',
