@@ -49,7 +49,7 @@ export class MultisigTransaction extends BaseEntityAutoId {
     multisigPubkey: string;
 
     @Column({name: 'TxHash'})
-    txHash: number;
+    txHash: string;
 
     @Column({name: 'Map'})
     map: string;
