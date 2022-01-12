@@ -17,6 +17,9 @@ export class MultisigTransactionRepository
     private readonly repos: Repository<ObjectLiteral>
   ) {
     super(repos);
+    this._logger.log(
+      '============== Constructor Multisig Transaction Repository ==============',
+    );
   }
 
 async getMultisigTxId(internalTxHash: string) {
@@ -26,7 +29,7 @@ async getMultisigTxId(internalTxHash: string) {
         .select([
             'multisigTransaction.id as id',
         ]);
-    let resultData = await sqlQuerry.getOne();
+    let resultData = await sqlQuerry.getRawOne();
     return resultData;
 }
 

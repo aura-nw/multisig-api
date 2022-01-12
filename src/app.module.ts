@@ -22,6 +22,7 @@ import { GeneralController } from './controllers/general.controller';
 import { GeneralRepository } from './repositories/impls/general.repository';
 import { MultisigTransactionRepository } from './repositories/impls/multisig-transaction.repository';
 import { MultisigConfirmRepository } from './repositories/impls/multisig-confirm.repository';
+import { TransactionRepository } from './repositories/impls/transaction.repository';
 
 const controllers = [
   SimulatingController,
@@ -38,6 +39,7 @@ const entities = [
   ENTITIES_CONFIG.CHAIN,
   ENTITIES_CONFIG.MULTISIG_CONFIRM,
   ENTITIES_CONFIG.MULTISIG_TRANSACTION,
+  ENTITIES_CONFIG.AURA_TX,
 ];
 @Module({
   imports: [
@@ -78,6 +80,10 @@ const entities = [
     {
       provide: REPOSITORY_INTERFACE.IMULTISIG_CONFIRM_REPOSITORY,
       useClass: MultisigConfirmRepository,
+    },
+    {
+      provide: REPOSITORY_INTERFACE.ITRANSACTION_REPOSITORY,
+      useClass: TransactionRepository,
     },
     //service
     {

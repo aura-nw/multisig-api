@@ -36,20 +36,20 @@ export interface ITransactionService {
      */
     getListConfirmMultisigTransaction(internalTxHash: string): Promise<ResponseDto>;
 
-    /**
-     * Get Aura Transaction directly from Node
-     * @param safeAddress 
-     */
-    getAuraTxFromNode(safeAddress: string): Promise<ResponseDto>;
+    // /**
+    //  * Get Aura Transaction directly from Node
+    //  * @param safeAddress 
+    //  */
+    // getAuraTxFromNode(safeAddress: string): Promise<ResponseDto>;
 
     /**
      * Get Multisig Transaction History
      */
     getTransactionHistory(safeAddress: string): Promise<ResponseDto>;
 
-    /**
-     * Get Multisig Transaction History directly from Node
-     * @param safeAddress 
-     */
-    getTransactionHistoryFromNode(safeAddress: string): Promise<ResponseDto>
+    // /**
+    //  * Get Multisig Transaction History directly from Node
+    //  * @param safeAddress 
+    //  */
+    // getTransactionHistoryFromNode(safeAddress: string): Promise<ResponseDto>
 }

@@ -16,6 +16,9 @@ export class MultisigConfirmRepository
             private readonly repos: Repository<ObjectLiteral>,
         ) {
             super(repos);
+            this._logger.log(
+                '============== Constructor Multisig Confirm Repository ==============',
+              );
         }
 
         async getListConfirmMultisigTransaction(multisigTransactionId: number) {
@@ -27,10 +30,6 @@ export class MultisigConfirmRepository
                     'multisigConfirm.createdAt as createdAt',
                     'multisigConfirm.updatedAt as updatedAt',
                     'multisigConfirm.ownerAddress as ownerAddress',
-                    'multisigConfirm.multisigTransactionId as multisigTransactionId',
-                    'multisigConfirm.bodyBytes as bodyBytes',
-                    'multisigConfirm.signature as signature',
-                    'multisigConfirm.chainId as chainId',
                 ]);
             let resultData = await sqlQuerry.getRawMany();
             return resultData;
