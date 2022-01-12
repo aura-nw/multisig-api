@@ -1,4 +1,7 @@
+import { AxiosResponse } from "axios";
+import { Observable } from "rxjs";
 import { ResponseDto } from "src/dtos/responses/response.dto";
+import { MultisigTransaction } from "src/entities";
 import { MODULE_REQUEST } from "src/module.config";
 
 export interface ITransactionService {
@@ -32,4 +35,21 @@ export interface ITransactionService {
      * @param request
      */
     getListConfirmMultisigTransaction(internalTxHash: string): Promise<ResponseDto>;
+
+    /**
+     * Get Aura Transaction directly from Node
+     * @param safeAddress 
+     */
+    getAuraTxFromNode(safeAddress: string): Promise<ResponseDto>;
+
+    /**
+     * Get Multisig Transaction History
+     */
+    getTransactionHistory(safeAddress: string): Promise<ResponseDto>;
+
+    /**
+     * Get Multisig Transaction History directly from Node
+     * @param safeAddress 
+     */
+    getTransactionHistoryFromNode(safeAddress: string): Promise<ResponseDto>
 }
