@@ -39,6 +39,10 @@ export const ErrorMap = {
     Code: 'E009',
     Message: 'This safe was created',
   },
+  TRANSACTION_NOT_EXIST: {
+    Code: 'E010',
+    Message: 'This transaction is not exist!',
+  },
   C001: {
     Code: 'C001',
     Message: `Missing result from Chaincode`,
