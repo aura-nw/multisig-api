@@ -222,6 +222,8 @@ export class TransactionService extends BaseService implements ITransactionServi
     if(resId) {
       const result = await this.multisigConfirmRepos.getListConfirmMultisigTransaction(resId.id);
       return res.return(ErrorMap.SUCCESSFUL, result);
+    } else {
+      return res.return(ErrorMap.TRANSACTION_NOT_EXIST)
     }
   }
 
@@ -231,9 +233,7 @@ export class TransactionService extends BaseService implements ITransactionServi
     const result = await this.transRepos.getAuraTx(safeAddress);
     for(let i = 0; i < result.length; i++) {
       if(result[i].fromAddress == safeAddress) {
-        console.log(result[i].txHash);
         result[i].signatures = await (await this.getListConfirmMultisigTransaction(result[i].txHash)).Data;
-        console.log(result[i].signatures);
       }
     }
     return res.return(ErrorMap.SUCCESSFUL, result);
