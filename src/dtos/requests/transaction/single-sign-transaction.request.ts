@@ -9,4 +9,9 @@ export class SingleSignTransactionRequest {
 
   @ApiProperty()
   transactionId: number;
+
+  @ApiProperty()
+  bodyBytes: string;
+
+  
 }
