@@ -1,4 +1,4 @@
-import { CacheModule, Module } from '@nestjs/common';
+import { CacheModule, HttpModule, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MultisigWalletController } from './controllers/multisig-wallet.controller';
 import { SimulatingController } from './controllers/simulating.controller';
@@ -42,6 +42,12 @@ const entities = [
 ];
 @Module({
   imports: [
+    HttpModule.registerAsync({
+      useFactory: () => ({
+        timeout: 5000,
+        maxRedirects: 5
+      })
+    }),
     CacheModule.register({ ttl: 10000 }),
     SharedModule,
     TypeOrmModule.forFeature([...entities]),
