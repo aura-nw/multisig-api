@@ -13,5 +13,6 @@ export class SingleSignTransactionRequest {
   @ApiProperty()
   bodyBytes: string;
 
-  
+  @ApiProperty()
+  signature: string;
 }
