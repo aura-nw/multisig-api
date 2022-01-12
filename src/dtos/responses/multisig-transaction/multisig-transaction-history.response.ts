@@ -8,16 +8,20 @@ export class MultisigTransactionHistoryResponse {
     txHash: string;
 
     @Expose()
-    @ApiProperty({ type: [Date] })
+    @ApiProperty({ type: 'timestamp', name: 'CreatedAt' })
     createdAt: Date;
 
     @Expose()
-    @ApiProperty({ type: [Date] })
+    @ApiProperty({ type: 'timestamp', name: 'UpdatedAt' })
     updatedAt: Date;
 
     @Expose()
     @ApiProperty({ type: [Float64Array] })
     amount: number;
+
+    @Expose()
+    @ApiProperty()
+    denom: string;
 
     @Expose()
     @ApiProperty()

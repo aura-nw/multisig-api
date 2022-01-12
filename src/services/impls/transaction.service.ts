@@ -18,20 +18,26 @@ import {
   MultisigThresholdPubkey,
   Secp256k1HdWallet,
 } from '@cosmjs/amino';
-import { ITransactionRepository } from 'src/repositories/itransaction.repository';
 import { BaseService } from './base.service';
-import { MultisigTransaction } from 'src/entities';
+import { MultisigConfirm, MultisigTransaction } from 'src/entities';
 import { IMultisigTransactionsRepository } from 'src/repositories/imultisig-transaction.repository';
+import { MultisigTransactionHistoryResponse } from 'src/dtos/responses/multisig-transaction/multisig-transaction-history.response';
+import { IMultisigConfirmRepository } from 'src/repositories/imultisig-confirm.repository';
+import { Observable } from 'rxjs';
+import { HttpService } from '@nestjs/axios';
+import { AxiosResponse } from 'axios';
 @Injectable()
 export class TransactionService extends BaseService implements ITransactionService {
   private readonly _logger = new Logger(TransactionService.name);
   constructor(
     private configService: ConfigService,
-    @Inject(REPOSITORY_INTERFACE.ITRANSACTION_REPOSITORY)
-    private transactionRepo: ITransactionRepository,
-    @Inject(REPOSITORY_INTERFACE.IMULTISIG_TRANSACTION_REPOSITORY) private multisigTransactionRepos : IMultisigTransactionsRepository
+    @Inject(REPOSITORY_INTERFACE.IMULTISIG_TRANSACTION_REPOSITORY) 
+    private multisigTransactionRepos : IMultisigTransactionsRepository,
+    @Inject(REPOSITORY_INTERFACE.IMULTISIG_CONFIRM_REPOSITORY) 
+    private multisigConfirmRepos : IMultisigConfirmRepository,
+    private httpService: HttpService
   ) {
-    super(transactionRepo);
+    super(multisigTransactionRepos);
     this._logger.log(
       '============== Constructor Transaction Service ==============',
     );
@@ -179,8 +185,51 @@ export class TransactionService extends BaseService implements ITransactionServi
     internalTxHash: string,
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
-    const id = await this.transactionRepo.getMultisigTxId(internalTxHash);
-    const result = await this.transactionRepo.getListConfirmMultisigTransaction(id);
+    const id = await this.multisigTransactionRepos.getMultisigTxId(internalTxHash);
+    const result = await this.multisigConfirmRepos.getListConfirmMultisigTransaction(id);
+    return res.return(ErrorMap.SUCCESSFUL, result);
+  }
+
+  async getTransactionHistory(safeAddress: string): Promise<ResponseDto> {
+    const res = new ResponseDto();
+    const result = await this.multisigTransactionRepos.getTransactionHistory(safeAddress);
+    return res.return(ErrorMap.SUCCESSFUL, result);
+  }
+
+  async getAuraTxFromNode(safeAddress: string): Promise<ResponseDto> {
+    const res = new ResponseDto();
+    const url = 'http://18.138.28.51:1317/txs?message.sender=' + safeAddress + '&limit=20&page=1'
+    const resApi =  await this.httpService.get(url).toPromise();
+    const result = [];
+    return res.return(ErrorMap.SUCCESSFUL, result);
+  }
+
+  async getTransactionHistoryFromNode(safeAddress: string): Promise<ResponseDto> {
+    const res = new ResponseDto();
+    const url = 'http://18.138.28.51:1317/txs?transfer.recipient=' + safeAddress + '&limit=20&page=1'
+    const resApi =  await this.httpService.get(url).toPromise();
+    // console.log(resApi.data);
+    // const temp = eval(resApi.data.txs[0].raw_log);
+    // const signs = eval(resApi.data.txs[0].tx.value.signatures);
+    // console.log(temp[0].events[3].attributes);
+    // console.log(signs)
+    const result = [];
+    for(let i = 0; i < resApi.data.count; i++) {
+      const temp = eval(resApi.data.txs[i].raw_log);
+      const trans = new MultisigTransactionHistoryResponse();
+      trans.txHash = resApi.data.txs[i].txhash;
+      trans.createdAt = resApi.data.txs[i].timestamp;
+      trans.updatedAt = resApi.data.txs[i].timestamp;
+      trans.amount = temp[0].events[3].attributes[2].value;
+      trans.receiver = temp[0].events[3].attributes[0].value;
+      // const confirms = MultisigConfirm[resApi.data.txs[i].tx.value.signatures.length];
+      // for(let j = 0; j < res[i].signatures.length; j++) {
+      //   confirms.
+      // }
+      // resApi.data.txs[i].tx.value.signatures.pub_key.value;
+      // res[i].signatures = confirms;
+      result.push(trans)
+    }
     return res.return(ErrorMap.SUCCESSFUL, result);
   }
 }
