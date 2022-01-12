@@ -13,3 +13,9 @@ export enum SAFE_STATUS {
   CREATED = 'created',
   DELETED = 'deleted',
 }
+export enum TRANSACTION_STATUS {
+  PENDING = 'PENDING',
+  CANCELED = 'CANCELED',
+  CONFIRM = 'CONFIRM',
+  SUCCESSED = 'SUCCESSED'
+}

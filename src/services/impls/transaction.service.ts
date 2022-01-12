@@ -39,9 +39,9 @@ export class TransactionService implements ITransactionService {
     const res = new ResponseDto();
     try {
       //check balance
-      let client = await StargateClient.connect(this.configService.get('TENDERMINT_URL'));
+      // let client = await StargateClient.connect(this.configService.get('TENDERMINT_URL'));
 
-      let multisigBalance = client.getBalance(request.from, DENOM.uaura);
+      // let multisigBalance = client.getBalance(request.from, DENOM.uaura);
 
       let transaction = new MultisigTransaction();
 
@@ -51,6 +51,7 @@ export class TransactionService implements ITransactionService {
       transaction.gas = request.gasLimit;
       transaction.gasAmount = request.fee;
       transaction.denom = DENOM.uaura;
+      transaction.status = TRANSACTION_STATUS.PENDING;
 
       await this.multisigTransactionRepos.create(transaction);
 
@@ -112,17 +113,6 @@ export class TransactionService implements ITransactionService {
         return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
       }
 
-      const wallet = await Secp256k1HdWallet.fromMnemonic(request.mnemonic, {
-        prefix: this.configService.get('prefix'),
-      });
-      const pubkey = encodeSecp256k1Pubkey(
-        (await wallet.getAccounts())[0].pubkey,
-      );
-      const address = (await wallet.getAccounts())[0].address;
-      const signingClient = await SigningStargateClient.offline(wallet);
-
-      let result = {};
-
       let multisigConfirm = new MultisigConfirm();
       multisigConfirm.multisigTransactionId = request.transactionId;
       multisigConfirm.ownerAddress = request.multisigAddress;
@@ -130,7 +120,7 @@ export class TransactionService implements ITransactionService {
       multisigConfirm.bodyBytes = request.bodyBytes;
 
       await this.multisigConfirmRepos.create(multisigConfirm);
-      return res.return(ErrorMap.SUCCESSFUL, result);
+      return res.return(ErrorMap.SUCCESSFUL);
     } catch (error) {
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
       this._logger.error(`${error.name}: ${error.message}`);
