@@ -38,7 +38,7 @@ export class TransactionController {
     return await this.transactionService.createTransaction(request);
   }
 
-  @Post(`multisig/:internalTxHash/${URL_CONSTANTS.signing}`)
+  @Post(URL_CONSTANTS.SIGLE_SIGN)
   @ApiOperation({ summary: 'owner sign to their transaction' })
   async signTransaction(
     @Body() request: MODULE_REQUEST.SingleSignTransactionRequest,

@@ -8,5 +8,5 @@ export class SingleSignTransactionRequest {
   mnemonic: string;
 
   @ApiProperty()
-  transactionId: string;
+  transactionId: number;
 }

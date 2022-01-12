@@ -18,15 +18,17 @@ import {
   MultisigThresholdPubkey,
   Secp256k1HdWallet,
 } from '@cosmjs/amino';
-import { MultisigTransaction } from 'src/entities';
+import { MultisigConfirm, MultisigTransaction } from 'src/entities';
 import { IMultisigTransactionsRepository } from 'src/repositories/imultisig-transaction.repository';
 import { DENOM, TRANSACTION_STATUS } from 'src/common/constants/api.constant';
+import { IMultisigConfirmRepository } from 'src/repositories/imultisig-confirm.repository';
 @Injectable()
 export class TransactionService implements ITransactionService {
   private readonly _logger = new Logger(TransactionService.name);
   constructor(
     private configService: ConfigService,
-    @Inject(REPOSITORY_INTERFACE.IMULTISIG_TRANSACTION_REPOSITORY) private multisigTransactionRepos : IMultisigTransactionsRepository
+    @Inject(REPOSITORY_INTERFACE.IMULTISIG_TRANSACTION_REPOSITORY) private multisigTransactionRepos : IMultisigTransactionsRepository,
+    @Inject(REPOSITORY_INTERFACE.IMULTISIG_CONFIRM_REPOSITORY) private multisigConfirmRepos : IMultisigConfirmRepository
   ) {
     this._logger.log(
       '============== Constructor Transaction Service ==============',
@@ -121,8 +123,12 @@ export class TransactionService implements ITransactionService {
 
       let result = {};
 
+      let multisigConfirm = new MultisigConfirm();
+      multisigConfirm.multisigTransactionId = request.transactionId;
+      multisigConfirm.ownerAddress = request.multisigAddress;
+      multisigConfirm.signature = request.mnemonic;
 
-
+      await this.multisigConfirmRepos.create(multisigConfirm);
       return res.return(ErrorMap.SUCCESSFUL, result);
     } catch (error) {
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
