@@ -15,6 +15,12 @@ export class MultisigTransaction extends BaseEntityAutoId {
     @Column({name: 'Amount', type: 'float'})
     amount: number;
 
+    @Column({name: 'Denom'})
+    denom: string;
+
+    @Column({name: 'Status'})
+    status: string;
+
     @Column({name: 'TypeUrl'})
     typeUrl: string;
 
@@ -42,8 +48,8 @@ export class MultisigTransaction extends BaseEntityAutoId {
     @Column({name: 'MultisigPubkey'})
     multisigPubkey: string;
 
-    @Column({name: 'AuraTxId'})
-    auraTxId: number;
+    @Column({name: 'TxHash'})
+    txHash: number;
 
     @Column({name: 'Map'})
     map: string;
