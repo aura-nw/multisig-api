@@ -8,5 +8,15 @@ export const CONTROLLER_CONSTANTS = {
 export const URL_CONSTANTS = {
   broadcasting: 'broadcasting',
   signing: 'signing',
-  CONNECT_WALLET: 'connect_wallet'
+  CONNECT_WALLET: 'connect_wallet',
+  CREATE: 'create',
+  SEND: 'send'
 };
+export const DENOM = {
+  uaura : 'uaura'
+}
+export const TRANSACTION_STATUS = {
+  PENDING : 'PENDING',
+  SUCCESS: 'SUCCESS',
+  CANCEL: 'CANCEL'
+}

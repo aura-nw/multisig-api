@@ -20,6 +20,7 @@ import {
 } from '@cosmjs/amino';
 import { MultisigTransaction } from 'src/entities';
 import { IMultisigTransactionsRepository } from 'src/repositories/imultisig-transaction.repository';
+import { DENOM, TRANSACTION_STATUS } from 'src/common/constants/api.constant';
 @Injectable()
 export class TransactionService implements ITransactionService {
   private readonly _logger = new Logger(TransactionService.name);
@@ -35,6 +36,11 @@ export class TransactionService implements ITransactionService {
   async createTransaction(request: MODULE_REQUEST.CreateTransactionRequest): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
+      //check balance
+      let client = await StargateClient.connect(this.configService.get('TENDERMINT_URL'));
+
+      let multisigBalance = client.getBalance(request.from, DENOM.uaura);
+
       let transaction = new MultisigTransaction();
 
       transaction.fromAddress = request.from;
@@ -42,6 +48,7 @@ export class TransactionService implements ITransactionService {
       transaction.amount = request.amount;
       transaction.gas = request.gasLimit;
       transaction.gasAmount = request.fee;
+      transaction.denom = DENOM.uaura;
 
       await this.multisigTransactionRepos.create(transaction);
 
@@ -91,17 +98,38 @@ export class TransactionService implements ITransactionService {
     const res = new ResponseDto();
     return res.return(ErrorMap.SUCCESSFUL, signingInstruction);
   }
-  async singleSignTransaction(
-    request: MODULE_REQUEST.SingleSignTransactionRequest,
-  ): Promise<ResponseDto> {
-    const wallet = await Secp256k1HdWallet.fromMnemonic(request.mnemonic, {
-      prefix: this.configService.get('prefix'),
-    });
-    const pubkey = encodeSecp256k1Pubkey(
-      (await wallet.getAccounts())[0].pubkey,
-    );
-    const address = (await wallet.getAccounts())[0].address;
-    const signingClient = await SigningStargateClient.offline(wallet);
+
+  async singleSignTransaction(request: MODULE_REQUEST.SingleSignTransactionRequest): Promise<ResponseDto> 
+  {
+    const res = new ResponseDto();
+    try {
+      //Check status of multisig transaction
+      let transaction = await this.multisigTransactionRepos.findOne({where : {id: request.transactionId }});
+
+      if(!transaction  || transaction.status != TRANSACTION_STATUS.PENDING){
+        return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
+      }
+
+      const wallet = await Secp256k1HdWallet.fromMnemonic(request.mnemonic, {
+        prefix: this.configService.get('prefix'),
+      });
+      const pubkey = encodeSecp256k1Pubkey(
+        (await wallet.getAccounts())[0].pubkey,
+      );
+      const address = (await wallet.getAccounts())[0].address;
+      const signingClient = await SigningStargateClient.offline(wallet);
+
+      let result = {};
+
+
+
+      return res.return(ErrorMap.SUCCESSFUL, result);
+    } catch (error) {
+      this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
+      this._logger.error(`${error.name}: ${error.message}`);
+      this._logger.error(`${error.stack}`);
+      return res.return(ErrorMap.E500);
+    }
 
     // get singingInstruction created before
     // const signingInstruction = await this.cacheManager.get('resultCreateTransaction');
@@ -125,9 +153,6 @@ export class TransactionService implements ITransactionService {
     // 	bodyBytes: bb,
     // 	signature: signatures
     // }
-    let result = {};
-    const res = new ResponseDto();
-    return res.return(ErrorMap.SUCCESSFUL, result);
   }
   
   async broadcastTransaction(

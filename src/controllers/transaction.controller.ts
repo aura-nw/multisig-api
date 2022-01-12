@@ -29,11 +29,12 @@ export class TransactionController {
     private transactionService: ITransactionService,
   ) {}
 
-  @Post()
-  @ApiOperation({ summary: 'create transaction from a multisig wallet' })
-  async createTransaction(
-    @Body() request: MODULE_REQUEST.CreateTransactionRequest,
-  ) {
+  @Post(URL_CONSTANTS.CREATE)
+  @ApiOperation({ summary: 'Create multisig transaction' })
+  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  @HttpCode(HttpStatus.OK)
+  async createTransaction(@Body() request: MODULE_REQUEST.CreateTransactionRequest) {
+    this._logger.log('========== Create multisig transaction ==========');
     return await this.transactionService.createTransaction(request);
   }
 
@@ -93,11 +94,11 @@ export class TransactionController {
     return `Returns aura tokens transfers for a Safe`;
   }
 
-  @Post()
+  @Post(URL_CONSTANTS.SEND)
   @ApiOperation({ summary: 'Send transaction to AURA' })
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
   @HttpCode(HttpStatus.OK)
-  async createIAO(@Body() request: MODULE_REQUEST.SendTransactionRequest) {
+  async sendTransaction(@Body() request: MODULE_REQUEST.SendTransactionRequest) {
     this._logger.log('========== Send transaction to AURA ==========');
       return await this.transactionService.sendTransaction(request);
   }
