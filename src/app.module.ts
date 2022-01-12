@@ -1,4 +1,4 @@
-import { CacheModule, Module } from '@nestjs/common';
+import { CacheModule, HttpModule, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MultisigWalletController } from './controllers/multisig-wallet.controller';
 import { SimulatingController } from './controllers/simulating.controller';
@@ -20,8 +20,8 @@ import { MultisigWalletRepository } from './repositories/impls/multisig-wallet.r
 import { MultisigWalletOwnerRepository } from './repositories/impls/multisig-wallet-owner.repository';
 import { GeneralController } from './controllers/general.controller';
 import { GeneralRepository } from './repositories/impls/general.repository';
-import { TransactionRepository } from './repositories/impls/transaction.repository';
 import { MultisigTransactionRepository } from './repositories/impls/multisig-transaction.repository';
+import { MultisigConfirmRepository } from './repositories/impls/multisig-confirm.repository';
 
 const controllers = [
   SimulatingController,
@@ -41,6 +41,12 @@ const entities = [
 ];
 @Module({
   imports: [
+    HttpModule.registerAsync({
+      useFactory: () => ({
+        timeout: 5000,
+        maxRedirects: 5
+      })
+    }),
     CacheModule.register({ ttl: 10000 }),
     SharedModule,
     TypeOrmModule.forFeature([...entities]),
@@ -66,12 +72,12 @@ const entities = [
       useClass: GeneralRepository,
     },
     {
-      provide: REPOSITORY_INTERFACE.ITRANSACTION_REPOSITORY,
-      useClass: TransactionRepository,
-    },
-    {
       provide: REPOSITORY_INTERFACE.IMULTISIG_TRANSACTION_REPOSITORY,
       useClass: MultisigTransactionRepository,
+    },
+    {
+      provide: REPOSITORY_INTERFACE.IMULTISIG_CONFIRM_REPOSITORY,
+      useClass: MultisigConfirmRepository,
     },
     //service
     {
