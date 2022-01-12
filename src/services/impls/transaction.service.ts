@@ -126,7 +126,8 @@ export class TransactionService implements ITransactionService {
       let multisigConfirm = new MultisigConfirm();
       multisigConfirm.multisigTransactionId = request.transactionId;
       multisigConfirm.ownerAddress = request.multisigAddress;
-      multisigConfirm.signature = request.mnemonic;
+      multisigConfirm.signature = request.signature;
+      multisigConfirm.bodyBytes = request.bodyBytes;
 
       await this.multisigConfirmRepos.create(multisigConfirm);
       return res.return(ErrorMap.SUCCESSFUL, result);
