@@ -54,12 +54,14 @@ export class TransactionController {
     return await this.transactionService.broadcastTransaction(request);
   }
 
-  @Get()
+  @Get(`:safeAddress`)
   @ApiOperation({
     summary: 'Returns a paginated list of transactions for a Safe',
   })
-  async getAllTxs() {
-    return `Returns a paginated list of transactions for a Safe`;
+  async getAllTxs(@Param('safeAddress') safeAddress: string) {
+    // return `Returns a paginated list of transactions for a Safe`;
+    return await this.transactionService.getTransactionHistory(safeAddress);
+    // return this.transactionService.getTransactionHistoryFromNode(safeAddress);
   }
 
   @Get('queue')
@@ -85,7 +87,8 @@ export class TransactionController {
     summary: 'Get the list of signatures for a multisig transaction',
   })
   async getSignsOfMultisigTx(@Param('internalTxHash') internalTxHash: string) {
-    return `Get the list of signatures for a multisig transaction`;
+    // return `Get the list of signatures for a multisig transaction`;
+    return await this.transactionService.getListConfirmMultisigTransaction(internalTxHash);
   }
 
   @Get('transfers')

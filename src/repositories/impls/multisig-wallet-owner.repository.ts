@@ -16,5 +16,8 @@ export class MultisigWalletOwnerRepository
     private readonly repos: Repository<ObjectLiteral>,
   ) {
     super(repos);
+    this._logger.log(
+      '============== Constructor Multisig Wallet Owner Repository ==============',
+    );
   }
 }

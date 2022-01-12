@@ -30,6 +30,18 @@ export class AuraTx extends BaseEntityAutoId {
   @Column({ name: 'RawLogs' })
   rawLogs: string;
 
+  @Column({name: 'FromAddress'})
+  fromAddress: string;
+
+  @Column({name: 'ToAddress'})
+  toAddress: string;
+
+  @Column({name: 'Amount', type: 'float'})
+  amount: number;
+
+  @Column({ name: 'Denom' })
+  denom: string;
+
   @Column({ name: 'TimeStamp', type: 'timestamp' })
   timeStamp: Date;
 
