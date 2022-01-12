@@ -10,7 +10,8 @@ export const URL_CONSTANTS = {
   signing: 'signing',
   CONNECT_WALLET: 'connect_wallet',
   CREATE: 'create',
-  SEND: 'send'
+  SEND: 'send',
+  SIGLE_SIGN: 'sign'
 };
 export const DENOM = {
   uaura : 'uaura'
