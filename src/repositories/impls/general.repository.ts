@@ -13,6 +13,9 @@ export class GeneralRepository extends BaseRepository implements IGeneralReposit
         private readonly repos: Repository<ObjectLiteral>,
     ) {
         super(repos);
+        this._logger.log(
+            '============== Constructor General Repository ==============',
+          );
     }
     
     async showNetworkList() {

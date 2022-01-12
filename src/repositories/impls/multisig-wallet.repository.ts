@@ -14,6 +14,9 @@ export class MultisigWalletRepository extends BaseRepository implements IMultisi
     private readonly repos: Repository<ObjectLiteral>,
   ) {
     super(repos);
+    this._logger.log(
+      '============== Constructor Multisig Wallet Repository ==============',
+    );
   }
   
   async checkOwnerMultisigWallet(owner_address: string, safe_address: string, pubkeys: string) {

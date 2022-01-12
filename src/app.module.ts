@@ -19,9 +19,6 @@ import { MultisigWalletRepository } from './repositories/impls/multisig-wallet.r
 import { MultisigWalletOwnerRepository } from './repositories/impls/multisig-wallet-owner.repository';
 import { MultisigTransactionRepository } from './repositories/impls/multisig-transaction.repository';
 import { MultisigConfirmRepository } from './repositories/impls/multisig-confirm.repository';
-import { GeneralService } from './services/impls/general.service';
-import { GeneralController } from './controllers/general.controller';
-import { GeneralRepository } from './repositories/impls/general.repository';
 import { TransactionRepository } from './repositories/impls/transaction.repository';
 
 const controllers = [
@@ -39,6 +36,7 @@ const entities = [
   ENTITIES_CONFIG.CHAIN,
   ENTITIES_CONFIG.MULTISIG_CONFIRM,
   ENTITIES_CONFIG.MULTISIG_TRANSACTION,
+  ENTITIES_CONFIG.AURA_TX,
 ];
 @Module({
   imports: [
@@ -79,6 +77,10 @@ const entities = [
     {
       provide: REPOSITORY_INTERFACE.IGENERAL_REPOSITORY,
       useClass: GeneralRepository,
+    },
+    {
+      provide: REPOSITORY_INTERFACE.ITRANSACTION_REPOSITORY,
+      useClass: TransactionRepository,
     },
     {
       provide: REPOSITORY_INTERFACE.ITRANSACTION_REPOSITORY,

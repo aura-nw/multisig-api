@@ -26,6 +26,8 @@ import { IMultisigConfirmRepository } from 'src/repositories/imultisig-confirm.r
 import { Observable } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { AxiosResponse } from 'axios';
+import { DENOM, TRANSACTION_STATUS } from 'src/common/constants/api.constant';
+import { ITransactionRepository } from 'src/repositories/itransaction.repository';
 @Injectable()
 export class TransactionService extends BaseService implements ITransactionService {
   private readonly _logger = new Logger(TransactionService.name);
@@ -35,6 +37,8 @@ export class TransactionService extends BaseService implements ITransactionServi
     private multisigTransactionRepos : IMultisigTransactionsRepository,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_CONFIRM_REPOSITORY) 
     private multisigConfirmRepos : IMultisigConfirmRepository,
+    @Inject(REPOSITORY_INTERFACE.ITRANSACTION_REPOSITORY)
+    private transRepos: ITransactionRepository,
     private httpService: HttpService
   ) {
     super(multisigTransactionRepos);
@@ -175,51 +179,50 @@ export class TransactionService extends BaseService implements ITransactionServi
     internalTxHash: string,
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
-    const id = await this.multisigTransactionRepos.getMultisigTxId(internalTxHash);
-    const result = await this.multisigConfirmRepos.getListConfirmMultisigTransaction(id);
-    return res.return(ErrorMap.SUCCESSFUL, result);
+    const resId = await this.multisigTransactionRepos.getMultisigTxId(internalTxHash);
+    if(resId) {
+      const result = await this.multisigConfirmRepos.getListConfirmMultisigTransaction(resId.id);
+      return res.return(ErrorMap.SUCCESSFUL, result);
+    }
   }
 
   async getTransactionHistory(safeAddress: string): Promise<ResponseDto> {
     const res = new ResponseDto();
-    const result = await this.multisigTransactionRepos.getTransactionHistory(safeAddress);
-    return res.return(ErrorMap.SUCCESSFUL, result);
-  }
-
-  async getAuraTxFromNode(safeAddress: string): Promise<ResponseDto> {
-    const res = new ResponseDto();
-    const url = 'http://18.138.28.51:1317/txs?message.sender=' + safeAddress + '&limit=20&page=1'
-    const resApi =  await this.httpService.get(url).toPromise();
-    const result = [];
-    return res.return(ErrorMap.SUCCESSFUL, result);
-  }
-
-  async getTransactionHistoryFromNode(safeAddress: string): Promise<ResponseDto> {
-    const res = new ResponseDto();
-    const url = 'http://18.138.28.51:1317/txs?transfer.recipient=' + safeAddress + '&limit=20&page=1'
-    const resApi =  await this.httpService.get(url).toPromise();
-    // console.log(resApi.data);
-    // const temp = eval(resApi.data.txs[0].raw_log);
-    // const signs = eval(resApi.data.txs[0].tx.value.signatures);
-    // console.log(temp[0].events[3].attributes);
-    // console.log(signs)
-    const result = [];
-    for(let i = 0; i < resApi.data.count; i++) {
-      const temp = eval(resApi.data.txs[i].raw_log);
-      const trans = new MultisigTransactionHistoryResponse();
-      trans.txHash = resApi.data.txs[i].txhash;
-      trans.createdAt = resApi.data.txs[i].timestamp;
-      trans.updatedAt = resApi.data.txs[i].timestamp;
-      trans.amount = temp[0].events[3].attributes[2].value;
-      trans.receiver = temp[0].events[3].attributes[0].value;
-      // const confirms = MultisigConfirm[resApi.data.txs[i].tx.value.signatures.length];
-      // for(let j = 0; j < res[i].signatures.length; j++) {
-      //   confirms.
-      // }
-      // resApi.data.txs[i].tx.value.signatures.pub_key.value;
-      // res[i].signatures = confirms;
-      result.push(trans)
+    // const result = await this.multisigTransactionRepos.getTransactionHistory(safeAddress);
+    const result = await this.transRepos.getAuraTx(safeAddress);
+    for(let i = 0; i < result.length; i++) {
+      if(result[i].fromAddress == safeAddress) {
+        console.log(result[i].txHash);
+        result[i].signatures = await (await this.getListConfirmMultisigTransaction(result[i].txHash)).Data;
+        console.log(result[i].signatures);
+      }
     }
     return res.return(ErrorMap.SUCCESSFUL, result);
   }
+
+  // async getAuraTxFromNode(safeAddress: string): Promise<ResponseDto> {
+  //   const res = new ResponseDto();
+  //   const url = 'http://18.138.28.51:1317/txs?message.sender=' + safeAddress + '&limit=20&page=1'
+  //   const resApi =  await this.httpService.get(url).toPromise();
+  //   const result = [];
+  //   return res.return(ErrorMap.SUCCESSFUL, result);
+  // }
+
+  // async getTransactionHistoryFromNode(safeAddress: string): Promise<ResponseDto> {
+  //   const res = new ResponseDto();
+  //   const url = 'http://18.138.28.51:1317/txs?transfer.recipient=' + safeAddress + '&limit=20&page=1'
+  //   const resApi =  await this.httpService.get(url).toPromise();
+  //   const result = [];
+  //   for(let i = 0; i < resApi.data.count; i++) {
+  //     const temp = eval(resApi.data.txs[i].raw_log);
+  //     const trans = new MultisigTransactionHistoryResponse();
+  //     trans.txHash = resApi.data.txs[i].txhash;
+  //     trans.createdAt = resApi.data.txs[i].timestamp;
+  //     trans.updatedAt = resApi.data.txs[i].timestamp;
+  //     trans.amount = temp[0].events[3].attributes[2].value;
+  //     trans.receiver = temp[0].events[3].attributes[0].value;
+  //     result.push(trans)
+  //   }
+  //   return res.return(ErrorMap.SUCCESSFUL, result);
+  // }
 }
