@@ -13,8 +13,9 @@ import { CreateTransactionRequest } from './dtos/requests/createTransaction.requ
 import { MultisigConfirm, MultisigTransaction } from './entities';
 import { Chain } from './entities/chain.entity';
 import { MultisigConfirm } from './entities/multisig-confirm.entity';
-import { ListMultisigConfirmRequest } from './dtos/requests/transaction/list-multisig-confirm.request';
 import { MultisigTransaction } from './entities/multisig-transaction.entity';
+import { CreateTransactionRequest } from './dtos/requests/createTransaction.request';
+import { AuraTx } from './entities';
 
 export const ENTITIES_CONFIG = {
   SAFE: Safe,
@@ -24,6 +25,7 @@ export const ENTITIES_CONFIG = {
   CHAIN: Chain,
   MULTISIG_CONFIRM: MultisigConfirm,
   MULTISIG_TRANSACTION: MultisigTransaction,
+  AURA_TX: AuraTx,
 };
 
 export const REQUEST_CONFIG = {
@@ -64,6 +66,8 @@ export const REPOSITORY_INTERFACE = {
   IMULTISIG_WALLET_OWNER_REPOSITORY: 'IMultisigWalletOwnerRepository',
   ITRANSACTION_REPOSITORY: 'ITransactionRepository',
   IGENERAL_REPOSITORY: 'IGeneralRepository',
+  IMULTISIG_TRANSACTION_REPOSITORY: 'IMultisigTransactionsRepository',
+  IMULTISIG_CONFIRM_REPOSITORY: 'IMultisigConfirmRepository',
 };
 
 export const PROVIDER_INTERFACE = {};
