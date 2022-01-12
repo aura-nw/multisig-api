@@ -37,7 +37,7 @@ export const ErrorMap = {
   },
   SAFE_WAS_DELETED: {
     Code: 'E009',
-    Message: 'This safe was created',
+    Message: 'This safe was deleted',
   },
   TRANSACTION_NOT_EXIST: {
     Code: 'E010',
