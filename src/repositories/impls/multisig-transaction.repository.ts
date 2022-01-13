@@ -22,25 +22,14 @@ export class MultisigTransactionRepository
     );
   }
 
-async getMultisigTxId(internalTxHash: string) {
-    let sqlQuerry = this.repos
-        .createQueryBuilder('multisigTransaction')
-        .where('multisigTransaction.txHash = :internalTxHash', { internalTxHash })
-        .select([
-            'multisigTransaction.id as id',
-        ]);
-    let resultData = await sqlQuerry.getRawOne();
-    return resultData;
-}
-
-async getTransactionHistory(safeAddress: string) {
-  const entityManager = getManager();
-  const sqlQuerry = entityManager.query(`
-    SELECT mt.Id, mt.CreatedAt, mt.UpdatedAt, mt.FromAddress, mt.ToAddress, mt.TxHash, mt.Amount, mt.Denom
-    FROM MultisigTransaction mt INNER JOIN Safe s
-    UNION ALL
-    SELECT a.Id, a.CreatedAt, a.UpdatedAt, a.FromAddress, a.ToAddress, a.TxHash, a.Amount, a.Denom
-    FROM AuraTx a;`);
-    return sqlQuerry;
-}
+  async getMultisigTxId(internalTxHash: string) {
+      let sqlQuerry = this.repos
+          .createQueryBuilder('multisigTransaction')
+          .where('multisigTransaction.txHash = :internalTxHash', { internalTxHash })
+          .select([
+              'multisigTransaction.id as id',
+          ]);
+      let resultData = await sqlQuerry.getRawOne();
+      return resultData;
+  }
 }
