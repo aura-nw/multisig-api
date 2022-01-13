@@ -23,15 +23,15 @@ export class MultisigWalletController {
   constructor(
     @Inject(SERVICE_INTERFACE.IMULTISIG_WALLET_SERVICE)
     private multisigWalletService: IMultisigWalletService,
-  ) {}
+  ) { }
 
-  @Post()
-  @ApiOperation({ summary: 'Create a multisig wallet' })
-  async createMultisigWallet(
-    @Body() request: MODULE_REQUEST.CreateMultisigWalletRequest,
-  ) {
-    return await this.multisigWalletService.createMultisigWallet(request);
-  }
+  // @Post()
+  // @ApiOperation({ summary: 'Create a multisig wallet' })
+  // async createMultisigWallet(
+  //   @Body() request: MODULE_REQUEST.CreateMultisigWalletRequest,
+  // ) {
+  //   return await this.multisigWalletService.createMultisigWallet(request);
+  // }
 
   @Get(':safeId')
   @ApiOperation({ summary: 'Get status of the multisig wallet by safeId' })
@@ -75,7 +75,7 @@ export class MultisigWalletController {
   @HttpCode(HttpStatus.OK)
   async createIAO(@Body() request: MODULE_REQUEST.ConnectMultisigWalletRequest) {
     this._logger.log('========== Connect multisig wallet ==========');
-      return await this.multisigWalletService.connectMultisigWalletByAddress(request);
+    return await this.multisigWalletService.connectMultisigWalletByAddress(request);
   }
 
 
