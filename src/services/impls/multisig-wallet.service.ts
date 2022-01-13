@@ -24,8 +24,7 @@ import { SafeOwner } from 'src/entities/safe-owner.entity';
 @Injectable()
 export class MultisigWalletService
   extends BaseService
-  implements IMultisigWalletService
-{
+  implements IMultisigWalletService {
   private readonly _logger = new Logger(MultisigWalletService.name);
   private _commonUtil: CommonUtil = new CommonUtil();
   constructor(
@@ -227,14 +226,17 @@ export class MultisigWalletService
     return res.return(ErrorMap.SUCCESSFUL, result);
   }
 
-  private calculateCondition(safeId: string) {
+  private calculateCondition(safeId: string, chainId?: number) {
+    // this.configService.get()
     return isNaN(Number(safeId))
       ? {
-          safeAddress: safeId,
-        }
+        safeAddress: safeId,
+        chainId
+      }
       : {
-          id: safeId,
-        };
+        id: safeId,
+        chainId
+      };
   }
 
   private async insertSafe(
