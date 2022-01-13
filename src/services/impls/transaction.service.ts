@@ -199,30 +199,4 @@ export class TransactionService extends BaseService implements ITransactionServi
     }
     return res.return(ErrorMap.SUCCESSFUL, result);
   }
-
-  // async getAuraTxFromNode(safeAddress: string): Promise<ResponseDto> {
-  //   const res = new ResponseDto();
-  //   const url = 'http://18.138.28.51:1317/txs?message.sender=' + safeAddress + '&limit=20&page=1'
-  //   const resApi =  await this.httpService.get(url).toPromise();
-  //   const result = [];
-  //   return res.return(ErrorMap.SUCCESSFUL, result);
-  // }
-
-  // async getTransactionHistoryFromNode(safeAddress: string): Promise<ResponseDto> {
-  //   const res = new ResponseDto();
-  //   const url = 'http://18.138.28.51:1317/txs?transfer.recipient=' + safeAddress + '&limit=20&page=1'
-  //   const resApi =  await this.httpService.get(url).toPromise();
-  //   const result = [];
-  //   for(let i = 0; i < resApi.data.count; i++) {
-  //     const temp = eval(resApi.data.txs[i].raw_log);
-  //     const trans = new MultisigTransactionHistoryResponse();
-  //     trans.txHash = resApi.data.txs[i].txhash;
-  //     trans.createdAt = resApi.data.txs[i].timestamp;
-  //     trans.updatedAt = resApi.data.txs[i].timestamp;
-  //     trans.amount = temp[0].events[3].attributes[2].value;
-  //     trans.receiver = temp[0].events[3].attributes[0].value;
-  //     result.push(trans)
-  //   }
-  //   return res.return(ErrorMap.SUCCESSFUL, result);
-  // }
 }
