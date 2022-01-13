@@ -1,5 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { off } from "process";
 import { ENTITIES_CONFIG } from "src/module.config";
 import { ObjectLiteral, Repository } from "typeorm";
 import { ITransactionRepository } from "../itransaction.repository";
@@ -20,7 +21,9 @@ export class TransactionRepository
           );
     }
 
-    async getAuraTx(safeAddress: string) {
+    async getAuraTx(safeAddress: string, page: number) {
+        const limit = 20;
+        const offset = limit * (page - 1);
         let sqlQuerry = this.repos
             .createQueryBuilder('auraTx')
             .where('auraTx.fromAddress = :safeAddress', { safeAddress })
@@ -35,6 +38,7 @@ export class TransactionRepository
                 'auraTx.amount as amount',
                 'auraTx.denom as denom',
             ])
+            .limit(limit).offset(offset)
             .orderBy('auraTx.createdAt', 'DESC');
         let resultData = await sqlQuerry.getRawMany();
         return resultData;
