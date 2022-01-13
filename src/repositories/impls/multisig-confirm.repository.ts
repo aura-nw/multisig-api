@@ -30,7 +30,8 @@ export class MultisigConfirmRepository
                     'multisigConfirm.createdAt as createdAt',
                     'multisigConfirm.updatedAt as updatedAt',
                     'multisigConfirm.ownerAddress as ownerAddress',
-                ]);
+                ])
+                .orderBy('multisigConfirm.createdAt', 'ASC');
             let resultData = await sqlQuerry.getRawMany();
             return resultData;
         }
