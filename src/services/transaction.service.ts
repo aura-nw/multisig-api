@@ -39,5 +39,5 @@ export interface ITransactionService {
     /**
      * Get Multisig Transaction History
      */
-    getTransactionHistory(safeAddress: string): Promise<ResponseDto>;
+    getTransactionHistory(safeAddress: string, page: number): Promise<ResponseDto>;
 }

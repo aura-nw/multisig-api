@@ -217,10 +217,10 @@ export class TransactionService extends BaseService implements ITransactionServi
     }
   }
 
-  async getTransactionHistory(safeAddress: string): Promise<ResponseDto> {
+  async getTransactionHistory(safeAddress: string, page: number): Promise<ResponseDto> {
     const res = new ResponseDto();
     // const result = await this.multisigTransactionRepos.getTransactionHistory(safeAddress);
-    const result = await this.transRepos.getAuraTx(safeAddress);
+    const result = await this.transRepos.getAuraTx(safeAddress, page);
     for(let i = 0; i < result.length; i++) {
       if(result[i].fromAddress == safeAddress) {
         result[i].signatures = await (await this.getListConfirmMultisigTransaction(result[i].txHash)).Data;

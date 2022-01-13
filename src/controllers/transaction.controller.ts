@@ -54,13 +54,16 @@ export class TransactionController {
     return await this.transactionService.broadcastTransaction(request);
   }
 
-  @Get(`:safeAddress`)
+  @Get(`:safeAddress/:page`)
   @ApiOperation({
     summary: 'Returns a paginated list of transactions for a Safe',
   })
-  async getAllTxs(@Param('safeAddress') safeAddress: string) {
+  async getAllTxs(
+    @Param('safeAddress') safeAddress: string,
+    @Param('page') page: number, 
+  ) {
     // return `Returns a paginated list of transactions for a Safe`;
-    return await this.transactionService.getTransactionHistory(safeAddress);
+    return await this.transactionService.getTransactionHistory(safeAddress, page);
     // return this.transactionService.getTransactionHistoryFromNode(safeAddress);
   }
 
