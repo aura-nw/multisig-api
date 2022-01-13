@@ -34,7 +34,8 @@ export class TransactionRepository
                 'auraTx.txHash as txHash',
                 'auraTx.amount as amount',
                 'auraTx.denom as denom',
-            ]);
+            ])
+            .orderBy('auraTx.createdAt', 'DESC');
         let resultData = await sqlQuerry.getRawMany();
         return resultData;
     }
