@@ -25,13 +25,13 @@ export class MultisigWalletController {
     private multisigWalletService: IMultisigWalletService,
   ) { }
 
-  // @Post()
-  // @ApiOperation({ summary: 'Create a multisig wallet' })
-  // async createMultisigWallet(
-  //   @Body() request: MODULE_REQUEST.CreateMultisigWalletRequest,
-  // ) {
-  //   return await this.multisigWalletService.createMultisigWallet(request);
-  // }
+  @Post()
+  @ApiOperation({ summary: 'Create a multisig wallet' })
+  async createMultisigWallet(
+    @Body() request: MODULE_REQUEST.CreateMultisigWalletRequest,
+  ) {
+    return await this.multisigWalletService.createMultisigWallet(request);
+  }
 
   @Get(':safeId')
   @ApiOperation({ summary: 'Get status of the multisig wallet by safeId' })
@@ -69,14 +69,14 @@ export class MultisigWalletController {
   //   return `Get creation information of ${address}`;
   // }
 
-  @Post()
-  @ApiOperation({ summary: 'Connect multisig wallet' })
-  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
-  @HttpCode(HttpStatus.OK)
-  async createIAO(@Body() request: MODULE_REQUEST.ConnectMultisigWalletRequest) {
-    this._logger.log('========== Connect multisig wallet ==========');
-    return await this.multisigWalletService.connectMultisigWalletByAddress(request);
-  }
+  // @Post()
+  // @ApiOperation({ summary: 'Connect multisig wallet' })
+  // @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  // @HttpCode(HttpStatus.OK)
+  // async createIAO(@Body() request: MODULE_REQUEST.ConnectMultisigWalletRequest) {
+  //   this._logger.log('========== Connect multisig wallet ==========');
+  //   return await this.multisigWalletService.connectMultisigWalletByAddress(request);
+  // }
 
 
 }
