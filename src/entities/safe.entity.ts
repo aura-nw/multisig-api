@@ -1,10 +1,8 @@
 import { BaseEntityAutoId } from './base/base.entity';
 import { Column, Entity } from 'typeorm';
-import { ConfigService } from 'src/shared/services/config.service';
 
 @Entity({ name: 'Safe' })
 export class Safe extends BaseEntityAutoId {
-  private configService = new ConfigService();
 
   @Column({ name: 'SafeAddress', unique: true, nullable: true })
   safeAddress: string;
@@ -25,7 +23,7 @@ export class Safe extends BaseEntityAutoId {
   status: string;
 
   @Column({ name: 'ChainId' })
-  chainId: number = Number(this.configService.get('CHAIN_ID'));
+  chainId: number;
 
   // index: [SafeAddress]
 }
