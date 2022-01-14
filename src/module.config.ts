@@ -9,14 +9,19 @@ import { SendTransactionRequest } from './dtos/requests/transaction/send-transac
 import { SingleSignTransactionRequest } from './dtos/requests/transaction/single-sign-transaction.request';
 import { Safe } from './entities/safe.entity';
 import { SafeOwner } from './entities/safe-owner.entity';
+import { Chain } from './entities/chain.entity';
+import { MultisigConfirm } from './entities/multisig-confirm.entity';
+import { MultisigTransaction } from './entities/multisig-transaction.entity';
 import { CreateTransactionRequest } from './dtos/requests/createTransaction.request';
-import { MultisigConfirm, MultisigTransaction } from './entities';
+import { AuraTx } from './entities';
 
 export const ENTITIES_CONFIG = {
   SAFE: Safe,
   SAFE_OWNER: SafeOwner,
+  CHAIN: Chain,
+  MULTISIG_CONFIRM: MultisigConfirm,
   MULTISIG_TRANSACTION: MultisigTransaction,
-  MULTISIG_CONFIRM: MultisigConfirm
+  AURA_TX: AuraTx,
 };
 
 export const REQUEST_CONFIG = {
@@ -46,16 +51,19 @@ export module MODULE_REQUEST {
 }
 
 export const SERVICE_INTERFACE = {
-  ISIMULATING_SERVICE: 'ISimulatingService',
-  IMULTISIG_WALLET_SERVICE: 'IMultisigWalletService',
-  ITRANSACTION_SERVICE: 'ITransactionService',
+    ISIMULATING_SERVICE: "ISimulatingService",
+    IMULTISIG_WALLET_SERVICE: "IMultisigWalletService",
+    ITRANSACTION_SERVICE: "ITransactionService",
+    IGENERAL_SERVICE: "IGeneralService",
 };
 
 export const REPOSITORY_INTERFACE = {
   IMULTISIG_WALLET_REPOSITORY: 'IMultisigWalletRepository',
   IMULTISIG_WALLET_OWNER_REPOSITORY: 'IMultisigWalletOwnerRepository',
+  ITRANSACTION_REPOSITORY: 'ITransactionRepository',
+  IGENERAL_REPOSITORY: 'IGeneralRepository',
   IMULTISIG_TRANSACTION_REPOSITORY: 'IMultisigTransactionsRepository',
-  IMULTISIG_CONFIRM_REPOSITORY: 'IMultisigConfirmRepository'
+  IMULTISIG_CONFIRM_REPOSITORY: 'IMultisigConfirmRepository',
 };
 
 export const PROVIDER_INTERFACE = {};

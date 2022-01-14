@@ -10,18 +10,38 @@ import {
 } from '@cosmjs/stargate';
 import { MsgSend } from 'cosmjs-types/cosmos/bank/v1beta1/tx';
 import { coins } from '@cosmjs/proto-signing';
+<<<<<<< HEAD
+=======
+import {
+  encodeSecp256k1Pubkey,
+  MultisigThresholdPubkey,
+  Secp256k1HdWallet,
+} from '@cosmjs/amino';
+import { BaseService } from './base.service';
+>>>>>>> 6161f076e852baf559622d482e958c2d96605e00
 import { MultisigConfirm, MultisigTransaction } from 'src/entities';
 import { IMultisigTransactionsRepository } from 'src/repositories/imultisig-transaction.repository';
-import { DENOM, TRANSACTION_STATUS } from 'src/common/constants/api.constant';
+import { MultisigTransactionHistoryResponse } from 'src/dtos/responses/multisig-transaction/multisig-transaction-history.response';
 import { IMultisigConfirmRepository } from 'src/repositories/imultisig-confirm.repository';
+import { Observable } from 'rxjs';
+import { HttpService } from '@nestjs/axios';
+import { AxiosResponse } from 'axios';
+import { DENOM, TRANSACTION_STATUS } from 'src/common/constants/api.constant';
+import { ITransactionRepository } from 'src/repositories/itransaction.repository';
 @Injectable()
-export class TransactionService implements ITransactionService {
+export class TransactionService extends BaseService implements ITransactionService {
   private readonly _logger = new Logger(TransactionService.name);
   constructor(
     private configService: ConfigService,
-    @Inject(REPOSITORY_INTERFACE.IMULTISIG_TRANSACTION_REPOSITORY) private multisigTransactionRepos : IMultisigTransactionsRepository,
-    @Inject(REPOSITORY_INTERFACE.IMULTISIG_CONFIRM_REPOSITORY) private multisigConfirmRepos : IMultisigConfirmRepository
+    @Inject(REPOSITORY_INTERFACE.IMULTISIG_TRANSACTION_REPOSITORY) 
+    private multisigTransactionRepos : IMultisigTransactionsRepository,
+    @Inject(REPOSITORY_INTERFACE.IMULTISIG_CONFIRM_REPOSITORY) 
+    private multisigConfirmRepos : IMultisigConfirmRepository,
+    @Inject(REPOSITORY_INTERFACE.ITRANSACTION_REPOSITORY)
+    private transRepos: ITransactionRepository,
+    private httpService: HttpService
   ) {
+    super(multisigTransactionRepos);
     this._logger.log(
       '============== Constructor Transaction Service ==============',
     );
@@ -193,6 +213,31 @@ export class TransactionService implements ITransactionService {
 
     let result = {};
     const res = new ResponseDto();
+    return res.return(ErrorMap.SUCCESSFUL, result);
+  }
+  
+  async getListConfirmMultisigTransaction(
+    internalTxHash: string,
+  ): Promise<ResponseDto> {
+    const res = new ResponseDto();
+    const resId = await this.multisigTransactionRepos.getMultisigTxId(internalTxHash);
+    if(resId) {
+      const result = await this.multisigConfirmRepos.getListConfirmMultisigTransaction(resId.id);
+      return res.return(ErrorMap.SUCCESSFUL, result);
+    } else {
+      return res.return(ErrorMap.TRANSACTION_NOT_EXIST)
+    }
+  }
+
+  async getTransactionHistory(safeAddress: string, page: number): Promise<ResponseDto> {
+    const res = new ResponseDto();
+    // const result = await this.multisigTransactionRepos.getTransactionHistory(safeAddress);
+    const result = await this.transRepos.getAuraTx(safeAddress, page);
+    for(let i = 0; i < result.length; i++) {
+      if(result[i].fromAddress == safeAddress) {
+        result[i].signatures = await (await this.getListConfirmMultisigTransaction(result[i].txHash)).Data;
+      }
+    }
     return res.return(ErrorMap.SUCCESSFUL, result);
   }
 }

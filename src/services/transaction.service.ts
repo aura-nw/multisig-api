@@ -1,4 +1,7 @@
+import { AxiosResponse } from "axios";
+import { Observable } from "rxjs";
 import { ResponseDto } from "src/dtos/responses/response.dto";
+import { MultisigTransaction } from "src/entities";
 import { MODULE_REQUEST } from "src/module.config";
 
 export interface ITransactionService {
@@ -26,4 +29,15 @@ export interface ITransactionService {
     * @param request
     */
     broadcastTransaction(request: MODULE_REQUEST.BroadcastTransactionRequest): Promise<ResponseDto>;
+
+    /**
+     * Get list of confirmation of Multisig Transaction
+     * @param request
+     */
+    getListConfirmMultisigTransaction(internalTxHash: string): Promise<ResponseDto>;
+    
+    /**
+     * Get Multisig Transaction History
+     */
+    getTransactionHistory(safeAddress: string, page: number): Promise<ResponseDto>;
 }
