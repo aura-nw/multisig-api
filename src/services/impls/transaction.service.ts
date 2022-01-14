@@ -5,19 +5,11 @@ import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
 import { ConfigService } from 'src/shared/services/config.service';
 import { ITransactionService } from '../transaction.service';
 import {
-  makeMultisignedTx,
   MsgSendEncodeObject,
-  SignerData,
-  SigningStargateClient,
   StargateClient,
 } from '@cosmjs/stargate';
 import { MsgSend } from 'cosmjs-types/cosmos/bank/v1beta1/tx';
 import { coins } from '@cosmjs/proto-signing';
-import {
-  encodeSecp256k1Pubkey,
-  MultisigThresholdPubkey,
-  Secp256k1HdWallet,
-} from '@cosmjs/amino';
 import { MultisigConfirm, MultisigTransaction } from 'src/entities';
 import { IMultisigTransactionsRepository } from 'src/repositories/imultisig-transaction.repository';
 import { DENOM, TRANSACTION_STATUS } from 'src/common/constants/api.constant';
@@ -60,46 +52,58 @@ export class TransactionService implements ITransactionService {
       this._logger.error(`${error.name}: ${error.message}`);
       this._logger.error(`${error.stack}`);
       return res.return(ErrorMap.E500);
-
     }
   }
 
-  async sendTransaction(
-    request: MODULE_REQUEST.SendTransactionRequest,
-  ): Promise<ResponseDto> {
-    const signingInstruction = await (async () => {
-      const client = await StargateClient.connect(
-        this.configService.get('TENDERMINT_URL'),
-      );
-      const accountOnChain = await client.getAccount(request.from);
-
-      const msgSend: MsgSend = {
-        fromAddress: request.from,
-        toAddress: request.to,
-        amount: coins(request.amount, request.denom),
-      };
-      const msg: MsgSendEncodeObject = {
-        typeUrl: '/cosmos.bank.v1beta1.MsgSend',
-        value: msgSend,
-      };
-      const gasLimit = request.gasLimit;
-      const fee = {
-        amount: coins(request.fee, request.denom),
-        gas: request.gasLimit,
-      };
-      let result = {
-        accountNumber: accountOnChain ? accountOnChain.accountNumber : 0,
-        sequence: accountOnChain ? accountOnChain.sequence : 0,
-        chainId: this.configService.get('chain_id'),
-        msgs: [msg],
-        fee: fee,
-        memo: request.memo,
-      };
-      return result;
-    })();
-
+  async sendTransaction(request: MODULE_REQUEST.SendTransactionRequest): Promise<ResponseDto> {
     const res = new ResponseDto();
-    return res.return(ErrorMap.SUCCESSFUL, signingInstruction);
+    try {
+      //get information multisig transaction Id
+      let multisigTransaction = await this.multisigTransactionRepos.findOne({where: {id: request.transactionId}});
+
+      if(!multisigTransaction && multisigTransaction.status != TRANSACTION_STATUS.SEND_WAITING){
+        return res.return(ErrorMap.TRANSACTION_NOT_VALID);
+      }
+
+      const signingInstruction = await (async () => {
+        const client = await StargateClient.connect(
+          this.configService.get('TENDERMINT_URL'),
+        );
+        const accountOnChain = await client.getAccount(multisigTransaction.fromAddress);
+  
+        const msgSend: MsgSend = {
+          fromAddress: multisigTransaction.fromAddress,
+          toAddress: multisigTransaction.toAddress,
+          amount: coins(multisigTransaction.amount, multisigTransaction.denom),
+        };
+        const msg: MsgSendEncodeObject = {
+          typeUrl: '/cosmos.bank.v1beta1.MsgSend',
+          value: msgSend,
+        };
+        const gasLimit = multisigTransaction.gasAmount;
+        const fee = {
+          amount: coins(multisigTransaction.gas, multisigTransaction.denom),
+          gas: multisigTransaction.gasAmount,
+        };
+        let result = {
+          accountNumber: accountOnChain ? accountOnChain.accountNumber : 0,
+          sequence: accountOnChain ? accountOnChain.sequence : 0,
+          chainId: this.configService.get('chain_id'),
+          msgs: [msg],
+          fee: fee,
+          memo: request.memo,
+        };
+
+        return result;
+      })();
+      
+      return res.return(ErrorMap.SUCCESSFUL);
+    } catch (error) {
+      this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
+      this._logger.error(`${error.name}: ${error.message}`);
+      this._logger.error(`${error.stack}`);
+      return res.return(ErrorMap.E500);
+    }
   }
 
   async singleSignTransaction(request: MODULE_REQUEST.SingleSignTransactionRequest): Promise<ResponseDto> 

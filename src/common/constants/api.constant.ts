@@ -17,6 +17,7 @@ export const DENOM = {
   uaura : 'uaura'
 }
 export const TRANSACTION_STATUS = {
+  SEND_WAITING: 'SEND_WAITING',
   PENDING : 'PENDING',
   SUCCESS: 'SUCCESS',
   CANCEL: 'CANCEL'
