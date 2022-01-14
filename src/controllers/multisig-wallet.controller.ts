@@ -23,7 +23,7 @@ export class MultisigWalletController {
   constructor(
     @Inject(SERVICE_INTERFACE.IMULTISIG_WALLET_SERVICE)
     private multisigWalletService: IMultisigWalletService,
-  ) {}
+  ) { }
 
   @Post()
   @ApiOperation({ summary: 'Create a multisig wallet' })
@@ -69,14 +69,14 @@ export class MultisigWalletController {
   //   return `Get creation information of ${address}`;
   // }
 
-  @Post()
-  @ApiOperation({ summary: 'Connect multisig wallet' })
-  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
-  @HttpCode(HttpStatus.OK)
-  async createIAO(@Body() request: MODULE_REQUEST.ConnectMultisigWalletRequest) {
-    this._logger.log('========== Connect multisig wallet ==========');
-      return await this.multisigWalletService.connectMultisigWalletByAddress(request);
-  }
+  // @Post()
+  // @ApiOperation({ summary: 'Connect multisig wallet' })
+  // @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  // @HttpCode(HttpStatus.OK)
+  // async createIAO(@Body() request: MODULE_REQUEST.ConnectMultisigWalletRequest) {
+  //   this._logger.log('========== Connect multisig wallet ==========');
+  //   return await this.multisigWalletService.connectMultisigWalletByAddress(request);
+  // }
 
 
 }

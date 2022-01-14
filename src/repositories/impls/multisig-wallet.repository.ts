@@ -7,7 +7,7 @@ import { ENTITIES_CONFIG } from 'src/module.config';
 import { SafeOwner } from 'src/entities';
 
 @Injectable()
-export class MultisigWalletRepository extends BaseRepository implements IMultisigWalletRepository{
+export class MultisigWalletRepository extends BaseRepository implements IMultisigWalletRepository {
   private readonly _logger = new Logger(MultisigWalletRepository.name);
   constructor(
     @InjectRepository(ENTITIES_CONFIG.SAFE)
@@ -18,16 +18,16 @@ export class MultisigWalletRepository extends BaseRepository implements IMultisi
       '============== Constructor Multisig Wallet Repository ==============',
     );
   }
-  
+
   async checkOwnerMultisigWallet(owner_address: string, safe_address: string, pubkeys: string) {
     let sqlQuerry = this.repos.createQueryBuilder('safe').innerJoin(SafeOwner, 'safeOwner', 'safe.id = safeOwner.safeId')
-                              .where('safe.safeAddress = :safeAddress', {safe_address})
-                              .andWhere('safe.creatorAddress = :creatorAddress', {owner_address}).orWhere('')
+      .where('safe.safeAddress = :safeAddress', { safe_address })
+      .andWhere('safe.creatorAddress = :creatorAddress', { owner_address }).orWhere('')
     let resultData = await sqlQuerry.getRawMany();
     return resultData;
   }
 
-  async getMultisigWalletsByOwner(ownerAddress: string) {
+  async getMultisigWalletsByOwner(ownerAddress: string, chainId: number) {
     let sqlQuerry = this.repos
       .createQueryBuilder('safe')
       .innerJoin(
@@ -36,6 +36,7 @@ export class MultisigWalletRepository extends BaseRepository implements IMultisi
         'safe.id = safeOwner.safeId',
       )
       .where('safeOwner.ownerAddress = :ownerAddress', { ownerAddress })
+      .andWhere('safeOwner.chainId = :chainId', { chainId })
       .select([
         'safe.id as id',
         'safe.safeAddress as safeAddress',
