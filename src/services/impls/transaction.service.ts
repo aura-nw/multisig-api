@@ -6,6 +6,7 @@ import { ConfigService } from 'src/shared/services/config.service';
 import { ITransactionService } from '../transaction.service';
 import {
   MsgSendEncodeObject,
+  SigningStargateClient,
   StargateClient,
 } from '@cosmjs/stargate';
 import { MsgSend } from 'cosmjs-types/cosmos/bank/v1beta1/tx';
@@ -16,10 +17,12 @@ import { ITransactionRepository } from 'src/repositories/itransaction.repository
 import { IMultisigConfirmRepository } from 'src/repositories/imultisig-confirm.repository';
 import { IMultisigTransactionsRepository } from 'src/repositories/imultisig-transaction.repository';
 import { MultisigConfirm, MultisigTransaction } from 'src/entities';
+import { HttpService } from '@nestjs/axios';
 @Injectable()
 export class TransactionService extends BaseService implements ITransactionService {
   private readonly _logger = new Logger(TransactionService.name);
   constructor(
+    private httpService: HttpService,
     private configService: ConfigService,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_TRANSACTION_REPOSITORY) 
     private multisigTransactionRepos : IMultisigTransactionsRepository,
@@ -68,7 +71,7 @@ export class TransactionService extends BaseService implements ITransactionServi
       //get information multisig transaction Id
       let multisigTransaction = await this.multisigTransactionRepos.findOne({where: {id: request.transactionId}});
 
-      if(!multisigTransaction && multisigTransaction.status != TRANSACTION_STATUS.SEND_WAITING){
+      if(!multisigTransaction || multisigTransaction.status != TRANSACTION_STATUS.SEND_WAITING){
         return res.return(ErrorMap.TRANSACTION_NOT_VALID);
       }
 
@@ -101,6 +104,9 @@ export class TransactionService extends BaseService implements ITransactionServi
           memo: request.memo,
         };
 
+        const sender = await SigningStargateClient.connect(this.configService.get('TENDERMINT_URL'));
+
+        await sender.sendTokens()
         return result;
       })();
       
