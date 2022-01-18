@@ -20,7 +20,7 @@ export class init1641804902350 implements MigrationInterface {
             TimeStamp timestamp,
             Tx varchar(255) COLLATE utf8_unicode_ci,
             TxHash varchar(255) COLLATE utf8_unicode_ci,
-            ChainId varchar(255) COLLATE utf8_unicode_ci,
+            ChainId int(11) NOT NULL,
             PRIMARY KEY (Id),
             UNIQUE INDEX (TxHash ASC)
           ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -33,6 +33,7 @@ export class init1641804902350 implements MigrationInterface {
             Rest varchar(255) COLLATE utf8_unicode_ci NOT NULL,
             Rpc varchar(255) COLLATE utf8_unicode_ci NOT NULL,
             Websocket varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+            ChainId varchar(255) COLLATE utf8_unicode_ci NOT NULL,
             PRIMARY KEY (Id)
           ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
           
