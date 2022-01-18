@@ -8,6 +8,7 @@ export interface IMultisigWalletService {
    */
   createMultisigWallet(
     request: MODULE_REQUEST.CreateMultisigWalletRequest,
+    chainId?: number
   ): Promise<ResponseDto>;
 
   /**
