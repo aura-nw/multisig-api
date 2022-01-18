@@ -20,9 +20,9 @@ export class init1641804902350 implements MigrationInterface {
             TimeStamp timestamp,
             Tx varchar(255) COLLATE utf8_unicode_ci,
             TxHash varchar(255) COLLATE utf8_unicode_ci,
-            ChainId int(11) NOT NULL,
+            ChainId varchar(255) COLLATE utf8_unicode_ci,
             PRIMARY KEY (Id),
-            INDEX (TxHash)
+            UNIQUE INDEX (TxHash ASC)
           ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
           
           CREATE TABLE Chain (
