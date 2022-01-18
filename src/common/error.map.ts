@@ -47,6 +47,10 @@ export const ErrorMap = {
     Code: 'E011',
     Message: 'This transaction is not exist!',
   },
+  BALANCE_NOT_ENOUGH: {
+    Code: 'E011',
+    Message: 'Balance not enough!',
+  },
   C001: {
     Code: 'C001',
     Message: `Missing result from Chaincode`,

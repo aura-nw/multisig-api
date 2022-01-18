@@ -2,10 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class SingleSignTransactionRequest {
   @ApiProperty()
-  multisigAddress: string;
-
-  @ApiProperty()
-  mnemonic: string;
+  fromAddress: string;
 
   @ApiProperty()
   transactionId: number;
@@ -15,4 +12,7 @@ export class SingleSignTransactionRequest {
 
   @ApiProperty()
   signature: string;
+
+  @ApiProperty()
+  address: string;
 }
