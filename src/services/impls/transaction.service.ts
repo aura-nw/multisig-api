@@ -5,6 +5,7 @@ import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
 import { ConfigService } from 'src/shared/services/config.service';
 import { ITransactionService } from '../transaction.service';
 import {
+  makeMultisignedTx,
   MsgSendEncodeObject,
   SignerData,
   SigningStargateClient,
@@ -46,9 +47,6 @@ export class TransactionService extends BaseService implements ITransactionServi
       const client = await StargateClient.connect(
         this.configService.get('TENDERMINT_URL'),
       );
-
-      const accountOnChain = await client.getAccount(request.from);
-      assert(accountOnChain, 'Account does not exist on chain');
 
       let balance = await client.getBalance(request.from, DENOM.uaura);
 
@@ -120,6 +118,24 @@ export class TransactionService extends BaseService implements ITransactionServi
       if(!multisigTransaction || multisigTransaction.status != TRANSACTION_STATUS.SEND_WAITING){
         return res.return(ErrorMap.TRANSACTION_NOT_VALID);
       }
+
+      let multisigConfirmArr = await this.multisigConfirmRepos.findAll({where: {multisigTransactionId: request.transactionId}});
+
+      let addressSignarureMap = new Map<string, Uint8Array>();
+
+      let bodyBytesArr = new Uint8Array();
+
+      multisigConfirmArr.forEach(x => {
+        addressSignarureMap.set(x.ownerAddress, x.signature);
+      })
+
+      let executeTransaction = makeMultisignedTx(
+        multisigTransaction.pubkey,
+        multisigTransaction.sequence,
+        multisigTransaction.fee,
+        multisigTransaction.bodyBytes,
+        addressSignarureMap
+      );
       
       return res.return(ErrorMap.SUCCESSFUL);
     } catch (error) {
@@ -142,7 +158,6 @@ export class TransactionService extends BaseService implements ITransactionServi
       }
 
       
-
       let multisigConfirm = new MultisigConfirm();
       multisigConfirm.multisigTransactionId = request.transactionId;
       multisigConfirm.ownerAddress = request.fromAddress;
@@ -160,32 +175,32 @@ export class TransactionService extends BaseService implements ITransactionServi
 
   }
 
-  async simulateSign(
-    signingInstruction,
-    mnemonic,
-  ): Promise<[Secp256k1Pubkey, Uint8Array, Uint8Array]> {
-    const wallet = await Secp256k1HdWallet.fromMnemonic(mnemonic, {
-      prefix: this._prefix,
-    });
-    const pubkey = encodeSecp256k1Pubkey(
-      (await wallet.getAccounts())[0].pubkey,
-    );
-    const address = (await wallet.getAccounts())[0].address;
-    const signingClient = await SigningStargateClient.offline(wallet);
-    const signerData: SignerData = {
-      accountNumber: signingInstruction.accountNumber,
-      sequence: signingInstruction.sequence,
-      chainId: signingInstruction.chainId,
-    };
-    const { bodyBytes: bb, signatures } = await signingClient.sign(
-      address,
-      signingInstruction.msgs,
-      signingInstruction.fee,
-      signingInstruction.memo,
-      signerData,
-    );
-    return [pubkey, signatures[0], bb];
-  }
+  // async simulateSign(
+  //   signingInstruction,
+  //   mnemonic,
+  // ): Promise<[Secp256k1Pubkey, Uint8Array, Uint8Array]> {
+  //   const wallet = await Secp256k1HdWallet.fromMnemonic(mnemonic, {
+  //     prefix: this._prefix,
+  //   });
+  //   const pubkey = encodeSecp256k1Pubkey(
+  //     (await wallet.getAccounts())[0].pubkey,
+  //   );
+  //   const address = (await wallet.getAccounts())[0].address;
+  //   const signingClient = await SigningStargateClient.offline(wallet);
+  //   const signerData: SignerData = {
+  //     accountNumber: signingInstruction.accountNumber,
+  //     sequence: signingInstruction.sequence,
+  //     chainId: signingInstruction.chainId,
+  //   };
+  //   const { bodyBytes: bb, signatures } = await signingClient.sign(
+  //     address,
+  //     signingInstruction.msgs,
+  //     signingInstruction.fee,
+  //     signingInstruction.memo,
+  //     signerData,
+  //   );
+  //   return [pubkey, signatures[0], bb];
+  // }
   
   async broadcastTransaction(
     request: MODULE_REQUEST.BroadcastTransactionRequest,
