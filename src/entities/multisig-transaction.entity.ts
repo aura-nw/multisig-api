@@ -30,20 +30,20 @@ export class MultisigTransaction extends BaseEntityAutoId {
     @Column({name: 'ChainId'})
     chainId: string;
 
+    @Column({name: 'AccountNumber'})
+    accountNumber: number;
+
     @Column({name: 'Sequence'})
     sequence: string;
 
     @Column({name: 'Gas', type: 'float'})
     gas: number;
 
-    @Column({name: 'GasAmount', type: 'float'})
-    gasAmount: number;
+    @Column({name: 'Fee', type: 'float'})
+    fee: number;
 
     @Column({name: 'Msg'})
     msg: string;
-
-    @Column({name: 'Memo'})
-    memo: string;
 
     @Column({name: 'MultisigPubkey'})
     multisigPubkey: string;
