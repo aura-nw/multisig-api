@@ -28,7 +28,7 @@ export class MultisigTransaction extends BaseEntityAutoId {
     signature: string;
 
     @Column({name: 'ChainId'})
-    chainId: string;
+    chainId: number;
 
     @Column({name: 'AccountNumber'})
     accountNumber: number;
