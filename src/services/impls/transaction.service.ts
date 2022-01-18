@@ -22,6 +22,7 @@ import { MultisigConfirm, MultisigTransaction } from 'src/entities';
 import { DirectSecp256k1HdWallet } from "@cosmjs/proto-signing";
 import { assert } from '@cosmjs/utils';
 import { encodeSecp256k1Pubkey, pubkeyToAddress, Secp256k1HdWallet, Secp256k1Pubkey } from '@cosmjs/amino';
+import { IGeneralRepository } from 'src/repositories/igeneral.repository';
 @Injectable()
 export class TransactionService extends BaseService implements ITransactionService {
   private readonly _logger = new Logger(TransactionService.name);
@@ -29,12 +30,10 @@ export class TransactionService extends BaseService implements ITransactionServi
 
   constructor(
     private configService: ConfigService,
-    @Inject(REPOSITORY_INTERFACE.IMULTISIG_TRANSACTION_REPOSITORY) 
-    private multisigTransactionRepos : IMultisigTransactionsRepository,
-    @Inject(REPOSITORY_INTERFACE.IMULTISIG_CONFIRM_REPOSITORY) 
-    private multisigConfirmRepos : IMultisigConfirmRepository,
-    @Inject(REPOSITORY_INTERFACE.ITRANSACTION_REPOSITORY)
-    private transRepos: ITransactionRepository,
+    @Inject(REPOSITORY_INTERFACE.IMULTISIG_TRANSACTION_REPOSITORY) private multisigTransactionRepos : IMultisigTransactionsRepository,
+    @Inject(REPOSITORY_INTERFACE.IMULTISIG_CONFIRM_REPOSITORY) private multisigConfirmRepos : IMultisigConfirmRepository,
+    @Inject(REPOSITORY_INTERFACE.IGENERAL_REPOSITORY) private chainRepos : IGeneralRepository,
+    @Inject(REPOSITORY_INTERFACE.ITRANSACTION_REPOSITORY) private transRepos: ITransactionRepository,
   ) {
     super(multisigTransactionRepos);
     this._logger.log('============== Constructor Transaction Service ==============',);
@@ -44,9 +43,9 @@ export class TransactionService extends BaseService implements ITransactionServi
   async createTransaction(request: MODULE_REQUEST.CreateTransactionRequest): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      const client = await StargateClient.connect(
-        this.configService.get('TENDERMINT_URL'),
-      );
+      let chain = await this.chainRepos.findOne({where: {id: request.chainId}});
+
+      const client = await StargateClient.connect(chain.rest);
 
       let balance = await client.getBalance(request.from, DENOM.uaura);
 
@@ -55,9 +54,7 @@ export class TransactionService extends BaseService implements ITransactionServi
       }
 
       const signingInstruction = await (async () => {
-        const client = await StargateClient.connect(
-          this.configService.get('TENDERMINT_URL'),
-        );
+        const client = await StargateClient.connect(chain.rest);
 
         //Check account
         const accountOnChain = await client.getAccount(request.from);
