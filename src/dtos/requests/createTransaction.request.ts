@@ -17,5 +17,5 @@ export class CreateTransactionRequest {
     gasLimit: number;
 
     @ApiProperty()
-    chainId: string;
+    chainId: number;
 }

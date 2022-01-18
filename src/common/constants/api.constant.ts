@@ -15,7 +15,7 @@ export const URL_CONSTANTS = {
   SIGLE_SIGN: 'sign'
 };
 export const DENOM = {
-  uaura : 'uaura'
+  uaura : 'stake'
 }
 export const TRANSACTION_STATUS = {
   PENDING : 'PENDING',
