@@ -62,12 +62,13 @@ export class MultisigWalletService
 
   async createMultisigWallet(
     request: MODULE_REQUEST.CreateMultisigWalletRequest,
-    chainId = this.defaultChainId
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     const { creatorAddress, creatorPubkey, otherOwnersAddress, threshold } =
       request;
+    const chainId = request.chainId || this.defaultChainId;
 
+    // TODO: check duplicate
     // insert safe
     const safe = new ENTITIES_CONFIG.SAFE();
     safe.creatorAddress = creatorAddress;
@@ -186,8 +187,7 @@ export class MultisigWalletService
 
       // get safe owners
       const safeOwners = (await this.safeOwnerRepo.findByCondition({
-        safeId: safe.id,
-        chainId
+        safeId: safe.id
       })) as SafeOwner[];
       if (safeOwners.length === 0) return res.return(ErrorMap.NOTFOUND);
 
@@ -204,9 +204,7 @@ export class MultisigWalletService
       if (!updateResult) return res.return(ErrorMap.SOMETHING_WENT_WRONG, {});
 
       // check all owner confirmed 
-      console.log(safeOwners);
       const notReady = safeOwners.findIndex((s) => s.ownerPubkey === null);
-      console.log(notReady);
       if (notReady !== -1)
         return res.return(ErrorMap.SUCCESSFUL, updateResult);
 
@@ -253,7 +251,7 @@ export class MultisigWalletService
 
     try {
       await this.safeRepo.update(safe);
-      res.return(ErrorMap.SUCCESSFUL, {});
+      return res.return(ErrorMap.SUCCESSFUL, {});
     } catch (err) {
       this._logger.error(err);
       return res.return(ErrorMap.SOMETHING_WENT_WRONG);
@@ -276,7 +274,6 @@ export class MultisigWalletService
       }
       : {
         id: safeId,
-        chainId: chainId || this.defaultChainId
       };
   }
 
