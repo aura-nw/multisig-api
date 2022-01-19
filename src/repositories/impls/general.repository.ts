@@ -26,6 +26,7 @@ export class GeneralRepository extends BaseRepository implements IGeneralReposit
                 'chain.name as name',
                 'chain.rest as rest',
                 'chain.rpc as rpc',
+                'chain.chainId as chainId'
             ]);
         let resultData = await sqlQuerry.getRawMany();
         return resultData;
