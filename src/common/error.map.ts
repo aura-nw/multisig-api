@@ -45,11 +45,15 @@ export const ErrorMap = {
   },
   TRANSACTION_NOT_VALID: {
     Code: 'E011',
-    Message: 'This transaction is not exist!',
+    Message: 'This transaction is not valid!',
   },
   BALANCE_NOT_ENOUGH: {
-    Code: 'E011',
+    Code: 'E012',
     Message: 'Balance not enough!',
+  },
+  USER_HAS_COMFIRMED: {
+    Code: 'E012',
+    Message: 'User has confirmed before!',
   },
   C001: {
     Code: 'C001',
