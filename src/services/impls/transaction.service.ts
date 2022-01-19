@@ -7,8 +7,6 @@ import { ITransactionService } from '../transaction.service';
 import {
   makeMultisignedTx,
   MsgSendEncodeObject,
-  SignerData,
-  SigningStargateClient,
   StargateClient,
 } from '@cosmjs/stargate';
 import { MsgSend } from 'cosmjs-types/cosmos/bank/v1beta1/tx';
@@ -19,10 +17,9 @@ import { ITransactionRepository } from 'src/repositories/itransaction.repository
 import { IMultisigConfirmRepository } from 'src/repositories/imultisig-confirm.repository';
 import { IMultisigTransactionsRepository } from 'src/repositories/imultisig-transaction.repository';
 import { MultisigConfirm, MultisigTransaction } from 'src/entities';
-import { DirectSecp256k1HdWallet } from "@cosmjs/proto-signing";
 import { assert } from '@cosmjs/utils';
-import { encodeSecp256k1Pubkey, pubkeyToAddress, Secp256k1HdWallet, Secp256k1Pubkey } from '@cosmjs/amino';
 import { IGeneralRepository } from 'src/repositories/igeneral.repository';
+import { ISafeRepository } from 'src/repositories/isafe.repository';
 @Injectable()
 export class TransactionService extends BaseService implements ITransactionService {
   private readonly _logger = new Logger(TransactionService.name);
@@ -34,6 +31,7 @@ export class TransactionService extends BaseService implements ITransactionServi
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_CONFIRM_REPOSITORY) private multisigConfirmRepos : IMultisigConfirmRepository,
     @Inject(REPOSITORY_INTERFACE.IGENERAL_REPOSITORY) private chainRepos : IGeneralRepository,
     @Inject(REPOSITORY_INTERFACE.ITRANSACTION_REPOSITORY) private transRepos: ITransactionRepository,
+    @Inject(REPOSITORY_INTERFACE.ISAFE_REPOSITORY) private safeRepos: ISafeRepository,
   ) {
     super(multisigTransactionRepos);
     this._logger.log('============== Constructor Transaction Service ==============',);
@@ -48,6 +46,8 @@ export class TransactionService extends BaseService implements ITransactionServi
       const client = await StargateClient.connect(chain.rpc);
 
       let balance = await client.getBalance(request.from, DENOM.uaura);
+
+      let safe = await this.safeRepos.findOne({where: {safeAddress: request.from}});
 
       if(Number(balance.amount) < request.amount){
         return res.return(ErrorMap.BALANCE_NOT_ENOUGH)
@@ -95,6 +95,7 @@ export class TransactionService extends BaseService implements ITransactionServi
       transaction.denom = DENOM.uaura;
       transaction.status = TRANSACTION_STATUS.PENDING;
       transaction.chainId = request.chainId
+      transaction.safeId = safe.id;
 
       await this.multisigTransactionRepos.create(transaction);
 
@@ -147,6 +148,7 @@ export class TransactionService extends BaseService implements ITransactionServi
   {
     const res = new ResponseDto();
     try {
+
       //Check status of multisig transaction
       let transaction = await this.multisigTransactionRepos.findOne({where : {id: request.transactionId }});
 
@@ -154,7 +156,14 @@ export class TransactionService extends BaseService implements ITransactionServi
         return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
       }
 
-      
+      let safe = await this.safeRepos.findOne({where: {id: transaction.safeId}})
+
+      //Check status of multisig confirm
+      let listConfirm = await this.multisigConfirmRepos.getListConfirmMultisigTransaction(request.transactionId);
+      if(listConfirm.includes(request.address)){
+          return res.return(ErrorMap.USER_HAS_COMFIRMED);
+      }
+
       let multisigConfirm = new MultisigConfirm();
       multisigConfirm.multisigTransactionId = request.transactionId;
       multisigConfirm.ownerAddress = request.fromAddress;
@@ -171,33 +180,6 @@ export class TransactionService extends BaseService implements ITransactionServi
     }
 
   }
-
-  // async simulateSign(
-  //   signingInstruction,
-  //   mnemonic,
-  // ): Promise<[Secp256k1Pubkey, Uint8Array, Uint8Array]> {
-  //   const wallet = await Secp256k1HdWallet.fromMnemonic(mnemonic, {
-  //     prefix: this._prefix,
-  //   });
-  //   const pubkey = encodeSecp256k1Pubkey(
-  //     (await wallet.getAccounts())[0].pubkey,
-  //   );
-  //   const address = (await wallet.getAccounts())[0].address;
-  //   const signingClient = await SigningStargateClient.offline(wallet);
-  //   const signerData: SignerData = {
-  //     accountNumber: signingInstruction.accountNumber,
-  //     sequence: signingInstruction.sequence,
-  //     chainId: signingInstruction.chainId,
-  //   };
-  //   const { bodyBytes: bb, signatures } = await signingClient.sign(
-  //     address,
-  //     signingInstruction.msgs,
-  //     signingInstruction.fee,
-  //     signingInstruction.memo,
-  //     signerData,
-  //   );
-  //   return [pubkey, signatures[0], bb];
-  // }
   
   async broadcastTransaction(
     request: MODULE_REQUEST.BroadcastTransactionRequest,

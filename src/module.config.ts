@@ -64,6 +64,7 @@ export const REPOSITORY_INTERFACE = {
   IGENERAL_REPOSITORY: 'IGeneralRepository',
   IMULTISIG_TRANSACTION_REPOSITORY: 'IMultisigTransactionsRepository',
   IMULTISIG_CONFIRM_REPOSITORY: 'IMultisigConfirmRepository',
+  ISAFE_REPOSITORY: 'ISafeRepository'
 };
 
 export const PROVIDER_INTERFACE = {};
