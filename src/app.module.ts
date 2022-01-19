@@ -23,6 +23,7 @@ import { GeneralRepository } from './repositories/impls/general.repository';
 import { MultisigTransactionRepository } from './repositories/impls/multisig-transaction.repository';
 import { MultisigConfirmRepository } from './repositories/impls/multisig-confirm.repository';
 import { TransactionRepository } from './repositories/impls/transaction.repository';
+import { SafeRepository } from './repositories/impls/safe.repository';
 
 const controllers = [
   SimulatingController,
@@ -84,6 +85,10 @@ const entities = [
     {
       provide: REPOSITORY_INTERFACE.ITRANSACTION_REPOSITORY,
       useClass: TransactionRepository,
+    },
+    {
+      provide: REPOSITORY_INTERFACE.ISAFE_REPOSITORY,
+      useClass: SafeRepository,
     },
     //service
     {
