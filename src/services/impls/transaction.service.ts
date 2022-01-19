@@ -45,7 +45,7 @@ export class TransactionService extends BaseService implements ITransactionServi
     try {
       let chain = await this.chainRepos.findOne({where: {id: request.chainId}});
 
-      const client = await StargateClient.connect(chain.rest);
+      const client = await StargateClient.connect(chain.rpc);
 
       let balance = await client.getBalance(request.from, DENOM.uaura);
 
@@ -54,7 +54,7 @@ export class TransactionService extends BaseService implements ITransactionServi
       }
 
       const signingInstruction = await (async () => {
-        const client = await StargateClient.connect(chain.rest);
+        const client = await StargateClient.connect(chain.rpc);
 
         //Check account
         const accountOnChain = await client.getAccount(request.from);
