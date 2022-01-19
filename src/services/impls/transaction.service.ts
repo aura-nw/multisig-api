@@ -43,9 +43,9 @@ export class TransactionService extends BaseService implements ITransactionServi
   async createTransaction(request: MODULE_REQUEST.CreateTransactionRequest): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      let chain = await this.chainRepos.findByCondition({where: {id: request.chainId}});
+      let chain = await this.chainRepos.findOne({where: {id: request.chainId}});
 
-      const client = await StargateClient.connect('1');
+      const client = await StargateClient.connect(chain.rest);
 
       let balance = await client.getBalance(request.from, DENOM.uaura);
 
@@ -54,7 +54,7 @@ export class TransactionService extends BaseService implements ITransactionServi
       }
 
       const signingInstruction = await (async () => {
-        const client = await StargateClient.connect('1');
+        const client = await StargateClient.connect(chain.rest);
 
         //Check account
         const accountOnChain = await client.getAccount(request.from);
@@ -76,7 +76,7 @@ export class TransactionService extends BaseService implements ITransactionServi
         return {
           accountNumber: accountOnChain.accountNumber,
           sequence: accountOnChain.sequence,
-          chainId: '1',
+          chainId: chain.chainId,
           msgs: [msg],
           fee: fee,
           memo: ""
