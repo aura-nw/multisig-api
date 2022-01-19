@@ -11,4 +11,10 @@ export class Chain extends BaseEntityAutoId {
 
   @Column({ name: 'Rpc' })
   rpc: string;
+
+  @Column({ name: 'Websocket' })
+  webSocket: string;
+
+  @Column({ name: 'ChainId' })
+  chainId: string;
 }
