@@ -16,5 +16,5 @@ export class MultisigConfirm extends BaseEntityAutoId {
     signature: string;
 
     @Column({name: 'ChainId'})
-    chainId: string;
+    chainId: number;
 }

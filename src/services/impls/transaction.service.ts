@@ -99,6 +99,8 @@ export class TransactionService extends BaseService implements ITransactionServi
 
       await this.multisigTransactionRepos.create(transaction);
 
+      return res.return(ErrorMap.SUCCESSFUL);
+
     } catch (error) {
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
       this._logger.error(`${error.name}: ${error.message}`);
@@ -150,13 +152,11 @@ export class TransactionService extends BaseService implements ITransactionServi
     try {
 
       //Check status of multisig transaction
-      let transaction = await this.multisigTransactionRepos.findOne({where : {id: request.transactionId }});
+      let transaction = await this.multisigTransactionRepos.findOne({where : {id: request.transactionId, chainId: request.chainId }});
 
       if(!transaction || transaction.status != TRANSACTION_STATUS.PENDING){
         return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
       }
-
-      let safe = await this.safeRepos.findOne({where: {id: transaction.safeId}})
 
       //Check status of multisig confirm
       let listConfirm = await this.multisigConfirmRepos.getListConfirmMultisigTransaction(request.transactionId);
@@ -164,11 +164,13 @@ export class TransactionService extends BaseService implements ITransactionServi
           return res.return(ErrorMap.USER_HAS_COMFIRMED);
       }
 
+    
       let multisigConfirm = new MultisigConfirm();
       multisigConfirm.multisigTransactionId = request.transactionId;
       multisigConfirm.ownerAddress = request.fromAddress;
       multisigConfirm.signature = request.signature;
       multisigConfirm.bodyBytes = request.bodyBytes;
+      multisigConfirm.chainId = request.chainId;
 
       await this.multisigConfirmRepos.create(multisigConfirm);
       return res.return(ErrorMap.SUCCESSFUL);
