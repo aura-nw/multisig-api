@@ -1,4 +1,4 @@
-export enum AppConstants {}
+export enum AppConstants { }
 
 export enum ORDER_BY {
   DESC = 'DESC',
@@ -12,6 +12,11 @@ export enum SAFE_STATUS {
   PENDING = 'pending',
   CREATED = 'created',
   DELETED = 'deleted',
+}
+
+export enum SAFE_OWNER_STATUS {
+  NEED_CONFIRM = 'needConfirm',
+  CONFIRMED = 'confirmed',
 }
 export enum TRANSACTION_STATUS {
   PENDING = 'PENDING',
