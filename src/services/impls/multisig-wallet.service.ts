@@ -5,7 +5,10 @@ import { ConfigService } from 'src/shared/services/config.service';
 import { IMultisigWalletService } from '../imultisig-wallet.service';
 import { IMultisigWalletRepository } from 'src/repositories/imultisig-wallet.repository';
 import { IMultisigWalletOwnerRepository } from 'src/repositories/imultisig-wallet-owner.repository';
-import { SAFE_OWNER_STATUS, SAFE_STATUS } from 'src/common/constants/app.constant';
+import {
+  SAFE_OWNER_STATUS,
+  SAFE_STATUS,
+} from 'src/common/constants/app.constant';
 import {
   createMultisigThresholdPubkey,
   Pubkey,
@@ -24,6 +27,8 @@ import { Safe } from 'src/entities/safe.entity';
 import { SafeOwner } from 'src/entities/safe-owner.entity';
 import { plainToInstance } from 'class-transformer';
 import { ListSafeByOwnerResponse } from 'src/dtos/responses/multisig-wallet/get-safe-by-owner.response';
+import { IGeneralRepository } from 'src/repositories/igeneral.repository';
+import { Chain } from 'src/entities';
 @Injectable()
 export class MultisigWalletService
   extends BaseService
@@ -37,6 +42,8 @@ export class MultisigWalletService
     private safeRepo: IMultisigWalletRepository,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_OWNER_REPOSITORY)
     private safeOwnerRepo: IMultisigWalletOwnerRepository, //
+    @Inject(REPOSITORY_INTERFACE.IGENERAL_REPOSITORY)
+    private generalRepo: IGeneralRepository, //
   ) {
     super(safeRepo);
     this._logger.log(
@@ -50,7 +57,11 @@ export class MultisigWalletService
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      let ownerMultisig = await this.safeRepo.checkOwnerMultisigWallet(request.owner_address, request.safe_address, request.chainId);
+      let ownerMultisig = await this.safeRepo.checkOwnerMultisigWallet(
+        request.owner_address,
+        request.safe_address,
+        request.chainId,
+      );
 
       return res.return(ErrorMap.SUCCESSFUL, ownerMultisig);
     } catch (error) {
@@ -58,7 +69,6 @@ export class MultisigWalletService
       this._logger.error(`${error.name}: ${error.message}`);
       this._logger.error(`${error.stack}`);
       return res.return(ErrorMap.E500);
-
     }
   }
 
@@ -70,9 +80,17 @@ export class MultisigWalletService
       request;
     const chainId = request.chainId || this.defaultChainId;
 
+    // Check input
+    if (otherOwnersAddress.indexOf(creatorAddress) > -1)
+      return res.return(ErrorMap.OTHER_ADDRESS_INCLUDE_CREATOR);
+    if (this._commonUtil.checkIfDuplicateExists(otherOwnersAddress))
+      return res.return(ErrorMap.DUPLICATE_SAFE_OWNER);
+    const chainInfo = (await this.generalRepo.findOne(chainId)) as Chain;
+    if (!chainInfo) return res.return(ErrorMap.CHAIN_ID_NOT_EXIST);
+    console.log(chainInfo);
+    console.log(chainId);
+
     // TODO: check duplicate
-
-
     // insert safe
     const safe = new ENTITIES_CONFIG.SAFE();
     safe.creatorAddress = creatorAddress;
@@ -124,16 +142,21 @@ export class MultisigWalletService
     return res.return(ErrorMap.SUCCESSFUL, safe);
   }
 
-  async getMultisigWallet(safeId: string, chainId = this.defaultChainId): Promise<ResponseDto> {
-
+  async getMultisigWallet(
+    safeId: string,
+    chainId = this.defaultChainId,
+  ): Promise<ResponseDto> {
     // build search condition
     let condition = this.calculateCondition(safeId, chainId);
+    console.log(condition);
 
     // find safes
     const res = new ResponseDto();
     const safes = await this.safeRepo.findByCondition(condition);
     if (!safes || safes.length === 0) {
-      this._logger.debug(`Not found any safe with condition: ${JSON.stringify(condition)}`);
+      this._logger.debug(
+        `Not found any safe with condition: ${JSON.stringify(condition)}`,
+      );
       return res.return(ErrorMap.NOTFOUND);
     }
     const safe = safes[0];
@@ -141,10 +164,11 @@ export class MultisigWalletService
     // find safe owner
     const owners = (await this.safeOwnerRepo.findByCondition({
       safeId: safe.id,
-      chainId
     })) as SafeOwner[];
     if (!owners || owners.length === 0) {
-      this._logger.debug(`Not found any safe owner with safeId: ${safeId} and chainId: ${chainId}`);
+      this._logger.debug(
+        `Not found any safe owner with safeId: ${safeId} and chainId: ${chainId}`,
+      );
       return res.return(ErrorMap.NOTFOUND);
     }
 
@@ -161,11 +185,15 @@ export class MultisigWalletService
     safeInfo.status = safe.status;
     safeInfo.chainId = safe.chainId;
 
+    // get chainInfo
+    const chainInfo = (await this.generalRepo.findOne(safeInfo.chainId)) as Chain;
+
     // if safe created => Get balance
     if (safeInfo.address !== null) {
-      const client = await Network.defaultNetwork();
+      const network = new Network(chainInfo.rpc);
+      await network.init();
       // const balance = await client.getBalance('aura1cq8k74zcpe0jscja4x4el5su65vt8ela7esj6r');
-      const balance = await client.getBalance(safeInfo.address);
+      const balance = await network.getBalance(safeInfo.address);
       safeInfo.balance = balance;
     }
     return res.return(ErrorMap.SUCCESSFUL, safeInfo);
@@ -174,7 +202,7 @@ export class MultisigWalletService
   async confirm(
     safeId: string,
     request: MODULE_REQUEST.ConfirmMultisigWalletRequest,
-    chainId = this.defaultChainId
+    chainId = this.defaultChainId,
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     const { myAddress, myPubkey } = request;
@@ -191,7 +219,7 @@ export class MultisigWalletService
 
       // get safe owners
       const safeOwners = (await this.safeOwnerRepo.findByCondition({
-        safeId: safe.id
+        safeId: safe.id,
       })) as SafeOwner[];
       if (safeOwners.length === 0) return res.return(ErrorMap.NOTFOUND);
 
@@ -207,10 +235,9 @@ export class MultisigWalletService
       const updateResult = await this.safeOwnerRepo.update(safeOwners[index]);
       if (!updateResult) return res.return(ErrorMap.SOMETHING_WENT_WRONG, {});
 
-      // check all owner confirmed 
+      // check all owner confirmed
       const notReady = safeOwners.findIndex((s) => s.ownerPubkey === null);
-      if (notReady !== -1)
-        return res.return(ErrorMap.SUCCESSFUL, updateResult);
+      if (notReady !== -1) return res.return(ErrorMap.SUCCESSFUL, updateResult);
 
       // calculate owner pubKey array
       const pubkeys = safeOwners.map((s) => {
@@ -234,7 +261,7 @@ export class MultisigWalletService
   async deletePending(
     safeId: string,
     request: MODULE_REQUEST.DeleteMultisigWalletRequest,
-    chainId = this.defaultChainId
+    chainId = this.defaultChainId,
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     const { myAddress } = request;
@@ -261,16 +288,28 @@ export class MultisigWalletService
     }
   }
 
-  async getMultisigWalletsByOwner(ownerAddress: string, chainId = this.defaultChainId): Promise<ResponseDto> {
+  async getMultisigWalletsByOwner(
+    ownerAddress: string,
+    chainId = this.defaultChainId,
+  ): Promise<ResponseDto> {
     const res = new ResponseDto();
-    const result = await this.safeRepo.getMultisigWalletsByOwner(ownerAddress, chainId);
+    const result = await this.safeRepo.getMultisigWalletsByOwner(
+      ownerAddress,
+      chainId,
+    );
     const listSafe = plainToInstance(ListSafeByOwnerResponse, result);
     const response = listSafe.map((res) => {
-      if (res.status === SAFE_STATUS.PENDING && res.creatorAddress !== res.ownerAddress) {
-        res.status = res.ownerPubkey === null ? SAFE_OWNER_STATUS.NEED_CONFIRM : SAFE_OWNER_STATUS.CONFIRMED;
-      };
+      if (
+        res.status === SAFE_STATUS.PENDING &&
+        res.creatorAddress !== res.ownerAddress
+      ) {
+        res.status =
+          res.ownerPubkey === null
+            ? SAFE_OWNER_STATUS.NEED_CONFIRM
+            : SAFE_OWNER_STATUS.CONFIRMED;
+      }
       return res;
-    })
+    });
     // const groupResult = this._commonUtil.groupBy(result, 'status');
     return res.return(ErrorMap.SUCCESSFUL, response);
   }
@@ -280,7 +319,7 @@ export class MultisigWalletService
     return isNaN(Number(safeId))
       ? {
         safeAddress: safeId,
-        chainId: chainId || this.defaultChainId
+        chainId: chainId || this.defaultChainId,
       }
       : {
         id: safeId,
@@ -329,7 +368,7 @@ export class MultisigWalletService
     return result;
   }
 
-  private makeUniqueKey(addresses: string[], threshold: number) {
+  // private makeUniqueKey(addresses: string[], threshold: number) {
 
-  }
+  // }
 }
