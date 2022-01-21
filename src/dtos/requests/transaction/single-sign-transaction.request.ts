@@ -14,8 +14,5 @@ export class SingleSignTransactionRequest {
   signature: string;
 
   @ApiProperty()
-  address: string;
-
-  @ApiProperty()
   chainId: number;
 }

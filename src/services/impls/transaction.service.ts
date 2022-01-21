@@ -154,16 +154,26 @@ export class TransactionService extends BaseService implements ITransactionServi
       //Check status of multisig transaction
       let transaction = await this.multisigTransactionRepos.findOne({where : {id: request.transactionId, chainId: request.chainId }});
 
-      if(!transaction || transaction.status != TRANSACTION_STATUS.PENDING){
+      if(!transaction){
         return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
       }
 
       //Check status of multisig confirm
       let listConfirm = await this.multisigConfirmRepos.getListConfirmMultisigTransaction(request.transactionId);
-      if(listConfirm.includes(request.address)){
+      
+      listConfirm.forEach(element => {
+        if(element.includes(request.fromAddress)){
           return res.return(ErrorMap.USER_HAS_COMFIRMED);
-      }
+        }
+      });
 
+      let safe = await this.safeRepos.findOne({where: {id: transaction.safeId}});
+
+      if(listConfirm.length >= safe.threshold){
+        transaction.status = TRANSACTION_STATUS.SEND_WAITING
+
+        await this.multisigTransactionRepos.update(transaction);
+      }
     
       let multisigConfirm = new MultisigConfirm();
       multisigConfirm.multisigTransactionId = request.transactionId;
