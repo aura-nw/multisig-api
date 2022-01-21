@@ -5,7 +5,7 @@ import { ConfigService } from 'src/shared/services/config.service';
 import { IMultisigWalletService } from '../imultisig-wallet.service';
 import { IMultisigWalletRepository } from 'src/repositories/imultisig-wallet.repository';
 import { IMultisigWalletOwnerRepository } from 'src/repositories/imultisig-wallet-owner.repository';
-import { SAFE_STATUS } from 'src/common/constants/app.constant';
+import { SAFE_OWNER_STATUS, SAFE_STATUS } from 'src/common/constants/app.constant';
 import {
   createMultisigThresholdPubkey,
   Pubkey,
@@ -22,6 +22,8 @@ import { BaseService } from './base.service';
 import { GetMultisigWalletResponse } from 'src/dtos/responses/multisig-wallet/get-multisig-wallet.response';
 import { Safe } from 'src/entities/safe.entity';
 import { SafeOwner } from 'src/entities/safe-owner.entity';
+import { plainToInstance } from 'class-transformer';
+import { ListSafeByOwnerResponse } from 'src/dtos/responses/multisig-wallet/get-safe-by-owner.response';
 @Injectable()
 export class MultisigWalletService
   extends BaseService
@@ -69,6 +71,8 @@ export class MultisigWalletService
     const chainId = request.chainId || this.defaultChainId;
 
     // TODO: check duplicate
+
+
     // insert safe
     const safe = new ENTITIES_CONFIG.SAFE();
     safe.creatorAddress = creatorAddress;
@@ -240,7 +244,6 @@ export class MultisigWalletService
     const safes = await this.safeRepo.findByCondition(condition);
     if (safes.length === 0) return res.return(ErrorMap.NOTFOUND);
     const safe = safes[0] as Safe;
-    console.log(safe);
     if (safe.creatorAddress !== myAddress)
       return res.return(ErrorMap.ADDRESS_NOT_CREATOR);
     if (safe.status !== SAFE_STATUS.PENDING)
@@ -261,8 +264,15 @@ export class MultisigWalletService
   async getMultisigWalletsByOwner(ownerAddress: string, chainId = this.defaultChainId): Promise<ResponseDto> {
     const res = new ResponseDto();
     const result = await this.safeRepo.getMultisigWalletsByOwner(ownerAddress, chainId);
+    const listSafe = plainToInstance(ListSafeByOwnerResponse, result);
+    const response = listSafe.map((res) => {
+      if (res.status === SAFE_STATUS.PENDING && res.creatorAddress !== res.ownerAddress) {
+        res.status = res.ownerPubkey === null ? SAFE_OWNER_STATUS.NEED_CONFIRM : SAFE_OWNER_STATUS.CONFIRMED;
+      };
+      return res;
+    })
     // const groupResult = this._commonUtil.groupBy(result, 'status');
-    return res.return(ErrorMap.SUCCESSFUL, result);
+    return res.return(ErrorMap.SUCCESSFUL, response);
   }
 
   private calculateCondition(safeId: string, chainId?: number) {
@@ -317,5 +327,9 @@ export class MultisigWalletService
       value,
     };
     return result;
+  }
+
+  private makeUniqueKey(addresses: string[], threshold: number) {
+
   }
 }
