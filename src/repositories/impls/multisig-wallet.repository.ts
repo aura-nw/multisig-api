@@ -27,7 +27,7 @@ export class MultisigWalletRepository extends BaseRepository implements IMultisi
     return resultData;
   }
 
-  async getMultisigWalletsByOwner(ownerAddress: string, chainId: number) {
+  async getMultisigWalletsByOwner(ownerAddress: string, chainId: number): Promise<any[]> {
     let sqlQuerry = this.repos
       .createQueryBuilder('safe')
       .innerJoin(
@@ -43,6 +43,7 @@ export class MultisigWalletRepository extends BaseRepository implements IMultisi
         'safe.creatorAddress as creatorAddress',
         'safe.status as status',
         'safeOwner.ownerAddress as ownerAddress',
+        'safeOwner.ownerPubkey as ownerPubkey'
       ]);
 
     let resultData = await sqlQuerry.getRawMany();
