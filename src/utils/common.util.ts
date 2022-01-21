@@ -3,7 +3,7 @@ import { ConfigService, ENV_CONFIG } from '../shared/services/config.service';
 
 export class CommonUtil {
   private configService: ConfigService = new ConfigService();
-  constructor() {}
+  constructor() { }
 
   /**
    * Calculate address from public key
@@ -25,5 +25,14 @@ export class CommonUtil {
       (rv[x[key]] = rv[x[key]] || []).push(x);
       return rv;
     }, {});
+  }
+
+  /**
+   * https://stackoverflow.com/a/54974076/8461456
+   * @param arr 
+   * @returns boolean
+   */
+  public checkIfDuplicateExists(arr): boolean {
+    return new Set(arr).size !== arr.length
   }
 }

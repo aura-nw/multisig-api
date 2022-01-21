@@ -52,8 +52,20 @@ export const ErrorMap = {
     Message: 'Balance not enough!',
   },
   USER_HAS_COMFIRMED: {
-    Code: 'E012',
+    Code: 'E013',
     Message: 'User has confirmed before!',
+  },
+  OTHER_ADDRESS_INCLUDE_CREATOR: {
+    Code: 'E014',
+    Message: 'otherOwnersAddress are including creatorAddress',
+  },
+  DUPLICATE_SAFE_OWNER: {
+    Code: 'E015',
+    Message: 'Duplicate owners address in otherOwnersAddress',
+  },
+  CHAIN_ID_NOT_EXIST: {
+    Code: 'E016',
+    Message: 'This chainId is not exist!',
   },
   C001: {
     Code: 'C001',
