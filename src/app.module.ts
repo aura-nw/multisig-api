@@ -1,4 +1,5 @@
-import { CacheModule, HttpModule, Module } from '@nestjs/common';
+import { CacheModule, Module } from '@nestjs/common';
+import { HttpModule} from '@nestjs/axios'
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MultisigWalletController } from './controllers/multisig-wallet.controller';
 import { SimulatingController } from './controllers/simulating.controller';
