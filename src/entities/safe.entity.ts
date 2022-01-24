@@ -22,8 +22,8 @@ export class Safe extends BaseEntityAutoId {
   @Column({ name: 'Status' })
   status: string;
 
-  @Column({ name: 'ChainId' })
-  chainId: number;
+  @Column({ name: 'InternalChainId' })
+  internalChainId: number;
 
   // index: [SafeAddress]
 }

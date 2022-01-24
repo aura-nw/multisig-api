@@ -5,7 +5,7 @@ export interface IMultisigWalletRepository extends IBaseRepository {
    *
    * @param ownerAddress string
    */
-  getMultisigWalletsByOwner(ownerAddress: string, chainId: number): Promise<any[]>;
+  getMultisigWalletsByOwner(ownerAddress: string, internalChainId: number): Promise<any[]>;
   /**
    * get multisig wallet information
    */

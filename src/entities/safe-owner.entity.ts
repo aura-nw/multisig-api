@@ -15,8 +15,8 @@ export class SafeOwner extends BaseEntityAutoId {
   @Column('varchar', { length: 800, nullable: true })
   ownerPubkey: string;
 
-  @Column({ name: 'ChainId' })
-  chainId: number;
+  @Column({ name: 'InternalChainId' })
+  internalChainId: number;
 
   // index: [safeId]
 }
