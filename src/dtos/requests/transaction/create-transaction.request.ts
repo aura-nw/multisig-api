@@ -11,14 +11,11 @@ export class CreateTransactionRequest {
     amount: number;
 
     @ApiProperty()
-    denom: string;
-
-    @ApiProperty()
     fee: number;
 
     @ApiProperty()
     gasLimit: number;
 
     @ApiProperty()
-    memo: string;
+    internalChainId: number;
 }

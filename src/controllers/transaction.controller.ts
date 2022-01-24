@@ -46,14 +46,6 @@ export class TransactionController {
     return await this.transactionService.singleSignTransaction(request);
   }
 
-  @Post(`multisig/:internalTxHash/${URL_CONSTANTS.broadcasting}`)
-  @ApiOperation({ summary: 'owner broadcast their transaction' })
-  async broadcastTransaction(
-    @Body() request: MODULE_REQUEST.BroadcastTransactionRequest,
-  ) {
-    return await this.transactionService.broadcastTransaction(request);
-  }
-
   @Get(`:safeAddress/:page`)
   @ApiOperation({
     summary: 'Returns a paginated list of transactions for a Safe',
@@ -65,12 +57,6 @@ export class TransactionController {
     // return `Returns a paginated list of transactions for a Safe`;
     return await this.transactionService.getTransactionHistory(safeAddress, page);
     // return this.transactionService.getTransactionHistoryFromNode(safeAddress);
-  }
-
-  @Get('queue')
-  @ApiOperation({ summary: 'Returns queue txs for a Safe' })
-  async getIncomingTransfers() {
-    return `Returns incoming tokens transfers for a Safe`;
   }
 
   @Get('multisig')

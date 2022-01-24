@@ -5,5 +5,5 @@ export class SendTransactionRequest {
     transactionId: number;
 
     @ApiProperty()
-    memo: string;
+    internalChainId: number;
 }

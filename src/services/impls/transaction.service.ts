@@ -9,6 +9,7 @@ import {
   MsgSendEncodeObject,
   StargateClient,
 } from '@cosmjs/stargate';
+import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { MsgSend } from 'cosmjs-types/cosmos/bank/v1beta1/tx';
 import { coins } from '@cosmjs/proto-signing';
 import { BaseService } from './base.service';
@@ -41,7 +42,7 @@ export class TransactionService extends BaseService implements ITransactionServi
   async createTransaction(request: MODULE_REQUEST.CreateTransactionRequest): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      let chain = await this.chainRepos.findOne({where: {id: request.chainId}});
+      let chain = await this.chainRepos.findOne({where: {id: request.internalChainId}});
 
       const client = await StargateClient.connect(chain.rpc);
 
@@ -94,7 +95,7 @@ export class TransactionService extends BaseService implements ITransactionServi
       transaction.typeUrl = signingInstruction.msgs['typeUrl'];
       transaction.denom = DENOM.uaura;
       transaction.status = TRANSACTION_STATUS.PENDING;
-      transaction.chainId = request.chainId
+      transaction.internalChainId = request.internalChainId
       transaction.safeId = safe.id;
 
       await this.multisigTransactionRepos.create(transaction);
@@ -119,7 +120,7 @@ export class TransactionService extends BaseService implements ITransactionServi
         return res.return(ErrorMap.TRANSACTION_NOT_VALID);
       }
 
-      let multisigConfirmArr = await this.multisigConfirmRepos.findAll({where: {multisigTransactionId: request.transactionId}});
+      let multisigConfirmArr = await this.multisigConfirmRepos.findAll({multisigTransactionId: request.transactionId});
 
       let addressSignarureMap = new Map<string, Uint8Array>();
 
@@ -136,8 +137,17 @@ export class TransactionService extends BaseService implements ITransactionServi
         multisigTransaction.bodyBytes,
         addressSignarureMap
       );
+
+      let chain = await this.chainRepos.findOne({where: {id: request.internalChainId}});
+
+      const client = await StargateClient.connect(chain.rpc);
       
-      return res.return(ErrorMap.SUCCESSFUL);
+      const result = await client.broadcastTx(
+        Uint8Array.from(TxRaw.encode(executeTransaction).finish()),
+      );
+      this._logger.log('result', JSON.stringify(result));
+      return res.return(ErrorMap.SUCCESSFUL, result);
+
     } catch (error) {
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
       this._logger.error(`${error.name}: ${error.message}`);
@@ -152,7 +162,7 @@ export class TransactionService extends BaseService implements ITransactionServi
     try {
 
       //Check status of multisig transaction
-      let transaction = await this.multisigTransactionRepos.findOne({where : {id: request.transactionId, chainId: request.chainId }});
+      let transaction = await this.multisigTransactionRepos.findOne({where : {id: request.transactionId, chainId: request.internalChainId }});
 
       if(!transaction){
         return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
@@ -180,7 +190,7 @@ export class TransactionService extends BaseService implements ITransactionServi
       multisigConfirm.ownerAddress = request.fromAddress;
       multisigConfirm.signature = request.signature;
       multisigConfirm.bodyBytes = request.bodyBytes;
-      multisigConfirm.chainId = request.chainId;
+      multisigConfirm.internalChainId = request.internalChainId;
 
       await this.multisigConfirmRepos.create(multisigConfirm);
       return res.return(ErrorMap.SUCCESSFUL);

@@ -14,7 +14,7 @@ import { MultisigConfirm, MultisigTransaction } from './entities';
 import { Chain } from './entities/chain.entity';
 import { MultisigConfirm } from './entities/multisig-confirm.entity';
 import { MultisigTransaction } from './entities/multisig-transaction.entity';
-import { CreateTransactionRequest } from './dtos/requests/createTransaction.request';
+import { CreateTransactionRequest } from './dtos/requests/transaction/create-transaction.request';
 import { AuraTx } from './entities';
 
 export const ENTITIES_CONFIG = {
