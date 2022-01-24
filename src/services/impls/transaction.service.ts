@@ -162,7 +162,7 @@ export class TransactionService extends BaseService implements ITransactionServi
       let listConfirm = await this.multisigConfirmRepos.getListConfirmMultisigTransaction(request.transactionId);
       
       listConfirm.forEach(element => {
-        if(element.includes(request.fromAddress)){
+        if(element.ownerAddress == request.fromAddress){
           return res.return(ErrorMap.USER_HAS_COMFIRMED);
         }
       });
