@@ -27,7 +27,7 @@ export class MultisigWalletRepository extends BaseRepository implements IMultisi
     return resultData;
   }
 
-  async getMultisigWalletsByOwner(ownerAddress: string, chainId: number): Promise<any[]> {
+  async getMultisigWalletsByOwner(ownerAddress: string, internalChainId: number): Promise<any[]> {
     let sqlQuerry = this.repos
       .createQueryBuilder('safe')
       .innerJoin(
@@ -36,7 +36,7 @@ export class MultisigWalletRepository extends BaseRepository implements IMultisi
         'safe.id = safeOwner.safeId',
       )
       .where('safeOwner.ownerAddress = :ownerAddress', { ownerAddress })
-      .andWhere('safeOwner.chainId = :chainId', { chainId })
+      .andWhere('safeOwner.internalChainId = :internalChainId', { internalChainId })
       .select([
         'safe.id as id',
         'safe.safeAddress as safeAddress',

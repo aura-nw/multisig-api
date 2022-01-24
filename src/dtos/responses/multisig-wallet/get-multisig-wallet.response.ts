@@ -30,7 +30,7 @@ export class GetMultisigWalletResponse {
 
   @Expose()
   @ApiProperty()
-  chainId: number;
+  internalChainId: number;
 
   @Expose()
   @ApiProperty()

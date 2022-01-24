@@ -28,6 +28,6 @@ export class OwnerController {
     @Param('address') address: string,
     @Query() query: GetSafesByOwnerAddressRequest
   ) {
-    return await this.multisigWalletService.getMultisigWalletsByOwner(address, query.chainId);
+    return await this.multisigWalletService.getMultisigWalletsByOwner(address, query.internalChainId);
   }
 }

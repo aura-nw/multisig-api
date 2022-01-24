@@ -14,5 +14,5 @@ export class CreateMultisigWalletRequest {
   threshold: number;
 
   @ApiProperty()
-  chainId: number;
+  internalChainId: number;
 }

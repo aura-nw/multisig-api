@@ -8,7 +8,7 @@ export interface IMultisigWalletService {
    */
   createMultisigWallet(
     request: MODULE_REQUEST.CreateMultisigWalletRequest,
-    chainId?: number
+    internalChainId?: number
   ): Promise<ResponseDto>;
 
   /**
@@ -21,7 +21,7 @@ export interface IMultisigWalletService {
    * Return Safes where the address is an owner
    * @param ownerAddress string
    */
-  getMultisigWalletsByOwner(ownerAddress: string, chainId: number): Promise<ResponseDto>;
+  getMultisigWalletsByOwner(ownerAddress: string, internalChainId: number): Promise<ResponseDto>;
 
   /**
    * Connect to multisig wallet
