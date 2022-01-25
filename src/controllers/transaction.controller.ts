@@ -59,18 +59,6 @@ export class TransactionController {
     // return this.transactionService.getTransactionHistoryFromNode(safeAddress);
   }
 
-  @Get('multisig')
-  @ApiOperation({ summary: 'Returns the history of a multisig tx' })
-  async getMultisigTxs() {
-    return `Returns the history of a multisig tx for a Safe`;
-  }
-
-  @Get('multisig/:internalTxHash')
-  @ApiOperation({ summary: 'Get detail of a multisig tx by internal tx hash' })
-  async getMultisigTx(@Param('internalTxHash') internalTxHash: string) {
-    return `Get detail of a multisig tx by internal tx hash`;
-  }
-
   @Get('multisig/:internalTxHash/signatures')
   @ApiOperation({
     summary: 'Get the list of signatures for a multisig transaction',
@@ -78,12 +66,6 @@ export class TransactionController {
   async getSignsOfMultisigTx(@Param('internalTxHash') internalTxHash: string) {
     // return `Get the list of signatures for a multisig transaction`;
     return await this.transactionService.getListConfirmMultisigTransaction(internalTxHash);
-  }
-
-  @Get('transfers')
-  @ApiOperation({ summary: 'Returns aura tokens transfers for a Safe' })
-  async getTokenTransferTxs() {
-    return `Returns aura tokens transfers for a Safe`;
   }
 
   @Post(URL_CONSTANTS.SEND)
