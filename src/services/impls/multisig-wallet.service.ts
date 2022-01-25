@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { createHash } from 'crypto';
 import { ResponseDto } from 'src/dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { ConfigService } from 'src/shared/services/config.service';
@@ -76,68 +77,90 @@ export class MultisigWalletService
     request: MODULE_REQUEST.CreateMultisigWalletRequest,
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
-    const { creatorAddress, creatorPubkey, otherOwnersAddress, threshold } =
-      request;
-    const internalChainId = request.internalChainId || this.defaultInternalChainId;
+    try {
+      const { creatorAddress, creatorPubkey, threshold } = request;
+      let { otherOwnersAddress } = request;
+      const internalChainId =
+        request.internalChainId || this.defaultInternalChainId;
 
-    // Check input
-    if (otherOwnersAddress.indexOf(creatorAddress) > -1)
-      return res.return(ErrorMap.OTHER_ADDRESS_INCLUDE_CREATOR);
-    if (this._commonUtil.checkIfDuplicateExists(otherOwnersAddress))
-      return res.return(ErrorMap.DUPLICATE_SAFE_OWNER);
-    const chainInfo = (await this.generalRepo.findOne(internalChainId)) as Chain;
-    if (!chainInfo) return res.return(ErrorMap.CHAIN_ID_NOT_EXIST);
+      // Check input
+      if (otherOwnersAddress.indexOf(creatorAddress) > -1)
+        return res.return(ErrorMap.OTHER_ADDRESS_INCLUDE_CREATOR);
+      if (this._commonUtil.checkIfDuplicateExists(otherOwnersAddress))
+        return res.return(ErrorMap.DUPLICATE_SAFE_OWNER);
+      const chainInfo = (await this.generalRepo.findOne(
+        internalChainId,
+      )) as Chain;
+      if (!chainInfo) return res.return(ErrorMap.CHAIN_ID_NOT_EXIST);
 
-    // TODO: check duplicate
-    // insert safe
-    const safe = new ENTITIES_CONFIG.SAFE();
-    safe.creatorAddress = creatorAddress;
-    safe.creatorPubkey = creatorPubkey;
-    safe.threshold = threshold;
-    if (otherOwnersAddress.length === 0) {
-      const safeInfo = this.createSafeAddressAndPubkey(
-        [creatorPubkey],
+      // Filter empty string in other address
+      otherOwnersAddress =
+        this._commonUtil.filterEmptyInStringArray(otherOwnersAddress);
+
+      // insert safe
+      const safe = new ENTITIES_CONFIG.SAFE();
+      safe.creatorAddress = creatorAddress;
+      safe.creatorPubkey = creatorPubkey;
+      safe.threshold = threshold;
+      if (otherOwnersAddress.length === 0) {
+        const safeInfo = this.createSafeAddressAndPubkey(
+          [creatorPubkey],
+          threshold,
+        );
+        safe.safeAddress = safeInfo.address;
+        safe.safePubkey = safeInfo.pubkey;
+        safe.status = SAFE_STATUS.CREATED;
+      } else {
+        safe.status = SAFE_STATUS.PENDING;
+      }
+      safe.internalChainId = internalChainId;
+
+      // check duplicate with safe address hash
+      const { existInDB, safeAddressHash } = await this.makeAddressHash(
+        safe.internalChainId,
+        [creatorAddress, ...otherOwnersAddress],
         threshold,
       );
-      safe.safeAddress = safeInfo.address;
-      safe.safePubkey = safeInfo.pubkey;
-      safe.status = SAFE_STATUS.CREATED;
-    } else {
-      safe.status = SAFE_STATUS.PENDING;
-    }
-    safe.internalChainId = internalChainId;
-    const result = await this.insertSafe(safe);
-    if (result.error !== ErrorMap.SUCCESSFUL) {
-      return res.return(result.error, {});
-    }
-    const safeId = result.safe?.id;
+      if (existInDB) return res.return(ErrorMap.DUPLICATE_SAFE_ADDRESS_HASH);
+      safe.addressHash = safeAddressHash;
 
-    // insert safe_creator
-    const safeCreator = new ENTITIES_CONFIG.SAFE_OWNER();
-    safeCreator.ownerAddress = creatorAddress;
-    safeCreator.ownerPubkey = creatorPubkey;
-    safeCreator.safeId = safeId;
-    safeCreator.internalChainId = internalChainId;
-    try {
-      await this.safeOwnerRepo.create(safeCreator);
-    } catch (err) {
-      return res.return(ErrorMap.SOMETHING_WENT_WRONG, {});
-    }
+      // insert
+      const result = await this.insertSafe(safe);
+      if (result.error !== ErrorMap.SUCCESSFUL) {
+        return res.return(result.error, {});
+      }
+      const safeId = result.safe?.id;
 
-    // insert safe_owner
-    for (const ownerAddress of otherOwnersAddress) {
-      const safeOwner = new ENTITIES_CONFIG.SAFE_OWNER();
-      safeOwner.ownerAddress = ownerAddress;
-      safeOwner.safeId = safeId;
-      safeOwner.internalChainId = internalChainId;
+      // insert safe_creator
+      const safeCreator = new ENTITIES_CONFIG.SAFE_OWNER();
+      safeCreator.ownerAddress = creatorAddress;
+      safeCreator.ownerPubkey = creatorPubkey;
+      safeCreator.safeId = safeId;
+      safeCreator.internalChainId = internalChainId;
       try {
-        await this.safeOwnerRepo.create(safeOwner);
+        await this.safeOwnerRepo.create(safeCreator);
       } catch (err) {
         return res.return(ErrorMap.SOMETHING_WENT_WRONG, {});
       }
-    }
 
-    return res.return(ErrorMap.SUCCESSFUL, safe);
+      // insert safe_owner
+      for (const ownerAddress of otherOwnersAddress) {
+        const safeOwner = new ENTITIES_CONFIG.SAFE_OWNER();
+        safeOwner.ownerAddress = ownerAddress;
+        safeOwner.safeId = safeId;
+        safeOwner.internalChainId = internalChainId;
+        try {
+          await this.safeOwnerRepo.create(safeOwner);
+        } catch (err) {
+          return res.return(ErrorMap.SOMETHING_WENT_WRONG, {});
+        }
+      }
+
+      return res.return(ErrorMap.SUCCESSFUL, safe);
+    } catch (err) {
+      console.log(err);
+      return res.return(ErrorMap.E500, err.message)
+    }
   }
 
   async getMultisigWallet(
@@ -184,7 +207,9 @@ export class MultisigWalletService
     safeInfo.internalChainId = safe.internalChainId;
 
     // get chainInfo
-    const chainInfo = (await this.generalRepo.findOne(safeInfo.internalChainId)) as Chain;
+    const chainInfo = (await this.generalRepo.findOne(
+      safeInfo.internalChainId,
+    )) as Chain;
 
     // if safe created => Get balance
     if (safeInfo.address !== null) {
@@ -366,7 +391,36 @@ export class MultisigWalletService
     return result;
   }
 
-  // private makeUniqueKey(addresses: string[], threshold: number) {
-
-  // }
+  private async makeAddressHash(
+    internalChainId: number,
+    addresses: string[],
+    threshold: number,
+  ) {
+    const safeAddress = {
+      addresses: addresses.sort(),
+      threshold,
+      internalChainId,
+    };
+    const safeAddressHash = createHash('sha256')
+      .update(JSON.stringify(safeAddress))
+      .digest('base64');
+    const existSafe = await this.safeRepo.findByCondition(
+      {
+        addressHash: safeAddressHash,
+      },
+      null,
+      ['id', 'addressHash'],
+    );
+    if (existSafe && existSafe.length > 0) {
+      this._logger.debug(`Safe with these information already exists!`);
+      return {
+        existInDB: true,
+        safeAddressHash,
+      };
+    }
+    return {
+      existInDB: false,
+      safeAddressHash,
+    };
+  }
 }
