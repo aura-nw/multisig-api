@@ -7,7 +7,7 @@ import { MsgSend } from "cosmjs-types/cosmos/bank/v1beta1/tx";
 import { coins } from "@cosmjs/proto-signing";
 import { BroadcastRequest } from '../dtos/requests/broadcast.request';
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
-import { CreateTransactionRequest } from '../dtos/requests//createTransaction.request';
+import { CreateTransactionRequest } from '../dtos/requests/transaction/create-transaction.request';
 import { Cache } from 'cache-manager';
 import { Bech32, fromHex, toBase64 } from "@cosmjs/encoding";
 import { assert } from "@cosmjs/utils";

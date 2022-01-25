@@ -27,7 +27,7 @@ import { TransactionRepository } from './repositories/impls/transaction.reposito
 import { SafeRepository } from './repositories/impls/safe.repository';
 
 const controllers = [
-  SimulatingController,
+  // SimulatingController,
   MultisigWalletController,
   TransactionController,
   OwnerController,
