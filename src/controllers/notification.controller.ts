@@ -16,21 +16,21 @@ import { MODULE_REQUEST, SERVICE_INTERFACE } from 'src/module.config';
 export class NotificationController {
   constructor() {}
 
-  @Post('devices')
-  @ApiOperation({ summary: 'Creates a new FirebaseDevice' })
-  async createDevice() {
-    return `Creates a new FirebaseDevice`;
-  }
+  // @Post('devices')
+  // @ApiOperation({ summary: 'Creates a new FirebaseDevice' })
+  // async createDevice() {
+  //   return `Creates a new FirebaseDevice`;
+  // }
 
-  @Delete('devices/:uuid')
-  @ApiOperation({ summary: 'Remove a FirebaseDevice' })
-  async removeDevice() {
-    return `Remove a FirebaseDevice`;
-  }
+  // @Delete('devices/:uuid')
+  // @ApiOperation({ summary: 'Remove a FirebaseDevice' })
+  // async removeDevice() {
+  //   return `Remove a FirebaseDevice`;
+  // }
 
-  @Delete('devices/:uuid/safes/:address}')
-  @ApiOperation({ summary: 'Remove a Safe for a FirebaseDevice' })
-  async removeSafeForDevice() {
-    return `Remove a Safe for a FirebaseDevice`;
-  }
+  // @Delete('devices/:uuid/safes/:address}')
+  // @ApiOperation({ summary: 'Remove a Safe for a FirebaseDevice' })
+  // async removeSafeForDevice() {
+  //   return `Remove a Safe for a FirebaseDevice`;
+  // }
 }
