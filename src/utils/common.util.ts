@@ -35,4 +35,15 @@ export class CommonUtil {
   public checkIfDuplicateExists(arr): boolean {
     return new Set(arr).size !== arr.length
   }
+
+  /**
+   * 
+   * @param strArr 
+   * @returns string[]
+   */
+  public filterEmptyInStringArray(strArr: string[]): string[] {
+    return strArr.filter(e => {
+      return e !== '';
+    })
+  }
 }

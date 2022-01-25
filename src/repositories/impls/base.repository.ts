@@ -31,7 +31,7 @@ export class BaseRepository implements IBaseRepository {
    * @param orderBy
    * @returns
    */
-  public async findByCondition(condition: any, orderBy?: any): Promise<any[]> {
+  public async findByCondition(condition: any, orderBy?: any, select?: string[]): Promise<any[]> {
     this._log.log(
       `============== Call method findOne width parameters: condition:${this.convertObjectToJson(
         condition,

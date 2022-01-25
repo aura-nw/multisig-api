@@ -67,6 +67,10 @@ export const ErrorMap = {
     Code: 'E016',
     Message: 'This chainId is not exist!',
   },
+  DUPLICATE_SAFE_ADDRESS_HASH: {
+    Code: 'E017',
+    Message: 'Duplicate safe information!',
+  },
   C001: {
     Code: 'C001',
     Message: `Missing result from Chaincode`,
