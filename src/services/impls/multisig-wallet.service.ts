@@ -217,7 +217,7 @@ export class MultisigWalletService
       await network.init();
       // const balance = await client.getBalance('aura1cq8k74zcpe0jscja4x4el5su65vt8ela7esj6r');
       const balance = await network.getBalance(safeInfo.address);
-      safeInfo.balance = balance;
+      safeInfo.balance = [balance];
     }
     return res.return(ErrorMap.SUCCESSFUL, safeInfo);
   }
