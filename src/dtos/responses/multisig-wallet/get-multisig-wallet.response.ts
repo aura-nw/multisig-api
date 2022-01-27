@@ -34,5 +34,5 @@ export class GetMultisigWalletResponse {
 
   @Expose()
   @ApiProperty()
-  balance: Coin;
+  balance: Coin[];
 }
