@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CONTROLLER_CONSTANTS, URL_CONSTANTS } from 'src/common/constants/api.constant';
-import { OptionalInternalChainId } from 'src/dtos/requests/multisig-wallet/optional-internal-chainid.requets';
+import { OptionalInternalChainId } from 'src/dtos/requests/multisig-wallet/optional-internal-chainid.request';
 import { MODULE_REQUEST, SERVICE_INTERFACE } from 'src/module.config';
 import { IMultisigWalletService } from 'src/services/imultisig-wallet.service';
 @Controller(CONTROLLER_CONSTANTS.MULTISIG_WALLET)
