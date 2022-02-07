@@ -260,7 +260,7 @@ export class MultisigWalletService
 
       // check all owner confirmed
       const notReady = safeOwners.findIndex((s) => s.ownerPubkey === null);
-      if (notReady !== -1) return res.return(ErrorMap.SUCCESSFUL, updateResult);
+      if (notReady !== -1) return res.return(ErrorMap.SUCCESSFUL, safe);
 
       // calculate owner pubKey array
       const pubkeys = safeOwners.map((s) => {
@@ -274,8 +274,8 @@ export class MultisigWalletService
       safe.status = SAFE_STATUS.CREATED;
 
       // update safe
-      const result = this.safeRepo.update(safe);
-      return res.return(ErrorMap.SUCCESSFUL, result);
+      await this.safeRepo.update(safe);
+      return res.return(ErrorMap.SUCCESSFUL, safe);
     } catch (err) {
       return res.return(ErrorMap.SOMETHING_WENT_WRONG, {});
     }
