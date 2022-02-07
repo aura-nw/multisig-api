@@ -15,7 +15,7 @@ export interface IMultisigWalletService {
    * get multisig wallet
    * @param safeId string - id/address of safe
    */
-  getMultisigWallet(safeId: string): Promise<ResponseDto>;
+  getMultisigWallet(safeId: string, internalChainId?: number): Promise<ResponseDto>;
 
   /**
    * Return Safes where the address is an owner

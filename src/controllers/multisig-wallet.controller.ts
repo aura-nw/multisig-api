@@ -8,11 +8,10 @@ import {
   Param,
   Delete,
   Logger,
-  HttpCode,
-  HttpStatus
 } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CONTROLLER_CONSTANTS, URL_CONSTANTS } from 'src/common/constants/api.constant';
+import { OptionalInternalChainId } from 'src/dtos/requests/multisig-wallet/optional-internal-chainid.requets';
 import { MODULE_REQUEST, SERVICE_INTERFACE } from 'src/module.config';
 import { IMultisigWalletService } from 'src/services/imultisig-wallet.service';
 @Controller(CONTROLLER_CONSTANTS.MULTISIG_WALLET)
@@ -35,8 +34,11 @@ export class MultisigWalletController {
 
   @Get(':safeId')
   @ApiOperation({ summary: 'Get status of the multisig wallet by safeId' })
-  async getMultisigWallet(@Param('safeId') safeId: string) {
-    return await this.multisigWalletService.getMultisigWallet(safeId);
+  async getMultisigWallet(
+    @Param('safeId') safeId: string,
+    @Query() query: OptionalInternalChainId
+  ) {
+    return await this.multisigWalletService.getMultisigWallet(safeId, query.internalChainId);
   }
 
   @Post(':safeId')

@@ -165,7 +165,7 @@ export class MultisigWalletService
 
   async getMultisigWallet(
     safeId: string,
-    internalChainId = this.defaultInternalChainId,
+    internalChainId?: number,
   ): Promise<ResponseDto> {
     // build search condition
     let condition = this.calculateCondition(safeId, internalChainId);
