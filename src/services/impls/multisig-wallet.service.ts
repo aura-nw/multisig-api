@@ -409,9 +409,11 @@ export class MultisigWalletService
         addressHash: safeAddressHash,
       },
       null,
-      ['id', 'addressHash'],
+      ['id', 'addressHash', 'status'],
     );
-    if (existSafe && existSafe.length > 0) {
+    // filter deleted status
+    const existList = existSafe.filter(safe => safe.status !== SAFE_STATUS.DELETED);
+    if (existList && existList.length > 0) {
       this._logger.debug(`Safe with these information already exists!`);
       return {
         existInDB: true,
