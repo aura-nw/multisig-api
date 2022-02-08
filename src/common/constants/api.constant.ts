@@ -12,14 +12,18 @@ export const URL_CONSTANTS = {
   CONNECT_WALLET: 'connect_wallet',
   CREATE: 'create',
   SEND: 'send',
-  SIGLE_SIGN: 'sign'
+  SIGLE_SIGN: 'sign',
+  GET_SAFE: ':safeId',
+  CONFIRM_SAFE: ':safeId',
+  DELETE_SAFE: ':safeId',
+  GET_SAFES_BY_OWNER: ':address/safes',
 };
 export const DENOM = {
-  uaura : 'uaura'
-}
+  uaura: 'uaura',
+};
 export const TRANSACTION_STATUS = {
-  PENDING : 'PENDING',
+  PENDING: 'PENDING',
   SUCCESS: 'SUCCESS',
   CANCEL: 'CANCEL',
-  SEND_WAITING: 'SEND_WAITING'
-}
+  SEND_WAITING: 'SEND_WAITING',
+};

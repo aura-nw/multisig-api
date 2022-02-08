@@ -5,13 +5,14 @@ import {
   Query,
   Inject,
   Body,
-  Param,
   Delete,
   Logger,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CONTROLLER_CONSTANTS, URL_CONSTANTS } from 'src/common/constants/api.constant';
-import { OptionalInternalChainId } from 'src/dtos/requests/multisig-wallet/optional-internal-chainid.request';
+import {
+  CONTROLLER_CONSTANTS,
+  URL_CONSTANTS,
+} from 'src/common/constants/api.constant';
 import { MODULE_REQUEST, SERVICE_INTERFACE } from 'src/module.config';
 import { IMultisigWalletService } from 'src/services/imultisig-wallet.service';
 @Controller(CONTROLLER_CONSTANTS.MULTISIG_WALLET)
@@ -22,7 +23,7 @@ export class MultisigWalletController {
   constructor(
     @Inject(SERVICE_INTERFACE.IMULTISIG_WALLET_SERVICE)
     private multisigWalletService: IMultisigWalletService,
-  ) { }
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a multisig wallet' })
@@ -32,31 +33,28 @@ export class MultisigWalletController {
     return await this.multisigWalletService.createMultisigWallet(request);
   }
 
-  @Get(':safeId')
+  @Get(URL_CONSTANTS.GET_SAFE)
   @ApiOperation({ summary: 'Get status of the multisig wallet by safeId' })
-  async getMultisigWallet(
-    @Param('safeId') safeId: string,
-    @Query() query: OptionalInternalChainId
-  ) {
-    return await this.multisigWalletService.getMultisigWallet(safeId, query.internalChainId);
+  async getMultisigWallet(@Query() query: MODULE_REQUEST.GetSafeQuery) {
+    return await this.multisigWalletService.getMultisigWallet(query);
   }
 
-  @Post(':safeId')
+  @Post(URL_CONSTANTS.CONFIRM_SAFE)
   @ApiOperation({ summary: 'Confirm multisig wallet' })
   async confirmMultisigWallet(
-    @Param('safeId') safeId: string,
+    @Query() query: MODULE_REQUEST.ConfirmSafeQuery,
     @Body() request: MODULE_REQUEST.ConfirmMultisigWalletRequest,
   ) {
-    return await this.multisigWalletService.confirm(safeId, request);
+    return await this.multisigWalletService.confirm(query, request);
   }
 
-  @Delete(':safeId')
+  @Delete(URL_CONSTANTS.DELETE_SAFE)
   @ApiOperation({ summary: 'Delete pending multisig wallet' })
   async deletePendingMultisigWallet(
-    @Param('safeId') safeId: string,
+    @Query() query: MODULE_REQUEST.DeleteSafeQuery,
     @Body() request: MODULE_REQUEST.DeleteMultisigWalletRequest,
   ) {
-    return await this.multisigWalletService.deletePending(safeId, request);
+    return await this.multisigWalletService.deletePending(query, request);
   }
 
   // @Get(':address/balance')
@@ -79,6 +77,4 @@ export class MultisigWalletController {
   //   this._logger.log('========== Connect multisig wallet ==========');
   //   return await this.multisigWalletService.connectMultisigWalletByAddress(request);
   // }
-
-
 }
