@@ -10,7 +10,6 @@ import {
 } from './dtos/requests/multisig-wallet/delete-multisig-wallet.request';
 import { SimulatingMultisigRequest } from './dtos/requests/simulating/simulating-multisig.request';
 import { SimulatingSignMsgRequest } from './dtos/requests/simulating/simulating-sign-msg.request';
-import { BroadcastTransactionRequest } from './dtos/requests/transaction/broadcast-transaction.request';
 import { SendTransactionRequest } from './dtos/requests/transaction/send-transaction.request';
 import { SingleSignTransactionRequest } from './dtos/requests/transaction/single-sign-transaction.request';
 import { Safe } from './entities/safe.entity';
@@ -45,7 +44,6 @@ export const REQUEST_CONFIG = {
   CREATE_TRANSACTION_REQUEST: CreateTransactionRequest,
   SEND_TRANSACTION_REQUEST: SendTransactionRequest,
   SINGLE_SIGN_TRANSACTION_REQUEST: SingleSignTransactionRequest,
-  BROADCAST_TRANSACTION_REQUEST: BroadcastTransactionRequest,
   CONNECT_WALLET_TO_GET_INFORMATION: ConnectMultisigWalletRequest,
   GET_SAFE_QUERY: GetSafeQuery,
   CONFIRM_SAFE_QUERY: ConfirmMultisigWalletQuery,
@@ -62,7 +60,6 @@ export module MODULE_REQUEST {
   export abstract class CreateTransactionRequest extends REQUEST_CONFIG.CREATE_TRANSACTION_REQUEST {}
   export abstract class SendTransactionRequest extends REQUEST_CONFIG.SEND_TRANSACTION_REQUEST {}
   export abstract class SingleSignTransactionRequest extends REQUEST_CONFIG.SINGLE_SIGN_TRANSACTION_REQUEST {}
-  export abstract class BroadcastTransactionRequest extends REQUEST_CONFIG.BROADCAST_TRANSACTION_REQUEST {}
   export abstract class ConnectMultisigWalletRequest extends REQUEST_CONFIG.CONNECT_WALLET_TO_GET_INFORMATION {}
   export abstract class GetSafeQuery extends REQUEST_CONFIG.GET_SAFE_QUERY {}
   export abstract class ConfirmSafeQuery extends REQUEST_CONFIG.CONFIRM_SAFE_QUERY {}
