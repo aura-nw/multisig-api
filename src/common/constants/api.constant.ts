@@ -13,16 +13,17 @@ export const URL_CONSTANTS = {
   CREATE: 'create',
   SEND: 'send',
   SIGLE_SIGN: 'sign',
-  NETWORK_LIST: 'network-list',
-  GET_ALL_TXS: ':safeAddress/:page',
-  SIGNATURES: 'multisig/:internalTxHash/signatures',
+  GET_SAFE: ':safeId',
+  CONFIRM_SAFE: ':safeId',
+  DELETE_SAFE: ':safeId',
+  GET_SAFES_BY_OWNER: ':address/safes',
 };
 export const DENOM = {
-  uaura : 'uaura'
-}
+  uaura: 'uaura',
+};
 export const TRANSACTION_STATUS = {
-  PENDING : 'PENDING',
+  PENDING: 'PENDING',
   SUCCESS: 'SUCCESS',
   CANCEL: 'CANCEL',
-  SEND_WAITING: 'SEND_WAITING'
-}
+  SEND_WAITING: 'SEND_WAITING',
+};

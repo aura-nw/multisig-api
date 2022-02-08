@@ -10,11 +10,7 @@ import {
   SAFE_OWNER_STATUS,
   SAFE_STATUS,
 } from 'src/common/constants/app.constant';
-import {
-  createMultisigThresholdPubkey,
-  Pubkey,
-  SinglePubkey,
-} from '@cosmjs/amino';
+import { createMultisigThresholdPubkey, SinglePubkey } from '@cosmjs/amino';
 import {
   ENTITIES_CONFIG,
   MODULE_REQUEST,
@@ -33,7 +29,8 @@ import { Chain } from 'src/entities';
 @Injectable()
 export class MultisigWalletService
   extends BaseService
-  implements IMultisigWalletService {
+  implements IMultisigWalletService
+{
   private readonly _logger = new Logger(MultisigWalletService.name);
   private _commonUtil: CommonUtil = new CommonUtil();
   private defaultInternalChainId: number;
@@ -53,35 +50,34 @@ export class MultisigWalletService
     this.defaultInternalChainId = Number(this.configService.get('CHAIN_ID'));
   }
 
-  async connectMultisigWalletByAddress(
-    request: MODULE_REQUEST.ConnectMultisigWalletRequest,
-  ): Promise<ResponseDto> {
-    const res = new ResponseDto();
-    try {
-      let ownerMultisig = await this.safeRepo.checkOwnerMultisigWallet(
-        request.owner_address,
-        request.safe_address,
-        request.chainId,
-      );
+  // async connectMultisigWalletByAddress(
+  //   request: MODULE_REQUEST.ConnectMultisigWalletRequest,
+  // ): Promise<ResponseDto> {
+  //   const res = new ResponseDto();
+  //   try {
+  //     let ownerMultisig = await this.safeRepo.checkOwnerMultisigWallet(
+  //       request.owner_address,
+  //       request.safe_address,
+  //       request.chainId,
+  //     );
 
-      return res.return(ErrorMap.SUCCESSFUL, ownerMultisig);
-    } catch (error) {
-      this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
-      this._logger.error(`${error.name}: ${error.message}`);
-      this._logger.error(`${error.stack}`);
-      return res.return(ErrorMap.E500);
-    }
-  }
+  //     return res.return(ErrorMap.SUCCESSFUL, ownerMultisig);
+  //   } catch (error) {
+  //     this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
+  //     this._logger.error(`${error.name}: ${error.message}`);
+  //     this._logger.error(`${error.stack}`);
+  //     return res.return(ErrorMap.E500);
+  //   }
+  // }
 
   async createMultisigWallet(
     request: MODULE_REQUEST.CreateMultisigWalletRequest,
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      const { creatorAddress, creatorPubkey, threshold } = request;
+      const { creatorAddress, creatorPubkey, threshold, internalChainId } =
+        request;
       let { otherOwnersAddress } = request;
-      const internalChainId =
-        request.internalChainId || this.defaultInternalChainId;
 
       // Check input
       if (otherOwnersAddress.indexOf(creatorAddress) > -1)
@@ -93,7 +89,7 @@ export class MultisigWalletService
       )) as Chain;
       if (!chainInfo) return res.return(ErrorMap.CHAIN_ID_NOT_EXIST);
 
-      // Filter empty string in other address
+      // Filter empty string in otherOwnersAddress
       otherOwnersAddress =
         this._commonUtil.filterEmptyInStringArray(otherOwnersAddress);
 
@@ -159,17 +155,16 @@ export class MultisigWalletService
       return res.return(ErrorMap.SUCCESSFUL, safe);
     } catch (err) {
       console.log(err);
-      return res.return(ErrorMap.E500, err.message)
+      return res.return(ErrorMap.E500, err.message);
     }
   }
 
   async getMultisigWallet(
-    safeId: string,
-    internalChainId?: number,
+    query: MODULE_REQUEST.GetSafeQuery,
   ): Promise<ResponseDto> {
+    const { safeId, internalChainId } = query;
     // build search condition
     let condition = this.calculateCondition(safeId, internalChainId);
-    console.log(condition);
 
     // find safes
     const res = new ResponseDto();
@@ -198,6 +193,7 @@ export class MultisigWalletService
 
     // build safe info
     const safeInfo = new GetMultisigWalletResponse();
+    safeInfo.id = safe.id;
     safeInfo.address = safe.safeAddress;
     safeInfo.pubkeys = safe.safePubkey;
     safeInfo.owners = owners.map((o) => o.ownerAddress);
@@ -215,7 +211,6 @@ export class MultisigWalletService
     if (safeInfo.address !== null) {
       const network = new Network(chainInfo.rpc);
       await network.init();
-      // const balance = await client.getBalance('aura1cq8k74zcpe0jscja4x4el5su65vt8ela7esj6r');
       const balance = await network.getBalance(safeInfo.address);
       safeInfo.balance = [balance];
     }
@@ -223,13 +218,13 @@ export class MultisigWalletService
   }
 
   async confirm(
-    safeId: string,
+    query: MODULE_REQUEST.ConfirmSafeQuery,
     request: MODULE_REQUEST.ConfirmMultisigWalletRequest,
-    internalChainId = this.defaultInternalChainId,
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
+    const { safeId } = query;
     const { myAddress, myPubkey } = request;
-    const condition = this.calculateCondition(safeId, internalChainId);
+    const condition = this.calculateCondition(safeId);
     try {
       // find safe
       const safes = (await this.safeRepo.findByCondition(condition)) as Safe[];
@@ -282,13 +277,13 @@ export class MultisigWalletService
   }
 
   async deletePending(
-    safeId: string,
+    query: MODULE_REQUEST.DeleteSafeQuery,
     request: MODULE_REQUEST.DeleteMultisigWalletRequest,
-    internalChainId = this.defaultInternalChainId,
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
+    const { safeId } = query;
     const { myAddress } = request;
-    const condition = this.calculateCondition(safeId, internalChainId);
+    const condition = this.calculateCondition(safeId);
 
     // get safe & check
     const safes = await this.safeRepo.findByCondition(condition);
@@ -312,12 +307,12 @@ export class MultisigWalletService
   }
 
   async getMultisigWalletsByOwner(
-    ownerAddress: string,
-    internalChainId = this.defaultInternalChainId,
+    query: MODULE_REQUEST.GetSafesByOwnerAddressQuery,
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
+    const { address, internalChainId } = query;
     const result = await this.safeRepo.getMultisigWalletsByOwner(
-      ownerAddress,
+      address,
       internalChainId,
     );
     const listSafe = plainToInstance(ListSafeByOwnerResponse, result);
@@ -333,20 +328,18 @@ export class MultisigWalletService
       }
       return res;
     });
-    // const groupResult = this._commonUtil.groupBy(result, 'status');
     return res.return(ErrorMap.SUCCESSFUL, response);
   }
 
   private calculateCondition(safeId: string, internalChainId?: number) {
-    // this.configService.get()
     return isNaN(Number(safeId))
       ? {
-        safeAddress: safeId,
-        internalChainId: internalChainId || this.defaultInternalChainId,
-      }
+          safeAddress: safeId,
+          internalChainId: internalChainId || this.defaultInternalChainId || '',
+        }
       : {
-        id: safeId,
-      };
+          id: safeId,
+        };
   }
 
   private async insertSafe(
@@ -412,7 +405,9 @@ export class MultisigWalletService
       ['id', 'addressHash', 'status'],
     );
     // filter deleted status
-    const existList = existSafe.filter(safe => safe.status !== SAFE_STATUS.DELETED);
+    const existList = existSafe.filter(
+      (safe) => safe.status !== SAFE_STATUS.DELETED,
+    );
     if (existList && existList.length > 0) {
       this._logger.debug(`Safe with these information already exists!`);
       return {

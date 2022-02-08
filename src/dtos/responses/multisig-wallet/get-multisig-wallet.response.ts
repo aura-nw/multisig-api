@@ -6,6 +6,10 @@ import { SAFE_STATUS } from 'src/common/constants/app.constant';
 export class GetMultisigWalletResponse {
   @Expose()
   @ApiProperty()
+  id: number;
+
+  @Expose()
+  @ApiProperty()
   address: string;
 
   @Expose()

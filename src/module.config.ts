@@ -1,7 +1,13 @@
 import { ConnectMultisigWalletRequest } from './dtos/requests/multisig-wallet/connect-multisig-wallet.request';
 import { CreateMultisigWalletRequest } from './dtos/requests/multisig-wallet/create-multisig-wallet.request';
-import { ConfirmMultisigWalletRequest } from './dtos/requests/multisig-wallet/confirm-multisig-wallet.request';
-import { DeleteMultisigWalletRequest } from './dtos/requests/multisig-wallet/delete-multisig-wallet.request';
+import {
+  ConfirmMultisigWalletQuery,
+  ConfirmMultisigWalletRequest,
+} from './dtos/requests/multisig-wallet/confirm-multisig-wallet.request';
+import {
+  DeleteMultisigWalletRequest,
+  DeleteSafeQuery,
+} from './dtos/requests/multisig-wallet/delete-multisig-wallet.request';
 import { SimulatingMultisigRequest } from './dtos/requests/simulating/simulating-multisig.request';
 import { SimulatingSignMsgRequest } from './dtos/requests/simulating/simulating-sign-msg.request';
 import { BroadcastTransactionRequest } from './dtos/requests/transaction/broadcast-transaction.request';
@@ -16,6 +22,8 @@ import { MultisigConfirm } from './entities/multisig-confirm.entity';
 import { MultisigTransaction } from './entities/multisig-transaction.entity';
 import { CreateTransactionRequest } from './dtos/requests/transaction/create-transaction.request';
 import { AuraTx } from './entities';
+import { GetSafeQuery } from './dtos/requests/multisig-wallet/get-safe.request';
+import { GetSafesByOwnerAddressQuery } from './dtos/requests/multisig-wallet/get-safe-by-owner.request';
 
 export const ENTITIES_CONFIG = {
   SAFE: Safe,
@@ -38,7 +46,11 @@ export const REQUEST_CONFIG = {
   SEND_TRANSACTION_REQUEST: SendTransactionRequest,
   SINGLE_SIGN_TRANSACTION_REQUEST: SingleSignTransactionRequest,
   BROADCAST_TRANSACTION_REQUEST: BroadcastTransactionRequest,
-  CONNECT_WALLET_TO_GET_INFORMATION: ConnectMultisigWalletRequest
+  CONNECT_WALLET_TO_GET_INFORMATION: ConnectMultisigWalletRequest,
+  GET_SAFE_QUERY: GetSafeQuery,
+  CONFIRM_SAFE_QUERY: ConfirmMultisigWalletQuery,
+  DELETE_SAFE_QUERY: DeleteSafeQuery,
+  GET_SAFES_BY_OWNER: GetSafesByOwnerAddressQuery,
 };
 
 export module MODULE_REQUEST {
@@ -52,14 +64,18 @@ export module MODULE_REQUEST {
   export abstract class SingleSignTransactionRequest extends REQUEST_CONFIG.SINGLE_SIGN_TRANSACTION_REQUEST {}
   export abstract class BroadcastTransactionRequest extends REQUEST_CONFIG.BROADCAST_TRANSACTION_REQUEST {}
   export abstract class ConnectMultisigWalletRequest extends REQUEST_CONFIG.CONNECT_WALLET_TO_GET_INFORMATION {}
+  export abstract class GetSafeQuery extends REQUEST_CONFIG.GET_SAFE_QUERY {}
+  export abstract class ConfirmSafeQuery extends REQUEST_CONFIG.CONFIRM_SAFE_QUERY {}
+  export abstract class DeleteSafeQuery extends REQUEST_CONFIG.DELETE_SAFE_QUERY {}
+  export abstract class GetSafesByOwnerAddressQuery extends REQUEST_CONFIG.GET_SAFES_BY_OWNER {}
 }
 
 export const SERVICE_INTERFACE = {
-    ISIMULATING_SERVICE: "ISimulatingService",
-    IMULTISIG_WALLET_SERVICE: "IMultisigWalletService",
-    ITRANSACTION_SERVICE: "ITransactionService",
-    IGENERAL_SERVICE: "IGeneralService",
-}
+  ISIMULATING_SERVICE: 'ISimulatingService',
+  IMULTISIG_WALLET_SERVICE: 'IMultisigWalletService',
+  ITRANSACTION_SERVICE: 'ITransactionService',
+  IGENERAL_SERVICE: 'IGeneralService',
+};
 
 export const REPOSITORY_INTERFACE = {
   IMULTISIG_WALLET_REPOSITORY: 'IMultisigWalletRepository',
@@ -68,7 +84,7 @@ export const REPOSITORY_INTERFACE = {
   IGENERAL_REPOSITORY: 'IGeneralRepository',
   IMULTISIG_TRANSACTION_REPOSITORY: 'IMultisigTransactionsRepository',
   IMULTISIG_CONFIRM_REPOSITORY: 'IMultisigConfirmRepository',
-  ISAFE_REPOSITORY: 'ISafeRepository'
+  ISAFE_REPOSITORY: 'ISafeRepository',
 };
 
 export const PROVIDER_INTERFACE = {};
