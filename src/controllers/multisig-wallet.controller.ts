@@ -7,8 +7,10 @@ import {
   Body,
   Delete,
   Logger,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   CONTROLLER_CONSTANTS,
   URL_CONSTANTS,
@@ -27,47 +29,49 @@ export class MultisigWalletController {
 
   @Post()
   @ApiOperation({ summary: 'Create a multisig wallet' })
+  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  @HttpCode(HttpStatus.OK)
   async createMultisigWallet(
     @Body() request: MODULE_REQUEST.CreateMultisigWalletRequest,
   ) {
+    this._logger.log('========== Create a multisig wallet ==========');
     return await this.multisigWalletService.createMultisigWallet(request);
   }
 
   @Get(URL_CONSTANTS.GET_SAFE)
   @ApiOperation({ summary: 'Get status of the multisig wallet by safeId' })
+  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  @HttpCode(HttpStatus.OK)
   async getMultisigWallet(@Query() query: MODULE_REQUEST.GetSafeQuery) {
+    this._logger.log(
+      '========== Get status of the multisig wallet by safeId ==========',
+    );
     return await this.multisigWalletService.getMultisigWallet(query);
   }
 
   @Post(URL_CONSTANTS.CONFIRM_SAFE)
   @ApiOperation({ summary: 'Confirm multisig wallet' })
+  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  @HttpCode(HttpStatus.OK)
   async confirmMultisigWallet(
     @Query() query: MODULE_REQUEST.ConfirmSafeQuery,
     @Body() request: MODULE_REQUEST.ConfirmMultisigWalletRequest,
   ) {
+    this._logger.log('========== Confirm multisig wallet ==========');
     return await this.multisigWalletService.confirm(query, request);
   }
 
   @Delete(URL_CONSTANTS.DELETE_SAFE)
   @ApiOperation({ summary: 'Delete pending multisig wallet' })
+  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  @HttpCode(HttpStatus.OK)
   async deletePendingMultisigWallet(
     @Query() query: MODULE_REQUEST.DeleteSafeQuery,
     @Body() request: MODULE_REQUEST.DeleteMultisigWalletRequest,
   ) {
+    this._logger.log('========== Delete pending multisig wallet ==========');
     return await this.multisigWalletService.deletePending(query, request);
   }
-
-  // @Get(':address/balance')
-  // @ApiOperation({ summary: 'Get balance for Aura tokens' })
-  // async getBalance(@Param('address') address: string) {
-  //   return `Get balance for Aura tokens of ${address}`;
-  // }
-
-  // @Get(':address/creation')
-  // @ApiOperation({ summary: 'Get creation information of Safe' })
-  // async getCreation(@Param('address') address: string) {
-  //   return `Get creation information of ${address}`;
-  // }
 
   // @Post()
   // @ApiOperation({ summary: 'Connect multisig wallet' })
