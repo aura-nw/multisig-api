@@ -9,16 +9,16 @@ When collecting of signatures enough to threshold, transactions able to sent to 
 Click [here](docs/README.md) to see the design architecture.
 
 ## Getting started
-# 1. Clone the repository or click on "Use this template" button.
+### 1. Clone the repository or click on "Use this template" button.
 git clone https://github.com/aura-nw/multisig-api
 
-# 2. Enter your newly-cloned folder.
+### 2. Enter your newly-cloned folder.
 cd multisig-api
 
-# 3. Create Environment variables file.
+### 3. Create Environment variables file.
 cp .env.example .env
 
-# 3. Install dependencies. (Make sure nodejs is installed: https://nodejs.org/en/)
+### 4. Install dependencies. (Make sure nodejs is installed: https://nodejs.org/en/)
 npm i
 
 ## Setup for development
