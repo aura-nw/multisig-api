@@ -1,5 +1,13 @@
-import { Controller, Get, Query, Inject } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Query,
+  Inject,
+  HttpCode,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
+import { ApiBadRequestResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   CONTROLLER_CONSTANTS,
   URL_CONSTANTS,
@@ -9,6 +17,7 @@ import { IMultisigWalletService } from 'src/services/imultisig-wallet.service';
 @Controller(CONTROLLER_CONSTANTS.OWNER)
 @ApiTags(CONTROLLER_CONSTANTS.OWNER)
 export class OwnerController {
+  public readonly _logger = new Logger(OwnerController.name);
   constructor(
     @Inject(SERVICE_INTERFACE.IMULTISIG_WALLET_SERVICE)
     private multisigWalletService: IMultisigWalletService,
@@ -18,7 +27,12 @@ export class OwnerController {
   @ApiOperation({
     summary: 'Return Safes where the address provided is an owner',
   })
+  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  @HttpCode(HttpStatus.OK)
   async getSafes(@Query() query: MODULE_REQUEST.GetSafesByOwnerAddressQuery) {
+    this._logger.log(
+      '========== Return Safes where the address provided is an owner ==========',
+    );
     return await this.multisigWalletService.getMultisigWalletsByOwner(query);
   }
 }
