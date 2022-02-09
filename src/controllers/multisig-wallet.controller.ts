@@ -9,6 +9,7 @@ import {
   Logger,
   HttpCode,
   HttpStatus,
+  Param,
 } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
@@ -42,11 +43,14 @@ export class MultisigWalletController {
   @ApiOperation({ summary: 'Get status of the multisig wallet by safeId' })
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
   @HttpCode(HttpStatus.OK)
-  async getMultisigWallet(@Query() query: MODULE_REQUEST.GetSafeQuery) {
+  async getMultisigWallet(
+    @Param('safeId') safeId: string,
+    @Query() query: MODULE_REQUEST.GetSafeQuery,
+  ) {
     this._logger.log(
       '========== Get status of the multisig wallet by safeId ==========',
     );
-    return await this.multisigWalletService.getMultisigWallet(query);
+    return await this.multisigWalletService.getMultisigWallet(safeId, query);
   }
 
   @Post(URL_CONSTANTS.CONFIRM_SAFE)
@@ -54,11 +58,11 @@ export class MultisigWalletController {
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
   @HttpCode(HttpStatus.OK)
   async confirmMultisigWallet(
-    @Query() query: MODULE_REQUEST.ConfirmSafeQuery,
+    @Param('safeId') safeId: string,
     @Body() request: MODULE_REQUEST.ConfirmMultisigWalletRequest,
   ) {
     this._logger.log('========== Confirm multisig wallet ==========');
-    return await this.multisigWalletService.confirm(query, request);
+    return await this.multisigWalletService.confirm(safeId, request);
   }
 
   @Delete(URL_CONSTANTS.DELETE_SAFE)
@@ -66,11 +70,11 @@ export class MultisigWalletController {
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
   @HttpCode(HttpStatus.OK)
   async deletePendingMultisigWallet(
-    @Query() query: MODULE_REQUEST.DeleteSafeQuery,
+    @Param('safeId') safeId: string,
     @Body() request: MODULE_REQUEST.DeleteMultisigWalletRequest,
   ) {
     this._logger.log('========== Delete pending multisig wallet ==========');
-    return await this.multisigWalletService.deletePending(query, request);
+    return await this.multisigWalletService.deletePending(safeId, request);
   }
 
   // @Post()

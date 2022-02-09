@@ -163,11 +163,12 @@ export class MultisigWalletService
   }
 
   async getMultisigWallet(
+    safeId: string,
     query: MODULE_REQUEST.GetSafeQuery,
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      const { safeId, internalChainId } = query;
+      const { internalChainId } = query;
       // build search condition
       let condition = this.calculateCondition(safeId, internalChainId);
 
@@ -228,12 +229,11 @@ export class MultisigWalletService
   }
 
   async confirm(
-    query: MODULE_REQUEST.ConfirmSafeQuery,
+    safeId: string,
     request: MODULE_REQUEST.ConfirmMultisigWalletRequest,
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      const { safeId } = query;
       const { myAddress, myPubkey } = request;
       const condition = this.calculateCondition(safeId);
       // find safe
@@ -290,12 +290,11 @@ export class MultisigWalletService
   }
 
   async deletePending(
-    query: MODULE_REQUEST.DeleteSafeQuery,
+    safeId: string,
     request: MODULE_REQUEST.DeleteMultisigWalletRequest,
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      const { safeId } = query;
       const { myAddress } = request;
       const condition = this.calculateCondition(safeId);
 
@@ -322,11 +321,12 @@ export class MultisigWalletService
   }
 
   async getMultisigWalletsByOwner(
+    address: string,
     query: MODULE_REQUEST.GetSafesByOwnerAddressQuery,
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      const { address, internalChainId } = query;
+      const { internalChainId } = query;
       const result = await this.safeRepo.getMultisigWalletsByOwner(
         address,
         internalChainId,

@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Logger,
+  Param,
 } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
@@ -29,10 +30,16 @@ export class OwnerController {
   })
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
   @HttpCode(HttpStatus.OK)
-  async getSafes(@Query() query: MODULE_REQUEST.GetSafesByOwnerAddressQuery) {
+  async getSafes(
+    @Param('address') address: string,
+    @Query() query: MODULE_REQUEST.GetSafesByOwnerAddressQuery,
+  ) {
     this._logger.log(
       '========== Return Safes where the address provided is an owner ==========',
     );
-    return await this.multisigWalletService.getMultisigWalletsByOwner(query);
+    return await this.multisigWalletService.getMultisigWalletsByOwner(
+      address,
+      query,
+    );
   }
 }
