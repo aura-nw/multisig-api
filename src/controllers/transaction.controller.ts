@@ -46,7 +46,7 @@ export class TransactionController {
     return await this.transactionService.singleSignTransaction(request);
   }
 
-  @Get(`:safeAddress/:page`)
+  @Get(URL_CONSTANTS.GET_ALL_TXS)
   @ApiOperation({
     summary: 'Returns a paginated list of transactions for a Safe',
   })
@@ -59,7 +59,7 @@ export class TransactionController {
     // return this.transactionService.getTransactionHistoryFromNode(safeAddress);
   }
 
-  @Get('multisig/:internalTxHash/signatures')
+  @Get(URL_CONSTANTS.SIGNATURES)
   @ApiOperation({
     summary: 'Get the list of signatures for a multisig transaction',
   })
