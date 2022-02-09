@@ -2,7 +2,7 @@
 
 Currently, our whole infrasture is constituted by mainly 1 frontend service, 2 backend service.
 
-![image](pics/multisig_architecture.png)
+![image](docs/pics/multisig_architecture.png)
 
 The core backend service received data from frontend(mobile app and web app) via API then saved in MySQL transaction information and sent transaction to Aura Network.
 
