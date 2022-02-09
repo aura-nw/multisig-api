@@ -1,6 +1,6 @@
 import { Controller, Get, Inject, Post } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import { CONTROLLER_CONSTANTS } from "src/common/constants/api.constant";
+import { CONTROLLER_CONSTANTS, URL_CONSTANTS } from "src/common/constants/api.constant";
 import { SERVICE_INTERFACE } from "src/module.config";
 import { IGeneralService } from "src/services/igeneral.service";
 
@@ -12,7 +12,7 @@ export class GeneralController {
         private generalService: IGeneralService
     ) {}
 
-    @Post('network-list')
+    @Post(URL_CONSTANTS.NETWORK_LIST)
     @ApiOperation({ summary: 'Show network list' })
     async showNetworkList() {
         return await this.generalService.showNetworkList();

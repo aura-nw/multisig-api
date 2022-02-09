@@ -12,7 +12,10 @@ export const URL_CONSTANTS = {
   CONNECT_WALLET: 'connect_wallet',
   CREATE: 'create',
   SEND: 'send',
-  SIGLE_SIGN: 'sign'
+  SIGLE_SIGN: 'sign',
+  NETWORK_LIST: 'network-list',
+  GET_ALL_TXS: ':safeAddress/:page',
+  SIGNATURES: 'multisig/:internalTxHash/signatures',
 };
 export const DENOM = {
   uaura : 'uaura'
