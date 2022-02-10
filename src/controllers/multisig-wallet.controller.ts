@@ -44,13 +44,13 @@ export class MultisigWalletController {
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
   @HttpCode(HttpStatus.OK)
   async getMultisigWallet(
-    @Param('safeId') safeId: string,
+    @Param() param: MODULE_REQUEST.GetSafePathParams,
     @Query() query: MODULE_REQUEST.GetSafeQuery,
   ) {
     this._logger.log(
       '========== Get status of the multisig wallet by safeId ==========',
     );
-    return await this.multisigWalletService.getMultisigWallet(safeId, query);
+    return await this.multisigWalletService.getMultisigWallet(param, query);
   }
 
   @Post(URL_CONSTANTS.CONFIRM_SAFE)
@@ -58,11 +58,11 @@ export class MultisigWalletController {
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
   @HttpCode(HttpStatus.OK)
   async confirmMultisigWallet(
-    @Param('safeId') safeId: string,
+    @Param() param: MODULE_REQUEST.ConfirmSafePathParams,
     @Body() request: MODULE_REQUEST.ConfirmMultisigWalletRequest,
   ) {
     this._logger.log('========== Confirm multisig wallet ==========');
-    return await this.multisigWalletService.confirm(safeId, request);
+    return await this.multisigWalletService.confirm(param, request);
   }
 
   @Delete(URL_CONSTANTS.DELETE_SAFE)
@@ -70,11 +70,11 @@ export class MultisigWalletController {
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
   @HttpCode(HttpStatus.OK)
   async deletePendingMultisigWallet(
-    @Param('safeId') safeId: string,
+    @Param() param: MODULE_REQUEST.DeleteSafePathParams,
     @Body() request: MODULE_REQUEST.DeleteMultisigWalletRequest,
   ) {
     this._logger.log('========== Delete pending multisig wallet ==========');
-    return await this.multisigWalletService.deletePending(safeId, request);
+    return await this.multisigWalletService.deletePending(param, request);
   }
 
   // @Post()

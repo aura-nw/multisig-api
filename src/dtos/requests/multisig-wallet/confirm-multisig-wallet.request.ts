@@ -9,7 +9,7 @@ export class ConfirmMultisigWalletRequest {
   myPubkey: string;
 }
 
-export class ConfirmMultisigWalletQuery {
+export class ConfirmSafePathParams {
   @ApiProperty({
     description: 'safeId',
     type: String,

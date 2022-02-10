@@ -16,7 +16,7 @@ export interface IMultisigWalletService {
    * @param safeId string - id/address of safe
    */
   getMultisigWallet(
-    safeId: string,
+    param: MODULE_REQUEST.GetSafePathParams,
     query: MODULE_REQUEST.GetSafeQuery,
   ): Promise<ResponseDto>;
 
@@ -25,7 +25,7 @@ export interface IMultisigWalletService {
    * @param ownerAddress string
    */
   getMultisigWalletsByOwner(
-    address: string,
+    param: MODULE_REQUEST.GetSafesByOwnerAddressParams,
     query: MODULE_REQUEST.GetSafesByOwnerAddressQuery,
   ): Promise<ResponseDto>;
 
@@ -41,7 +41,7 @@ export interface IMultisigWalletService {
    * @param request
    */
   confirm(
-    safeId: string,
+    param: MODULE_REQUEST.ConfirmSafePathParams,
     request: MODULE_REQUEST.ConfirmMultisigWalletRequest,
   ): Promise<ResponseDto>;
 
@@ -51,7 +51,7 @@ export interface IMultisigWalletService {
    * @param request
    */
   deletePending(
-    safeId: string,
+    param: MODULE_REQUEST.DeleteSafePathParams,
     request: MODULE_REQUEST.DeleteMultisigWalletRequest,
   ): Promise<ResponseDto>;
 }
