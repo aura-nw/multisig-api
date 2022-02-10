@@ -1,12 +1,12 @@
 import { ConnectMultisigWalletRequest } from './dtos/requests/multisig-wallet/connect-multisig-wallet.request';
 import { CreateMultisigWalletRequest } from './dtos/requests/multisig-wallet/create-multisig-wallet.request';
 import {
-  ConfirmMultisigWalletQuery,
   ConfirmMultisigWalletRequest,
+  ConfirmSafePathParams,
 } from './dtos/requests/multisig-wallet/confirm-multisig-wallet.request';
 import {
   DeleteMultisigWalletRequest,
-  DeleteSafeQuery,
+  DeleteSafePathParams,
 } from './dtos/requests/multisig-wallet/delete-multisig-wallet.request';
 import { SimulatingMultisigRequest } from './dtos/requests/simulating/simulating-multisig.request';
 import { SimulatingSignMsgRequest } from './dtos/requests/simulating/simulating-sign-msg.request';
@@ -19,8 +19,14 @@ import { MultisigConfirm } from './entities/multisig-confirm.entity';
 import { MultisigTransaction } from './entities/multisig-transaction.entity';
 import { CreateTransactionRequest } from './dtos/requests/transaction/create-transaction.request';
 import { AuraTx } from './entities';
-import { GetSafeQuery } from './dtos/requests/multisig-wallet/get-safe.request';
-import { GetSafesByOwnerAddressQuery } from './dtos/requests/multisig-wallet/get-safe-by-owner.request';
+import {
+  GetSafePathParams,
+  GetSafeQuery,
+} from './dtos/requests/multisig-wallet/get-safe.request';
+import {
+  GetSafesByOwnerAddressParams,
+  GetSafesByOwnerAddressQuery,
+} from './dtos/requests/multisig-wallet/get-safe-by-owner.request';
 
 export const ENTITIES_CONFIG = {
   SAFE: Safe,
@@ -42,9 +48,11 @@ export const REQUEST_CONFIG = {
   SINGLE_SIGN_TRANSACTION_REQUEST: SingleSignTransactionRequest,
   CONNECT_WALLET_TO_GET_INFORMATION: ConnectMultisigWalletRequest,
   GET_SAFE_QUERY: GetSafeQuery,
-  CONFIRM_SAFE_QUERY: ConfirmMultisigWalletQuery,
-  DELETE_SAFE_QUERY: DeleteSafeQuery,
-  GET_SAFES_BY_OWNER: GetSafesByOwnerAddressQuery,
+  GET_SAFES_BY_OWNER_QUERY: GetSafesByOwnerAddressQuery,
+  GET_SAFE_PATH_PARAMS: GetSafePathParams,
+  CONFIRM_SAFE_PATH_PARAMS: ConfirmSafePathParams,
+  DELETE_SAFE_PATH_PARAMS: DeleteSafePathParams,
+  GET_SAFES_BY_OWNER_PARAM: GetSafesByOwnerAddressParams,
 };
 
 export module MODULE_REQUEST {
@@ -58,9 +66,11 @@ export module MODULE_REQUEST {
   export abstract class SingleSignTransactionRequest extends REQUEST_CONFIG.SINGLE_SIGN_TRANSACTION_REQUEST {}
   export abstract class ConnectMultisigWalletRequest extends REQUEST_CONFIG.CONNECT_WALLET_TO_GET_INFORMATION {}
   export abstract class GetSafeQuery extends REQUEST_CONFIG.GET_SAFE_QUERY {}
-  export abstract class ConfirmSafeQuery extends REQUEST_CONFIG.CONFIRM_SAFE_QUERY {}
-  export abstract class DeleteSafeQuery extends REQUEST_CONFIG.DELETE_SAFE_QUERY {}
-  export abstract class GetSafesByOwnerAddressQuery extends REQUEST_CONFIG.GET_SAFES_BY_OWNER {}
+  export abstract class GetSafesByOwnerAddressQuery extends REQUEST_CONFIG.GET_SAFES_BY_OWNER_QUERY {}
+  export abstract class GetSafePathParams extends REQUEST_CONFIG.GET_SAFE_PATH_PARAMS {}
+  export abstract class ConfirmSafePathParams extends REQUEST_CONFIG.CONFIRM_SAFE_PATH_PARAMS {}
+  export abstract class DeleteSafePathParams extends REQUEST_CONFIG.DELETE_SAFE_PATH_PARAMS {}
+  export abstract class GetSafesByOwnerAddressParams extends REQUEST_CONFIG.GET_SAFES_BY_OWNER_PARAM {}
 }
 
 export const SERVICE_INTERFACE = {

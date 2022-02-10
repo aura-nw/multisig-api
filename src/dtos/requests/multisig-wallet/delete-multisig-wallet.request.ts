@@ -6,7 +6,7 @@ export class DeleteMultisigWalletRequest {
   myAddress: string;
 }
 
-export class DeleteSafeQuery {
+export class DeleteSafePathParams {
   @ApiProperty({
     description: 'safeId',
     type: String,

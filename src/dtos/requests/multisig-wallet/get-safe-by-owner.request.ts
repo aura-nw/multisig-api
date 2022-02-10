@@ -7,3 +7,7 @@ export class GetSafesByOwnerAddressQuery {
   // @ApiProperty()
   // address: string;
 }
+export class GetSafesByOwnerAddressParams {
+  @ApiProperty()
+  address: string;
+}
