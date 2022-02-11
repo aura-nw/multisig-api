@@ -4,7 +4,7 @@ export class addColumnDenomTableChain1644563390556 implements MigrationInterface
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
-        ALTER TABLE Chain ADD COLUMN Denom varchar(45) NOT NULL;`);
+        ALTER TABLE Chain ADD COLUMN Denom varchar(45) NOT NULL AFTER Websocket;`);
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
