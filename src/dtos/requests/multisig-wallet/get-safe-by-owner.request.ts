@@ -1,6 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class GetSafesByOwnerAddressRequest {
+export class GetSafesByOwnerAddressQuery {
   @ApiProperty()
   internalChainId: number;
+
+  // @ApiProperty()
+  // address: string;
+}
+export class GetSafesByOwnerAddressParams {
+  @ApiProperty()
+  address: string;
 }

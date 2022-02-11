@@ -5,13 +5,17 @@ import {
   Query,
   Inject,
   Body,
-  Param,
   Delete,
   Logger,
+  HttpCode,
+  HttpStatus,
+  Param,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CONTROLLER_CONSTANTS, URL_CONSTANTS } from 'src/common/constants/api.constant';
-import { OptionalInternalChainId } from 'src/dtos/requests/multisig-wallet/optional-internal-chainid.request';
+import { ApiBadRequestResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  CONTROLLER_CONSTANTS,
+  URL_CONSTANTS,
+} from 'src/common/constants/api.constant';
 import { MODULE_REQUEST, SERVICE_INTERFACE } from 'src/module.config';
 import { IMultisigWalletService } from 'src/services/imultisig-wallet.service';
 @Controller(CONTROLLER_CONSTANTS.MULTISIG_WALLET)
@@ -22,54 +26,56 @@ export class MultisigWalletController {
   constructor(
     @Inject(SERVICE_INTERFACE.IMULTISIG_WALLET_SERVICE)
     private multisigWalletService: IMultisigWalletService,
-  ) { }
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a multisig wallet' })
+  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  @HttpCode(HttpStatus.OK)
   async createMultisigWallet(
     @Body() request: MODULE_REQUEST.CreateMultisigWalletRequest,
   ) {
+    this._logger.log('========== Create a multisig wallet ==========');
     return await this.multisigWalletService.createMultisigWallet(request);
   }
 
-  @Get(':safeId')
+  @Get(URL_CONSTANTS.GET_SAFE)
   @ApiOperation({ summary: 'Get status of the multisig wallet by safeId' })
+  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  @HttpCode(HttpStatus.OK)
   async getMultisigWallet(
-    @Param('safeId') safeId: string,
-    @Query() query: OptionalInternalChainId
+    @Param() param: MODULE_REQUEST.GetSafePathParams,
+    @Query() query: MODULE_REQUEST.GetSafeQuery,
   ) {
-    return await this.multisigWalletService.getMultisigWallet(safeId, query.internalChainId);
+    this._logger.log(
+      '========== Get status of the multisig wallet by safeId ==========',
+    );
+    return await this.multisigWalletService.getMultisigWallet(param, query);
   }
 
-  @Post(':safeId')
+  @Post(URL_CONSTANTS.CONFIRM_SAFE)
   @ApiOperation({ summary: 'Confirm multisig wallet' })
+  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  @HttpCode(HttpStatus.OK)
   async confirmMultisigWallet(
-    @Param('safeId') safeId: string,
+    @Param() param: MODULE_REQUEST.ConfirmSafePathParams,
     @Body() request: MODULE_REQUEST.ConfirmMultisigWalletRequest,
   ) {
-    return await this.multisigWalletService.confirm(safeId, request);
+    this._logger.log('========== Confirm multisig wallet ==========');
+    return await this.multisigWalletService.confirm(param, request);
   }
 
-  @Delete(':safeId')
+  @Delete(URL_CONSTANTS.DELETE_SAFE)
   @ApiOperation({ summary: 'Delete pending multisig wallet' })
+  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  @HttpCode(HttpStatus.OK)
   async deletePendingMultisigWallet(
-    @Param('safeId') safeId: string,
+    @Param() param: MODULE_REQUEST.DeleteSafePathParams,
     @Body() request: MODULE_REQUEST.DeleteMultisigWalletRequest,
   ) {
-    return await this.multisigWalletService.deletePending(safeId, request);
+    this._logger.log('========== Delete pending multisig wallet ==========');
+    return await this.multisigWalletService.deletePending(param, request);
   }
-
-  // @Get(':address/balance')
-  // @ApiOperation({ summary: 'Get balance for Aura tokens' })
-  // async getBalance(@Param('address') address: string) {
-  //   return `Get balance for Aura tokens of ${address}`;
-  // }
-
-  // @Get(':address/creation')
-  // @ApiOperation({ summary: 'Get creation information of Safe' })
-  // async getCreation(@Param('address') address: string) {
-  //   return `Get creation information of ${address}`;
-  // }
 
   // @Post()
   // @ApiOperation({ summary: 'Connect multisig wallet' })
@@ -79,6 +85,4 @@ export class MultisigWalletController {
   //   this._logger.log('========== Connect multisig wallet ==========');
   //   return await this.multisigWalletService.connectMultisigWalletByAddress(request);
   // }
-
-
 }
