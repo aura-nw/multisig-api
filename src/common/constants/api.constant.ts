@@ -14,7 +14,7 @@ export const URL_CONSTANTS = {
   SEND: 'send',
   SIGLE_SIGN: 'sign',
   NETWORK_LIST: 'network-list',
-  GET_ALL_TXS: ':safeAddress/:page',
+  GET_ALL_TXS: 'get-all-txs',
   SIGNATURES: 'multisig/:internalTxHash/signatures',
   GET_SAFE: ':safeId',
   CONFIRM_SAFE: ':safeId',
@@ -23,6 +23,8 @@ export const URL_CONSTANTS = {
 };
 export const DENOM = {
   uaura: 'uaura',
+  uatom: 'uatom',
+  uluna: 'uluna',
 };
 export const TRANSACTION_STATUS = {
   PENDING: 'PENDING',
