@@ -235,11 +235,11 @@ export class TransactionService
   }
 
   async getListConfirmMultisigTransaction(
-    internalTxHash: string,
+    param: MODULE_REQUEST.GetMultisigSignaturesParam
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     const resId = await this.multisigTransactionRepos.getMultisigTxId(
-      internalTxHash,
+      param.internalTxHash,
     );
     if (resId) {
       const result =
@@ -253,14 +253,12 @@ export class TransactionService
   }
 
   async getTransactionHistory(
-    safeAddress: string,
-    page: number,
+    request: MODULE_REQUEST.GetAllTransactionsRequest
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
-    // const result = await this.multisigTransactionRepos.getTransactionHistory(safeAddress);
-    const result = await this.transRepos.getAuraTx(safeAddress, page);
+    const result = await this.transRepos.getAuraTx(request.safeAddress, request.page);
     for (let i = 0; i < result.length; i++) {
-      if (result[i].fromAddress == safeAddress) {
+      if (result[i].fromAddress == request.safeAddress) {
         result[i].signatures = await (
           await this.getListConfirmMultisigTransaction(result[i].txHash)
         ).Data;

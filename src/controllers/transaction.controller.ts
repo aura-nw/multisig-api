@@ -47,30 +47,27 @@ export class TransactionController {
     return await this.transactionService.singleSignTransaction(request);
   }
 
-  @Get(`:safeAddress/:page`)
+  @Post(URL_CONSTANTS.GET_ALL_TXS)
   @ApiOperation({
     summary: 'Returns a paginated list of transactions for a Safe',
   })
   async getAllTxs(
-    @Param('safeAddress') safeAddress: string,
-    @Param('page') page: number,
+    @Body() request: MODULE_REQUEST.GetAllTransactionsRequest,
   ) {
-    // return `Returns a paginated list of transactions for a Safe`;
-    return await this.transactionService.getTransactionHistory(
-      safeAddress,
-      page,
-    );
-    // return this.transactionService.getTransactionHistoryFromNode(safeAddress);
+    this._logger.log('========== Get All Transactions ==========');
+    return await this.transactionService.getTransactionHistory(request);
   }
 
-  @Get('multisig/:internalTxHash/signatures')
+  @Get(URL_CONSTANTS.SIGNATURES)
   @ApiOperation({
     summary: 'Get the list of signatures for a multisig transaction',
   })
-  async getSignsOfMultisigTx(@Param('internalTxHash') internalTxHash: string) {
-    // return `Get the list of signatures for a multisig transaction`;
+  async getSignsOfMultisigTx(
+    @Param() param: MODULE_REQUEST.GetMultisigSignaturesParam
+  ) {
+    this._logger.log('========== Get Signatures of Multisig Transaction ==========');
     return await this.transactionService.getListConfirmMultisigTransaction(
-      internalTxHash,
+      param,
     );
   }
 

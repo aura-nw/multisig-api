@@ -31,14 +31,13 @@ export interface ITransactionService {
    * @param request
    */
   getListConfirmMultisigTransaction(
-    internalTxHash: string,
+    param: MODULE_REQUEST.GetMultisigSignaturesParam
   ): Promise<ResponseDto>;
 
   /**
    * Get Multisig Transaction History
    */
   getTransactionHistory(
-    safeAddress: string,
-    page: number,
+    request: MODULE_REQUEST.GetAllTransactionsRequest,
   ): Promise<ResponseDto>;
 }
