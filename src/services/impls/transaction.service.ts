@@ -60,7 +60,7 @@ export class TransactionService
 
       const client = await StargateClient.connect(chain.rpc);
 
-      let balance = await client.getBalance(request.from, DENOM.uaura);
+      let balance = await client.getBalance(request.from, chain.denom);
 
       let safe = await this.safeRepos.findOne({
         where: { safeAddress: request.from },
@@ -80,14 +80,14 @@ export class TransactionService
         const msgSend: MsgSend = {
           fromAddress: request.from,
           toAddress: request.to,
-          amount: coins(request.amount, DENOM.uaura),
+          amount: coins(request.amount, chain.denom),
         };
         const msg: MsgSendEncodeObject = {
           typeUrl: '/cosmos.bank.v1beta1.MsgSend',
           value: msgSend,
         };
         const fee = {
-          amount: coins(request.fee, DENOM.uaura),
+          amount: coins(request.fee, chain.denom),
           gas: request.gasLimit,
         };
         return {
@@ -109,7 +109,7 @@ export class TransactionService
       transaction.fee = request.fee;
       transaction.accountNumber = signingInstruction.accountNumber;
       transaction.typeUrl = signingInstruction.msgs['typeUrl'];
-      transaction.denom = DENOM.uaura;
+      transaction.denom = chain.denom;
       transaction.status = TRANSACTION_STATUS.PENDING;
       transaction.internalChainId = request.internalChainId;
       transaction.safeId = safe.id;
