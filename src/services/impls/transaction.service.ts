@@ -201,21 +201,19 @@ export class TransactionService
           request.transactionId,
         );
 
-      listConfirm.forEach((element) => {
-        if (element.ownerAddress == request.fromAddress) {
-          return res.return(ErrorMap.USER_HAS_COMFIRMED);
+      let checkExist = listConfirm.find(elelement => {
+        if (elelement.ownerAddress === request.fromAddress){
+          return true;
         }
       });
+
+      if(checkExist){
+        return res.return(ErrorMap.USER_HAS_COMFIRMED);
+      }
 
       let safe = await this.safeRepos.findOne({
         where: { id: transaction.safeId },
       });
-
-      if (listConfirm.length >= safe.threshold) {
-        transaction.status = TRANSACTION_STATUS.SEND_WAITING;
-
-        await this.multisigTransactionRepos.update(transaction);
-      }
 
       let multisigConfirm = new MultisigConfirm();
       multisigConfirm.multisigTransactionId = request.transactionId;
@@ -225,6 +223,18 @@ export class TransactionService
       multisigConfirm.internalChainId = request.internalChainId;
 
       await this.multisigConfirmRepos.create(multisigConfirm);
+
+      //Check transaction available
+      let listConfirmAfterSign =
+        await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+          request.transactionId,
+        );
+
+      if (listConfirmAfterSign.length >= safe.threshold) {
+        transaction.status = TRANSACTION_STATUS.SEND_WAITING;
+
+        await this.multisigTransactionRepos.update(transaction);
+      }
       return res.return(ErrorMap.SUCCESSFUL);
     } catch (error) {
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
