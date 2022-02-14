@@ -160,7 +160,9 @@ export class TransactionService
       let addressSignarureMap = new Map<string, Uint8Array>();
 
       multisigConfirmArr.forEach((x) => {
-        addressSignarureMap.set(x.ownerAddress, x.signature);
+        let encodeSignature = new TextEncoder().encode(x.signature);
+
+        addressSignarureMap.set(x.ownerAddress, encodeSignature);
       });
 
       //Fee
@@ -174,7 +176,7 @@ export class TransactionService
 
       let executeTransaction = makeMultisignedTx(
         safePubkey,
-        multisigTransaction.sequence,
+        0,
         fee,
         multisigConfirmArr[0].bodyBytes,
         addressSignarureMap,
