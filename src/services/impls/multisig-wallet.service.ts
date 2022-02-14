@@ -102,6 +102,7 @@ export class MultisigWalletService
         const safeInfo = this.createSafeAddressAndPubkey(
           [creatorPubkey],
           threshold,
+          chainInfo.prefix
         );
         safe.safeAddress = safeInfo.address;
         safe.safePubkey = safeInfo.pubkey;
@@ -274,7 +275,12 @@ export class MultisigWalletService
       });
 
       // generate safe address and pubkey
-      const safeInfo = this.createSafeAddressAndPubkey(pubkeys, safe.threshold);
+      const chainInfo = (await this.generalRepo.findOne(
+        safe.internalChainId,
+      )) as Chain;
+      if (!chainInfo) return res.return(ErrorMap.CHAIN_ID_NOT_EXIST);
+
+      const safeInfo = this.createSafeAddressAndPubkey(pubkeys, safe.threshold, chainInfo.prefix);
       safe.safeAddress = safeInfo.address;
       safe.safePubkey = safeInfo.pubkey;
       safe.status = SAFE_STATUS.CREATED;
@@ -387,6 +393,7 @@ export class MultisigWalletService
   private createSafeAddressAndPubkey(
     pubKeyArrString: string[],
     threshold: number,
+    prefix: string
   ): {
     pubkey: string;
     address: string;
@@ -394,7 +401,7 @@ export class MultisigWalletService
     const arrPubkeys = pubKeyArrString.map(this.createPubkeys);
     const multisigPubkey = createMultisigThresholdPubkey(arrPubkeys, threshold);
     const multiSigWalletAddress =
-      this._commonUtil.pubkeyToAddress(multisigPubkey);
+      this._commonUtil.pubkeyToAddress(multisigPubkey, prefix);
     return {
       pubkey: JSON.stringify(multisigPubkey),
       address: multiSigWalletAddress,
