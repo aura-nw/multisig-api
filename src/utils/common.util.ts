@@ -10,8 +10,11 @@ export class CommonUtil {
    * @param pubkey public key
    * @returns address string
    */
-  public pubkeyToAddress(pubkey: Pubkey): string {
-    return pubkeyToAddress(pubkey, this.configService.get('PREFIX'));
+  public pubkeyToAddress(
+    pubkey: Pubkey,
+    prefix = this.configService.get('PREFIX'),
+  ): string {
+    return pubkeyToAddress(pubkey, prefix);
   }
 
   /**
@@ -29,21 +32,21 @@ export class CommonUtil {
 
   /**
    * https://stackoverflow.com/a/54974076/8461456
-   * @param arr 
+   * @param arr
    * @returns boolean
    */
   public checkIfDuplicateExists(arr): boolean {
-    return new Set(arr).size !== arr.length
+    return new Set(arr).size !== arr.length;
   }
 
   /**
-   * 
-   * @param strArr 
+   *
+   * @param strArr
    * @returns string[]
    */
   public filterEmptyInStringArray(strArr: string[]): string[] {
-    return strArr.filter(e => {
+    return strArr.filter((e) => {
       return e !== '';
-    })
+    });
   }
 }
