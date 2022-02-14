@@ -217,7 +217,7 @@ export class MultisigWalletService
       if (safeInfo.address !== null) {
         const network = new Network(chainInfo.rpc);
         await network.init();
-        const balance = await network.getBalance(safeInfo.address);
+        const balance = await network.getBalance(safeInfo.address, chainInfo.denom);
         safeInfo.balance = [balance];
       }
       return res.return(ErrorMap.SUCCESSFUL, safeInfo);
