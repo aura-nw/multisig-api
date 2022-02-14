@@ -29,8 +29,7 @@ import { Chain } from 'src/entities';
 @Injectable()
 export class MultisigWalletService
   extends BaseService
-  implements IMultisigWalletService
-{
+  implements IMultisigWalletService {
   private readonly _logger = new Logger(MultisigWalletService.name);
   private defaultInternalChainId: number;
   private _commonUtil: CommonUtil = new CommonUtil();
@@ -75,91 +74,91 @@ export class MultisigWalletService
     request: MODULE_REQUEST.CreateMultisigWalletRequest,
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
-    try {
-      const { creatorAddress, creatorPubkey, threshold, internalChainId } =
-        request;
-      let { otherOwnersAddress } = request;
+    // try {
+    const { creatorAddress, creatorPubkey, threshold, internalChainId } =
+      request;
+    let { otherOwnersAddress } = request;
 
-      // Check input
-      if (otherOwnersAddress.indexOf(creatorAddress) > -1)
-        return res.return(ErrorMap.OTHER_ADDRESS_INCLUDE_CREATOR);
-      if (this._commonUtil.checkIfDuplicateExists(otherOwnersAddress))
-        return res.return(ErrorMap.DUPLICATE_SAFE_OWNER);
-      const chainInfo = (await this.generalRepo.findOne(
-        internalChainId,
-      )) as Chain;
-      if (!chainInfo) return res.return(ErrorMap.CHAIN_ID_NOT_EXIST);
+    // Check input
+    if (otherOwnersAddress.indexOf(creatorAddress) > -1)
+      return res.return(ErrorMap.OTHER_ADDRESS_INCLUDE_CREATOR);
+    if (this._commonUtil.checkIfDuplicateExists(otherOwnersAddress))
+      return res.return(ErrorMap.DUPLICATE_SAFE_OWNER);
+    const chainInfo = (await this.generalRepo.findOne(
+      internalChainId,
+    )) as Chain;
+    if (!chainInfo) return res.return(ErrorMap.CHAIN_ID_NOT_EXIST);
 
-      // Filter empty string in otherOwnersAddress
-      otherOwnersAddress =
-        this._commonUtil.filterEmptyInStringArray(otherOwnersAddress);
+    // Filter empty string in otherOwnersAddress
+    otherOwnersAddress =
+      this._commonUtil.filterEmptyInStringArray(otherOwnersAddress);
 
-      // insert safe
-      const safe = new ENTITIES_CONFIG.SAFE();
-      safe.creatorAddress = creatorAddress;
-      safe.creatorPubkey = creatorPubkey;
-      safe.threshold = threshold;
-      if (otherOwnersAddress.length === 0) {
-        const safeInfo = this.createSafeAddressAndPubkey(
-          [creatorPubkey],
-          threshold,
-        );
-        safe.safeAddress = safeInfo.address;
-        safe.safePubkey = safeInfo.pubkey;
-        safe.status = SAFE_STATUS.CREATED;
-      } else {
-        safe.status = SAFE_STATUS.PENDING;
-      }
-      safe.internalChainId = internalChainId;
-
-      // check duplicate with safe address hash
-      const { existInDB, safeAddressHash } = await this.makeAddressHash(
-        safe.internalChainId,
-        [creatorAddress, ...otherOwnersAddress],
+    // insert safe
+    const safe = new ENTITIES_CONFIG.SAFE();
+    safe.creatorAddress = creatorAddress;
+    safe.creatorPubkey = creatorPubkey;
+    safe.threshold = threshold;
+    if (otherOwnersAddress.length === 0) {
+      const safeInfo = this.createSafeAddressAndPubkey(
+        [creatorPubkey],
         threshold,
       );
-      if (existInDB) return res.return(ErrorMap.DUPLICATE_SAFE_ADDRESS_HASH);
-      safe.addressHash = safeAddressHash;
+      safe.safeAddress = safeInfo.address;
+      safe.safePubkey = safeInfo.pubkey;
+      safe.status = SAFE_STATUS.CREATED;
+    } else {
+      safe.status = SAFE_STATUS.PENDING;
+    }
+    safe.internalChainId = internalChainId;
 
-      // insert
-      const result = await this.insertSafe(safe);
-      if (result.error !== ErrorMap.SUCCESSFUL) {
-        return res.return(result.error, {});
-      }
-      const safeId = result.safe?.id;
+    // check duplicate with safe address hash
+    const { existInDB, safeAddressHash } = await this.makeAddressHash(
+      safe.internalChainId,
+      [creatorAddress, ...otherOwnersAddress],
+      threshold,
+    );
+    if (existInDB) return res.return(ErrorMap.DUPLICATE_SAFE_ADDRESS_HASH);
+    safe.addressHash = safeAddressHash;
 
-      // insert safe_creator
-      const safeCreator = new ENTITIES_CONFIG.SAFE_OWNER();
-      safeCreator.ownerAddress = creatorAddress;
-      safeCreator.ownerPubkey = creatorPubkey;
-      safeCreator.safeId = safeId;
-      safeCreator.internalChainId = internalChainId;
+    // insert
+    const result = await this.insertSafe(safe);
+    if (result.error !== ErrorMap.SUCCESSFUL) {
+      return res.return(result.error, {});
+    }
+    const safeId = result.safe?.id;
+
+    // insert safe_creator
+    const safeCreator = new ENTITIES_CONFIG.SAFE_OWNER();
+    safeCreator.ownerAddress = creatorAddress;
+    safeCreator.ownerPubkey = creatorPubkey;
+    safeCreator.safeId = safeId;
+    safeCreator.internalChainId = internalChainId;
+    try {
+      await this.safeOwnerRepo.create(safeCreator);
+    } catch (err) {
+      return res.return(ErrorMap.SOMETHING_WENT_WRONG, {});
+    }
+
+    // insert safe_owner
+    for (const ownerAddress of otherOwnersAddress) {
+      const safeOwner = new ENTITIES_CONFIG.SAFE_OWNER();
+      safeOwner.ownerAddress = ownerAddress;
+      safeOwner.safeId = safeId;
+      safeOwner.internalChainId = internalChainId;
       try {
-        await this.safeOwnerRepo.create(safeCreator);
+        await this.safeOwnerRepo.create(safeOwner);
       } catch (err) {
         return res.return(ErrorMap.SOMETHING_WENT_WRONG, {});
       }
-
-      // insert safe_owner
-      for (const ownerAddress of otherOwnersAddress) {
-        const safeOwner = new ENTITIES_CONFIG.SAFE_OWNER();
-        safeOwner.ownerAddress = ownerAddress;
-        safeOwner.safeId = safeId;
-        safeOwner.internalChainId = internalChainId;
-        try {
-          await this.safeOwnerRepo.create(safeOwner);
-        } catch (err) {
-          return res.return(ErrorMap.SOMETHING_WENT_WRONG, {});
-        }
-      }
-
-      return res.return(ErrorMap.SUCCESSFUL, safe);
-    } catch (error) {
-      this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
-      this._logger.error(`${error.name}: ${error.message}`);
-      this._logger.error(`${error.stack}`);
-      return res.return(ErrorMap.E500, error.message);
     }
+
+    return res.return(ErrorMap.SUCCESSFUL, safe);
+    // } catch (error) {
+    //   this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
+    //   this._logger.error(`${error.name}: ${error.message}`);
+    //   this._logger.error(`${error.stack}`);
+    //   return res.return(ErrorMap.E500, error.message);
+    // }
   }
 
   async getMultisigWallet(
@@ -167,66 +166,66 @@ export class MultisigWalletService
     query: MODULE_REQUEST.GetSafeQuery,
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
-    try {
-      const { safeId } = param;
-      const { internalChainId } = query;
-      // build search condition
-      let condition = this.calculateCondition(safeId, internalChainId);
+    // try {
+    const { safeId } = param;
+    const { internalChainId } = query;
+    // build search condition
+    let condition = this.calculateCondition(safeId, internalChainId);
 
-      // find safes
-      const safes = await this.safeRepo.findByCondition(condition);
-      if (!safes || safes.length === 0) {
-        this._logger.debug(
-          `Not found any safe with condition: ${JSON.stringify(condition)}`,
-        );
-        return res.return(ErrorMap.NOTFOUND);
-      }
-      const safe = safes[0];
-
-      // find safe owner
-      const owners = (await this.safeOwnerRepo.findByCondition({
-        safeId: safe.id,
-      })) as SafeOwner[];
-      if (!owners || owners.length === 0) {
-        this._logger.debug(
-          `Not found any safe owner with safeId: ${safeId} and internalChainId: ${internalChainId}`,
-        );
-        return res.return(ErrorMap.NOTFOUND);
-      }
-
-      // get confirm list
-      const confirms = owners.filter(({ ownerPubkey }) => ownerPubkey !== null);
-
-      // build safe info
-      const safeInfo = new GetMultisigWalletResponse();
-      safeInfo.id = safe.id;
-      safeInfo.address = safe.safeAddress;
-      safeInfo.pubkeys = safe.safePubkey;
-      safeInfo.owners = owners.map((o) => o.ownerAddress);
-      safeInfo.confirms = confirms.map((o) => o.ownerAddress);
-      safeInfo.threshold = safe.threshold;
-      safeInfo.status = safe.status;
-      safeInfo.internalChainId = safe.internalChainId;
-
-      // get chainInfo
-      const chainInfo = (await this.generalRepo.findOne(
-        safeInfo.internalChainId,
-      )) as Chain;
-
-      // if safe created => Get balance
-      if (safeInfo.address !== null) {
-        const network = new Network(chainInfo.rpc);
-        await network.init();
-        const balance = await network.getBalance(safeInfo.address);
-        safeInfo.balance = [balance];
-      }
-      return res.return(ErrorMap.SUCCESSFUL, safeInfo);
-    } catch (error) {
-      this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
-      this._logger.error(`${error.name}: ${error.message}`);
-      this._logger.error(`${error.stack}`);
-      return res.return(ErrorMap.E500, error.message);
+    // find safes
+    const safes = await this.safeRepo.findByCondition(condition);
+    if (!safes || safes.length === 0) {
+      this._logger.debug(
+        `Not found any safe with condition: ${JSON.stringify(condition)}`,
+      );
+      return res.return(ErrorMap.NOTFOUND);
     }
+    const safe = safes[0];
+
+    // find safe owner
+    const owners = (await this.safeOwnerRepo.findByCondition({
+      safeId: safe.id,
+    })) as SafeOwner[];
+    if (!owners || owners.length === 0) {
+      this._logger.debug(
+        `Not found any safe owner with safeId: ${safeId} and internalChainId: ${internalChainId}`,
+      );
+      return res.return(ErrorMap.NOTFOUND);
+    }
+
+    // get confirm list
+    const confirms = owners.filter(({ ownerPubkey }) => ownerPubkey !== null);
+
+    // build safe info
+    const safeInfo = new GetMultisigWalletResponse();
+    safeInfo.id = safe.id;
+    safeInfo.address = safe.safeAddress;
+    safeInfo.pubkeys = safe.safePubkey;
+    safeInfo.owners = owners.map((o) => o.ownerAddress);
+    safeInfo.confirms = confirms.map((o) => o.ownerAddress);
+    safeInfo.threshold = safe.threshold;
+    safeInfo.status = safe.status;
+    safeInfo.internalChainId = safe.internalChainId;
+
+    // get chainInfo
+    const chainInfo = (await this.generalRepo.findOne(
+      safeInfo.internalChainId,
+    )) as Chain;
+
+    // if safe created => Get balance
+    if (safeInfo.address !== null) {
+      const network = new Network(chainInfo.rpc);
+      await network.init();
+      const balance = await network.getBalance(safeInfo.address);
+      safeInfo.balance = [balance];
+    }
+    return res.return(ErrorMap.SUCCESSFUL, safeInfo);
+    // } catch (error) {
+    //   this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
+    //   this._logger.error(`${error.name}: ${error.message}`);
+    //   this._logger.error(`${error.stack}`);
+    //   return res.return(ErrorMap.E500, error.message);
+    // }
   }
 
   async confirm(
@@ -234,61 +233,61 @@ export class MultisigWalletService
     request: MODULE_REQUEST.ConfirmMultisigWalletRequest,
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
-    try {
-      const { safeId } = param;
-      const { myAddress, myPubkey } = request;
-      const condition = this.calculateCondition(safeId);
-      // find safe
-      const safes = (await this.safeRepo.findByCondition(condition)) as Safe[];
-      if (!safes || safes.length === 0) return res.return(ErrorMap.NOTFOUND);
-      const safe = safes[0];
+    // try {
+    const { safeId } = param;
+    const { myAddress, myPubkey } = request;
+    const condition = this.calculateCondition(safeId);
+    // find safe
+    const safes = (await this.safeRepo.findByCondition(condition)) as Safe[];
+    if (!safes || safes.length === 0) return res.return(ErrorMap.NOTFOUND);
+    const safe = safes[0];
 
-      // check safe
-      if (safe.status !== SAFE_STATUS.PENDING)
-        return res.return(ErrorMap.SAFE_NOT_PENDING);
+    // check safe
+    if (safe.status !== SAFE_STATUS.PENDING)
+      return res.return(ErrorMap.SAFE_NOT_PENDING);
 
-      // get safe owners
-      const safeOwners = (await this.safeOwnerRepo.findByCondition({
-        safeId: safe.id,
-      })) as SafeOwner[];
-      if (safeOwners.length === 0) return res.return(ErrorMap.NOTFOUND);
+    // get safe owners
+    const safeOwners = (await this.safeOwnerRepo.findByCondition({
+      safeId: safe.id,
+    })) as SafeOwner[];
+    if (safeOwners.length === 0) return res.return(ErrorMap.NOTFOUND);
 
-      // get safe owner by address
-      const index = safeOwners.findIndex((s) => s.ownerAddress === myAddress);
-      // const safeOwner = safeOwners[safeOwnerIndex];
-      if (index === -1) return res.return(ErrorMap.NOTFOUND);
-      if (safeOwners[index].ownerPubkey !== null)
-        return res.return(ErrorMap.SAFE_OWNER_PUBKEY_NOT_EMPTY);
+    // get safe owner by address
+    const index = safeOwners.findIndex((s) => s.ownerAddress === myAddress);
+    // const safeOwner = safeOwners[safeOwnerIndex];
+    if (index === -1) return res.return(ErrorMap.NOTFOUND);
+    if (safeOwners[index].ownerPubkey !== null)
+      return res.return(ErrorMap.SAFE_OWNER_PUBKEY_NOT_EMPTY);
 
-      // update safe owner
-      safeOwners[index].ownerPubkey = myPubkey;
-      const updateResult = await this.safeOwnerRepo.update(safeOwners[index]);
-      if (!updateResult) return res.return(ErrorMap.SOMETHING_WENT_WRONG, {});
+    // update safe owner
+    safeOwners[index].ownerPubkey = myPubkey;
+    const updateResult = await this.safeOwnerRepo.update(safeOwners[index]);
+    if (!updateResult) return res.return(ErrorMap.SOMETHING_WENT_WRONG, {});
 
-      // check all owner confirmed
-      const notReady = safeOwners.findIndex((s) => s.ownerPubkey === null);
-      if (notReady !== -1) return res.return(ErrorMap.SUCCESSFUL, safe);
+    // check all owner confirmed
+    const notReady = safeOwners.findIndex((s) => s.ownerPubkey === null);
+    if (notReady !== -1) return res.return(ErrorMap.SUCCESSFUL, safe);
 
-      // calculate owner pubKey array
-      const pubkeys = safeOwners.map((s) => {
-        return s.ownerAddress === myAddress ? myPubkey : s.ownerPubkey;
-      });
+    // calculate owner pubKey array
+    const pubkeys = safeOwners.map((s) => {
+      return s.ownerAddress === myAddress ? myPubkey : s.ownerPubkey;
+    });
 
-      // generate safe address and pubkey
-      const safeInfo = this.createSafeAddressAndPubkey(pubkeys, safe.threshold);
-      safe.safeAddress = safeInfo.address;
-      safe.safePubkey = safeInfo.pubkey;
-      safe.status = SAFE_STATUS.CREATED;
+    // generate safe address and pubkey
+    const safeInfo = this.createSafeAddressAndPubkey(pubkeys, safe.threshold);
+    safe.safeAddress = safeInfo.address;
+    safe.safePubkey = safeInfo.pubkey;
+    safe.status = SAFE_STATUS.CREATED;
 
-      // update safe
-      await this.safeRepo.update(safe);
-      return res.return(ErrorMap.SUCCESSFUL, safe);
-    } catch (error) {
-      this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
-      this._logger.error(`${error.name}: ${error.message}`);
-      this._logger.error(`${error.stack}`);
-      return res.return(ErrorMap.E500, error.message);
-    }
+    // update safe
+    await this.safeRepo.update(safe);
+    return res.return(ErrorMap.SUCCESSFUL, safe);
+    // } catch (error) {
+    //   this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
+    //   this._logger.error(`${error.name}: ${error.message}`);
+    //   this._logger.error(`${error.stack}`);
+    //   return res.return(ErrorMap.E500, error.message);
+    // }
   }
 
   async deletePending(
@@ -296,31 +295,31 @@ export class MultisigWalletService
     request: MODULE_REQUEST.DeleteMultisigWalletRequest,
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
-    try {
-      const { safeId } = param;
-      const { myAddress } = request;
-      const condition = this.calculateCondition(safeId);
+    // try {
+    const { safeId } = param;
+    const { myAddress } = request;
+    const condition = this.calculateCondition(safeId);
 
-      // get safe & check
-      const safes = await this.safeRepo.findByCondition(condition);
-      if (safes.length === 0) return res.return(ErrorMap.NOTFOUND);
-      const safe = safes[0] as Safe;
-      if (safe.creatorAddress !== myAddress)
-        return res.return(ErrorMap.ADDRESS_NOT_CREATOR);
-      if (safe.status !== SAFE_STATUS.PENDING)
-        return res.return(ErrorMap.SAFE_NOT_PENDING);
+    // get safe & check
+    const safes = await this.safeRepo.findByCondition(condition);
+    if (safes.length === 0) return res.return(ErrorMap.NOTFOUND);
+    const safe = safes[0] as Safe;
+    if (safe.creatorAddress !== myAddress)
+      return res.return(ErrorMap.ADDRESS_NOT_CREATOR);
+    if (safe.status !== SAFE_STATUS.PENDING)
+      return res.return(ErrorMap.SAFE_NOT_PENDING);
 
-      // update status pending => deleted
-      safe.status = SAFE_STATUS.DELETED;
+    // update status pending => deleted
+    safe.status = SAFE_STATUS.DELETED;
 
-      await this.safeRepo.update(safe);
-      return res.return(ErrorMap.SUCCESSFUL, {});
-    } catch (error) {
-      this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
-      this._logger.error(`${error.name}: ${error.message}`);
-      this._logger.error(`${error.stack}`);
-      return res.return(ErrorMap.E500, error.message);
-    }
+    await this.safeRepo.update(safe);
+    return res.return(ErrorMap.SUCCESSFUL, {});
+    // } catch (error) {
+    //   this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
+    //   this._logger.error(`${error.name}: ${error.message}`);
+    //   this._logger.error(`${error.stack}`);
+    //   return res.return(ErrorMap.E500, error.message);
+    // }
   }
 
   async getMultisigWalletsByOwner(
@@ -328,44 +327,44 @@ export class MultisigWalletService
     query: MODULE_REQUEST.GetSafesByOwnerAddressQuery,
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
-    try {
-      const { address } = param;
-      const { internalChainId } = query;
-      const result = await this.safeRepo.getMultisigWalletsByOwner(
-        address,
-        internalChainId,
-      );
-      const listSafe = plainToInstance(ListSafeByOwnerResponse, result);
-      const response = listSafe.map((res) => {
-        if (
-          res.status === SAFE_STATUS.PENDING &&
-          res.creatorAddress !== res.ownerAddress
-        ) {
-          res.status =
-            res.ownerPubkey === null
-              ? SAFE_OWNER_STATUS.NEED_CONFIRM
-              : SAFE_OWNER_STATUS.CONFIRMED;
-        }
-        return res;
-      });
-      return res.return(ErrorMap.SUCCESSFUL, response);
-    } catch (error) {
-      this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
-      this._logger.error(`${error.name}: ${error.message}`);
-      this._logger.error(`${error.stack}`);
-      return res.return(ErrorMap.E500, error.message);
-    }
+    // try {
+    const { address } = param;
+    const { internalChainId } = query;
+    const result = await this.safeRepo.getMultisigWalletsByOwner(
+      address,
+      internalChainId,
+    );
+    const listSafe = plainToInstance(ListSafeByOwnerResponse, result);
+    const response = listSafe.map((res) => {
+      if (
+        res.status === SAFE_STATUS.PENDING &&
+        res.creatorAddress !== res.ownerAddress
+      ) {
+        res.status =
+          res.ownerPubkey === null
+            ? SAFE_OWNER_STATUS.NEED_CONFIRM
+            : SAFE_OWNER_STATUS.CONFIRMED;
+      }
+      return res;
+    });
+    return res.return(ErrorMap.SUCCESSFUL, response);
+    // } catch (error) {
+    //   this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
+    //   this._logger.error(`${error.name}: ${error.message}`);
+    //   this._logger.error(`${error.stack}`);
+    //   return res.return(ErrorMap.E500, error.message);
+    // }
   }
 
   private calculateCondition(safeId: string, internalChainId?: number) {
     return isNaN(Number(safeId))
       ? {
-          safeAddress: safeId,
-          internalChainId: internalChainId || this.defaultInternalChainId || '',
-        }
+        safeAddress: safeId,
+        internalChainId: internalChainId || this.defaultInternalChainId || '',
+      }
       : {
-          id: safeId,
-        };
+        id: safeId,
+      };
   }
 
   private async insertSafe(
