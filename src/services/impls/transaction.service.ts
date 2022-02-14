@@ -188,7 +188,7 @@ export class TransactionService
     try {
       //Check status of multisig transaction
       let transaction = await this.multisigTransactionRepos.findOne({
-        where: { id: request.transactionId, chainId: request.internalChainId },
+        where: { id: request.transactionId, internalChainId: request.internalChainId },
       });
 
       if (!transaction) {
