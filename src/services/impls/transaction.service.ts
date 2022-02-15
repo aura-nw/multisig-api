@@ -130,6 +130,12 @@ export class TransactionService
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
+      let chain = await this.chainRepos.findOne({
+        where: { id: request.internalChainId },
+      });
+
+      const client = await StargateClient.connect(chain.rpc);
+
       //get information multisig transaction Id
       let multisigTransaction = await this.multisigTransactionRepos.findOne({
         where: { id: request.transactionId },
@@ -142,37 +148,49 @@ export class TransactionService
         return res.return(ErrorMap.TRANSACTION_NOT_VALID);
       }
 
-      let multisigConfirmArr = await this.multisigConfirmRepos.findAll({
-        multisigTransactionId: request.transactionId,
+      //Get safe info
+      let safeInfo = await this.safeRepos.findOne({
+        where: {id: multisigTransaction.safeId}
+      })
+
+      let multisigConfirmArr = await this.multisigConfirmRepos.findByCondition({ 
+         multisigTransactionId: request.transactionId
       });
 
       let addressSignarureMap = new Map<string, Uint8Array>();
 
-      let bodyBytesArr = new Uint8Array();
-
       multisigConfirmArr.forEach((x) => {
-        addressSignarureMap.set(x.ownerAddress, x.signature);
+        let encodeSignature = new TextEncoder().encode(x.signature);
+
+        addressSignarureMap.set(x.ownerAddress, encodeSignature);
       });
 
+      //Fee
+      const fee = {
+        amount: coins(multisigTransaction.fee, multisigTransaction.denom),
+        gas: multisigTransaction.gas.toString(),
+      };
+
+      //Pubkey 
+      const safePubkey = JSON.parse(safeInfo.safePubkey);
+
       let executeTransaction = makeMultisignedTx(
-        multisigTransaction.pubkey,
-        multisigTransaction.sequence,
-        multisigTransaction.fee,
-        multisigTransaction.bodyBytes,
+        safePubkey,
+        0,
+        fee,
+        multisigConfirmArr[0].bodyBytes,
         addressSignarureMap,
       );
 
-      let chain = await this.chainRepos.findOne({
-        where: { id: request.internalChainId },
-      });
-
-      const client = await StargateClient.connect(chain.rpc);
+      let encodeTransaction = Uint8Array.from(TxRaw.encode(executeTransaction).finish());
 
       const result = await client.broadcastTx(
-        Uint8Array.from(TxRaw.encode(executeTransaction).finish()),
+        encodeTransaction
       );
+
       this._logger.log('result', JSON.stringify(result));
       return res.return(ErrorMap.SUCCESSFUL, result);
+
     } catch (error) {
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
       this._logger.error(`${error.name}: ${error.message}`);
@@ -201,21 +219,19 @@ export class TransactionService
           request.transactionId,
         );
 
-      listConfirm.forEach((element) => {
-        if (element.ownerAddress == request.fromAddress) {
-          return res.return(ErrorMap.USER_HAS_COMFIRMED);
+      let checkExist = listConfirm.find(elelement => {
+        if (elelement.ownerAddress === request.fromAddress){
+          return true;
         }
       });
+
+      if(checkExist){
+        return res.return(ErrorMap.USER_HAS_COMFIRMED);
+      }
 
       let safe = await this.safeRepos.findOne({
         where: { id: transaction.safeId },
       });
-
-      if (listConfirm.length >= safe.threshold) {
-        transaction.status = TRANSACTION_STATUS.SEND_WAITING;
-
-        await this.multisigTransactionRepos.update(transaction);
-      }
 
       let multisigConfirm = new MultisigConfirm();
       multisigConfirm.multisigTransactionId = request.transactionId;
@@ -225,6 +241,18 @@ export class TransactionService
       multisigConfirm.internalChainId = request.internalChainId;
 
       await this.multisigConfirmRepos.create(multisigConfirm);
+
+      //Check transaction available
+      let listConfirmAfterSign =
+        await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+          request.transactionId,
+        );
+
+      if (listConfirmAfterSign.length >= safe.threshold) {
+        transaction.status = TRANSACTION_STATUS.SEND_WAITING;
+
+        await this.multisigTransactionRepos.update(transaction);
+      }
       return res.return(ErrorMap.SUCCESSFUL);
     } catch (error) {
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
