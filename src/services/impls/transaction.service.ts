@@ -160,7 +160,7 @@ export class TransactionService
       let addressSignarureMap = new Map<string, Uint8Array>();
 
       multisigConfirmArr.forEach((x) => {
-        let encodeSignature = new TextEncoder().encode(x.signature);
+        let encodeSignature = Buffer.from(x.signature, 'utf-8');
 
         addressSignarureMap.set(x.ownerAddress, encodeSignature);
       });
@@ -171,14 +171,16 @@ export class TransactionService
         gas: multisigTransaction.gas.toString(),
       };
 
+      let encodedBodyBytes = Buffer.from(multisigConfirmArr[0].bodyBytes, 'utf8');
+
       //Pubkey 
       const safePubkey = JSON.parse(safeInfo.safePubkey);
 
       let executeTransaction = makeMultisignedTx(
         safePubkey,
-        0,
+        multisigTransaction.sequence,
         fee,
-        multisigConfirmArr[0].bodyBytes,
+        encodedBodyBytes,
         addressSignarureMap,
       );
 
