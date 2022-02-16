@@ -5,5 +5,8 @@ export class GetAllTransactionsRequest {
     safeAddress: string;
 
     @ApiProperty()
-    page: number;
+    pageSize: number = 0;
+
+    @ApiProperty()
+    pageIndex: number = 10;
 }

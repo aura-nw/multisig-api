@@ -21,9 +21,9 @@ export class TransactionRepository
           );
     }
 
-    async getAuraTx(safeAddress: string, page: number) {
-        const limit = 20;
-        const offset = limit * (page - 1);
+    async getAuraTx(safeAddress: string, pageIndex: number, pageSize: number) {
+        const limit = pageSize;
+        const offset = limit * (pageIndex - 1);
         let sqlQuerry = this.repos
             .createQueryBuilder('auraTx')
             .where('auraTx.fromAddress = :safeAddress', { safeAddress })

@@ -308,7 +308,7 @@ export class TransactionService
     request: MODULE_REQUEST.GetAllTransactionsRequest
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
-    const result = await this.transRepos.getAuraTx(request.safeAddress, request.page);
+    const result = await this.transRepos.getAuraTx(request.safeAddress, request.pageSize, request.pageIndex);
     for (let i = 0; i < result.length; i++) {
       if (result[i].fromAddress == request.safeAddress) {
         result[i].signatures = await (
