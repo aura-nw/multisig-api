@@ -71,9 +71,17 @@ export const ErrorMap = {
     Code: 'E017',
     Message: 'Duplicate safe information!',
   },
-  PERMISSION_DENIED: {
+  CANNOT_CREATE_SAFE_ADDRESS: {
     Code: 'E018',
-    Message: 'Permission denied!'
+    Message: 'Cannot create safe addresss!',
+  },
+  INSERT_SAFE_FAILED: {
+    Code: 'E019',
+    Message: 'Insert safe failed!',
+  },
+  INSERT_SAFE_OWNER_FAILED: {
+    Code: 'E020',
+    Message: 'Insert safe owner failed!',
   },
   C001: {
     Code: 'C001',
