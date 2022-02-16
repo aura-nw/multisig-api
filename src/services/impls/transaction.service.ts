@@ -21,6 +21,7 @@ import { MultisigConfirm, MultisigTransaction } from 'src/entities';
 import { assert } from '@cosmjs/utils';
 import { IGeneralRepository } from 'src/repositories/igeneral.repository';
 import { ISafeRepository } from 'src/repositories/isafe.repository';
+import { IMultisigWalletRepository } from 'src/repositories/imultisig-wallet.repository';
 @Injectable()
 export class TransactionService
   extends BaseService
@@ -31,16 +32,11 @@ export class TransactionService
 
   constructor(
     private configService: ConfigService,
-    @Inject(REPOSITORY_INTERFACE.IMULTISIG_TRANSACTION_REPOSITORY)
-    private multisigTransactionRepos: IMultisigTransactionsRepository,
-    @Inject(REPOSITORY_INTERFACE.IMULTISIG_CONFIRM_REPOSITORY)
-    private multisigConfirmRepos: IMultisigConfirmRepository,
-    @Inject(REPOSITORY_INTERFACE.IGENERAL_REPOSITORY)
-    private chainRepos: IGeneralRepository,
-    @Inject(REPOSITORY_INTERFACE.ITRANSACTION_REPOSITORY)
-    private transRepos: ITransactionRepository,
-    @Inject(REPOSITORY_INTERFACE.ISAFE_REPOSITORY)
-    private safeRepos: ISafeRepository,
+    @Inject(REPOSITORY_INTERFACE.IMULTISIG_TRANSACTION_REPOSITORY) private multisigTransactionRepos: IMultisigTransactionsRepository,
+    @Inject(REPOSITORY_INTERFACE.IMULTISIG_CONFIRM_REPOSITORY) private multisigConfirmRepos: IMultisigConfirmRepository,
+    @Inject(REPOSITORY_INTERFACE.IGENERAL_REPOSITORY) private chainRepos: IGeneralRepository,
+    @Inject(REPOSITORY_INTERFACE.ITRANSACTION_REPOSITORY) private transRepos: ITransactionRepository,
+    @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_REPOSITORY) private safeRepos: IMultisigWalletRepository,
   ) {
     super(multisigTransactionRepos);
     this._logger.log(
@@ -148,6 +144,19 @@ export class TransactionService
         return res.return(ErrorMap.TRANSACTION_NOT_VALID);
       }
 
+      //Validate owner
+      let listOwner = await this.safeRepos.getMultisigWalletsByOwner(multisigTransaction.fromAddress, request.internalChainId);
+
+      let checkOwner = listOwner.find(elelement => {
+        if (elelement.safeAddress === multisigTransaction.fromAddress){
+          return true;
+        }
+      });
+
+      if(!checkOwner){
+        return res.return(ErrorMap.PERMISSION_DENIED);
+      }
+
       //Get safe info
       let safeInfo = await this.safeRepos.findOne({
         where: {id: multisigTransaction.safeId}
@@ -213,6 +222,19 @@ export class TransactionService
 
       if (!transaction) {
         return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
+      }
+
+      //Validate owner
+      let listOwner = await this.safeRepos.getMultisigWalletsByOwner(request.fromAddress, request.internalChainId);
+
+      let checkOwner = listOwner.find(elelement => {
+        if (elelement.safeAddress === request.fromAddress){
+          return true;
+        }
+      });
+
+      if(!checkOwner){
+        return res.return(ErrorMap.PERMISSION_DENIED);
       }
 
       //Check status of multisig confirm
