@@ -71,6 +71,10 @@ export const ErrorMap = {
     Code: 'E017',
     Message: 'Duplicate safe information!',
   },
+  PERMISSION_DENIED: {
+    Code: 'E018',
+    Message: 'Permission denied!'
+  },
   C001: {
     Code: 'C001',
     Message: `Missing result from Chaincode`,
