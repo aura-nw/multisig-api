@@ -188,7 +188,7 @@ export class MultisigWalletService
         this._logger.debug(
           `Not found any safe with condition: ${JSON.stringify(condition)}`,
         );
-        return res.return(ErrorMap.NOTFOUND);
+        return res.return(ErrorMap.NO_SAFES_FOUND);
       }
       const safe = safes[0];
 
@@ -200,7 +200,7 @@ export class MultisigWalletService
         this._logger.debug(
           `Not found any safe owner with safeId: ${safeId} and internalChainId: ${internalChainId}`,
         );
-        return res.return(ErrorMap.NOTFOUND);
+        return res.return(ErrorMap.NO_SAFE_OWNERS_FOUND);
       }
 
       // get confirm list
@@ -221,7 +221,9 @@ export class MultisigWalletService
       const chainInfo = (await this.generalRepo.findOne(
         safeInfo.internalChainId,
       )) as Chain;
+      if (!chainInfo) return res.return(ErrorMap.CHAIN_ID_NOT_EXIST);
 
+      // TODO: need health check network first
       // if safe created => Get balance
       if (safeInfo.address !== null) {
         const network = new Network(chainInfo.rpc);
@@ -252,7 +254,8 @@ export class MultisigWalletService
       const condition = this.calculateCondition(safeId);
       // find safe
       const safes = (await this.safeRepo.findByCondition(condition)) as Safe[];
-      if (!safes || safes.length === 0) return res.return(ErrorMap.NOTFOUND);
+      if (!safes || safes.length === 0)
+        return res.return(ErrorMap.NO_SAFES_FOUND);
       const safe = safes[0];
 
       // check safe
@@ -263,12 +266,12 @@ export class MultisigWalletService
       const safeOwners = (await this.safeOwnerRepo.findByCondition({
         safeId: safe.id,
       })) as SafeOwner[];
-      if (safeOwners.length === 0) return res.return(ErrorMap.NOTFOUND);
+      if (safeOwners.length === 0) return res.return(ErrorMap.NO_SAFES_FOUND);
 
       // get safe owner by address
       const index = safeOwners.findIndex((s) => s.ownerAddress === myAddress);
       // const safeOwner = safeOwners[safeOwnerIndex];
-      if (index === -1) return res.return(ErrorMap.NOTFOUND);
+      if (index === -1) return res.return(ErrorMap.NO_SAFES_FOUND);
       if (safeOwners[index].ownerPubkey !== null)
         return res.return(ErrorMap.SAFE_OWNER_PUBKEY_NOT_EMPTY);
 
@@ -324,7 +327,7 @@ export class MultisigWalletService
 
       // get safe & check
       const safes = await this.safeRepo.findByCondition(condition);
-      if (safes.length === 0) return res.return(ErrorMap.NOTFOUND);
+      if (safes.length === 0) return res.return(ErrorMap.NO_SAFES_FOUND);
       const safe = safes[0] as Safe;
       if (safe.creatorAddress !== myAddress)
         return res.return(ErrorMap.ADDRESS_NOT_CREATOR);
