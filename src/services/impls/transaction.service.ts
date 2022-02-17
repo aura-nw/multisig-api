@@ -199,6 +199,11 @@ export class TransactionService
         encodeTransaction
       );
 
+      //Update status and txhash
+      multisigTransaction.status = TRANSACTION_STATUS.SUCCESS;
+      multisigTransaction.txHash = '';
+      await this.multisigTransactionRepos.update(multisigTransaction);
+
       this._logger.log('result', JSON.stringify(result));
       return res.return(ErrorMap.SUCCESSFUL, result);
 
