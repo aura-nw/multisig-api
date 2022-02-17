@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
-import { SAFE_STATUS } from 'src/common/constants/app.constant';
 import { ErrorMap } from 'src/common/error.map';
 import {
   ENTITIES_CONFIG,
@@ -11,21 +10,28 @@ import {
 import { GeneralRepository } from 'src/repositories/impls/general.repository';
 import { MultisigWalletOwnerRepository } from 'src/repositories/impls/multisig-wallet-owner.repository';
 import { MultisigWalletRepository } from 'src/repositories/impls/multisig-wallet.repository';
-import { SafeRepository } from 'src/repositories/impls/safe.repository';
 import { GeneralService } from 'src/services/impls/general.service';
 import { MultisigWalletService } from 'src/services/impls/multisig-wallet.service';
-import { ConfigService } from 'src/shared/services/config.service';
 import { SharedModule } from 'src/shared/shared.module';
 import { MultisigWalletController } from './multisig-wallet.controller';
 
-const entities = [
-  ENTITIES_CONFIG.SAFE,
-  ENTITIES_CONFIG.SAFE_OWNER,
-  ENTITIES_CONFIG.CHAIN,
-  ENTITIES_CONFIG.MULTISIG_CONFIRM,
-  ENTITIES_CONFIG.MULTISIG_TRANSACTION,
-  ENTITIES_CONFIG.AURA_TX,
-];
+jest.mock('src/utils/network.utils', () => {
+  return {
+    Network: jest.fn().mockImplementation(() => {
+      return {
+        constructor: () => {},
+        init: () => Promise.resolve({}),
+        getBalance: () => {
+          const mockCoin = {
+            denom: 'aura',
+            amount: '1',
+          };
+          return Promise.resolve(mockCoin);
+        },
+      };
+    }),
+  };
+});
 
 describe(MultisigWalletController.name, () => {
   let testModule: TestingModule;
@@ -33,12 +39,14 @@ describe(MultisigWalletController.name, () => {
 
   let mockFindOneChain: jest.Mock;
   let mockFindSafeByCondition: jest.Mock;
+  let mockFindSafeOwnerByCondition: jest.Mock;
   let mockInsertSafe: jest.Mock;
   let mockInsertSafeOwner: jest.Mock;
 
   beforeAll(async () => {
     mockFindOneChain = jest.fn();
     mockFindSafeByCondition = jest.fn();
+    mockFindSafeOwnerByCondition = jest.fn();
     mockInsertSafe = jest.fn();
     mockInsertSafeOwner = jest.fn();
 
@@ -64,6 +72,7 @@ describe(MultisigWalletController.name, () => {
           provide: getRepositoryToken(ENTITIES_CONFIG.SAFE_OWNER),
           useValue: {
             save: mockInsertSafeOwner,
+            find: mockFindSafeOwnerByCondition,
           },
         },
         //repository
@@ -79,10 +88,6 @@ describe(MultisigWalletController.name, () => {
           provide: REPOSITORY_INTERFACE.IGENERAL_REPOSITORY,
           useClass: GeneralRepository,
         },
-        {
-          provide: REPOSITORY_INTERFACE.ISAFE_REPOSITORY,
-          useClass: SafeRepository,
-        },
         //service
         {
           provide: SERVICE_INTERFACE.IMULTISIG_WALLET_SERVICE,
@@ -95,13 +100,14 @@ describe(MultisigWalletController.name, () => {
       ],
       imports: [
         SharedModule,
-        TypeOrmModule.forFeature([...entities]),
-        TypeOrmModule.forRootAsync({
-          imports: [SharedModule],
-          useFactory: (configService: ConfigService) =>
-            configService.typeOrmConfig,
-          inject: [ConfigService],
-        }),
+        // not using db
+        // TypeOrmModule.forFeature([...entities]),
+        // TypeOrmModule.forRootAsync({
+        //   imports: [SharedModule],
+        //   useFactory: (configService: ConfigService) =>
+        //     configService.typeOrmConfig,
+        //   inject: [ConfigService],
+        // }),
       ],
     }).compile();
     safeController = testModule.get<MultisigWalletController>(
@@ -112,7 +118,8 @@ describe(MultisigWalletController.name, () => {
   beforeEach(() => {});
 
   afterAll(async () => {
-    testModule.close();
+    // if have db connection
+    // testModule.close();
   });
 
   describe('when create a multisig wallet', () => {
@@ -173,7 +180,7 @@ describe(MultisigWalletController.name, () => {
 
       // find chain by internalChainId
       mockFindOneChain.mockResolvedValue({});
-      // find exist safe address hash
+      // find exist safe by address hash
       mockFindSafeByCondition.mockResolvedValue([
         {
           status: SAFE_STATUS.PENDING,
@@ -196,7 +203,7 @@ describe(MultisigWalletController.name, () => {
 
       // find chain by internalChainId
       mockFindOneChain.mockResolvedValue({});
-      // find exist safe address hash
+      // find exist safe by address hash
       mockFindSafeByCondition.mockResolvedValue(undefined);
 
       const result = await safeController.createMultisigWallet(request);
@@ -216,7 +223,7 @@ describe(MultisigWalletController.name, () => {
 
       // find chain by internalChainId
       mockFindOneChain.mockResolvedValue({});
-      // find exist safe address hash
+      // find exist safe by address hash
       mockFindSafeByCondition.mockResolvedValue(undefined);
       // insert safe to db
       mockInsertSafe.mockRejectedValue({});
@@ -236,7 +243,7 @@ describe(MultisigWalletController.name, () => {
 
       // find chain by internalChainId
       mockFindOneChain.mockResolvedValue({});
-      // find exist safe address hash
+      // find exist safe by address hash
       mockFindSafeByCondition.mockResolvedValue(undefined);
       // insert safe to db
       let mockSafe: any = {};
@@ -261,7 +268,7 @@ describe(MultisigWalletController.name, () => {
 
       // find chain by internalChainId
       mockFindOneChain.mockResolvedValue({});
-      // find exist safe address hash
+      // find exist safe by address hash
       mockFindSafeByCondition.mockResolvedValue(undefined);
       // insert safe to db
       let mockSafe: any = {};
@@ -273,6 +280,219 @@ describe(MultisigWalletController.name, () => {
 
       const result = await safeController.createMultisigWallet(request);
       expect(result.Message).toEqual(ErrorMap.SUCCESSFUL.Message);
+    });
+  });
+
+  describe('when get a multisig wallet', () => {
+    describe('by safeid', () => {
+      it(`should return error: ${ErrorMap.NO_SAFES_FOUND.Message}`, async () => {
+        const param: MODULE_REQUEST.GetSafePathParams = {
+          safeId: '1',
+        };
+        const query: MODULE_REQUEST.GetSafeQuery = {
+          internalChainId: undefined,
+        };
+        // find safe
+        mockFindSafeByCondition.mockResolvedValue([]);
+
+        const result = await safeController.getMultisigWallet(param, query);
+        expect(result.ErrorCode).toEqual(ErrorMap.NO_SAFES_FOUND.Code);
+      });
+
+      it(`should return error: ${ErrorMap.NO_SAFE_OWNERS_FOUND.Message}`, async () => {
+        const param: MODULE_REQUEST.GetSafePathParams = {
+          safeId: '2',
+        };
+        const query: MODULE_REQUEST.GetSafeQuery = {
+          internalChainId: undefined,
+        };
+
+        // find safe
+        const mockSafe = {
+          id: 2,
+        };
+        mockFindSafeByCondition.mockResolvedValue([mockSafe]);
+        // find safe owner
+        mockFindSafeOwnerByCondition.mockResolvedValue([]);
+
+        const result = await safeController.getMultisigWallet(param, query);
+        expect(result.ErrorCode).toEqual(ErrorMap.NO_SAFE_OWNERS_FOUND.Code);
+      });
+
+      it(`should return error: ${ErrorMap.CHAIN_ID_NOT_EXIST.Message}`, async () => {
+        const param: MODULE_REQUEST.GetSafePathParams = {
+          safeId: '3',
+        };
+        const query: MODULE_REQUEST.GetSafeQuery = {
+          internalChainId: undefined,
+        };
+
+        // find safe
+        const mockSafe = {
+          id: 3,
+          safeAddress: 'aura1hnr59hsqchckgtd49nsejmy5mj400nv6cpmm9v',
+          safePubkey:
+            '{"type":"tendermint/PubKeyMultisigThreshold","value":{"threshold":"1","pubkeys":[{"type":"tendermint/PubKeySecp256k1","value":"A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8kk"}]}}',
+          threshold: 1,
+          status: 'created',
+          internalChainId: 3,
+        };
+        mockFindSafeByCondition.mockResolvedValue([mockSafe]);
+        // find safe owner
+        const mockSafeOwners = [
+          {
+            ownerAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
+          },
+        ];
+        mockFindSafeOwnerByCondition.mockResolvedValue(mockSafeOwners);
+        // find chainInfo
+        mockFindOneChain.mockResolvedValue(undefined);
+
+        const result = await safeController.getMultisigWallet(param, query);
+        expect(result.ErrorCode).toEqual(ErrorMap.CHAIN_ID_NOT_EXIST.Code);
+      });
+
+      it(`should return error: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
+        const param: MODULE_REQUEST.GetSafePathParams = {
+          safeId: '3',
+        };
+        const query: MODULE_REQUEST.GetSafeQuery = {
+          internalChainId: undefined,
+        };
+
+        // find safe
+        const mockSafe = {
+          id: 3,
+          safeAddress: 'aura1hnr59hsqchckgtd49nsejmy5mj400nv6cpmm9v',
+          safePubkey:
+            '{"type":"tendermint/PubKeyMultisigThreshold","value":{"threshold":"1","pubkeys":[{"type":"tendermint/PubKeySecp256k1","value":"A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8kk"}]}}',
+          threshold: 1,
+          status: 'created',
+          internalChainId: 3,
+        };
+        mockFindSafeByCondition.mockResolvedValue([mockSafe]);
+        // find safe owner
+        const mockSafeOwners = [
+          {
+            ownerAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
+          },
+        ];
+        mockFindSafeOwnerByCondition.mockResolvedValue(mockSafeOwners);
+        // find chainInfo
+        const mockChain = {
+          rpc: 'http://0.0.0.0:26657',
+        };
+        mockFindOneChain.mockResolvedValue(mockChain);
+
+        const result = await safeController.getMultisigWallet(param, query);
+        expect(result.ErrorCode).toEqual(ErrorMap.SUCCESSFUL.Code);
+      });
+    });
+
+    describe('by safeAddress and internalChainId', () => {
+      it(`should return error: ${ErrorMap.NO_SAFES_FOUND.Message}`, async () => {
+        const param: MODULE_REQUEST.GetSafePathParams = {
+          safeId: 'aura1hnr59hsqchckgtd49nsejmy5mj400nv6cpmm9v',
+        };
+        const query: MODULE_REQUEST.GetSafeQuery = {
+          internalChainId: 3,
+        };
+
+        // find safe
+        mockFindSafeByCondition.mockResolvedValue([]);
+
+        const result = await safeController.getMultisigWallet(param, query);
+        expect(result.ErrorCode).toEqual(ErrorMap.NO_SAFES_FOUND.Code);
+      });
+
+      it(`should return error: ${ErrorMap.NO_SAFE_OWNERS_FOUND.Message}`, async () => {
+        const param: MODULE_REQUEST.GetSafePathParams = {
+          safeId: 'aura1hnr59hsqchckgtd49nsejmy5mj400nv6cpmm9v',
+        };
+        const query: MODULE_REQUEST.GetSafeQuery = {
+          internalChainId: 3,
+        };
+
+        // find safe
+        const mockSafe = {
+          id: 2,
+        };
+        mockFindSafeByCondition.mockResolvedValue([mockSafe]);
+        // find safe owner
+        mockFindSafeOwnerByCondition.mockResolvedValue([]);
+
+        const result = await safeController.getMultisigWallet(param, query);
+        expect(result.ErrorCode).toEqual(ErrorMap.NO_SAFE_OWNERS_FOUND.Code);
+      });
+
+      it(`should return error: ${ErrorMap.CHAIN_ID_NOT_EXIST.Message}`, async () => {
+        const param: MODULE_REQUEST.GetSafePathParams = {
+          safeId: 'aura1hnr59hsqchckgtd49nsejmy5mj400nv6cpmm9v',
+        };
+        const query: MODULE_REQUEST.GetSafeQuery = {
+          internalChainId: 3,
+        };
+
+        // find safe
+        const mockSafe = {
+          id: 3,
+          safeAddress: 'aura1hnr59hsqchckgtd49nsejmy5mj400nv6cpmm9v',
+          safePubkey:
+            '{"type":"tendermint/PubKeyMultisigThreshold","value":{"threshold":"1","pubkeys":[{"type":"tendermint/PubKeySecp256k1","value":"A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8kk"}]}}',
+          threshold: 1,
+          status: 'created',
+          internalChainId: 3,
+        };
+        mockFindSafeByCondition.mockResolvedValue([mockSafe]);
+        // find safe owner
+        const mockSafeOwners = [
+          {
+            ownerAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
+          },
+        ];
+        mockFindSafeOwnerByCondition.mockResolvedValue(mockSafeOwners);
+        // find chainInfo
+        mockFindOneChain.mockResolvedValue(undefined);
+
+        const result = await safeController.getMultisigWallet(param, query);
+        expect(result.ErrorCode).toEqual(ErrorMap.CHAIN_ID_NOT_EXIST.Code);
+      });
+
+      it(`should return error: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
+        const param: MODULE_REQUEST.GetSafePathParams = {
+          safeId: 'aura1hnr59hsqchckgtd49nsejmy5mj400nv6cpmm9v',
+        };
+        const query: MODULE_REQUEST.GetSafeQuery = {
+          internalChainId: 3,
+        };
+
+        // find safe
+        const mockSafe = {
+          id: 3,
+          safeAddress: 'aura1hnr59hsqchckgtd49nsejmy5mj400nv6cpmm9v',
+          safePubkey:
+            '{"type":"tendermint/PubKeyMultisigThreshold","value":{"threshold":"1","pubkeys":[{"type":"tendermint/PubKeySecp256k1","value":"A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8kk"}]}}',
+          threshold: 1,
+          status: 'created',
+          internalChainId: 3,
+        };
+        mockFindSafeByCondition.mockResolvedValue([mockSafe]);
+        // find safe owner
+        const mockSafeOwners = [
+          {
+            ownerAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
+          },
+        ];
+        mockFindSafeOwnerByCondition.mockResolvedValue(mockSafeOwners);
+        // find chainInfo
+        const mockChain = {
+          rpc: 'http://0.0.0.0:26657',
+        };
+        mockFindOneChain.mockResolvedValue(mockChain);
+
+        const result = await safeController.getMultisigWallet(param, query);
+        expect(result.ErrorCode).toEqual(ErrorMap.SUCCESSFUL.Code);
+      });
     });
   });
 });
