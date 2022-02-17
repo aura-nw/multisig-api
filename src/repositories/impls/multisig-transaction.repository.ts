@@ -32,4 +32,13 @@ export class MultisigTransactionRepository
       let resultData = await sqlQuerry.getRawOne();
       return resultData;
   }
+
+  async getTransactionDetailsMultisigTransaction(internalTxHash: string) {
+    let sqlQuerry = this.repos
+        .createQueryBuilder('multisigTransaction')
+        .where('multisigTransaction.txHash = :internalTxHash', { internalTxHash })
+        .select('*');
+    let resultData = await sqlQuerry.getRawOne();
+    return resultData;
+}
 }

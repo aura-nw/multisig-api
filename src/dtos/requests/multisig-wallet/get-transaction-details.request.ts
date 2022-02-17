@@ -1,9 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsString } from "class-validator";
 
-export class GetMultisigSignaturesParam {
+export class GetTransactionDetailsParam {
     @ApiProperty({
-        description: 'Tx Hash of multisig transaction',
+        description: 'Tx Hash of transaction',
         type: String,
     })
     @IsString()
