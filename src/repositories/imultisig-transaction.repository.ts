@@ -6,4 +6,9 @@ export interface IMultisigTransactionsRepository extends IBaseRepository {
      * @param internalTxHash 
      */
     getMultisigTxId(internalTxHash: string): any;
+
+    /**
+     * Get details of a transaction from MultisigTransaction table
+     */
+     getTransactionDetailsMultisigTransaction(internalTxHash: string): any;
 }

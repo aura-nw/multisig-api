@@ -62,8 +62,8 @@ export class TransactionController {
   @ApiOperation({
     summary: 'Get the list of signatures for a multisig transaction',
   })
-  async getSignsOfMultisigTx(
-    @Param() param: MODULE_REQUEST.GetMultisigSignaturesParam
+  async getSignaturesOfMultisigTx(
+    @Param() param: MODULE_REQUEST.GetTransactionDetailsParam
   ) {
     this._logger.log('========== Get Signatures of Multisig Transaction ==========');
     return await this.transactionService.getListConfirmMultisigTransaction(
@@ -80,5 +80,18 @@ export class TransactionController {
   ) {
     this._logger.log('========== Send transaction to AURA ==========');
     return await this.transactionService.sendTransaction(request);
+  }
+
+  @Get(URL_CONSTANTS.TRANSACTION_DETAILS)
+  @ApiOperation({
+    summary: 'Get details of a transaction',
+  })
+  async getTransactionDetails(
+    @Param() param: MODULE_REQUEST.GetTransactionDetailsParam
+  ) {
+    this._logger.log('========== Get details of a Transaction ==========');
+    return await this.transactionService.getTransactionDetails(
+      param,
+    );
   }
 }

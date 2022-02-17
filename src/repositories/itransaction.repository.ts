@@ -6,4 +6,9 @@ export interface ITransactionRepository extends IBaseRepository {
      * @param safeAddress 
      */
     getAuraTx(safeAddress: string, pageIndex: number, pageSize: number): any;
+
+    /**
+     * Get details of a transaction from AuraTx table
+     */
+    getTransactionDetailsAuraTx(internalTxHash: string): any;
 }
