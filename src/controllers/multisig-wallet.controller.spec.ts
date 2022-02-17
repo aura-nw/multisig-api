@@ -1,6 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
+import { SAFE_STATUS } from 'src/common/constants/app.constant';
 import { ErrorMap } from 'src/common/error.map';
+import {
+  mockChain,
+  mockCreateRequest,
+  mockSafe,
+  mockSafeOwner,
+} from 'src/mock/safe.mock';
 import {
   ENTITIES_CONFIG,
   MODULE_REQUEST,
@@ -124,60 +131,31 @@ describe(MultisigWalletController.name, () => {
 
   describe('when create a multisig wallet', () => {
     it(`should return error: ${ErrorMap.OTHER_ADDRESS_INCLUDE_CREATOR.Message}`, async () => {
-      const request: MODULE_REQUEST.CreateMultisigWalletRequest = {
-        creatorAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
-        creatorPubkey: 'A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8k',
-        otherOwnersAddress: ['aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz'],
-        threshold: 1,
-        internalChainId: 3,
-      };
-
-      const result = await safeController.createMultisigWallet(request);
+      const result = await safeController.createMultisigWallet(
+        mockCreateRequest[0],
+      );
       expect(result.ErrorCode).toEqual(
         ErrorMap.OTHER_ADDRESS_INCLUDE_CREATOR.Code,
       );
     });
 
     it(`should return error: ${ErrorMap.DUPLICATE_SAFE_OWNER.Message}`, async () => {
-      const request: MODULE_REQUEST.CreateMultisigWalletRequest = {
-        creatorAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
-        creatorPubkey: 'A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8k',
-        otherOwnersAddress: [
-          'aura1m92zhmujw5ndche9avqt5cj59cfrta96gmqs9a',
-          'aura1m92zhmujw5ndche9avqt5cj59cfrta96gmqs9a',
-        ],
-        threshold: 1,
-        internalChainId: 3,
-      };
-
-      const result = await safeController.createMultisigWallet(request);
+      const result = await safeController.createMultisigWallet(
+        mockCreateRequest[1],
+      );
       expect(result.ErrorCode).toEqual(ErrorMap.DUPLICATE_SAFE_OWNER.Code);
     });
 
     it(`should return error: ${ErrorMap.CHAIN_ID_NOT_EXIST.Message}`, async () => {
-      const request: MODULE_REQUEST.CreateMultisigWalletRequest = {
-        creatorAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
-        creatorPubkey: 'A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8kk',
-        otherOwnersAddress: [],
-        threshold: 1,
-        internalChainId: 3,
-      };
-
       // find chain by internalChainId
       mockFindOneChain.mockResolvedValue(undefined);
-      const result = await safeController.createMultisigWallet(request);
+      const result = await safeController.createMultisigWallet(
+        mockCreateRequest[2],
+      );
       expect(result.Message).toEqual(ErrorMap.CHAIN_ID_NOT_EXIST.Message);
     });
 
     it(`should return error: ${ErrorMap.DUPLICATE_SAFE_ADDRESS_HASH.Message}`, async () => {
-      const request: MODULE_REQUEST.CreateMultisigWalletRequest = {
-        creatorAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
-        creatorPubkey: 'A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8kk',
-        otherOwnersAddress: [],
-        threshold: 1,
-        internalChainId: 3,
-      };
-
       // find chain by internalChainId
       mockFindOneChain.mockResolvedValue({});
       // find exist safe by address hash
@@ -186,41 +164,29 @@ describe(MultisigWalletController.name, () => {
           status: SAFE_STATUS.PENDING,
         },
       ]);
-      const result = await safeController.createMultisigWallet(request);
+      const result = await safeController.createMultisigWallet(
+        mockCreateRequest[2],
+      );
       expect(result.Message).toEqual(
         ErrorMap.DUPLICATE_SAFE_ADDRESS_HASH.Message,
       );
     });
 
     it(`should return error: ${ErrorMap.CANNOT_CREATE_SAFE_ADDRESS.Message}`, async () => {
-      const request: MODULE_REQUEST.CreateMultisigWalletRequest = {
-        creatorAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
-        creatorPubkey: '1',
-        otherOwnersAddress: [],
-        threshold: 1,
-        internalChainId: 3,
-      };
-
       // find chain by internalChainId
       mockFindOneChain.mockResolvedValue({});
       // find exist safe by address hash
       mockFindSafeByCondition.mockResolvedValue(undefined);
 
-      const result = await safeController.createMultisigWallet(request);
+      const result = await safeController.createMultisigWallet(
+        mockCreateRequest[3],
+      );
       expect(result.Message).toEqual(
         ErrorMap.CANNOT_CREATE_SAFE_ADDRESS.Message,
       );
     });
 
     it(`should return error: ${ErrorMap.INSERT_SAFE_FAILED.Message}`, async () => {
-      const request: MODULE_REQUEST.CreateMultisigWalletRequest = {
-        creatorAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
-        creatorPubkey: 'A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8kk',
-        otherOwnersAddress: [],
-        threshold: 1,
-        internalChainId: 3,
-      };
-
       // find chain by internalChainId
       mockFindOneChain.mockResolvedValue({});
       // find exist safe by address hash
@@ -228,57 +194,47 @@ describe(MultisigWalletController.name, () => {
       // insert safe to db
       mockInsertSafe.mockRejectedValue({});
 
-      const result = await safeController.createMultisigWallet(request);
+      const result = await safeController.createMultisigWallet(
+        mockCreateRequest[2],
+      );
       expect(result.Message).toEqual(ErrorMap.INSERT_SAFE_FAILED.Message);
     });
 
     it(`should return error: ${ErrorMap.INSERT_SAFE_OWNER_FAILED.Message}`, async () => {
-      const request: MODULE_REQUEST.CreateMultisigWalletRequest = {
-        creatorAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
-        creatorPubkey: 'A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8kk',
-        otherOwnersAddress: [],
-        threshold: 1,
-        internalChainId: 3,
-      };
-
       // find chain by internalChainId
       mockFindOneChain.mockResolvedValue({});
       // find exist safe by address hash
       mockFindSafeByCondition.mockResolvedValue(undefined);
       // insert safe to db
       let mockSafe: any = {};
-      Object.assign(mockSafe, request);
+      Object.assign(mockSafe, mockCreateRequest[2]);
       mockSafe.safeId = '1';
       mockInsertSafe.mockResolvedValue(mockSafe);
       // insert save owner
       mockInsertSafeOwner.mockRejectedValue({});
 
-      const result = await safeController.createMultisigWallet(request);
+      const result = await safeController.createMultisigWallet(
+        mockCreateRequest[2],
+      );
       expect(result.Message).toEqual(ErrorMap.INSERT_SAFE_OWNER_FAILED.Message);
     });
 
     it(`should return: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
-      const request: MODULE_REQUEST.CreateMultisigWalletRequest = {
-        creatorAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
-        creatorPubkey: 'A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8kk',
-        otherOwnersAddress: [],
-        threshold: 1,
-        internalChainId: 3,
-      };
-
       // find chain by internalChainId
       mockFindOneChain.mockResolvedValue({});
       // find exist safe by address hash
       mockFindSafeByCondition.mockResolvedValue(undefined);
       // insert safe to db
       let mockSafe: any = {};
-      Object.assign(mockSafe, request);
+      Object.assign(mockSafe, mockCreateRequest[2]);
       mockSafe.safeId = '1';
       mockInsertSafe.mockResolvedValue(mockSafe);
       // insert save owner
       mockInsertSafeOwner.mockResolvedValue({});
 
-      const result = await safeController.createMultisigWallet(request);
+      const result = await safeController.createMultisigWallet(
+        mockCreateRequest[2],
+      );
       expect(result.Message).toEqual(ErrorMap.SUCCESSFUL.Message);
     });
   });
@@ -308,10 +264,7 @@ describe(MultisigWalletController.name, () => {
         };
 
         // find safe
-        const mockSafe = {
-          id: 2,
-        };
-        mockFindSafeByCondition.mockResolvedValue([mockSafe]);
+        mockFindSafeByCondition.mockResolvedValue([mockSafe[0]]);
         // find safe owner
         mockFindSafeOwnerByCondition.mockResolvedValue([]);
 
@@ -328,23 +281,10 @@ describe(MultisigWalletController.name, () => {
         };
 
         // find safe
-        const mockSafe = {
-          id: 3,
-          safeAddress: 'aura1hnr59hsqchckgtd49nsejmy5mj400nv6cpmm9v',
-          safePubkey:
-            '{"type":"tendermint/PubKeyMultisigThreshold","value":{"threshold":"1","pubkeys":[{"type":"tendermint/PubKeySecp256k1","value":"A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8kk"}]}}',
-          threshold: 1,
-          status: 'created',
-          internalChainId: 3,
-        };
-        mockFindSafeByCondition.mockResolvedValue([mockSafe]);
+        mockFindSafeByCondition.mockResolvedValue([mockSafe[1]]);
         // find safe owner
-        const mockSafeOwners = [
-          {
-            ownerAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
-          },
-        ];
-        mockFindSafeOwnerByCondition.mockResolvedValue(mockSafeOwners);
+
+        mockFindSafeOwnerByCondition.mockResolvedValue([mockSafeOwner[0]]);
         // find chainInfo
         mockFindOneChain.mockResolvedValue(undefined);
 
@@ -361,28 +301,11 @@ describe(MultisigWalletController.name, () => {
         };
 
         // find safe
-        const mockSafe = {
-          id: 3,
-          safeAddress: 'aura1hnr59hsqchckgtd49nsejmy5mj400nv6cpmm9v',
-          safePubkey:
-            '{"type":"tendermint/PubKeyMultisigThreshold","value":{"threshold":"1","pubkeys":[{"type":"tendermint/PubKeySecp256k1","value":"A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8kk"}]}}',
-          threshold: 1,
-          status: 'created',
-          internalChainId: 3,
-        };
-        mockFindSafeByCondition.mockResolvedValue([mockSafe]);
+        mockFindSafeByCondition.mockResolvedValue([mockSafe[0]]);
         // find safe owner
-        const mockSafeOwners = [
-          {
-            ownerAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
-          },
-        ];
-        mockFindSafeOwnerByCondition.mockResolvedValue(mockSafeOwners);
+        mockFindSafeOwnerByCondition.mockResolvedValue([mockSafeOwner[0]]);
         // find chainInfo
-        const mockChain = {
-          rpc: 'http://0.0.0.0:26657',
-        };
-        mockFindOneChain.mockResolvedValue(mockChain);
+        mockFindOneChain.mockResolvedValue(mockChain[0]);
 
         const result = await safeController.getMultisigWallet(param, query);
         expect(result.ErrorCode).toEqual(ErrorMap.SUCCESSFUL.Code);
@@ -414,10 +337,7 @@ describe(MultisigWalletController.name, () => {
         };
 
         // find safe
-        const mockSafe = {
-          id: 2,
-        };
-        mockFindSafeByCondition.mockResolvedValue([mockSafe]);
+        mockFindSafeByCondition.mockResolvedValue([mockSafe[0]]);
         // find safe owner
         mockFindSafeOwnerByCondition.mockResolvedValue([]);
 
@@ -434,23 +354,9 @@ describe(MultisigWalletController.name, () => {
         };
 
         // find safe
-        const mockSafe = {
-          id: 3,
-          safeAddress: 'aura1hnr59hsqchckgtd49nsejmy5mj400nv6cpmm9v',
-          safePubkey:
-            '{"type":"tendermint/PubKeyMultisigThreshold","value":{"threshold":"1","pubkeys":[{"type":"tendermint/PubKeySecp256k1","value":"A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8kk"}]}}',
-          threshold: 1,
-          status: 'created',
-          internalChainId: 3,
-        };
-        mockFindSafeByCondition.mockResolvedValue([mockSafe]);
+        mockFindSafeByCondition.mockResolvedValue([mockSafe[1]]);
         // find safe owner
-        const mockSafeOwners = [
-          {
-            ownerAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
-          },
-        ];
-        mockFindSafeOwnerByCondition.mockResolvedValue(mockSafeOwners);
+        mockFindSafeOwnerByCondition.mockResolvedValue([mockSafeOwner[0]]);
         // find chainInfo
         mockFindOneChain.mockResolvedValue(undefined);
 
@@ -467,28 +373,11 @@ describe(MultisigWalletController.name, () => {
         };
 
         // find safe
-        const mockSafe = {
-          id: 3,
-          safeAddress: 'aura1hnr59hsqchckgtd49nsejmy5mj400nv6cpmm9v',
-          safePubkey:
-            '{"type":"tendermint/PubKeyMultisigThreshold","value":{"threshold":"1","pubkeys":[{"type":"tendermint/PubKeySecp256k1","value":"A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8kk"}]}}',
-          threshold: 1,
-          status: 'created',
-          internalChainId: 3,
-        };
-        mockFindSafeByCondition.mockResolvedValue([mockSafe]);
+        mockFindSafeByCondition.mockResolvedValue([mockSafe[1]]);
         // find safe owner
-        const mockSafeOwners = [
-          {
-            ownerAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
-          },
-        ];
-        mockFindSafeOwnerByCondition.mockResolvedValue(mockSafeOwners);
+        mockFindSafeOwnerByCondition.mockResolvedValue([mockSafeOwner[0]]);
         // find chainInfo
-        const mockChain = {
-          rpc: 'http://0.0.0.0:26657',
-        };
-        mockFindOneChain.mockResolvedValue(mockChain);
+        mockFindOneChain.mockResolvedValue(mockChain[0]);
 
         const result = await safeController.getMultisigWallet(param, query);
         expect(result.ErrorCode).toEqual(ErrorMap.SUCCESSFUL.Code);
