@@ -11,9 +11,9 @@ export const ErrorMap = {
     Code: 'E002',
     Message: 'Safe already exists',
   },
-  NOTFOUND: {
+  NO_SAFES_FOUND: {
     Code: 'E003',
-    Message: 'Not found',
+    Message: 'No safes found',
   },
   SOMETHING_WENT_WRONG: {
     Code: 'E004',
@@ -82,6 +82,10 @@ export const ErrorMap = {
   INSERT_SAFE_OWNER_FAILED: {
     Code: 'E020',
     Message: 'Insert safe owner failed!',
+  },
+  NO_SAFE_OWNERS_FOUND: {
+    Code: 'E021',
+    Message: 'No safe owners found',
   },
   C001: {
     Code: 'C001',
