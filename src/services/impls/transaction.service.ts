@@ -295,7 +295,7 @@ export class TransactionService
     );
     if (resId) {
       const result =
-        await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+        await this.getListConfirmMultisigTransactionById(
           resId.id,
         );
       return res.return(ErrorMap.SUCCESSFUL, result);
@@ -304,16 +304,24 @@ export class TransactionService
     }
   }
 
+  async getListConfirmMultisigTransactionById(
+    id: number
+  ): Promise<ResponseDto> {
+    const result =
+      await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+        id,
+      );
+    return result;
+  }
+
   async getTransactionHistory(
     request: MODULE_REQUEST.GetAllTransactionsRequest
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     const result = await this.transRepos.getAuraTx(request.safeAddress, request.pageIndex, request.pageSize);
     for (let i = 0; i < result.length; i++) {
-      if (result[i].fromAddress == request.safeAddress) {
-        result[i].signatures = await (
-          await this.getListConfirmMultisigTransaction(result[i].txHash)
-        ).Data;
+      if (result[i].FromAddress == request.safeAddress) {
+        result[i].Signatures = await this.getListConfirmMultisigTransactionById(result[i].Id);
       }
     }
     return res.return(ErrorMap.SUCCESSFUL, result);
