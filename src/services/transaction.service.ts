@@ -35,6 +35,14 @@ export interface ITransactionService {
   ): Promise<ResponseDto>;
 
   /**
+   * Get list of confirmation of Multisig Transaction by Id
+   * @param request
+   */
+   getListConfirmMultisigTransactionById(
+    id: number
+  ): Promise<ResponseDto>;
+
+  /**
    * Get Multisig Transaction History
    */
   getTransactionHistory(
