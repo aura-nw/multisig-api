@@ -123,6 +123,9 @@ describe(MultisigWalletController.name, () => {
   });
 
   beforeEach(() => {});
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
 
   afterAll(async () => {
     // if have db connection
@@ -134,8 +137,8 @@ describe(MultisigWalletController.name, () => {
       const result = await safeController.createMultisigWallet(
         mockCreateRequest[0],
       );
-      expect(result.ErrorCode).toEqual(
-        ErrorMap.OTHER_ADDRESS_INCLUDE_CREATOR.Code,
+      expect(result.Message).toEqual(
+        ErrorMap.OTHER_ADDRESS_INCLUDE_CREATOR.Message,
       );
     });
 
@@ -143,7 +146,7 @@ describe(MultisigWalletController.name, () => {
       const result = await safeController.createMultisigWallet(
         mockCreateRequest[1],
       );
-      expect(result.ErrorCode).toEqual(ErrorMap.DUPLICATE_SAFE_OWNER.Code);
+      expect(result.Message).toEqual(ErrorMap.DUPLICATE_SAFE_OWNER.Message);
     });
 
     it(`should return error: ${ErrorMap.CHAIN_ID_NOT_EXIST.Message}`, async () => {
@@ -252,7 +255,7 @@ describe(MultisigWalletController.name, () => {
         mockFindSafeByCondition.mockResolvedValue([]);
 
         const result = await safeController.getMultisigWallet(param, query);
-        expect(result.ErrorCode).toEqual(ErrorMap.NO_SAFES_FOUND.Code);
+        expect(result.Message).toEqual(ErrorMap.NO_SAFES_FOUND.Message);
       });
 
       it(`should return error: ${ErrorMap.NO_SAFE_OWNERS_FOUND.Message}`, async () => {
@@ -269,7 +272,7 @@ describe(MultisigWalletController.name, () => {
         mockFindSafeOwnerByCondition.mockResolvedValue([]);
 
         const result = await safeController.getMultisigWallet(param, query);
-        expect(result.ErrorCode).toEqual(ErrorMap.NO_SAFE_OWNERS_FOUND.Code);
+        expect(result.Message).toEqual(ErrorMap.NO_SAFE_OWNERS_FOUND.Message);
       });
 
       it(`should return error: ${ErrorMap.CHAIN_ID_NOT_EXIST.Message}`, async () => {
@@ -289,7 +292,7 @@ describe(MultisigWalletController.name, () => {
         mockFindOneChain.mockResolvedValue(undefined);
 
         const result = await safeController.getMultisigWallet(param, query);
-        expect(result.ErrorCode).toEqual(ErrorMap.CHAIN_ID_NOT_EXIST.Code);
+        expect(result.Message).toEqual(ErrorMap.CHAIN_ID_NOT_EXIST.Message);
       });
 
       it(`should return error: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
@@ -308,7 +311,7 @@ describe(MultisigWalletController.name, () => {
         mockFindOneChain.mockResolvedValue(mockChain[0]);
 
         const result = await safeController.getMultisigWallet(param, query);
-        expect(result.ErrorCode).toEqual(ErrorMap.SUCCESSFUL.Code);
+        expect(result.Message).toEqual(ErrorMap.SUCCESSFUL.Message);
       });
     });
 
@@ -325,7 +328,7 @@ describe(MultisigWalletController.name, () => {
         mockFindSafeByCondition.mockResolvedValue([]);
 
         const result = await safeController.getMultisigWallet(param, query);
-        expect(result.ErrorCode).toEqual(ErrorMap.NO_SAFES_FOUND.Code);
+        expect(result.Message).toEqual(ErrorMap.NO_SAFES_FOUND.Message);
       });
 
       it(`should return error: ${ErrorMap.NO_SAFE_OWNERS_FOUND.Message}`, async () => {
@@ -342,7 +345,7 @@ describe(MultisigWalletController.name, () => {
         mockFindSafeOwnerByCondition.mockResolvedValue([]);
 
         const result = await safeController.getMultisigWallet(param, query);
-        expect(result.ErrorCode).toEqual(ErrorMap.NO_SAFE_OWNERS_FOUND.Code);
+        expect(result.Message).toEqual(ErrorMap.NO_SAFE_OWNERS_FOUND.Message);
       });
 
       it(`should return error: ${ErrorMap.CHAIN_ID_NOT_EXIST.Message}`, async () => {
@@ -361,7 +364,7 @@ describe(MultisigWalletController.name, () => {
         mockFindOneChain.mockResolvedValue(undefined);
 
         const result = await safeController.getMultisigWallet(param, query);
-        expect(result.ErrorCode).toEqual(ErrorMap.CHAIN_ID_NOT_EXIST.Code);
+        expect(result.Message).toEqual(ErrorMap.CHAIN_ID_NOT_EXIST.Message);
       });
 
       it(`should return error: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
@@ -380,7 +383,229 @@ describe(MultisigWalletController.name, () => {
         mockFindOneChain.mockResolvedValue(mockChain[0]);
 
         const result = await safeController.getMultisigWallet(param, query);
-        expect(result.ErrorCode).toEqual(ErrorMap.SUCCESSFUL.Code);
+        expect(result.Message).toEqual(ErrorMap.SUCCESSFUL.Message);
+      });
+    });
+  });
+
+  describe('when confirm a multisig wallet', () => {
+    beforeEach(() => {
+      jest.resetAllMocks();
+    });
+    it(`should return error: ${ErrorMap.NO_SAFES_FOUND.Message}`, async () => {
+      const param: MODULE_REQUEST.ConfirmSafePathParams = {
+        safeId: '1',
+      };
+      const request: MODULE_REQUEST.ConfirmMultisigWalletRequest = {
+        myAddress: '',
+        myPubkey: '',
+      };
+
+      // find safe
+      mockFindSafeByCondition.mockResolvedValue([]);
+
+      const result = await safeController.confirmMultisigWallet(param, request);
+      expect(result.Message).toEqual(ErrorMap.NO_SAFES_FOUND.Message);
+    });
+
+    it(`should return error: ${ErrorMap.SAFE_NOT_PENDING.Message}`, async () => {
+      const param: MODULE_REQUEST.ConfirmSafePathParams = {
+        safeId: '3',
+      };
+      const request: MODULE_REQUEST.ConfirmMultisigWalletRequest = {
+        myAddress: '',
+        myPubkey: '',
+      };
+
+      // find safe
+      mockFindSafeByCondition.mockResolvedValue([mockSafe[1]]);
+
+      const result = await safeController.confirmMultisigWallet(param, request);
+      expect(result.Message).toEqual(ErrorMap.SAFE_NOT_PENDING.Message);
+    });
+
+    it(`should return error: ${ErrorMap.SAFE_OWNERS_NOT_INCLUDE_ADDRESS.Message}`, async () => {
+      const param: MODULE_REQUEST.ConfirmSafePathParams = {
+        safeId: '3',
+      };
+      const request: MODULE_REQUEST.ConfirmMultisigWalletRequest = {
+        myAddress: 'not exist',
+        myPubkey: '',
+      };
+
+      // find safe
+      mockFindSafeByCondition.mockResolvedValue([mockSafe[2]]);
+      // find safe owners
+      mockFindSafeOwnerByCondition.mockResolvedValue([
+        mockSafeOwner[0],
+        mockSafeOwner[1],
+      ]);
+
+      const result = await safeController.confirmMultisigWallet(param, request);
+      expect(result.Message).toEqual(
+        ErrorMap.SAFE_OWNERS_NOT_INCLUDE_ADDRESS.Message,
+      );
+    });
+
+    it(`should return error: ${ErrorMap.SAFE_OWNER_PUBKEY_NOT_EMPTY.Message}`, async () => {
+      const param: MODULE_REQUEST.ConfirmSafePathParams = {
+        safeId: '4',
+      };
+      const request: MODULE_REQUEST.ConfirmMultisigWalletRequest = {
+        myAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
+        myPubkey: '1234',
+      };
+
+      // find safe
+      mockFindSafeByCondition.mockResolvedValue([mockSafe[2]]);
+      // find safe owners
+      mockFindSafeOwnerByCondition.mockResolvedValue([
+        mockSafeOwner[1],
+        mockSafeOwner[2],
+      ]);
+
+      const result = await safeController.confirmMultisigWallet(param, request);
+      expect(result.Message).toEqual(
+        ErrorMap.SAFE_OWNER_PUBKEY_NOT_EMPTY.Message,
+      );
+    });
+
+    it(`should return error: ${ErrorMap.UPDATE_SAFE_OWNER_FAILED.Message}`, async () => {
+      const param: MODULE_REQUEST.ConfirmSafePathParams = {
+        safeId: '4',
+      };
+      const request: MODULE_REQUEST.ConfirmMultisigWalletRequest = {
+        myAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
+        myPubkey: 'A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8kk',
+      };
+
+      // find safe
+      mockFindSafeByCondition.mockResolvedValue([mockSafe[2]]);
+      // find safe owners
+      mockFindSafeOwnerByCondition.mockResolvedValue([
+        mockSafeOwner[0],
+        mockSafeOwner[1],
+      ]);
+      // update save owner
+      mockInsertSafeOwner.mockResolvedValue(undefined);
+
+      const result = await safeController.confirmMultisigWallet(param, request);
+      expect(result.Message).toEqual(ErrorMap.UPDATE_SAFE_OWNER_FAILED.Message);
+    });
+
+    describe('and have another safes with pending status', () => {
+      it(`should return: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
+        const param: MODULE_REQUEST.ConfirmSafePathParams = {
+          safeId: '4',
+        };
+        const request: MODULE_REQUEST.ConfirmMultisigWalletRequest = {
+          myAddress: 'aura1m92zhmujw5ndche9avqt5cj59cfrta96gmqs9a',
+          myPubkey: 'A9+iothzb3kRD9MOzHqaKsM7ooptslYBIXN+Rz4+cg+y',
+        };
+
+        // find safe
+        mockFindSafeByCondition.mockResolvedValue([mockSafe[2]]);
+        // find safe owners
+        mockFindSafeOwnerByCondition.mockResolvedValue([
+          mockSafeOwner[4],
+          mockSafeOwner[5],
+        ]);
+        // update save owner
+        mockInsertSafeOwner.mockResolvedValue({});
+
+        const result = await safeController.confirmMultisigWallet(
+          param,
+          request,
+        );
+        expect(result.Message).toEqual(ErrorMap.SUCCESSFUL.Message);
+      });
+    });
+
+    describe('and fully confirmed', () => {
+      it(`should return error: ${ErrorMap.CHAIN_ID_NOT_EXIST.Message}`, async () => {
+        const param: MODULE_REQUEST.ConfirmSafePathParams = {
+          safeId: '4',
+        };
+        const request: MODULE_REQUEST.ConfirmMultisigWalletRequest = {
+          myAddress: 'aura1m92zhmujw5ndche9avqt5cj59cfrta96gmqs9a',
+          myPubkey: 'A9+iothzb3kRD9MOzHqaKsM7ooptslYBIXN+Rz4+cg+y',
+        };
+
+        // find safe
+        mockFindSafeByCondition.mockResolvedValue([mockSafe[2]]);
+        // find safe owners
+        mockFindSafeOwnerByCondition.mockResolvedValue([
+          mockSafeOwner[2],
+          mockSafeOwner[6],
+        ]);
+        // update save owner
+        mockInsertSafeOwner.mockResolvedValue({});
+        // get chainid
+        mockFindOneChain.mockResolvedValue(undefined);
+
+        const result = await safeController.confirmMultisigWallet(
+          param,
+          request,
+        );
+        expect(result.Message).toEqual(ErrorMap.CHAIN_ID_NOT_EXIST.Message);
+      });
+
+      it(`should return error: ${ErrorMap.CANNOT_CREATE_SAFE_ADDRESS.Message}`, async () => {
+        const param: MODULE_REQUEST.ConfirmSafePathParams = {
+          safeId: '4',
+        };
+        const request: MODULE_REQUEST.ConfirmMultisigWalletRequest = {
+          myAddress: 'aura1m92zhmujw5ndche9avqt5cj59cfrta96gmqs9a',
+          myPubkey: 'invalid pubkey',
+        };
+
+        // find safe
+        mockFindSafeByCondition.mockResolvedValue([mockSafe[2]]);
+        // find safe owners
+        mockFindSafeOwnerByCondition.mockResolvedValue([
+          mockSafeOwner[2],
+          mockSafeOwner[7],
+        ]);
+        // update save owner
+        mockInsertSafeOwner.mockResolvedValue({});
+        // get chainid
+        mockFindOneChain.mockResolvedValue(mockChain[0]);
+
+        const result = await safeController.confirmMultisigWallet(
+          param,
+          request,
+        );
+        expect(result.Message).toEqual(
+          ErrorMap.CANNOT_CREATE_SAFE_ADDRESS.Message,
+        );
+      });
+
+      it(`should return: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
+        const param: MODULE_REQUEST.ConfirmSafePathParams = {
+          safeId: '4',
+        };
+        const request: MODULE_REQUEST.ConfirmMultisigWalletRequest = {
+          myAddress: 'aura1m92zhmujw5ndche9avqt5cj59cfrta96gmqs9a',
+          myPubkey: 'A9+iothzb3kRD9MOzHqaKsM7ooptslYBIXN+Rz4+cg+y',
+        };
+
+        // find safe
+        mockFindSafeByCondition.mockResolvedValue([mockSafe[2]]);
+        // find safe owners
+        mockFindSafeOwnerByCondition.mockResolvedValue([
+          mockSafeOwner[2],
+          mockSafeOwner[8],
+        ]);
+        // update save owner
+        mockInsertSafeOwner.mockResolvedValue({});
+        // get chainid
+        mockFindOneChain.mockResolvedValue(mockChain[0]);
+
+        const result = await safeController.confirmMultisigWallet(
+          param,
+          request,
+        );
+        expect(result.Message).toEqual(ErrorMap.SUCCESSFUL.Message);
       });
     });
   });
