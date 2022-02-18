@@ -292,7 +292,7 @@ export class TransactionService
   }
 
   async getListConfirmMultisigTransaction(
-    param: MODULE_REQUEST.GetMultisigSignaturesParam
+    param: MODULE_REQUEST.GetTransactionDetailsParam
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     const resId = await this.multisigTransactionRepos.getMultisigTxId(
@@ -327,6 +327,26 @@ export class TransactionService
     for (let i = 0; i < result.length; i++) {
       if (result[i].FromAddress == request.safeAddress) {
         result[i].Signatures = await this.getListConfirmMultisigTransactionById(result[i].Id);
+      }
+    }
+    return res.return(ErrorMap.SUCCESSFUL, result);
+  }
+
+  async getTransactionDetails(
+    param: MODULE_REQUEST.GetTransactionDetailsParam
+  ): Promise<ResponseDto> {
+    const res = new ResponseDto();
+    let result = await this.transRepos.getTransactionDetailsAuraTx(param.internalTxHash);
+    if(!result) {
+      result = await this.multisigTransactionRepos.getTransactionDetailsMultisigTransaction(param.internalTxHash);
+    }
+    if(!result) return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
+    else {
+      if(result.TxHash) {
+        const param :MODULE_REQUEST.GetTransactionDetailsParam = { internalTxHash: result.TxHash}
+        result.Signatures = await (await this.getListConfirmMultisigTransaction(param)).Data;
+      } else {
+        result.Signatures = await this.getListConfirmMultisigTransactionById(result.Id);
       }
     }
     return res.return(ErrorMap.SUCCESSFUL, result);

@@ -54,4 +54,13 @@ export class TransactionRepository
             `, [ safeAddress, safeAddress, safeAddress, safeAddress, limit, offset ]);
         return resultData;
     }
+
+    async getTransactionDetailsAuraTx(internalTxHash: string) {
+        let sqlQuerry = this.repos
+            .createQueryBuilder('auraTx')
+            .where('auraTx.txHash = :internalTxHash', { internalTxHash })
+            .select('*');
+        let resultData = await sqlQuerry.getRawOne();
+        return resultData;
+    }
 }

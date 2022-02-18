@@ -31,7 +31,7 @@ export interface ITransactionService {
    * @param request
    */
   getListConfirmMultisigTransaction(
-    param: MODULE_REQUEST.GetMultisigSignaturesParam
+    param: MODULE_REQUEST.GetTransactionDetailsParam
   ): Promise<ResponseDto>;
 
   /**
@@ -47,5 +47,12 @@ export interface ITransactionService {
    */
   getTransactionHistory(
     request: MODULE_REQUEST.GetAllTransactionsRequest,
+  ): Promise<ResponseDto>;
+
+  /**
+   * Get detail of a transaction
+   */
+  getTransactionDetails(
+    param: MODULE_REQUEST.GetTransactionDetailsParam
   ): Promise<ResponseDto>;
 }
