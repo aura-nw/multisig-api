@@ -46,16 +46,60 @@ export const mockSafe: any[] = [
     status: 'created',
     internalChainId: 3,
   },
+  {
+    id: 4,
+    safeAddress: null,
+    safePubkey: null,
+    threshold: 1,
+    status: 'pending',
+    internalChainId: 3,
+    createrAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
+    addressHash: 'eIiLk7NmC+CLkq91eQPvGoLDUnPPZK81eRJi3t0dD4s=',
+  },
 ];
 
 export const mockSafeOwner: any[] = [
   {
     ownerAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
+    ownerPubkey: null,
+  },
+  {
+    ownerAddress: 'aura1m92zhmujw5ndche9avqt5cj59cfrta96gmqs9a',
+    ownerPubkey: null,
+  },
+  {
+    ownerAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
+    ownerPubkey: 'A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8kk',
+  },
+  {
+    ownerAddress: 'aura1m92zhmujw5ndche9avqt5cj59cfrta96gmqs9a',
+    ownerPubkey: 'A9+iothzb3kRD9MOzHqaKsM7ooptslYBIXN+Rz4+cg+y',
+  },
+  {
+    ownerAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
+    ownerPubkey: null,
+  },
+  {
+    ownerAddress: 'aura1m92zhmujw5ndche9avqt5cj59cfrta96gmqs9a',
+    ownerPubkey: null,
+  },
+  {
+    ownerAddress: 'aura1m92zhmujw5ndche9avqt5cj59cfrta96gmqs9a',
+    ownerPubkey: null,
+  },
+  {
+    ownerAddress: 'aura1m92zhmujw5ndche9avqt5cj59cfrta96gmqs9a',
+    ownerPubkey: null,
+  },
+  {
+    ownerAddress: 'aura1m92zhmujw5ndche9avqt5cj59cfrta96gmqs9a',
+    ownerPubkey: null,
   },
 ];
 
 export const mockChain: any[] = [
   {
     rpc: 'http://0.0.0.0:26657',
+    prefix: 'aura',
   },
 ];
