@@ -266,19 +266,22 @@ export class MultisigWalletService
       const safeOwners = (await this.safeOwnerRepo.findByCondition({
         safeId: safe.id,
       })) as SafeOwner[];
-      if (safeOwners.length === 0) return res.return(ErrorMap.NO_SAFES_FOUND);
+      if (safeOwners.length === 0)
+        return res.return(ErrorMap.NO_SAFE_OWNERS_FOUND);
 
       // get safe owner by address
       const index = safeOwners.findIndex((s) => s.ownerAddress === myAddress);
       // const safeOwner = safeOwners[safeOwnerIndex];
-      if (index === -1) return res.return(ErrorMap.NO_SAFES_FOUND);
+      if (index === -1)
+        return res.return(ErrorMap.SAFE_OWNERS_NOT_INCLUDE_ADDRESS);
       if (safeOwners[index].ownerPubkey !== null)
         return res.return(ErrorMap.SAFE_OWNER_PUBKEY_NOT_EMPTY);
 
       // update safe owner
       safeOwners[index].ownerPubkey = myPubkey;
       const updateResult = await this.safeOwnerRepo.update(safeOwners[index]);
-      if (!updateResult) return res.return(ErrorMap.SOMETHING_WENT_WRONG, {});
+      if (!updateResult)
+        return res.return(ErrorMap.UPDATE_SAFE_OWNER_FAILED, {});
 
       // check all owner confirmed
       const notReady = safeOwners.findIndex((s) => s.ownerPubkey === null);
@@ -295,15 +298,18 @@ export class MultisigWalletService
       )) as Chain;
       if (!chainInfo) return res.return(ErrorMap.CHAIN_ID_NOT_EXIST);
 
-      const safeInfo = this.createSafeAddressAndPubkey(
-        pubkeys,
-        safe.threshold,
-        chainInfo.prefix,
-      );
-      safe.safeAddress = safeInfo.address;
-      safe.safePubkey = safeInfo.pubkey;
-      safe.status = SAFE_STATUS.CREATED;
-
+      try {
+        const safeInfo = this.createSafeAddressAndPubkey(
+          pubkeys,
+          safe.threshold,
+          chainInfo.prefix,
+        );
+        safe.safeAddress = safeInfo.address;
+        safe.safePubkey = safeInfo.pubkey;
+        safe.status = SAFE_STATUS.CREATED;
+      } catch (error) {
+        return res.return(ErrorMap.CANNOT_CREATE_SAFE_ADDRESS, error.message);
+      }
       // update safe
       await this.safeRepo.update(safe);
       return res.return(ErrorMap.SUCCESSFUL, safe);

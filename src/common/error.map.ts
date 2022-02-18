@@ -87,6 +87,14 @@ export const ErrorMap = {
     Code: 'E021',
     Message: 'No safe owners found',
   },
+  SAFE_OWNERS_NOT_INCLUDE_ADDRESS: {
+    Code: 'E022',
+    Message: 'This address was not found in the safe owners list',
+  },
+  UPDATE_SAFE_OWNER_FAILED: {
+    Code: 'E023',
+    Message: 'Update safe owner failed!',
+  },
   C001: {
     Code: 'C001',
     Message: `Missing result from Chaincode`,
