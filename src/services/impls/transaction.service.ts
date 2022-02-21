@@ -22,6 +22,7 @@ import { assert } from '@cosmjs/utils';
 import { IGeneralRepository } from 'src/repositories/igeneral.repository';
 import { ISafeRepository } from 'src/repositories/isafe.repository';
 import { IMultisigWalletRepository } from 'src/repositories/imultisig-wallet.repository';
+import { SingleSignTransactionRequest } from 'src/dtos/requests/transaction/single-sign-transaction.request';
 @Injectable()
 export class TransactionService
   extends BaseService
@@ -50,6 +51,19 @@ export class TransactionService
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
+      //Validate transaction creator
+      let listOwner = await this.safeRepos.getMultisigWalletsByOwner(request.creatorAddress, request.internalChainId);
+
+      let checkOwner = listOwner.find(elelement => {
+        if (elelement.safeAddress === request.from){
+          return true;
+        }
+      });
+
+      if(!checkOwner){
+        return res.return(ErrorMap.PERMISSION_DENIED);
+      }
+
       let chain = await this.chainRepos.findOne({
         where: { id: request.internalChainId },
       });
@@ -110,9 +124,18 @@ export class TransactionService
       transaction.internalChainId = request.internalChainId;
       transaction.safeId = safe.id;
 
-      await this.multisigTransactionRepos.create(transaction);
+      let transactionResult = await this.multisigTransactionRepos.create(transaction);
 
-      return res.return(ErrorMap.SUCCESSFUL);
+      let requestSign = new SingleSignTransactionRequest();
+      requestSign.fromAddress = request.creatorAddress;
+      requestSign.transactionId = transactionResult.id;
+      requestSign.bodyBytes = request.bodyBytes;
+      requestSign.signature = request.signature;
+      requestSign.internalChainId = request.internalChainId;
+
+      await this.singleSignTransaction(requestSign);
+
+      return res.return(ErrorMap.SUCCESSFUL, transactionResult.id);
     } catch (error) {
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
       this._logger.error(`${error.name}: ${error.message}`);
