@@ -133,7 +133,7 @@ export class TransactionService
       requestSign.signature = request.signature;
       requestSign.internalChainId = request.internalChainId;
 
-      await this.singleSignTransaction(requestSign);
+      let signResult = await this.singleSignTransaction(requestSign);
 
       return res.return(ErrorMap.SUCCESSFUL, transactionResult.id);
     } catch (error) {
@@ -256,7 +256,7 @@ export class TransactionService
       let listOwner = await this.safeRepos.getMultisigWalletsByOwner(request.fromAddress, request.internalChainId);
 
       let checkOwner = listOwner.find(elelement => {
-        if (elelement.safeAddress === request.fromAddress){
+        if (elelement.safeAddress === transaction.fromAddress){
           return true;
         }
       });
