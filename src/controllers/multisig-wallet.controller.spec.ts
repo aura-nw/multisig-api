@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { SAFE_STATUS } from 'src/common/constants/app.constant';
 import { ErrorMap } from 'src/common/error.map';
 import {
@@ -607,6 +607,81 @@ describe(MultisigWalletController.name, () => {
         );
         expect(result.Message).toEqual(ErrorMap.SUCCESSFUL.Message);
       });
+    });
+  });
+
+  describe('when delete a pending multisig wallet', () => {
+    it(`should return error: ${ErrorMap.NO_SAFES_FOUND.Message}`, async () => {
+      const param: MODULE_REQUEST.DeleteSafePathParams = {
+        safeId: '1',
+      };
+      const request: MODULE_REQUEST.DeleteMultisigWalletRequest = {
+        myAddress: '',
+      };
+
+      // find safe
+      mockFindSafeByCondition.mockResolvedValue([]);
+
+      const result = await safeController.deletePendingMultisigWallet(
+        param,
+        request,
+      );
+      expect(result.Message).toEqual(ErrorMap.NO_SAFES_FOUND.Message);
+    });
+
+    it(`should return error: ${ErrorMap.ADDRESS_NOT_CREATOR.Message}`, async () => {
+      const param: MODULE_REQUEST.DeleteSafePathParams = {
+        safeId: '4',
+      };
+      const request: MODULE_REQUEST.DeleteMultisigWalletRequest = {
+        myAddress: 'aura1m92zhmujw5ndche9avqt5cj59cfrta96gmqs9a',
+      };
+
+      // find safe
+      mockFindSafeByCondition.mockResolvedValue([mockSafe[2]]);
+
+      const result = await safeController.deletePendingMultisigWallet(
+        param,
+        request,
+      );
+      expect(result.Message).toEqual(ErrorMap.ADDRESS_NOT_CREATOR.Message);
+    });
+
+    it(`should return error: ${ErrorMap.SAFE_NOT_PENDING.Message}`, async () => {
+      const param: MODULE_REQUEST.DeleteSafePathParams = {
+        safeId: '3',
+      };
+      const request: MODULE_REQUEST.DeleteMultisigWalletRequest = {
+        myAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
+      };
+
+      // find safe
+      mockFindSafeByCondition.mockResolvedValue([mockSafe[1]]);
+
+      const result = await safeController.deletePendingMultisigWallet(
+        param,
+        request,
+      );
+      expect(result.Message).toEqual(ErrorMap.SAFE_NOT_PENDING.Message);
+    });
+
+    it(`should return: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
+      const param: MODULE_REQUEST.DeleteSafePathParams = {
+        safeId: '6',
+      };
+      const request: MODULE_REQUEST.DeleteMultisigWalletRequest = {
+        myAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
+      };
+
+      // find safe
+      mockFindSafeByCondition.mockResolvedValue([mockSafe[4]]);
+      mockInsertSafe.mockResolvedValue({});
+
+      const result = await safeController.deletePendingMultisigWallet(
+        param,
+        request,
+      );
+      expect(result.Message).toEqual(ErrorMap.SUCCESSFUL.Message);
     });
   });
 });
