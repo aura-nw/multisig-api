@@ -10,5 +10,5 @@ export interface ITransactionRepository extends IBaseRepository {
     /**
      * Get details of a transaction from AuraTx table
      */
-    getTransactionDetailsAuraTx(internalTxHash: string): any;
+    getTransactionDetailsAuraTx(condition: any): any;
 }
