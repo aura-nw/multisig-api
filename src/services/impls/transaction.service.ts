@@ -363,19 +363,46 @@ export class TransactionService
     param: MODULE_REQUEST.GetTransactionDetailsParam
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
-    let result = await this.transRepos.getTransactionDetailsAuraTx(param.internalTxHash);
-    if(!result) {
-      result = await this.multisigTransactionRepos.getTransactionDetailsMultisigTransaction(param.internalTxHash);
-    }
-    if(!result) return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
-    else {
-      if(result.TxHash) {
-        const param :MODULE_REQUEST.GetTransactionDetailsParam = { internalTxHash: result.TxHash}
-        result.Signatures = await (await this.getListConfirmMultisigTransaction(param)).Data;
-      } else {
-        result.Signatures = await this.getListConfirmMultisigTransactionById(result.Id);
+    try {
+      const { internalTxHash } = param;
+      let condition = this.calculateCondition(internalTxHash);
+      let result;
+      if(condition.txHash) {
+        result = await this.transRepos.getTransactionDetailsAuraTx(condition);
       }
+      if(!result || condition.id) {
+        result = await this.multisigTransactionRepos.getTransactionDetailsMultisigTransaction(condition);
+      }
+      if(!result || result.length == 0) {
+        this._logger.debug(
+          `Not found any transaction with condition: ${JSON.stringify(condition)}`,
+        );
+        return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
+      }
+      else {
+        if(result.TxHash) {
+          const param :MODULE_REQUEST.GetTransactionDetailsParam = { internalTxHash: result.TxHash}
+          result.Signatures = await (await this.getListConfirmMultisigTransaction(param)).Data;
+        } else {
+          result.Signatures = await this.getListConfirmMultisigTransactionById(result.Id);
+        }
+      }
+      return res.return(ErrorMap.SUCCESSFUL, result);
+    } catch (error) {
+      this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
+      this._logger.error(`${error.name}: ${error.message}`);
+      this._logger.error(`${error.stack}`);
+      return res.return(ErrorMap.E500, error.message);
     }
-    return res.return(ErrorMap.SUCCESSFUL, result);
+  }
+
+  private calculateCondition(internalTxHash: string) {
+    return isNaN(Number(internalTxHash))
+      ? {
+        txHash: internalTxHash
+      }
+      : {
+        id: internalTxHash,
+      };
   }
 }
