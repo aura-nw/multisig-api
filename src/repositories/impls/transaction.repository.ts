@@ -1,6 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { off } from "process";
+import { Chain } from "src/entities";
 import { ENTITIES_CONFIG } from "src/module.config";
 import { ObjectLiteral, Repository } from "typeorm";
 import { ITransactionRepository } from "../itransaction.repository";
@@ -55,11 +56,16 @@ export class TransactionRepository
         return resultData;
     }
 
-    async getTransactionDetailsAuraTx(internalTxHash: string) {
+    async getTransactionDetailsAuraTx(condition: any) {
+        const txHash = condition.txHash;
         let sqlQuerry = this.repos
             .createQueryBuilder('auraTx')
-            .where('auraTx.txHash = :internalTxHash', { internalTxHash })
-            .select('*');
+            .innerJoin(Chain, 'chain', 'auraTx.internalChainId = chain.id')
+            .where('auraTx.txHash = :txHash', { txHash })
+            .select([
+                'auraTx.*',
+                'chain.chainId as ChainId'
+            ]);
         let resultData = await sqlQuerry.getRawOne();
         return resultData;
     }
