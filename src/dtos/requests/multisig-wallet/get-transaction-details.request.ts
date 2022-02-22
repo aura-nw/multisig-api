@@ -3,7 +3,7 @@ import { IsString } from "class-validator";
 
 export class GetTransactionDetailsParam {
     @ApiProperty({
-        description: 'Tx Hash of transaction',
+        description: 'TxHash or TxId',
         type: String,
     })
     @IsString()
