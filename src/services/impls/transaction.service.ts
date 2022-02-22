@@ -22,6 +22,7 @@ import { assert } from '@cosmjs/utils';
 import { IGeneralRepository } from 'src/repositories/igeneral.repository';
 import { ISafeRepository } from 'src/repositories/isafe.repository';
 import { IMultisigWalletRepository } from 'src/repositories/imultisig-wallet.repository';
+import { TransferDirection } from 'src/common/constants/app.constant';
 @Injectable()
 export class TransactionService
   extends BaseService
@@ -325,8 +326,12 @@ export class TransactionService
     const res = new ResponseDto();
     const result = await this.transRepos.getAuraTx(request.safeAddress, request.pageIndex, request.pageSize);
     for (let i = 0; i < result.length; i++) {
+      if(result[i].Status == '0') result[i].Status = TRANSACTION_STATUS.SUCCESS;
       if (result[i].FromAddress == request.safeAddress) {
+        result[i].Direction = TransferDirection.OUTGOING;
         result[i].Signatures = await this.getListConfirmMultisigTransactionById(result[i].Id);
+      } else if (result[i].ToAddress == request.safeAddress) {
+        result[i].Direction = TransferDirection.INCOMING;
       }
     }
     return res.return(ErrorMap.SUCCESSFUL, result);
