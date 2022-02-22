@@ -12,7 +12,8 @@ export const URL_CONSTANTS = {
   CONNECT_WALLET: 'connect_wallet',
   CREATE: 'create',
   SEND: 'send',
-  SIGLE_SIGN: 'sign',
+  CONFIRM_TRANSACTION: 'confirm',
+  REJECT_TRANSACTION: 'reject',
   NETWORK_LIST: 'network-list',
   GET_ALL_TXS: 'get-all-txs',
   SIGNATURES: 'multisig/:internalTxHash/signatures',
@@ -22,14 +23,4 @@ export const URL_CONSTANTS = {
   DELETE_SAFE: ':safeId',
   GET_SAFES_BY_OWNER: ':address/safes',
 };
-export const DENOM = {
-  uaura: 'uaura',
-  uatom: 'uatom',
-  uluna: 'uluna',
-};
-export const TRANSACTION_STATUS = {
-  PENDING: 'PENDING',
-  SUCCESS: 'SUCCESS',
-  CANCEL: 'CANCEL',
-  SEND_WAITING: 'SEND_WAITING',
-};
+

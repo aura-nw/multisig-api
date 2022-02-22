@@ -11,7 +11,7 @@ import {
 import { SimulatingMultisigRequest } from './dtos/requests/simulating/simulating-multisig.request';
 import { SimulatingSignMsgRequest } from './dtos/requests/simulating/simulating-sign-msg.request';
 import { SendTransactionRequest } from './dtos/requests/transaction/send-transaction.request';
-import { SingleSignTransactionRequest } from './dtos/requests/transaction/single-sign-transaction.request';
+import { ConfirmTransactionRequest } from './dtos/requests/transaction/confirm-transaction.request';
 import { Safe } from './entities/safe.entity';
 import { SafeOwner } from './entities/safe-owner.entity';
 import { CreateTransactionRequest } from './dtos/requests/createTransaction.request';
@@ -31,6 +31,7 @@ import {
 } from './dtos/requests/multisig-wallet/get-safe-by-owner.request';
 import { GetAllTransactionsRequest } from './dtos/requests/transaction/get-all-transactions.request';
 import { GetTransactionDetailsParam } from './dtos/requests/multisig-wallet/get-transaction-details.request';
+import { RejectTransactionRequest } from './dtos/requests/transaction/reject-transaction.request';
 
 export const ENTITIES_CONFIG = {
   SAFE: Safe,
@@ -51,7 +52,7 @@ export const REQUEST_CONFIG = {
   DELETE_MULTISIG_WALLET_REQUEST: DeleteMultisigWalletRequest,
   CREATE_TRANSACTION_REQUEST: CreateTransactionRequest,
   SEND_TRANSACTION_REQUEST: SendTransactionRequest,
-  SINGLE_SIGN_TRANSACTION_REQUEST: SingleSignTransactionRequest,
+  CONFIRM_TRANSACTION_REQUEST: ConfirmTransactionRequest,
   CONNECT_WALLET_TO_GET_INFORMATION: ConnectMultisigWalletRequest,
   GET_SAFE_QUERY: GetSafeQuery,
   GET_SAFES_BY_OWNER_QUERY: GetSafesByOwnerAddressQuery,
@@ -61,6 +62,7 @@ export const REQUEST_CONFIG = {
   GET_SAFES_BY_OWNER_PARAM: GetSafesByOwnerAddressParams,
   GET_ALL_TRANSACTION_REQUEST: GetAllTransactionsRequest,
   GET_TRANSACTION_DETAILS_PARAM: GetTransactionDetailsParam,
+  REJECT_TRANSACTION_PARAM: RejectTransactionRequest
 };
 
 export module MODULE_REQUEST {
@@ -71,7 +73,7 @@ export module MODULE_REQUEST {
   export abstract class DeleteMultisigWalletRequest extends REQUEST_CONFIG.DELETE_MULTISIG_WALLET_REQUEST {}
   export abstract class CreateTransactionRequest extends REQUEST_CONFIG.CREATE_TRANSACTION_REQUEST {}
   export abstract class SendTransactionRequest extends REQUEST_CONFIG.SEND_TRANSACTION_REQUEST {}
-  export abstract class SingleSignTransactionRequest extends REQUEST_CONFIG.SINGLE_SIGN_TRANSACTION_REQUEST {}
+  export abstract class ConfirmTransactionRequest extends REQUEST_CONFIG.CONFIRM_TRANSACTION_REQUEST {}
   export abstract class ConnectMultisigWalletRequest extends REQUEST_CONFIG.CONNECT_WALLET_TO_GET_INFORMATION {}
   export abstract class GetSafeQuery extends REQUEST_CONFIG.GET_SAFE_QUERY {}
   export abstract class GetSafesByOwnerAddressQuery extends REQUEST_CONFIG.GET_SAFES_BY_OWNER_QUERY {}
@@ -81,6 +83,7 @@ export module MODULE_REQUEST {
   export abstract class GetSafesByOwnerAddressParams extends REQUEST_CONFIG.GET_SAFES_BY_OWNER_PARAM {}
   export abstract class GetAllTransactionsRequest extends REQUEST_CONFIG.GET_ALL_TRANSACTION_REQUEST {}
   export abstract class GetTransactionDetailsParam extends REQUEST_CONFIG.GET_TRANSACTION_DETAILS_PARAM {}
+  export abstract class RejectTransactionParam extends REQUEST_CONFIG.REJECT_TRANSACTION_PARAM {}
 }
 
 export const SERVICE_INTERFACE = {

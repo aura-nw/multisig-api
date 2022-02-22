@@ -19,11 +19,19 @@ export interface ITransactionService {
   ): Promise<ResponseDto>;
 
   /**
-   * single sign to a transaction
+   * confirm transaction
    * @param request
    */
-  singleSignTransaction(
-    request: MODULE_REQUEST.SingleSignTransactionRequest,
+  confirmTransaction(
+    request: MODULE_REQUEST.ConfirmTransactionRequest,
+  ): Promise<ResponseDto>;
+
+  /**
+   * reject transaction
+   * @param request 
+   */
+  rejectTransaction(
+    request: MODULE_REQUEST.RejectTransactionParam,
   ): Promise<ResponseDto>;
 
   /**

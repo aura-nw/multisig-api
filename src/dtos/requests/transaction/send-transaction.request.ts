@@ -6,4 +6,7 @@ export class SendTransactionRequest {
 
     @ApiProperty()
     internalChainId: number;
+
+    @ApiProperty()
+    owner: string;
 }
