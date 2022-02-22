@@ -18,4 +18,13 @@ export class CreateTransactionRequest {
 
     @ApiProperty()
     internalChainId: number;
+
+    @ApiProperty()
+    bodyBytes: string;
+
+    @ApiProperty()
+    signature: string;
+
+    @ApiProperty()
+    creatorAddress: string;
 }
