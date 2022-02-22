@@ -17,4 +17,7 @@ export class MultisigConfirm extends BaseEntityAutoId {
 
     @Column({name: 'InternalChainId'})
     internalChainId: number;
+
+    @Column({name: 'Status'})
+    status: string;
 }

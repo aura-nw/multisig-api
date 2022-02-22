@@ -39,12 +39,20 @@ export class TransactionController {
     return await this.transactionService.createTransaction(request);
   }
 
-  @Post(URL_CONSTANTS.SIGLE_SIGN)
-  @ApiOperation({ summary: 'owner sign to their transaction' })
-  async signTransaction(
-    @Body() request: MODULE_REQUEST.SingleSignTransactionRequest,
+  @Post(URL_CONSTANTS.CONFIRM_TRANSACTION)
+  @ApiOperation({ summary: 'owner confirm their transaction' })
+  async confirmTransaction(
+    @Body() request: MODULE_REQUEST.ConfirmTransactionRequest,
   ) {
-    return await this.transactionService.singleSignTransaction(request);
+    return await this.transactionService.confirmTransaction(request);
+  }
+
+  @Post(URL_CONSTANTS.REJECT_TRANSACTION)
+  @ApiOperation({ summary: 'owner reject their transaction' })
+  async rejectTransaction(
+    @Body() request: MODULE_REQUEST.RejectTransactionParam,
+  ) {
+    return await this.transactionService.rejectTransaction(request);
   }
 
   @Post(URL_CONSTANTS.GET_ALL_TXS)
