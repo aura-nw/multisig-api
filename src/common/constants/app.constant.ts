@@ -24,3 +24,8 @@ export enum TRANSACTION_STATUS {
   CONFIRM = 'CONFIRM',
   SUCCESSED = 'SUCCESSED'
 }
+export enum TransferDirection {
+  INCOMING = 'INCOMING',
+  OUTGOING = 'OUTGOING',
+  UNKNOWN = 'UNKNOWN',
+}
