@@ -71,10 +71,10 @@ export class TransactionController {
     summary: 'Get the list of signatures for a multisig transaction',
   })
   async getSignaturesOfMultisigTx(
-    @Param() param: MODULE_REQUEST.GetTransactionDetailsParam
+    @Param() param: MODULE_REQUEST.GetMultisigSignaturesParam
   ) {
     this._logger.log('========== Get Signatures of Multisig Transaction ==========');
-    return await this.transactionService.getListConfirmMultisigTransaction(
+    return await this.transactionService.getListConfirmMultisigTransactionById(
       param,
     );
   }

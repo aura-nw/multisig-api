@@ -39,7 +39,7 @@ export interface ITransactionService {
    * @param request
    */
   getListConfirmMultisigTransaction(
-    param: MODULE_REQUEST.GetTransactionDetailsParam
+    internalTxHash: string
   ): Promise<ResponseDto>;
 
   /**
@@ -47,7 +47,7 @@ export interface ITransactionService {
    * @param request
    */
    getListConfirmMultisigTransactionById(
-    id: number
+    param: MODULE_REQUEST.GetMultisigSignaturesParam
   ): Promise<ResponseDto>;
 
   /**

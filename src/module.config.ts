@@ -32,6 +32,7 @@ import {
 import { GetAllTransactionsRequest } from './dtos/requests/transaction/get-all-transactions.request';
 import { GetTransactionDetailsParam } from './dtos/requests/multisig-wallet/get-transaction-details.request';
 import { RejectTransactionRequest } from './dtos/requests/transaction/reject-transaction.request';
+import { GetMultisigSignaturesParam } from './dtos/requests/multisig-wallet/get-multisig-signatures.request';
 
 export const ENTITIES_CONFIG = {
   SAFE: Safe,
@@ -62,7 +63,8 @@ export const REQUEST_CONFIG = {
   GET_SAFES_BY_OWNER_PARAM: GetSafesByOwnerAddressParams,
   GET_ALL_TRANSACTION_REQUEST: GetAllTransactionsRequest,
   GET_TRANSACTION_DETAILS_PARAM: GetTransactionDetailsParam,
-  REJECT_TRANSACTION_PARAM: RejectTransactionRequest
+  REJECT_TRANSACTION_PARAM: RejectTransactionRequest,
+  GET_MULTISIG_SIGNATURES_PARAM: GetMultisigSignaturesParam,
 };
 
 export module MODULE_REQUEST {
@@ -84,6 +86,7 @@ export module MODULE_REQUEST {
   export abstract class GetAllTransactionsRequest extends REQUEST_CONFIG.GET_ALL_TRANSACTION_REQUEST {}
   export abstract class GetTransactionDetailsParam extends REQUEST_CONFIG.GET_TRANSACTION_DETAILS_PARAM {}
   export abstract class RejectTransactionParam extends REQUEST_CONFIG.REJECT_TRANSACTION_PARAM {}
+  export abstract class GetMultisigSignaturesParam extends REQUEST_CONFIG.GET_MULTISIG_SIGNATURES_PARAM {}
 }
 
 export const SERVICE_INTERFACE = {
