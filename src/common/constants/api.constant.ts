@@ -17,7 +17,7 @@ export const URL_CONSTANTS = {
   NETWORK_LIST: 'network-list',
   GET_ALL_TXS: 'get-all-txs',
   SIGNATURES: 'multisig/:internalTxHash/signatures',
-  TRANSACTION_DETAILS: 'transaction-details/:internalTxHash',
+  TRANSACTION_DETAILS: 'transaction-details/:internalTxHash/:safeAddress',
   GET_SAFE: ':safeId',
   CONFIRM_SAFE: ':safeId',
   DELETE_SAFE: ':safeId',

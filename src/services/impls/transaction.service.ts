@@ -23,7 +23,7 @@ import { MultisigConfirm, MultisigTransaction } from 'src/entities';
 import { assert } from '@cosmjs/utils';
 import { IGeneralRepository } from 'src/repositories/igeneral.repository';
 import { IMultisigWalletRepository } from 'src/repositories/imultisig-wallet.repository';
-import { MULTISIG_CONFIRM_STATUS, TRANSACTION_STATUS, TransferDirection } from 'src/common/constants/app.constant';
+import { MULTISIG_CONFIRM_STATUS, TRANSACTION_STATUS, TRANSFER_DIRECTION } from 'src/common/constants/app.constant';
 import { ConfirmTransactionRequest } from 'src/dtos/requests/transaction/confirm-transaction.request';
 
 @Injectable()
@@ -360,11 +360,11 @@ export class TransactionService
   }
 
   async getListConfirmMultisigTransaction(
-    param: MODULE_REQUEST.GetTransactionDetailsParam
+    internalTxHash: string
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     const resId = await this.multisigTransactionRepos.getMultisigTxId(
-      param.internalTxHash,
+      internalTxHash,
     );
     if (resId) {
       const result =
@@ -378,11 +378,11 @@ export class TransactionService
   }
 
   async getListConfirmMultisigTransactionById(
-    id: number
+    param: MODULE_REQUEST.GetMultisigSignaturesParam
   ): Promise<ResponseDto> {
     const result =
       await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-        id,
+        param.id,
       );
     return result;
   }
@@ -396,10 +396,10 @@ export class TransactionService
       if(result[i].Status == '0') result[i].Status = TRANSACTION_STATUS.SUCCESS;
       else if(result[i].Status == '5') result[i].Status = TRANSACTION_STATUS.FAILED;
       if (result[i].FromAddress == request.safeAddress) {
-        result[i].Direction = TransferDirection.OUTGOING;
+        result[i].Direction = TRANSFER_DIRECTION.OUTGOING;
         result[i].Signatures = await this.getListConfirmMultisigTransactionById(result[i].Id);
       } else if (result[i].ToAddress == request.safeAddress) {
-        result[i].Direction = TransferDirection.INCOMING;
+        result[i].Direction = TRANSFER_DIRECTION.INCOMING;
       }
     }
     return res.return(ErrorMap.SUCCESSFUL, result);
@@ -426,9 +426,15 @@ export class TransactionService
         return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
       }
       else {
+        if(result.Code && result.Code == 0) {
+          result.Status = TRANSACTION_STATUS.SUCCESS;
+        } else if(result.Code) {
+          result.Status = TRANSACTION_STATUS.FAILED;
+        }
+        if(result.FromAddress == param.safeAddress) result.Direction = TRANSFER_DIRECTION.OUTGOING;
+        else if(result.ToAddress == param.safeAddress) result.Direction = TRANSFER_DIRECTION.INCOMING;
         if(result.TxHash) {
-          const param :MODULE_REQUEST.GetTransactionDetailsParam = { internalTxHash: result.TxHash}
-          result.Signatures = await (await this.getListConfirmMultisigTransaction(param)).Data;
+          result.Signatures = await (await this.getListConfirmMultisigTransaction(result.TxHash)).Data;
         } else {
           result.Signatures = await this.getListConfirmMultisigTransactionById(result.Id);
         }

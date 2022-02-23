@@ -33,7 +33,7 @@ export enum MULTISIG_CONFIRM_STATUS {
   SEND = 'SEND'
 }
 
-export enum TransferDirection {
+export enum TRANSFER_DIRECTION {
   INCOMING = 'INCOMING',
   OUTGOING = 'OUTGOING',
   UNKNOWN = 'UNKNOWN',
