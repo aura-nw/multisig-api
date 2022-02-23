@@ -9,7 +9,7 @@ import {
   MsgSendEncodeObject,
   StargateClient,
 } from '@cosmjs/stargate';
-import { fromBase64 } from "@cosmjs/encoding";
+import { fromBase64, toBase64 } from "@cosmjs/encoding";
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { MsgSend } from 'cosmjs-types/cosmos/bank/v1beta1/tx';
 import { coins } from '@cosmjs/proto-signing';
@@ -123,6 +123,7 @@ export class TransactionService
       transaction.denom = chain.denom;
       transaction.status = TRANSACTION_STATUS.AWAITING_CONFIRMATIONS;
       transaction.internalChainId = request.internalChainId;
+      transaction.sequence = signingInstruction.sequence.toString();
       transaction.safeId = safe.id;
 
       let transactionResult = await this.multisigTransactionRepos.create(transaction);
@@ -220,13 +221,13 @@ export class TransactionService
       let encodeTransaction = Uint8Array.from(TxRaw.encode(executeTransaction).finish());
 
       const result = await client.broadcastTx(
-        encodeTransaction
+        encodeTransaction, 10
       );
       this._logger.log('result', JSON.stringify(result));
 
       //Update status and txhash
       multisigTransaction.status = TRANSACTION_STATUS.PENDING;
-      multisigTransaction.txHash = '';
+      multisigTransaction.txHash = result.transactionHash;
       await this.multisigTransactionRepos.update(multisigTransaction);
 
       //Record owner send transaction
