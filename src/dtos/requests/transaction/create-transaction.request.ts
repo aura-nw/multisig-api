@@ -7,13 +7,13 @@ export class CreateTransactionRequest {
     @ApiProperty()
     to: string;
 
-    @ApiProperty()
+    @ApiProperty({type: 'float'})
     amount: number;
 
-    @ApiProperty()
+    @ApiProperty({type: 'float'})
     fee: number;
 
-    @ApiProperty()
+    @ApiProperty({type: 'float'})
     gasLimit: number;
 
     @ApiProperty()
