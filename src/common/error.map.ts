@@ -95,6 +95,14 @@ export const ErrorMap = {
     Code: 'E023',
     Message: 'Update safe owner failed!',
   },
+  SAFE_ADDRESS_IS_NULL: {
+    Code: 'E024',
+    Message: 'SafeAddress is null!',
+  },
+  GET_BALANCE_FAILED: {
+    Code: 'E025',
+    Message: 'Get balance failed!',
+  },
   C001: {
     Code: 'C001',
     Message: `Missing result from Chaincode`,

@@ -21,6 +21,15 @@ export interface IMultisigWalletService {
   ): Promise<ResponseDto>;
 
   /**
+   * get balance of multisig wallet
+   * @param safeId string - id/address of safe
+   */
+  getBalance(
+    param: MODULE_REQUEST.GetSafePathParams,
+    query: MODULE_REQUEST.GetSafeQuery,
+  ): Promise<ResponseDto>;
+
+  /**
    * Return Safes where the address is an owner
    * @param ownerAddress string
    */

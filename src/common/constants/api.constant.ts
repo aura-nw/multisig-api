@@ -19,6 +19,7 @@ export const URL_CONSTANTS = {
   SIGNATURES: 'multisig/:id/signatures',
   TRANSACTION_DETAILS: 'transaction-details/:internalTxHash/:safeAddress',
   GET_SAFE: ':safeId',
+  GET_SAFE_BALANCE: ':safeId/balance',
   CONFIRM_SAFE: ':safeId',
   DELETE_SAFE: ':safeId',
   GET_SAFES_BY_OWNER: ':address/safes',

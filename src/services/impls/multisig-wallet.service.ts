@@ -223,19 +223,73 @@ export class MultisigWalletService
       )) as Chain;
       if (!chainInfo) return res.return(ErrorMap.CHAIN_ID_NOT_EXIST);
 
-      // TODO: need health check network first
       // if safe created => Get balance
       if (safeInfo.address !== null) {
-        const network = new Network(chainInfo.rpc);
-        await network.init();
-        const balance = await network.getBalance(
-          safeInfo.address,
-          chainInfo.denom,
-        );
-        safeInfo.balance = [balance];
+        try {
+          const network = new Network(chainInfo.rpc);
+          await network.init();
+          const balance = await network.getBalance(
+            safeInfo.address,
+            chainInfo.denom,
+          );
+          safeInfo.balance = [balance];
+        } catch (error) {
+          return res.return(ErrorMap.GET_BALANCE_FAILED, error.message);
+        }
       }
       return res.return(ErrorMap.SUCCESSFUL, safeInfo);
     } catch (error) {
+      this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
+      this._logger.error(`${error.name}: ${error.message}`);
+      this._logger.error(`${error.stack}`);
+      return res.return(ErrorMap.E500, error.message);
+    }
+  }
+
+  async getBalance(
+    param: MODULE_REQUEST.GetSafePathParams,
+    query: MODULE_REQUEST.GetSafeQuery,
+  ): Promise<ResponseDto> {
+    const res = new ResponseDto();
+    try {
+      const { safeId } = param;
+      const { internalChainId } = query;
+      // build search condition
+      const condition = this.calculateCondition(safeId, internalChainId);
+
+      // find safes
+      const safes = await this.safeRepo.findByCondition(condition);
+      if (!safes || safes.length === 0) {
+        this._logger.debug(
+          `Not found any safe with condition: ${JSON.stringify(condition)}`,
+        );
+        return res.return(ErrorMap.NO_SAFES_FOUND);
+      }
+      const safe = safes[0];
+
+      if (!safe.safeAddress || safe.safeAddress === null) {
+        // cannot get balance because safe address is null
+        return res.return(ErrorMap.SAFE_ADDRESS_IS_NULL);
+      }
+      // get chainInfo
+      const chainInfo = (await this.generalRepo.findOne(
+        safe.internalChainId,
+      )) as Chain;
+      if (!chainInfo) return res.return(ErrorMap.CHAIN_ID_NOT_EXIST);
+
+      try {
+        const network = new Network(chainInfo.rpc);
+        await network.init();
+        const balance = await network.getBalance(
+          safe.safeAddress,
+          chainInfo.denom,
+        );
+        return res.return(ErrorMap.SUCCESSFUL, [balance]);
+      } catch (error) {
+        return res.return(ErrorMap.GET_BALANCE_FAILED, error.message);
+      }
+    } catch (error) {
+      console.log(error);
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
       this._logger.error(`${error.name}: ${error.message}`);
       this._logger.error(`${error.stack}`);
