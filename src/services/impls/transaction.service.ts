@@ -5,6 +5,8 @@ import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
 import { ConfigService } from 'src/shared/services/config.service';
 import { ITransactionService } from '../transaction.service';
 import {
+  calculateFee,
+  GasPrice,
   makeMultisignedTx,
   MsgSendEncodeObject,
   StargateClient,
@@ -88,26 +90,10 @@ export class TransactionService
         const accountOnChain = await client.getAccount(request.from);
         assert(accountOnChain, 'Account does not exist on chain');
 
-        const msgSend: MsgSend = {
-          fromAddress: request.from,
-          toAddress: request.to,
-          amount: coins(request.amount, chain.denom),
-        };
-        const msg: MsgSendEncodeObject = {
-          typeUrl: '/cosmos.bank.v1beta1.MsgSend',
-          value: msgSend,
-        };
-        const fee = {
-          amount: coins(request.fee, chain.denom),
-          gas: request.gasLimit,
-        };
         return {
           accountNumber: accountOnChain.accountNumber,
           sequence: accountOnChain.sequence,
           chainId: chain.chainId,
-          msgs: [msg],
-          fee: fee,
-          memo: '',
         };
       })();
 
@@ -119,7 +105,7 @@ export class TransactionService
       transaction.gas = request.gasLimit;
       transaction.fee = request.fee;
       transaction.accountNumber = signingInstruction.accountNumber;
-      transaction.typeUrl = signingInstruction.msgs['typeUrl'];
+      transaction.typeUrl = '/cosmos.bank.v1beta1.MsgSend';
       transaction.denom = chain.denom;
       transaction.status = TRANSACTION_STATUS.AWAITING_CONFIRMATIONS;
       transaction.internalChainId = request.internalChainId;
@@ -200,10 +186,8 @@ export class TransactionService
       });
 
       //Fee
-      const fee = {
-        amount: coins(multisigTransaction.fee, multisigTransaction.denom),
-        gas: multisigTransaction.gas.toString(),
-      };
+      const gasPrice = GasPrice.fromString(String(multisigTransaction.fee).concat(multisigTransaction.denom));
+      const sendFee = calculateFee(multisigTransaction.gas, gasPrice);
 
       let encodedBodyBytes = fromBase64(multisigConfirmArr[0].bodyBytes);
 
@@ -213,7 +197,7 @@ export class TransactionService
       let executeTransaction = makeMultisignedTx(
         safePubkey,
         multisigTransaction.sequence,
-        fee,
+        sendFee,
         encodedBodyBytes,
         addressSignarureMap,
       );
