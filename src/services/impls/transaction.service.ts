@@ -410,6 +410,7 @@ export class TransactionService
     const result = await this.transRepos.getAuraTx(request.safeAddress, request.pageIndex, request.pageSize);
     for (let i = 0; i < result.length; i++) {
       if(result[i].Status == '0') result[i].Status = TRANSACTION_STATUS.SUCCESS;
+      else if(result[i].Status == '5') result[i].Status = TRANSACTION_STATUS.FAILED;
       if (result[i].FromAddress == request.safeAddress) {
         result[i].Direction = TransferDirection.OUTGOING;
         result[i].Signatures = await this.getListConfirmMultisigTransactionById(result[i].Id);
