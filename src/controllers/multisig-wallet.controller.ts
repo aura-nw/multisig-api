@@ -53,6 +53,20 @@ export class MultisigWalletController {
     return await this.multisigWalletService.getMultisigWallet(param, query);
   }
 
+  @Get(URL_CONSTANTS.GET_SAFE_BALANCE)
+  @ApiOperation({ summary: 'Get balance of the multisig wallet by safeId' })
+  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  @HttpCode(HttpStatus.OK)
+  async getBalance(
+    @Param() param: MODULE_REQUEST.GetSafePathParams,
+    @Query() query: MODULE_REQUEST.GetSafeQuery,
+  ) {
+    this._logger.log(
+      '========== Get status of the multisig wallet by safeId ==========',
+    );
+    return await this.multisigWalletService.getBalance(param, query);
+  }
+
   @Post(URL_CONSTANTS.CONFIRM_SAFE)
   @ApiOperation({ summary: 'Confirm multisig wallet' })
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })

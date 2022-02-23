@@ -17,6 +17,7 @@ export const URL_CONSTANTS = {
   GET_ALL_TXS: 'get-all-txs',
   SIGNATURES: 'multisig/:internalTxHash/signatures',
   GET_SAFE: ':safeId',
+  GET_SAFE_BALANCE: ':safeId/balance',
   CONFIRM_SAFE: ':safeId',
   DELETE_SAFE: ':safeId',
   GET_SAFES_BY_OWNER: ':address/safes',
