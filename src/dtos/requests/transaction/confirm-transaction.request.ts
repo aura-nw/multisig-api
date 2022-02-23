@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class SingleSignTransactionRequest {
+export class ConfirmTransactionRequest {
   @ApiProperty()
   fromAddress: string;
 

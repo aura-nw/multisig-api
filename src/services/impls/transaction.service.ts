@@ -9,21 +9,21 @@ import {
   MsgSendEncodeObject,
   StargateClient,
 } from '@cosmjs/stargate';
+import { fromBase64 } from "@cosmjs/encoding";
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { MsgSend } from 'cosmjs-types/cosmos/bank/v1beta1/tx';
 import { coins } from '@cosmjs/proto-signing';
 import { BaseService } from './base.service';
-import { DENOM, TRANSACTION_STATUS } from 'src/common/constants/api.constant';
 import { ITransactionRepository } from 'src/repositories/itransaction.repository';
 import { IMultisigConfirmRepository } from 'src/repositories/imultisig-confirm.repository';
 import { IMultisigTransactionsRepository } from 'src/repositories/imultisig-transaction.repository';
 import { MultisigConfirm, MultisigTransaction } from 'src/entities';
 import { assert } from '@cosmjs/utils';
 import { IGeneralRepository } from 'src/repositories/igeneral.repository';
-import { ISafeRepository } from 'src/repositories/isafe.repository';
 import { IMultisigWalletRepository } from 'src/repositories/imultisig-wallet.repository';
-import { TransferDirection } from 'src/common/constants/app.constant';
-import { SingleSignTransactionRequest } from 'src/dtos/requests/transaction/single-sign-transaction.request';
+import { MULTISIG_CONFIRM_STATUS, TRANSACTION_STATUS, TransferDirection } from 'src/common/constants/app.constant';
+import { ConfirmTransactionRequest } from 'src/dtos/requests/transaction/confirm-transaction.request';
+
 @Injectable()
 export class TransactionService
   extends BaseService
@@ -121,20 +121,21 @@ export class TransactionService
       transaction.accountNumber = signingInstruction.accountNumber;
       transaction.typeUrl = signingInstruction.msgs['typeUrl'];
       transaction.denom = chain.denom;
-      transaction.status = TRANSACTION_STATUS.PENDING;
+      transaction.status = TRANSACTION_STATUS.AWAITING_CONFIRMATIONS;
       transaction.internalChainId = request.internalChainId;
       transaction.safeId = safe.id;
 
       let transactionResult = await this.multisigTransactionRepos.create(transaction);
 
-      let requestSign = new SingleSignTransactionRequest();
+      let requestSign = new ConfirmTransactionRequest();
       requestSign.fromAddress = request.creatorAddress;
       requestSign.transactionId = transactionResult.id;
       requestSign.bodyBytes = request.bodyBytes;
       requestSign.signature = request.signature;
       requestSign.internalChainId = request.internalChainId;
 
-      let signResult = await this.singleSignTransaction(requestSign);
+      //Sign to transaction
+      await this.confirmTransaction(requestSign);
 
       return res.return(ErrorMap.SUCCESSFUL, transactionResult.id);
     } catch (error) {
@@ -163,23 +164,23 @@ export class TransactionService
 
       if (
         !multisigTransaction ||
-        multisigTransaction.status != TRANSACTION_STATUS.SEND_WAITING
+        multisigTransaction.status != TRANSACTION_STATUS.AWAITING_EXECUTION
       ) {
         return res.return(ErrorMap.TRANSACTION_NOT_VALID);
       }
 
       //Validate owner
-      let listOwner = await this.safeRepos.getMultisigWalletsByOwner(multisigTransaction.fromAddress, request.internalChainId);
+      // let listOwner = await this.safeRepos.getMultisigWalletsByOwner(multisigTransaction.fromAddress, request.internalChainId);
 
-      let checkOwner = listOwner.find(elelement => {
-        if (elelement.safeAddress === multisigTransaction.fromAddress){
-          return true;
-        }
-      });
+      // let checkOwner = listOwner.find(elelement => {
+      //   if (elelement.safeAddress === request.owner){
+      //     return true;
+      //   }
+      // });
 
-      if(!checkOwner){
-        return res.return(ErrorMap.PERMISSION_DENIED);
-      }
+      // if(!checkOwner){
+      //   return res.return(ErrorMap.PERMISSION_DENIED);
+      // }
 
       //Get safe info
       let safeInfo = await this.safeRepos.findOne({
@@ -193,8 +194,7 @@ export class TransactionService
       let addressSignarureMap = new Map<string, Uint8Array>();
 
       multisigConfirmArr.forEach((x) => {
-        let encodeSignature = Buffer.from(x.signature, 'utf-8');
-
+        let encodeSignature = fromBase64(x.signature);
         addressSignarureMap.set(x.ownerAddress, encodeSignature);
       });
 
@@ -204,7 +204,7 @@ export class TransactionService
         gas: multisigTransaction.gas.toString(),
       };
 
-      let encodedBodyBytes = Buffer.from(multisigConfirmArr[0].bodyBytes, 'utf8');
+      let encodedBodyBytes = fromBase64(multisigConfirmArr[0].bodyBytes);
 
       //Pubkey 
       const safePubkey = JSON.parse(safeInfo.safePubkey);
@@ -222,13 +222,22 @@ export class TransactionService
       const result = await client.broadcastTx(
         encodeTransaction
       );
+      this._logger.log('result', JSON.stringify(result));
 
       //Update status and txhash
-      multisigTransaction.status = TRANSACTION_STATUS.SUCCESS;
+      multisigTransaction.status = TRANSACTION_STATUS.PENDING;
       multisigTransaction.txHash = '';
       await this.multisigTransactionRepos.update(multisigTransaction);
 
-      this._logger.log('result', JSON.stringify(result));
+      //Record owner send transaction
+      let sender = new MultisigConfirm();
+      sender.multisigTransactionId = request.transactionId;
+      sender.internalChainId = request.internalChainId;
+      sender.ownerAddress = request.owner;
+      sender.status = MULTISIG_CONFIRM_STATUS.SEND;
+
+      await this.multisigConfirmRepos.create(sender);
+
       return res.return(ErrorMap.SUCCESSFUL, result);
 
     } catch (error) {
@@ -239,8 +248,8 @@ export class TransactionService
     }
   }
 
-  async singleSignTransaction(
-    request: MODULE_REQUEST.SingleSignTransactionRequest,
+  async confirmTransaction(
+    request: MODULE_REQUEST.ConfirmTransactionRequest,
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
@@ -268,17 +277,12 @@ export class TransactionService
 
       //Check status of multisig confirm
       let listConfirm =
-        await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-          request.transactionId,
-        );
-
-      let checkExist = listConfirm.find(elelement => {
-        if (elelement.ownerAddress === request.fromAddress){
-          return true;
-        }
+        await this.multisigConfirmRepos.findByCondition({
+          multisigTransactionId: request.transactionId,
+          ownerAddress: request.fromAddress
       });
 
-      if(checkExist){
+      if(listConfirm.length > 0){
         return res.return(ErrorMap.USER_HAS_COMFIRMED);
       }
 
@@ -292,20 +296,75 @@ export class TransactionService
       multisigConfirm.signature = request.signature;
       multisigConfirm.bodyBytes = request.bodyBytes;
       multisigConfirm.internalChainId = request.internalChainId;
+      multisigConfirm.status = MULTISIG_CONFIRM_STATUS.CONFIRM;
 
       await this.multisigConfirmRepos.create(multisigConfirm);
 
       //Check transaction available
-      let listConfirmAfterSign =
-        await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-          request.transactionId,
-        );
+      let listConfirmAfterSign = await this.multisigConfirmRepos.findByCondition({
+        multisigTransactionId: request.transactionId,
+        status: MULTISIG_CONFIRM_STATUS.CONFIRM,
+        internalChainId: request.internalChainId
+      });
 
       if (listConfirmAfterSign.length >= safe.threshold) {
-        transaction.status = TRANSACTION_STATUS.SEND_WAITING;
+        transaction.status = TRANSACTION_STATUS.AWAITING_EXECUTION;
 
         await this.multisigTransactionRepos.update(transaction);
       }
+      return res.return(ErrorMap.SUCCESSFUL);
+    } catch (error) {
+      this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
+      this._logger.error(`${error.name}: ${error.message}`);
+      this._logger.error(`${error.stack}`);
+      return res.return(ErrorMap.E500);
+    }
+  }
+
+  async rejectTransaction(request: MODULE_REQUEST.RejectTransactionParam): Promise<ResponseDto> {
+    const res = new ResponseDto();
+    try {
+      //Check status of multisig transaction
+      let transaction = await this.multisigTransactionRepos.findOne({
+        where: { id: request.transactionId, internalChainId: request.internalChainId },
+      });
+
+      if (!transaction) {
+        return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
+      }
+
+      //Validate owner
+      let listOwner = await this.safeRepos.getMultisigWalletsByOwner(request.fromAddress, request.internalChainId);
+
+      let checkOwner = listOwner.find(elelement => {
+        if (elelement.safeAddress === transaction.fromAddress){
+          return true;
+        }
+      });
+
+      if(!checkOwner){
+        return res.return(ErrorMap.PERMISSION_DENIED);
+      }
+
+      //Check status of multisig confirm
+      let listConfirm =
+        await this.multisigConfirmRepos.findByCondition({
+          multisigTransactionId: request.transactionId,
+          ownerAddress: request.fromAddress
+      });
+
+      if(listConfirm.length > 0){
+        return res.return(ErrorMap.USER_HAS_COMFIRMED);
+      }
+
+      let multisigConfirm = new MultisigConfirm();
+      multisigConfirm.multisigTransactionId = request.transactionId;
+      multisigConfirm.ownerAddress = request.fromAddress;
+      multisigConfirm.internalChainId = request.internalChainId;
+      multisigConfirm.status = MULTISIG_CONFIRM_STATUS.REJECT;
+
+      await this.multisigConfirmRepos.create(multisigConfirm);
+
       return res.return(ErrorMap.SUCCESSFUL);
     } catch (error) {
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
