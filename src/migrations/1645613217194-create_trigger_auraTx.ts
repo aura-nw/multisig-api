@@ -1,11 +1,9 @@
 import {MigrationInterface, QueryRunner} from "typeorm";
 
-export class createProcedureAuraTx1645602015427 implements MigrationInterface {
+export class createTriggerAuraTx1645613217194 implements MigrationInterface {
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
-            DELIMITER //
-
             CREATE TRIGGER update_multisig AFTER INSERT ON AuraTx
             FOR EACH ROW 
                 BEGIN 
@@ -14,16 +12,11 @@ export class createProcedureAuraTx1645602015427 implements MigrationInterface {
                 ELSE
                     UPDATE MultisigTransaction SET Status = 'FAILED' WHERE TxHash = NEW.TxHash;
                 END IF;
-            END;//
-            
-            DELIMITER ;
+            END;
         `)
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`
-            DROP TRIGGER IF EXISTS update_multisig
-        `)
     }
 
 }
