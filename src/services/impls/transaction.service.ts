@@ -25,6 +25,7 @@ import { IGeneralRepository } from 'src/repositories/igeneral.repository';
 import { IMultisigWalletRepository } from 'src/repositories/imultisig-wallet.repository';
 import { MULTISIG_CONFIRM_STATUS, TRANSACTION_STATUS, TRANSFER_DIRECTION } from 'src/common/constants/app.constant';
 import { ConfirmTransactionRequest } from 'src/dtos/requests/transaction/confirm-transaction.request';
+import { IMultisigWalletOwnerRepository } from 'src/repositories/imultisig-wallet-owner.repository';
 
 @Injectable()
 export class TransactionService
@@ -41,6 +42,7 @@ export class TransactionService
     @Inject(REPOSITORY_INTERFACE.IGENERAL_REPOSITORY) private chainRepos: IGeneralRepository,
     @Inject(REPOSITORY_INTERFACE.ITRANSACTION_REPOSITORY) private transRepos: ITransactionRepository,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_REPOSITORY) private safeRepos: IMultisigWalletRepository,
+    @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_OWNER_REPOSITORY) private safeOwnerRepos: IMultisigWalletOwnerRepository,
   ) {
     super(multisigTransactionRepos);
     this._logger.log(
@@ -362,7 +364,7 @@ export class TransactionService
   async getListMultisigConfirm(
     internalTxHash: string,
     status?: string
-  ): Promise<ResponseDto> {
+  ): Promise<any> {
     const res = new ResponseDto();
     const resId = await this.multisigTransactionRepos.getMultisigTxId(
       internalTxHash,
@@ -374,9 +376,7 @@ export class TransactionService
           status!!
         );
       return result.Data;
-    } else {
-      return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
-    }
+    } else return [];
   }
 
   async getListMultisigConfirmById(
@@ -456,17 +456,20 @@ export class TransactionService
           ChainId: rawResult.ChainId,
           Status: rawResult.Status,
           ConfirmationsRequired: rawResult.ConfirmationsRequired,
-          Signer: rawResult.Signer,
         }
       }
       if(result.FromAddress == param.safeAddress) {
-        if(!result.Signer) {
-          let safeInfo = await this.safeRepos.getThresholdAndSigner(param.safeAddress);
-          if(safeInfo) {
-            result.ConfirmationsRequired = safeInfo.ConfirmationsRequired;
-            result.Signer = safeInfo.Signer;
+        let threshold = await this.safeRepos.getThreshold(param.safeAddress);
+        let owner = await this.safeOwnerRepos.getOwners(param.safeAddress);
+        if(!result.ConfirmationsRequired) {
+          if(threshold) {
+            result.ConfirmationsRequired = threshold.ConfirmationsRequired;
+          } else {
+            result.ConfirmationsRequired = '';
+            result.Signers = [];
           }
         }
+        result.Signers = owner;
         result.Direction = TRANSFER_DIRECTION.OUTGOING;
         if(result.TxHash) {
           result.Confirmations = await this.getListMultisigConfirm(result.TxHash, MULTISIG_CONFIRM_STATUS.CONFIRM);
