@@ -1,4 +1,4 @@
-[![codecov](https://codecov.io/gh/aura-nw/multisig-api/branch/hainq6/graph/badge.svg?token=FNWOTPBIRX)](https://codecov.io/gh/aura-nw/multisig-api)
+[![codecov](https://codecov.io/gh/aura-nw/multisig-api/branch/dev/graph/badge.svg?token=FNWOTPBIRX)](https://codecov.io/gh/aura-nw/multisig-api)
 
 # Multisig overview
 
