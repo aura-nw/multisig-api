@@ -124,7 +124,7 @@ export class TransactionService
       //Sign to transaction
       await this.confirmTransaction(requestSign);
 
-      return res.return(ErrorMap.SUCCESSFUL, transactionResult.id);
+      return res.return(ErrorMap.SUCCESSFUL, transactionResult.id, {'transactionId:': transactionResult.id});
     } catch (error) {
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
       this._logger.error(`${error.name}: ${error.message}`);
