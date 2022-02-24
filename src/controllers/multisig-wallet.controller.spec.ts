@@ -192,7 +192,7 @@ describe(MultisigWalletController.name, () => {
 
     it(`should return error: ${ErrorMap.INSERT_SAFE_FAILED.Message}`, async () => {
       // find chain by internalChainId
-      mockFindOneChain.mockResolvedValue({});
+      mockFindOneChain.mockResolvedValue(mockChain[0]);
       // find exist safe by address hash
       mockFindSafeByCondition.mockResolvedValue(undefined);
       // insert safe to db
@@ -206,7 +206,7 @@ describe(MultisigWalletController.name, () => {
 
     it(`should return error: ${ErrorMap.INSERT_SAFE_OWNER_FAILED.Message}`, async () => {
       // find chain by internalChainId
-      mockFindOneChain.mockResolvedValue({});
+      mockFindOneChain.mockResolvedValue(mockChain[0]);
       // find exist safe by address hash
       mockFindSafeByCondition.mockResolvedValue(undefined);
       // insert safe to db
@@ -225,7 +225,7 @@ describe(MultisigWalletController.name, () => {
 
     it(`should return: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
       // find chain by internalChainId
-      mockFindOneChain.mockResolvedValue({});
+      mockFindOneChain.mockResolvedValue(mockChain[0]);
       // find exist safe by address hash
       mockFindSafeByCondition.mockResolvedValue(undefined);
       // insert safe to db
