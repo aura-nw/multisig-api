@@ -16,7 +16,7 @@ export const URL_CONSTANTS = {
   REJECT_TRANSACTION: 'reject',
   NETWORK_LIST: 'network-list',
   GET_ALL_TXS: 'get-all-txs',
-  SIGNATURES: 'multisig/:internalTxHash/signatures',
+  SIGNATURES: 'multisig/:id/signatures',
   TRANSACTION_DETAILS: 'transaction-details/:internalTxHash/:safeAddress',
   GET_SAFE: ':safeId',
   CONFIRM_SAFE: ':safeId',

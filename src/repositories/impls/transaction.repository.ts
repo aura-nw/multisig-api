@@ -61,10 +61,10 @@ export class TransactionRepository
         let sqlQuerry = this.repos
             .createQueryBuilder('auraTx')
             .innerJoin(Chain, 'chain', 'auraTx.internalChainId = chain.id')
-            .innerJoin(Safe, 'safe', 'auraTx.fromAddress = safe.safeAddress')
             .where('auraTx.txHash = :txHash', { txHash })
             .select([
                 'auraTx.id as Id',
+                'auraTx.code as Code',
                 'auraTx.createdAt as CreatedAt',
                 'auraTx.updatedAt as UpdatedAt',
                 'auraTx.fromAddress as FromAddress',
@@ -72,10 +72,8 @@ export class TransactionRepository
                 'auraTx.txHash as TxHash',
                 'auraTx.amount as Amount',
                 'auraTx.denom as Denom',
-                'auraTx.status as Status',
-                'safe.threshold as ConfirmationsRequired',
-                'safe.creatorAddress as Signer',
-                //
+                'auraTx.gasUsed as GasUsed',
+                'auraTx.gasWanted as GasWanted',
                 'chain.chainId as ChainId'
             ]);
         let resultData = await sqlQuerry.getRawOne();

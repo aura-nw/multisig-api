@@ -74,7 +74,7 @@ export class TransactionController {
     @Param() param: MODULE_REQUEST.GetMultisigSignaturesParam
   ) {
     this._logger.log('========== Get Signatures of Multisig Transaction ==========');
-    return await this.transactionService.getListConfirmMultisigTransactionById(
+    return await this.transactionService.getListMultisigConfirmById(
       param,
     );
   }
