@@ -27,7 +27,7 @@ jest.mock('src/utils/network.utils', () => {
   return {
     Network: jest.fn().mockImplementation(() => {
       return {
-        constructor: () => {},
+        constructor: () => { },
         init: mockInitNetwork,
         getBalance: () => {
           const mockCoin = {
@@ -123,7 +123,7 @@ describe(MultisigWalletController.name, () => {
     );
   });
 
-  beforeEach(() => {});
+  beforeEach(() => { });
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -432,6 +432,94 @@ describe(MultisigWalletController.name, () => {
         const result = await safeController.getMultisigWallet(param, query);
         expect(result.Message).toEqual(ErrorMap.SUCCESSFUL.Message);
       });
+    });
+  });
+
+  describe('when get balance of multisig wallet', () => {
+    it(`should return error: ${ErrorMap.NO_SAFES_FOUND.Message}`, async () => {
+      const param: MODULE_REQUEST.GetSafePathParams = {
+        safeId: '1',
+      };
+      const query: MODULE_REQUEST.GetSafeQuery = {
+        internalChainId: undefined,
+      };
+      // find safe
+      mockFindSafeByCondition.mockResolvedValue([]);
+
+      const result = await safeController.getBalance(param, query);
+      expect(result.Message).toEqual(ErrorMap.NO_SAFES_FOUND.Message);
+    });
+
+    it(`should return error: ${ErrorMap.SAFE_ADDRESS_IS_NULL.Message}`, async () => {
+      const param: MODULE_REQUEST.GetSafePathParams = {
+        safeId: '4',
+      };
+      const query: MODULE_REQUEST.GetSafeQuery = {
+        internalChainId: undefined,
+      };
+
+      // find safe
+      mockFindSafeByCondition.mockResolvedValue([mockSafe[4]]);
+      // find safe owner
+      mockFindSafeOwnerByCondition.mockResolvedValue([]);
+
+      const result = await safeController.getBalance(param, query);
+      expect(result.Message).toEqual(ErrorMap.SAFE_ADDRESS_IS_NULL.Message);
+    });
+
+    it(`should return error: ${ErrorMap.CHAIN_ID_NOT_EXIST.Message}`, async () => {
+      const param: MODULE_REQUEST.GetSafePathParams = {
+        safeId: '3',
+      };
+      const query: MODULE_REQUEST.GetSafeQuery = {
+        internalChainId: undefined,
+      };
+
+      // find safe
+      mockFindSafeByCondition.mockResolvedValue([mockSafe[1]]);
+      // find chainInfo
+      mockFindOneChain.mockResolvedValue(undefined);
+
+      const result = await safeController.getBalance(param, query);
+      expect(result.Message).toEqual(ErrorMap.CHAIN_ID_NOT_EXIST.Message);
+    });
+
+    it(`should return error: ${ErrorMap.GET_BALANCE_FAILED.Message}`, async () => {
+      const param: MODULE_REQUEST.GetSafePathParams = {
+        safeId: '3',
+      };
+      const query: MODULE_REQUEST.GetSafeQuery = {
+        internalChainId: undefined,
+      };
+
+      // find safe
+      mockFindSafeByCondition.mockResolvedValue([mockSafe[1]]);
+      // find chainInfo
+      mockFindOneChain.mockResolvedValue(mockChain[0]);
+      // get balance from network
+      mockInitNetwork.mockRejectedValue({});
+
+      const result = await safeController.getBalance(param, query);
+      expect(result.Message).toEqual(ErrorMap.GET_BALANCE_FAILED.Message);
+    });
+
+    it(`should return error: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
+      const param: MODULE_REQUEST.GetSafePathParams = {
+        safeId: '3',
+      };
+      const query: MODULE_REQUEST.GetSafeQuery = {
+        internalChainId: undefined,
+      };
+
+      // find safe
+      mockFindSafeByCondition.mockResolvedValue([mockSafe[1]]);
+      // find chainInfo
+      mockFindOneChain.mockResolvedValue(mockChain[0]);
+      // get balance from network
+      mockInitNetwork.mockResolvedValue({});
+
+      const result = await safeController.getBalance(param, query);
+      expect(result.Message).toEqual(ErrorMap.SUCCESSFUL.Message);
     });
   });
 

@@ -20,6 +20,8 @@ import { MultisigTransaction } from './entities/multisig-transaction.entity';
 import { CreateTransactionRequest } from './dtos/requests/transaction/create-transaction.request';
 import { AuraTx } from './entities';
 import {
+  GetSafeBalancePathParams,
+  GetSafeBalanceQuery,
   GetSafePathParams,
   GetSafeQuery,
 } from './dtos/requests/multisig-wallet/get-safe.request';
@@ -50,8 +52,10 @@ export const REQUEST_CONFIG = {
   SINGLE_SIGN_TRANSACTION_REQUEST: SingleSignTransactionRequest,
   CONNECT_WALLET_TO_GET_INFORMATION: ConnectMultisigWalletRequest,
   GET_SAFE_QUERY: GetSafeQuery,
+  GET_SAFE_BALANCE_QUERY: GetSafeBalanceQuery,
   GET_SAFES_BY_OWNER_QUERY: GetSafesByOwnerAddressQuery,
   GET_SAFE_PATH_PARAMS: GetSafePathParams,
+  GET_SAFE_BALANCE_PATH_PARAMS: GetSafeBalancePathParams,
   CONFIRM_SAFE_PATH_PARAMS: ConfirmSafePathParams,
   DELETE_SAFE_PATH_PARAMS: DeleteSafePathParams,
   GET_SAFES_BY_OWNER_PARAM: GetSafesByOwnerAddressParams,
@@ -60,23 +64,25 @@ export const REQUEST_CONFIG = {
 };
 
 export module MODULE_REQUEST {
-  export abstract class SimulatingMultisigRequest extends REQUEST_CONFIG.SIMULATING_MULTISIG_REQUEST {}
-  export abstract class SimulatingSignMsgRequest extends REQUEST_CONFIG.SIMULATING_SIGN_MSG_REQUEST {}
-  export abstract class CreateMultisigWalletRequest extends REQUEST_CONFIG.CREATE_MULTISIG_WALLET_REQUEST {}
-  export abstract class ConfirmMultisigWalletRequest extends REQUEST_CONFIG.CONFIRM_MULTISIG_WALLET_REQUEST {}
-  export abstract class DeleteMultisigWalletRequest extends REQUEST_CONFIG.DELETE_MULTISIG_WALLET_REQUEST {}
-  export abstract class CreateTransactionRequest extends REQUEST_CONFIG.CREATE_TRANSACTION_REQUEST {}
-  export abstract class SendTransactionRequest extends REQUEST_CONFIG.SEND_TRANSACTION_REQUEST {}
-  export abstract class SingleSignTransactionRequest extends REQUEST_CONFIG.SINGLE_SIGN_TRANSACTION_REQUEST {}
-  export abstract class ConnectMultisigWalletRequest extends REQUEST_CONFIG.CONNECT_WALLET_TO_GET_INFORMATION {}
-  export abstract class GetSafeQuery extends REQUEST_CONFIG.GET_SAFE_QUERY {}
-  export abstract class GetSafesByOwnerAddressQuery extends REQUEST_CONFIG.GET_SAFES_BY_OWNER_QUERY {}
-  export abstract class GetSafePathParams extends REQUEST_CONFIG.GET_SAFE_PATH_PARAMS {}
-  export abstract class ConfirmSafePathParams extends REQUEST_CONFIG.CONFIRM_SAFE_PATH_PARAMS {}
-  export abstract class DeleteSafePathParams extends REQUEST_CONFIG.DELETE_SAFE_PATH_PARAMS {}
-  export abstract class GetSafesByOwnerAddressParams extends REQUEST_CONFIG.GET_SAFES_BY_OWNER_PARAM {}
-  export abstract class GetAllTransactionsRequest extends REQUEST_CONFIG.GET_ALL_TRANSACTION_REQUEST {}
-  export abstract class GetMultisigSignaturesParam extends REQUEST_CONFIG.GET_MULTISIG_SIGNATURES_PARAM {}
+  export abstract class SimulatingMultisigRequest extends REQUEST_CONFIG.SIMULATING_MULTISIG_REQUEST { }
+  export abstract class SimulatingSignMsgRequest extends REQUEST_CONFIG.SIMULATING_SIGN_MSG_REQUEST { }
+  export abstract class CreateMultisigWalletRequest extends REQUEST_CONFIG.CREATE_MULTISIG_WALLET_REQUEST { }
+  export abstract class ConfirmMultisigWalletRequest extends REQUEST_CONFIG.CONFIRM_MULTISIG_WALLET_REQUEST { }
+  export abstract class DeleteMultisigWalletRequest extends REQUEST_CONFIG.DELETE_MULTISIG_WALLET_REQUEST { }
+  export abstract class CreateTransactionRequest extends REQUEST_CONFIG.CREATE_TRANSACTION_REQUEST { }
+  export abstract class SendTransactionRequest extends REQUEST_CONFIG.SEND_TRANSACTION_REQUEST { }
+  export abstract class SingleSignTransactionRequest extends REQUEST_CONFIG.SINGLE_SIGN_TRANSACTION_REQUEST { }
+  export abstract class ConnectMultisigWalletRequest extends REQUEST_CONFIG.CONNECT_WALLET_TO_GET_INFORMATION { }
+  export abstract class GetSafeQuery extends REQUEST_CONFIG.GET_SAFE_QUERY { }
+  export abstract class GetSafeBalanceQuery extends REQUEST_CONFIG.GET_SAFE_BALANCE_QUERY { }
+  export abstract class GetSafesByOwnerAddressQuery extends REQUEST_CONFIG.GET_SAFES_BY_OWNER_QUERY { }
+  export abstract class GetSafePathParams extends REQUEST_CONFIG.GET_SAFE_PATH_PARAMS { }
+  export abstract class GetSafeBalancePathParams extends REQUEST_CONFIG.GET_SAFE_BALANCE_PATH_PARAMS { }
+  export abstract class ConfirmSafePathParams extends REQUEST_CONFIG.CONFIRM_SAFE_PATH_PARAMS { }
+  export abstract class DeleteSafePathParams extends REQUEST_CONFIG.DELETE_SAFE_PATH_PARAMS { }
+  export abstract class GetSafesByOwnerAddressParams extends REQUEST_CONFIG.GET_SAFES_BY_OWNER_PARAM { }
+  export abstract class GetAllTransactionsRequest extends REQUEST_CONFIG.GET_ALL_TRANSACTION_REQUEST { }
+  export abstract class GetMultisigSignaturesParam extends REQUEST_CONFIG.GET_MULTISIG_SIGNATURES_PARAM { }
 }
 
 export const SERVICE_INTERFACE = {

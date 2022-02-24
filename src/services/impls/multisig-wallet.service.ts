@@ -29,8 +29,7 @@ import { Chain } from 'src/entities';
 @Injectable()
 export class MultisigWalletService
   extends BaseService
-  implements IMultisigWalletService
-{
+  implements IMultisigWalletService {
   private readonly _logger = new Logger(MultisigWalletService.name);
   private defaultInternalChainId: number;
   private _commonUtil: CommonUtil = new CommonUtil();
@@ -247,8 +246,8 @@ export class MultisigWalletService
   }
 
   async getBalance(
-    param: MODULE_REQUEST.GetSafePathParams,
-    query: MODULE_REQUEST.GetSafeQuery,
+    param: MODULE_REQUEST.GetSafeBalancePathParams,
+    query: MODULE_REQUEST.GetSafeBalanceQuery,
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
@@ -444,12 +443,12 @@ export class MultisigWalletService
   private calculateCondition(safeId: string, internalChainId?: number) {
     return isNaN(Number(safeId))
       ? {
-          safeAddress: safeId,
-          internalChainId: internalChainId || this.defaultInternalChainId || '',
-        }
+        safeAddress: safeId,
+        internalChainId: internalChainId || this.defaultInternalChainId || '',
+      }
       : {
-          id: safeId,
-        };
+        id: safeId,
+      };
   }
 
   async insertSafe(safe: any): Promise<{

@@ -26,7 +26,7 @@ export class MultisigWalletController {
   constructor(
     @Inject(SERVICE_INTERFACE.IMULTISIG_WALLET_SERVICE)
     private multisigWalletService: IMultisigWalletService,
-  ) {}
+  ) { }
 
   @Post()
   @ApiOperation({ summary: 'Create a multisig wallet' })
@@ -58,8 +58,8 @@ export class MultisigWalletController {
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
   @HttpCode(HttpStatus.OK)
   async getBalance(
-    @Param() param: MODULE_REQUEST.GetSafePathParams,
-    @Query() query: MODULE_REQUEST.GetSafeQuery,
+    @Param() param: MODULE_REQUEST.GetSafeBalancePathParams,
+    @Query() query: MODULE_REQUEST.GetSafeBalanceQuery,
   ) {
     this._logger.log(
       '========== Get status of the multisig wallet by safeId ==========',
