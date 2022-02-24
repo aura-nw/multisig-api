@@ -16,8 +16,8 @@ export interface IMultisigWalletRepository extends IBaseRepository {
   );
 
   /**
-     * Get Threshold and Creator of Safe
-     * @param safeAddress Address of Safe
-     */
-   getThresholdAndSigner(safeAddress: string): any;
+    * Get Threshold and Creator of Safe
+    * @param safeAddress Address of Safe
+    */
+  getThreshold(safeAddress: string): any;
 }
