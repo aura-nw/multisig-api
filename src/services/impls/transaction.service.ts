@@ -359,8 +359,9 @@ export class TransactionService
     }
   }
 
-  async getListConfirmMultisigTransaction(
-    internalTxHash: string
+  async getListMultisigConfirm(
+    internalTxHash: string,
+    status?: string
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     const resId = await this.multisigTransactionRepos.getMultisigTxId(
@@ -368,23 +369,26 @@ export class TransactionService
     );
     if (resId) {
       const result =
-        await this.getListConfirmMultisigTransactionById(
-          resId.id,
+        await this.getListMultisigConfirmById(
+          resId,
+          status!!
         );
-      return res.return(ErrorMap.SUCCESSFUL, result);
+      return result.Data;
     } else {
       return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
     }
   }
 
-  async getListConfirmMultisigTransactionById(
-    param: MODULE_REQUEST.GetMultisigSignaturesParam
+  async getListMultisigConfirmById(
+    param: MODULE_REQUEST.GetMultisigSignaturesParam,
+    status?: string
   ): Promise<ResponseDto> {
+    const res = new ResponseDto();
     const result =
       await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-        param.id,
+        param.id, status!!
       );
-    return result;
+    return res.return(ErrorMap.SUCCESSFUL, result);
   }
 
   async getTransactionHistory(
@@ -398,7 +402,7 @@ export class TransactionService
       if (result[i].FromAddress == request.safeAddress) {
         result[i].Direction = TRANSFER_DIRECTION.OUTGOING;
         const param: MODULE_REQUEST.GetMultisigSignaturesParam = { id: result[i].Id }
-        result[i].Signatures = await this.getListConfirmMultisigTransactionById(param);
+        result[i].Signatures = await (await this.getListMultisigConfirmById(param)).Data;
       } else if (result[i].ToAddress == request.safeAddress) {
         result[i].Direction = TRANSFER_DIRECTION.INCOMING;
       }
@@ -411,36 +415,72 @@ export class TransactionService
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      const { internalTxHash } = param;
+      const internalTxHash = param.internalTxHash;
       let condition = this.calculateCondition(internalTxHash);
-      let result;
+      let rawResult, result;
       if(condition.txHash) {
-        result = await this.transRepos.getTransactionDetailsAuraTx(condition);
+        rawResult = await this.transRepos.getTransactionDetailsAuraTx(condition);
+      } else if(condition.id) {
+        rawResult = await this.multisigTransactionRepos.getTransactionDetailsMultisigTransaction(condition);
       }
-      if(!result || condition.id) {
-        result = await this.multisigTransactionRepos.getTransactionDetailsMultisigTransaction(condition);
-      }
-      if(!result || result.length == 0) {
-        this._logger.debug(
-          `Not found any transaction with condition: ${JSON.stringify(condition)}`,
-        );
-        return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
-      }
-      else {
-        if(result.Code && result.Code == 0) {
-          result.Status = TRANSACTION_STATUS.SUCCESS;
-        } else if(result.Code) {
-          result.Status = TRANSACTION_STATUS.FAILED;
+      if(rawResult.Code) {
+        result = {
+          Id: rawResult.Id,
+          CreatedAt: rawResult.CreatedAt,
+          UpdatedAt: rawResult.UpdatedAt,
+          FromAddress: rawResult.FromAddress,
+          ToAddress: rawResult.ToAddress,
+          TxHash: rawResult.TxHash,
+          Amount: rawResult.Amount,
+          Denom: rawResult.Denom,
+          GasUsed: rawResult.GasUsed,
+          GasWanted: rawResult.GasWanted,
+          ChainId: rawResult.ChainId,
         }
-        if(result.FromAddress == param.safeAddress) result.Direction = TRANSFER_DIRECTION.OUTGOING;
-        else if(result.ToAddress == param.safeAddress) result.Direction = TRANSFER_DIRECTION.INCOMING;
+        if(rawResult.Code == 0) {
+          result.Status = TRANSACTION_STATUS.SUCCESS;
+        } else 
+          result.Status = TRANSACTION_STATUS.FAILED;
+      } else {
+        result = {
+          Id: rawResult.Id,
+          CreatedAt: rawResult.CreatedAt,
+          UpdatedAt: rawResult.UpdatedAt,
+          FromAddress: rawResult.FromAddress,
+          ToAddress: rawResult.ToAddress,
+          TxHash: rawResult.TxHash,
+          Amount: rawResult.Amount,
+          Denom: rawResult.Denom,
+          GasUsed: '',
+          GasWanted: rawResult.GasWanted,
+          ChainId: rawResult.ChainId,
+          Status: rawResult.Status,
+          ConfirmationsRequired: rawResult.ConfirmationsRequired,
+          Signer: rawResult.Signer,
+        }
+      }
+      if(result.FromAddress == param.safeAddress) {
+        if(!result.Signer) {
+          let safeInfo = await this.safeRepos.getThresholdAndSigner(param.safeAddress);
+          if(safeInfo) {
+            result.ConfirmationsRequired = safeInfo.ConfirmationsRequired;
+            result.Signer = safeInfo.Signer;
+          }
+        }
+        result.Direction = TRANSFER_DIRECTION.OUTGOING;
         if(result.TxHash) {
-          result.Signatures = await (await this.getListConfirmMultisigTransaction(result.TxHash)).Data;
+          result.Confirmations = await this.getListMultisigConfirm(result.TxHash, MULTISIG_CONFIRM_STATUS.CONFIRM);
+          result.Rejectors = await this.getListMultisigConfirm(result.TxHash, MULTISIG_CONFIRM_STATUS.REJECT);
+          result.Executor = await this.getListMultisigConfirm(result.TxHash, MULTISIG_CONFIRM_STATUS.SEND);
         } else {
           const param: MODULE_REQUEST.GetMultisigSignaturesParam = { id: result.Id }
-          result.Signatures = await this.getListConfirmMultisigTransactionById(param);
+          result.Confirmations = await (await this.getListMultisigConfirmById(param, MULTISIG_CONFIRM_STATUS.CONFIRM)).Data;
+          result.Rejectors = await (await this.getListMultisigConfirmById(param, MULTISIG_CONFIRM_STATUS.REJECT)).Data;
+          result.Executor = await (await this.getListMultisigConfirmById(param, MULTISIG_CONFIRM_STATUS.SEND)).Data;
         }
-      }
+      } 
+      else if(result.ToAddress == param.safeAddress) 
+        result.Direction = TRANSFER_DIRECTION.INCOMING;
       return res.return(ErrorMap.SUCCESSFUL, result);
     } catch (error) {
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);

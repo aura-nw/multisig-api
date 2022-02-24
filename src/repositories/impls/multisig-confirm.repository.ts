@@ -21,7 +21,7 @@ export class MultisigConfirmRepository
               );
         }
 
-        async getListConfirmMultisigTransaction(multisigTransactionId: number) {
+        async getListConfirmMultisigTransaction(multisigTransactionId: number, status?: string) {
             let sqlQuerry = this.repos
                 .createQueryBuilder('multisigConfirm')
                 .where('multisigConfirm.multisigTransactionId = :multisigTransactionId', { multisigTransactionId })
@@ -30,9 +30,11 @@ export class MultisigConfirmRepository
                     'multisigConfirm.createdAt as createdAt',
                     'multisigConfirm.updatedAt as updatedAt',
                     'multisigConfirm.ownerAddress as ownerAddress',
+                    'multisigConfirm.signature as signature',
                     'multisigConfirm.status as status',
                 ])
                 .orderBy('multisigConfirm.createdAt', 'ASC');
+            if(status) sqlQuerry.andWhere('multisigConfirm.status = :status', { status })
             let resultData = await sqlQuerry.getRawMany();
             return resultData;
         }
