@@ -25,8 +25,8 @@ export interface IMultisigWalletService {
    * @param safeId string - id/address of safe
    */
   getBalance(
-    param: MODULE_REQUEST.GetSafePathParams,
-    query: MODULE_REQUEST.GetSafeQuery,
+    param: MODULE_REQUEST.GetSafeBalancePathParams,
+    query: MODULE_REQUEST.GetSafeBalanceQuery,
   ): Promise<ResponseDto>;
 
   /**
