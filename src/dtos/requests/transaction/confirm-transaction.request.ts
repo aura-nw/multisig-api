@@ -1,18 +1,28 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class ConfirmTransactionRequest {
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Owner address'
+  })
   fromAddress: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Offchain Transaction Id'
+  })
   transactionId: number;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Owner sign transaction via wallet then get bodyBytes'
+  })
   bodyBytes: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Owner sign transaction via wallet then get transaction'
+  })
   signature: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Chain Id'
+  })
   internalChainId: number;
 }

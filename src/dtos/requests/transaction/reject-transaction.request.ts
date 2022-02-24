@@ -1,12 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class RejectTransactionRequest {
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Owner Address'
+  })
   fromAddress: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Offchain Transaction Id'
+  })
   transactionId: number;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Chain Id'
+  })
   internalChainId: number;
 }

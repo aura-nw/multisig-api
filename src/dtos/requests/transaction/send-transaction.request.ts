@@ -1,12 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class SendTransactionRequest {
-    @ApiProperty()
+    @ApiProperty({
+        description: 'Offchain Transaction Id'
+    })
     transactionId: number;
 
-    @ApiProperty()
+    @ApiProperty({
+        description: 'Chain Id'
+    })
     internalChainId: number;
 
-    @ApiProperty()
+    @ApiProperty({
+        description: 'Owner who broadcast transaction'
+    })
     owner: string;
 }
