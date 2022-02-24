@@ -3,9 +3,9 @@ import { IsString } from "class-validator";
 
 export class GetMultisigSignaturesParam {
     @ApiProperty({
-        description: 'Tx Hash of multisig transaction',
-        type: String,
+        description: 'Id of multisig transaction',
+        type: Number,
     })
     @IsString()
-    internalTxHash: string;
+    id: number;
 }

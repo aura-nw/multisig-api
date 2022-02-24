@@ -19,11 +19,19 @@ export interface ITransactionService {
   ): Promise<ResponseDto>;
 
   /**
-   * single sign to a transaction
+   * confirm transaction
    * @param request
    */
-  singleSignTransaction(
-    request: MODULE_REQUEST.SingleSignTransactionRequest,
+  confirmTransaction(
+    request: MODULE_REQUEST.ConfirmTransactionRequest,
+  ): Promise<ResponseDto>;
+
+  /**
+   * reject transaction
+   * @param request 
+   */
+  rejectTransaction(
+    request: MODULE_REQUEST.RejectTransactionParam,
   ): Promise<ResponseDto>;
 
   /**
@@ -31,6 +39,14 @@ export interface ITransactionService {
    * @param request
    */
   getListConfirmMultisigTransaction(
+    internalTxHash: string
+  ): Promise<ResponseDto>;
+
+  /**
+   * Get list of confirmation of Multisig Transaction by Id
+   * @param request
+   */
+   getListConfirmMultisigTransactionById(
     param: MODULE_REQUEST.GetMultisigSignaturesParam
   ): Promise<ResponseDto>;
 
@@ -39,5 +55,12 @@ export interface ITransactionService {
    */
   getTransactionHistory(
     request: MODULE_REQUEST.GetAllTransactionsRequest,
+  ): Promise<ResponseDto>;
+
+  /**
+   * Get detail of a transaction
+   */
+  getTransactionDetails(
+    param: MODULE_REQUEST.GetTransactionDetailsParam
   ): Promise<ResponseDto>;
 }

@@ -4,7 +4,7 @@ import { BaseRepository } from './base.repository';
 import { getManager, ObjectLiteral, Repository } from 'typeorm';
 import { ENTITIES_CONFIG } from 'src/module.config';
 import { IMultisigTransactionsRepository } from '../imultisig-transaction.repository';
-import { Safe } from 'src/entities';
+import { Chain, Safe } from 'src/entities';
 
 @Injectable()
 export class MultisigTransactionRepository
@@ -32,4 +32,19 @@ export class MultisigTransactionRepository
       let resultData = await sqlQuerry.getRawOne();
       return resultData;
   }
+
+  async getTransactionDetailsMultisigTransaction(condition: any) {
+    const param = condition.txHash ? condition.txHash : condition.id;
+    let sqlQuerry = this.repos
+        .createQueryBuilder('multisigTransaction')
+        .innerJoin(Chain, 'chain', 'multisigTransaction.internalChainId = chain.id')
+        .select([
+          'multisigTransaction.*',
+          'chain.chainId as ChainId'
+        ]);
+    if(condition.txHash) sqlQuerry.where('multisigTransaction.txHash = :param', { param })
+    else sqlQuerry.where('multisigTransaction.id = :param', { param })
+    let resultData = await sqlQuerry.getRawOne();
+    return resultData;
+}
 }

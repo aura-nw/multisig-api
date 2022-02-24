@@ -71,9 +71,9 @@ export const ErrorMap = {
     Code: 'E017',
     Message: 'Duplicate safe information!',
   },
-  CANNOT_CREATE_SAFE_ADDRESS: {
+  PERMISSION_DENIED: {
     Code: 'E018',
-    Message: 'Cannot create safe addresss!',
+    Message: 'Permission denied!'
   },
   INSERT_SAFE_FAILED: {
     Code: 'E019',
@@ -102,6 +102,10 @@ export const ErrorMap = {
   GET_BALANCE_FAILED: {
     Code: 'E025',
     Message: 'Get balance failed!',
+  },
+  CANNOT_CREATE_SAFE_ADDRESS: {
+    Code: 'E026',
+    Message: 'Cannot create safe addresss!',
   },
   C001: {
     Code: 'C001',

@@ -39,12 +39,20 @@ export class TransactionController {
     return await this.transactionService.createTransaction(request);
   }
 
-  @Post(URL_CONSTANTS.SIGLE_SIGN)
-  @ApiOperation({ summary: 'owner sign to their transaction' })
-  async signTransaction(
-    @Body() request: MODULE_REQUEST.SingleSignTransactionRequest,
+  @Post(URL_CONSTANTS.CONFIRM_TRANSACTION)
+  @ApiOperation({ summary: 'owner confirm their transaction' })
+  async confirmTransaction(
+    @Body() request: MODULE_REQUEST.ConfirmTransactionRequest,
   ) {
-    return await this.transactionService.singleSignTransaction(request);
+    return await this.transactionService.confirmTransaction(request);
+  }
+
+  @Post(URL_CONSTANTS.REJECT_TRANSACTION)
+  @ApiOperation({ summary: 'owner reject their transaction' })
+  async rejectTransaction(
+    @Body() request: MODULE_REQUEST.RejectTransactionParam,
+  ) {
+    return await this.transactionService.rejectTransaction(request);
   }
 
   @Post(URL_CONSTANTS.GET_ALL_TXS)
@@ -62,11 +70,11 @@ export class TransactionController {
   @ApiOperation({
     summary: 'Get the list of signatures for a multisig transaction',
   })
-  async getSignsOfMultisigTx(
+  async getSignaturesOfMultisigTx(
     @Param() param: MODULE_REQUEST.GetMultisigSignaturesParam
   ) {
     this._logger.log('========== Get Signatures of Multisig Transaction ==========');
-    return await this.transactionService.getListConfirmMultisigTransaction(
+    return await this.transactionService.getListConfirmMultisigTransactionById(
       param,
     );
   }
@@ -80,5 +88,18 @@ export class TransactionController {
   ) {
     this._logger.log('========== Send transaction to AURA ==========');
     return await this.transactionService.sendTransaction(request);
+  }
+
+  @Get(URL_CONSTANTS.TRANSACTION_DETAILS)
+  @ApiOperation({
+    summary: 'Get details of a transaction',
+  })
+  async getTransactionDetails(
+    @Param() param: MODULE_REQUEST.GetTransactionDetailsParam
+  ) {
+    this._logger.log('========== Get details of a Transaction ==========');
+    return await this.transactionService.getTransactionDetails(
+      param,
+    );
   }
 }
