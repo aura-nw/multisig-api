@@ -38,8 +38,20 @@ export class MultisigTransactionRepository
     let sqlQuerry = this.repos
         .createQueryBuilder('multisigTransaction')
         .innerJoin(Chain, 'chain', 'multisigTransaction.internalChainId = chain.id')
+        .innerJoin(Safe, 'safe', 'multisigTransaction.fromAddress = safe.safeAddress')
         .select([
-          'multisigTransaction.*',
+          'multisigTransaction.id as Id',
+          'multisigTransaction.createdAt as CreatedAt',
+          'multisigTransaction.updatedAt as UpdatedAt',
+          'multisigTransaction.fromAddress as FromAddress',
+          'multisigTransaction.toAddress as ToAddress',
+          'multisigTransaction.txHash as TxHash',
+          'multisigTransaction.amount as Amount',
+          'multisigTransaction.denom as Denom',
+          'multisigTransaction.status as Status',
+          'multisigTransaction.gas as GasWanted',
+          'safe.threshold as ConfirmationsRequired',
+          'safe.creatorAddress as Signer',
           'chain.chainId as ChainId'
         ]);
     if(condition.txHash) sqlQuerry.where('multisigTransaction.txHash = :param', { param })

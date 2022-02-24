@@ -38,15 +38,16 @@ export interface ITransactionService {
    * Get list of confirmation of Multisig Transaction
    * @param request
    */
-  getListConfirmMultisigTransaction(
-    internalTxHash: string
+  getListMultisigConfirm(
+    internalTxHash: string,
+    status?: string
   ): Promise<ResponseDto>;
 
   /**
    * Get list of confirmation of Multisig Transaction by Id
    * @param request
    */
-   getListConfirmMultisigTransactionById(
+   getListMultisigConfirmById(
     param: MODULE_REQUEST.GetMultisigSignaturesParam
   ): Promise<ResponseDto>;
 
