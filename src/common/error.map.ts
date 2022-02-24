@@ -11,9 +11,9 @@ export const ErrorMap = {
     Code: 'E002',
     Message: 'Safe already exists',
   },
-  NOTFOUND: {
+  NO_SAFES_FOUND: {
     Code: 'E003',
-    Message: 'Not found',
+    Message: 'No safes found',
   },
   SOMETHING_WENT_WRONG: {
     Code: 'E004',
@@ -74,6 +74,38 @@ export const ErrorMap = {
   PERMISSION_DENIED: {
     Code: 'E018',
     Message: 'Permission denied!'
+  },
+  INSERT_SAFE_FAILED: {
+    Code: 'E019',
+    Message: 'Insert safe failed!',
+  },
+  INSERT_SAFE_OWNER_FAILED: {
+    Code: 'E020',
+    Message: 'Insert safe owner failed!',
+  },
+  NO_SAFE_OWNERS_FOUND: {
+    Code: 'E021',
+    Message: 'No safe owners found',
+  },
+  SAFE_OWNERS_NOT_INCLUDE_ADDRESS: {
+    Code: 'E022',
+    Message: 'This address was not found in the safe owners list',
+  },
+  UPDATE_SAFE_OWNER_FAILED: {
+    Code: 'E023',
+    Message: 'Update safe owner failed!',
+  },
+  SAFE_ADDRESS_IS_NULL: {
+    Code: 'E024',
+    Message: 'SafeAddress is null!',
+  },
+  GET_BALANCE_FAILED: {
+    Code: 'E025',
+    Message: 'Get balance failed!',
+  },
+  CANNOT_CREATE_SAFE_ADDRESS: {
+    Code: 'E026',
+    Message: 'Cannot create safe addresss!',
   },
   C001: {
     Code: 'C001',

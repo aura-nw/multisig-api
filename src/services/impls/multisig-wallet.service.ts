@@ -98,18 +98,6 @@ export class MultisigWalletService
       safe.creatorAddress = creatorAddress;
       safe.creatorPubkey = creatorPubkey;
       safe.threshold = threshold;
-      if (otherOwnersAddress.length === 0) {
-        const safeInfo = this.createSafeAddressAndPubkey(
-          [creatorPubkey],
-          threshold,
-          chainInfo.prefix
-        );
-        safe.safeAddress = safeInfo.address;
-        safe.safePubkey = safeInfo.pubkey;
-        safe.status = SAFE_STATUS.CREATED;
-      } else {
-        safe.status = SAFE_STATUS.PENDING;
-      }
       safe.internalChainId = internalChainId;
 
       // check duplicate with safe address hash
@@ -121,10 +109,29 @@ export class MultisigWalletService
       if (existInDB) return res.return(ErrorMap.DUPLICATE_SAFE_ADDRESS_HASH);
       safe.addressHash = safeAddressHash;
 
+      // check if need create safe address
+      if (otherOwnersAddress.length === 0) {
+        try {
+          const safeInfo = this.createSafeAddressAndPubkey(
+            [creatorPubkey],
+            threshold,
+            chainInfo.prefix,
+          );
+
+          safe.safeAddress = safeInfo.address;
+          safe.safePubkey = safeInfo.pubkey;
+          safe.status = SAFE_STATUS.CREATED;
+        } catch (error) {
+          return res.return(ErrorMap.CANNOT_CREATE_SAFE_ADDRESS, error.message);
+        }
+      } else {
+        safe.status = SAFE_STATUS.PENDING;
+      }
+
       // insert
       const result = await this.insertSafe(safe);
       if (result.error !== ErrorMap.SUCCESSFUL) {
-        return res.return(result.error, {});
+        return res.return(result.error, result.errorMsg);
       }
       const safeId = result.safe?.id;
 
@@ -137,9 +144,10 @@ export class MultisigWalletService
       try {
         await this.safeOwnerRepo.create(safeCreator);
       } catch (err) {
-        return res.return(ErrorMap.SOMETHING_WENT_WRONG, {});
+        return res.return(ErrorMap.INSERT_SAFE_OWNER_FAILED, err.message);
       }
 
+      // TODO: bulk insert safe creator and all safe owners
       // insert safe_owner
       for (const ownerAddress of otherOwnersAddress) {
         const safeOwner = new ENTITIES_CONFIG.SAFE_OWNER();
@@ -149,7 +157,7 @@ export class MultisigWalletService
         try {
           await this.safeOwnerRepo.create(safeOwner);
         } catch (err) {
-          return res.return(ErrorMap.SOMETHING_WENT_WRONG, {});
+          return res.return(ErrorMap.INSERT_SAFE_OWNER_FAILED, err.message);
         }
       }
 
@@ -179,7 +187,7 @@ export class MultisigWalletService
         this._logger.debug(
           `Not found any safe with condition: ${JSON.stringify(condition)}`,
         );
-        return res.return(ErrorMap.NOTFOUND);
+        return res.return(ErrorMap.NO_SAFES_FOUND);
       }
       const safe = safes[0];
 
@@ -191,7 +199,7 @@ export class MultisigWalletService
         this._logger.debug(
           `Not found any safe owner with safeId: ${safeId} and internalChainId: ${internalChainId}`,
         );
-        return res.return(ErrorMap.NOTFOUND);
+        return res.return(ErrorMap.NO_SAFE_OWNERS_FOUND);
       }
 
       // get confirm list
@@ -212,16 +220,75 @@ export class MultisigWalletService
       const chainInfo = (await this.generalRepo.findOne(
         safeInfo.internalChainId,
       )) as Chain;
+      if (!chainInfo) return res.return(ErrorMap.CHAIN_ID_NOT_EXIST);
 
       // if safe created => Get balance
       if (safeInfo.address !== null) {
-        const network = new Network(chainInfo.rpc);
-        await network.init();
-        const balance = await network.getBalance(safeInfo.address, chainInfo.denom);
-        safeInfo.balance = [balance];
+        try {
+          const network = new Network(chainInfo.rpc);
+          await network.init();
+          const balance = await network.getBalance(
+            safeInfo.address,
+            chainInfo.denom,
+          );
+          safeInfo.balance = [balance];
+        } catch (error) {
+          return res.return(ErrorMap.GET_BALANCE_FAILED, error.message);
+        }
       }
       return res.return(ErrorMap.SUCCESSFUL, safeInfo);
     } catch (error) {
+      this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
+      this._logger.error(`${error.name}: ${error.message}`);
+      this._logger.error(`${error.stack}`);
+      return res.return(ErrorMap.E500, error.message);
+    }
+  }
+
+  async getBalance(
+    param: MODULE_REQUEST.GetSafeBalancePathParams,
+    query: MODULE_REQUEST.GetSafeBalanceQuery,
+  ): Promise<ResponseDto> {
+    const res = new ResponseDto();
+    try {
+      const { safeId } = param;
+      const { internalChainId } = query;
+      // build search condition
+      const condition = this.calculateCondition(safeId, internalChainId);
+
+      // find safes
+      const safes = await this.safeRepo.findByCondition(condition);
+      if (!safes || safes.length === 0) {
+        this._logger.debug(
+          `Not found any safe with condition: ${JSON.stringify(condition)}`,
+        );
+        return res.return(ErrorMap.NO_SAFES_FOUND);
+      }
+      const safe = safes[0];
+
+      if (!safe.safeAddress || safe.safeAddress === null) {
+        // cannot get balance because safe address is null
+        return res.return(ErrorMap.SAFE_ADDRESS_IS_NULL);
+      }
+      // get chainInfo
+      const chainInfo = (await this.generalRepo.findOne(
+        safe.internalChainId,
+      )) as Chain;
+      if (!chainInfo) return res.return(ErrorMap.CHAIN_ID_NOT_EXIST);
+
+      try {
+        const network = new Network(chainInfo.rpc);
+        await network.init();
+        const balance = await network.getBalance(
+          safe.safeAddress,
+          chainInfo.denom,
+        );
+        return res.return(ErrorMap.SUCCESSFUL, [balance]);
+      } catch (error) {
+        return res.return(ErrorMap.GET_BALANCE_FAILED, error.message);
+      }
+    } catch (error) {
+      console.log(error);
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
       this._logger.error(`${error.name}: ${error.message}`);
       this._logger.error(`${error.stack}`);
@@ -240,7 +307,8 @@ export class MultisigWalletService
       const condition = this.calculateCondition(safeId);
       // find safe
       const safes = (await this.safeRepo.findByCondition(condition)) as Safe[];
-      if (!safes || safes.length === 0) return res.return(ErrorMap.NOTFOUND);
+      if (!safes || safes.length === 0)
+        return res.return(ErrorMap.NO_SAFES_FOUND);
       const safe = safes[0];
 
       // check safe
@@ -251,19 +319,22 @@ export class MultisigWalletService
       const safeOwners = (await this.safeOwnerRepo.findByCondition({
         safeId: safe.id,
       })) as SafeOwner[];
-      if (safeOwners.length === 0) return res.return(ErrorMap.NOTFOUND);
+      if (safeOwners.length === 0)
+        return res.return(ErrorMap.NO_SAFE_OWNERS_FOUND);
 
       // get safe owner by address
       const index = safeOwners.findIndex((s) => s.ownerAddress === myAddress);
       // const safeOwner = safeOwners[safeOwnerIndex];
-      if (index === -1) return res.return(ErrorMap.NOTFOUND);
+      if (index === -1)
+        return res.return(ErrorMap.SAFE_OWNERS_NOT_INCLUDE_ADDRESS);
       if (safeOwners[index].ownerPubkey !== null)
         return res.return(ErrorMap.SAFE_OWNER_PUBKEY_NOT_EMPTY);
 
       // update safe owner
       safeOwners[index].ownerPubkey = myPubkey;
       const updateResult = await this.safeOwnerRepo.update(safeOwners[index]);
-      if (!updateResult) return res.return(ErrorMap.SOMETHING_WENT_WRONG, {});
+      if (!updateResult)
+        return res.return(ErrorMap.UPDATE_SAFE_OWNER_FAILED, {});
 
       // check all owner confirmed
       const notReady = safeOwners.findIndex((s) => s.ownerPubkey === null);
@@ -280,11 +351,18 @@ export class MultisigWalletService
       )) as Chain;
       if (!chainInfo) return res.return(ErrorMap.CHAIN_ID_NOT_EXIST);
 
-      const safeInfo = this.createSafeAddressAndPubkey(pubkeys, safe.threshold, chainInfo.prefix);
-      safe.safeAddress = safeInfo.address;
-      safe.safePubkey = safeInfo.pubkey;
-      safe.status = SAFE_STATUS.CREATED;
-
+      try {
+        const safeInfo = this.createSafeAddressAndPubkey(
+          pubkeys,
+          safe.threshold,
+          chainInfo.prefix,
+        );
+        safe.safeAddress = safeInfo.address;
+        safe.safePubkey = safeInfo.pubkey;
+        safe.status = SAFE_STATUS.CREATED;
+      } catch (error) {
+        return res.return(ErrorMap.CANNOT_CREATE_SAFE_ADDRESS, error.message);
+      }
       // update safe
       await this.safeRepo.update(safe);
       return res.return(ErrorMap.SUCCESSFUL, safe);
@@ -308,7 +386,7 @@ export class MultisigWalletService
 
       // get safe & check
       const safes = await this.safeRepo.findByCondition(condition);
-      if (safes.length === 0) return res.return(ErrorMap.NOTFOUND);
+      if (safes.length === 0) return res.return(ErrorMap.NO_SAFES_FOUND);
       const safe = safes[0] as Safe;
       if (safe.creatorAddress !== myAddress)
         return res.return(ErrorMap.ADDRESS_NOT_CREATOR);
@@ -373,35 +451,44 @@ export class MultisigWalletService
       };
   }
 
-  private async insertSafe(
-    safe: any,
-  ): Promise<{ error: typeof ErrorMap.SUCCESSFUL; safe?: any }> {
-    const checkSafe = await this.safeRepo.findByCondition({
-      safeAddress: safe.safeAddress,
-    });
-    if (checkSafe.length > 0) {
-      return { error: ErrorMap.EXISTS };
-    }
+  async insertSafe(safe: any): Promise<{
+    error: typeof ErrorMap.SUCCESSFUL;
+    safe?: any;
+    errorMsg?: string;
+  }> {
+    // Unnecessary because it is already checked for duplicates by safe address hash
+    // const checkSafe = await this.safeRepo.findByCondition({
+    //   safeAddress: safe.safeAddress,
+    // });
+    // if (checkSafe && checkSafe.length > 0) {
+    //   return { error: ErrorMap.EXISTS };
+    // }
     try {
       const result = await this.safeRepo.create(safe);
       return { error: ErrorMap.SUCCESSFUL, safe: result };
     } catch (err) {
-      return { error: ErrorMap.SOMETHING_WENT_WRONG };
+      return {
+        error: ErrorMap.INSERT_SAFE_FAILED,
+        safe: {},
+        errorMsg: err.message,
+      };
     }
   }
 
   private createSafeAddressAndPubkey(
     pubKeyArrString: string[],
     threshold: number,
-    prefix: string
+    prefix: string,
   ): {
     pubkey: string;
     address: string;
   } {
     const arrPubkeys = pubKeyArrString.map(this.createPubkeys);
     const multisigPubkey = createMultisigThresholdPubkey(arrPubkeys, threshold);
-    const multiSigWalletAddress =
-      this._commonUtil.pubkeyToAddress(multisigPubkey, prefix);
+    const multiSigWalletAddress = this._commonUtil.pubkeyToAddress(
+      multisigPubkey,
+      prefix,
+    );
     return {
       pubkey: JSON.stringify(multisigPubkey),
       address: multiSigWalletAddress,
@@ -437,15 +524,17 @@ export class MultisigWalletService
       ['id', 'addressHash', 'status'],
     );
     // filter deleted status
-    const existList = existSafe.filter(
-      (safe) => safe.status !== SAFE_STATUS.DELETED,
-    );
-    if (existList && existList.length > 0) {
-      this._logger.debug(`Safe with these information already exists!`);
-      return {
-        existInDB: true,
-        safeAddressHash,
-      };
+    if (existSafe && existSafe.length > 0) {
+      const existList = existSafe.filter(
+        (safe) => safe.status !== SAFE_STATUS.DELETED,
+      );
+      if (existList && existList.length > 0) {
+        this._logger.debug(`Safe with these information already exists!`);
+        return {
+          existInDB: true,
+          safeAddressHash,
+        };
+      }
     }
     return {
       existInDB: false,
