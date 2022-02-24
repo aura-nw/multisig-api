@@ -205,7 +205,7 @@ export class TransactionService
       let encodeTransaction = Uint8Array.from(TxRaw.encode(executeTransaction).finish());
 
       const result = await client.broadcastTx(
-        encodeTransaction, 10
+        encodeTransaction
       );
       this._logger.log('result', JSON.stringify(result));
 
