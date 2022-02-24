@@ -397,7 +397,8 @@ export class TransactionService
       else if(result[i].Status == '5') result[i].Status = TRANSACTION_STATUS.FAILED;
       if (result[i].FromAddress == request.safeAddress) {
         result[i].Direction = TRANSFER_DIRECTION.OUTGOING;
-        result[i].Signatures = await this.getListConfirmMultisigTransactionById(result[i].Id);
+        const param: MODULE_REQUEST.GetMultisigSignaturesParam = { id: result[i].Id }
+        result[i].Signatures = await this.getListConfirmMultisigTransactionById(param);
       } else if (result[i].ToAddress == request.safeAddress) {
         result[i].Direction = TRANSFER_DIRECTION.INCOMING;
       }
@@ -436,7 +437,8 @@ export class TransactionService
         if(result.TxHash) {
           result.Signatures = await (await this.getListConfirmMultisigTransaction(result.TxHash)).Data;
         } else {
-          result.Signatures = await this.getListConfirmMultisigTransactionById(result.Id);
+          const param: MODULE_REQUEST.GetMultisigSignaturesParam = { id: result.Id }
+          result.Signatures = await this.getListConfirmMultisigTransactionById(param);
         }
       }
       return res.return(ErrorMap.SUCCESSFUL, result);

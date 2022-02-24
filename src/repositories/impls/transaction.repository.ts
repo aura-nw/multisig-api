@@ -1,7 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { off } from "process";
-import { Chain } from "src/entities";
+import { Chain, Safe } from "src/entities";
 import { ENTITIES_CONFIG } from "src/module.config";
 import { ObjectLiteral, Repository } from "typeorm";
 import { ITransactionRepository } from "../itransaction.repository";
@@ -61,9 +61,21 @@ export class TransactionRepository
         let sqlQuerry = this.repos
             .createQueryBuilder('auraTx')
             .innerJoin(Chain, 'chain', 'auraTx.internalChainId = chain.id')
+            .innerJoin(Safe, 'safe', 'auraTx.fromAddress = safe.safeAddress')
             .where('auraTx.txHash = :txHash', { txHash })
             .select([
-                'auraTx.*',
+                'auraTx.id as Id',
+                'auraTx.createdAt as CreatedAt',
+                'auraTx.updatedAt as UpdatedAt',
+                'auraTx.fromAddress as FromAddress',
+                'auraTx.toAddress as ToAddress',
+                'auraTx.txHash as TxHash',
+                'auraTx.amount as Amount',
+                'auraTx.denom as Denom',
+                'auraTx.status as Status',
+                'safe.threshold as ConfirmationsRequired',
+                'safe.creatorAddress as Signer',
+                //
                 'chain.chainId as ChainId'
             ]);
         let resultData = await sqlQuerry.getRawOne();
