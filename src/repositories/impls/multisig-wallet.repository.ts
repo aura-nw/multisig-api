@@ -50,15 +50,14 @@ export class MultisigWalletRepository extends BaseRepository implements IMultisi
     return resultData;
   }
 
-  async getThresholdAndSigner(safeAddress: string) {
+  async getThreshold(safeAddress: string) {
     let sqlQuerry = this.repos
         .createQueryBuilder('safe')
         .where('safe.safeAddress = :safeAddress', { safeAddress })
         .select([
             'safe.threshold as ConfirmationsRequired',
-            'safe.CreatorAddress as Signer'
         ]);
     let resultData = await sqlQuerry.getRawOne();
     return resultData;
-}
+  }
 }
