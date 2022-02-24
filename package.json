@@ -78,6 +78,10 @@
     ],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/migrations/"
+    ],
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
