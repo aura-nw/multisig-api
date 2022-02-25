@@ -368,10 +368,11 @@ export class TransactionService
     internalTxHash: string,
     status?: string
   ): Promise<any> {
-    const res = new ResponseDto();
+    // Get Id of multisig transaction
     const resId = await this.multisigTransactionRepos.getMultisigTxId(
       internalTxHash,
     );
+    // Check if transaction exists
     if (resId) {
       const result =
         await this.getListMultisigConfirmById(
@@ -399,9 +400,11 @@ export class TransactionService
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     const result = await this.transRepos.getAuraTx(request.safeAddress, request.pageIndex, request.pageSize);
+    // Loop to get Status based on Code and get Multisig Confirm of Multisig Tx
     for (let i = 0; i < result.length; i++) {
       if(result[i].Status == '0') result[i].Status = TRANSACTION_STATUS.SUCCESS;
       else if(result[i].Status == '5') result[i].Status = TRANSACTION_STATUS.FAILED;
+      // Check to define direction of Tx
       if (result[i].FromAddress == request.safeAddress) {
         result[i].Direction = TRANSFER_DIRECTION.OUTGOING;
         const param: MODULE_REQUEST.GetMultisigSignaturesParam = { id: result[i].Id }
@@ -419,13 +422,16 @@ export class TransactionService
     const res = new ResponseDto();
     try {
       const internalTxHash = param.internalTxHash;
+      // Check if param entered is Id or TxHash
       let condition = this.calculateCondition(internalTxHash);
       let rawResult, result;
+      // Query based on condition
       if(condition.txHash) {
         rawResult = await this.transRepos.getTransactionDetailsAuraTx(condition);
       } else if(condition.id) {
         rawResult = await this.multisigTransactionRepos.getTransactionDetailsMultisigTransaction(condition);
       }
+      // Create data form to return to client
       if(rawResult.Code) {
         result = {
           Id: rawResult.Id,
@@ -440,6 +446,7 @@ export class TransactionService
           GasWanted: rawResult.GasWanted,
           ChainId: rawResult.ChainId,
         }
+        // Get Status based on Code
         if(rawResult.Code == 0) {
           result.Status = TRANSACTION_STATUS.SUCCESS;
         } else 
@@ -461,9 +468,11 @@ export class TransactionService
           ConfirmationsRequired: rawResult.ConfirmationsRequired,
         }
       }
+      // Check is multisig transaction
       if(result.FromAddress == param.safeAddress) {
         let threshold = await this.safeRepos.getThreshold(param.safeAddress);
         let owner = await this.safeOwnerRepos.getOwners(param.safeAddress);
+        // Check if data return contain threshold
         if(!result.ConfirmationsRequired) {
           if(threshold) {
             result.ConfirmationsRequired = threshold.ConfirmationsRequired;
@@ -474,6 +483,7 @@ export class TransactionService
         }
         result.Signers = owner;
         result.Direction = TRANSFER_DIRECTION.OUTGOING;
+        // Check if data return contains TxHash to query with it
         if(result.TxHash) {
           result.Confirmations = await this.getListMultisigConfirm(result.TxHash, MULTISIG_CONFIRM_STATUS.CONFIRM);
           result.Rejectors = await this.getListMultisigConfirm(result.TxHash, MULTISIG_CONFIRM_STATUS.REJECT);
