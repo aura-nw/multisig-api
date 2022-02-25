@@ -206,15 +206,18 @@ export class TransactionService
 
       let encodeTransaction = Uint8Array.from(TxRaw.encode(executeTransaction).finish());
 
-      const result = await client.broadcastTx(
-        encodeTransaction
-      );
-      this._logger.log('result', JSON.stringify(result));
-
-      //Update status and txhash
-      multisigTransaction.status = TRANSACTION_STATUS.PENDING;
-      multisigTransaction.txHash = result.transactionHash;
-      await this.multisigTransactionRepos.update(multisigTransaction);
+      try {
+        const result = await client.broadcastTx(
+          encodeTransaction, 10
+        );
+      } catch (error) {
+        this._logger.log(error);
+        //Update status and txhash
+        //TxHash is encoded transaction when send it to network
+        multisigTransaction.status = TRANSACTION_STATUS.PENDING;
+        multisigTransaction.txHash = error.txId;
+        await this.multisigTransactionRepos.update(multisigTransaction);
+      }
 
       //Record owner send transaction
       let sender = new MultisigConfirm();
@@ -225,7 +228,7 @@ export class TransactionService
 
       await this.multisigConfirmRepos.create(sender);
 
-      return res.return(ErrorMap.SUCCESSFUL, result);
+      return res.return(ErrorMap.SUCCESSFUL);
 
     } catch (error) {
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
