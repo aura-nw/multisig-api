@@ -51,6 +51,7 @@ export class TransactionRepository
                 SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, Code
                 FROM AuraTx
                 WHERE FromAddress = ? OR ToAddress = ?
+                ORDER BY CreatedAt ASC
                 LIMIT ? OFFSET ?;
             `, [ safeAddress, safeAddress, safeAddress, safeAddress, limit, offset ]);
         return resultData;
