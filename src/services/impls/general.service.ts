@@ -1,4 +1,5 @@
 import { Inject, Logger } from "@nestjs/common";
+import { StargateClient } from "@cosmjs/stargate";
 import { ResponseDto } from "src/dtos/responses/response.dto";
 import { IGeneralService } from "../igeneral.service";
 import { ConfigService } from "src/shared/services/config.service";
@@ -26,4 +27,17 @@ export class GeneralService extends BaseService implements IGeneralService {
         return res.return(ErrorMap.SUCCESSFUL, result);
     }
 
+    async getAccountOnchain(safeAddress: string, rpc: string): Promise<ResponseDto> {
+        const res = new ResponseDto();
+        try {
+            const condition = { rpc: rpc };
+            const chain = await this.chainRepo.findByCondition(condition);
+            const client = await StargateClient.connect(rpc);
+            const accountOnChain = await client.getAccount(safeAddress);
+            const balance = await client.getBalance(safeAddress, chain[0].denom);
+            return res.return(ErrorMap.SUCCESSFUL, { accountOnChain, balance });
+        } catch (error) {
+            console.log(error);
+        }
+    }
 }
