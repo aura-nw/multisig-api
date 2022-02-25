@@ -1,4 +1,4 @@
-import { Controller, Get, Inject, Post } from "@nestjs/common";
+import { Controller, Get, Inject, Param, Post } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { CONTROLLER_CONSTANTS, URL_CONSTANTS } from "src/common/constants/api.constant";
 import { SERVICE_INTERFACE } from "src/module.config";
@@ -16,5 +16,14 @@ export class GeneralController {
     @ApiOperation({ summary: 'Show network list' })
     async showNetworkList() {
         return await this.generalService.showNetworkList();
+    }
+
+    @Get('get-account-onchain/:safeAddress/:rpc')
+    @ApiOperation({ summary: 'Get account onchain' })
+    async getAccountOnchain(
+        @Param('safeAddress') safeAddress: string,
+        @Param('rpc') rpc: string
+    ) {
+        return await this.generalService.getAccountOnchain(safeAddress, rpc);
     }
 }
