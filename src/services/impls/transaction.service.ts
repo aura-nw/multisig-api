@@ -220,6 +220,8 @@ export class TransactionService
           await this.multisigTransactionRepos.update(multisigTransaction);
         }
         else{
+          multisigTransaction.status = TRANSACTION_STATUS.FAILED;
+          await this.multisigTransactionRepos.update(multisigTransaction);
           this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
           this._logger.error(`${error.name}: ${error.message}`);
           this._logger.error(`${error.stack}`);
