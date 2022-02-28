@@ -1,4 +1,4 @@
-import { createMultisigThresholdPubkey, decodeBech32Pubkey, encodeSecp256k1Pubkey, isMultisigThresholdPubkey, isSinglePubkey, MultisigThresholdPubkey, pubkeyToAddress, Secp256k1HdWallet, Secp256k1Pubkey, SinglePubkey } from '@cosmjs/amino';
+import { createMultisigThresholdPubkey, encodeSecp256k1Pubkey, MultisigThresholdPubkey, pubkeyToAddress, Secp256k1HdWallet, Secp256k1Pubkey, SinglePubkey } from '@cosmjs/amino';
 import { makeMultisignedTx, MsgSendEncodeObject, SignerData, SigningStargateClient, StargateClient } from '@cosmjs/stargate';
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
 import { CreateMultisigRequest } from '../dtos/requests/createMultisig.request';
@@ -9,7 +9,6 @@ import { BroadcastRequest } from '../dtos/requests/broadcast.request';
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { CreateTransactionRequest } from '../dtos/requests/transaction/create-transaction.request';
 import { Cache } from 'cache-manager';
-import { Bech32, fromHex, toBase64 } from "@cosmjs/encoding";
 import { assert } from "@cosmjs/utils";
 @Injectable()
 export class AppService {
@@ -25,23 +24,7 @@ export class AppService {
 
 
 	async createMultisigWallet(req: CreateMultisigRequest) {
-		let { pubkeys, name } = req;
-		// let account1 = {
-		// 	mnemonic: 'mirror shield about chef divert initial vast prosper wrist quit lab unique daughter device prepare gauge potato unit biology member section tunnel desert warm'
-		// }
-		// const wallet = await Secp256k1HdWallet.fromMnemonic(account1.mnemonic, {
-		// 	prefix: 'aura',
-		// });
-
-		// const pubkey = encodeSecp256k1Pubkey((await wallet.getAccounts())[0].pubkey);
-		// console.log(pubkey);
-		// console.log(this.createPubkeys(pubkeys[0]));
-		// const address = (await wallet.getAccounts())[0].address;
-
-
-		// console.log(isSinglePubkey(this.createPubkeys(pubkeys[0])))
-
-		// console.log(decodeBech32Pubkey("wasmpub1addwnpepqwxttx8w2sfs6d8cuzqcuau84grp8xsw95qzdjkmvc44tnckskdxw3zw2km"));
+		let { pubkeys } = req;
 		const multisigPubkey = createMultisigThresholdPubkey(
 			[this.createPubkeys(pubkeys[0]), this.createPubkeys(pubkeys[1])],
 			2,
@@ -68,12 +51,11 @@ export class AppService {
 				typeUrl: "/cosmos.bank.v1beta1.MsgSend",
 				value: msgSend,
 			};
-			const gasLimit = req.gasLimit;
 			const fee = {
 				amount: coins(req.fee, 'uatom'),
 				gas: req.gasLimit,
 			};
-			let result = {
+			return {
 				accountNumber: accountOnChain ? accountOnChain.accountNumber : 0,
 				sequence: accountOnChain ? accountOnChain.sequence : 0,
 				chainId: await client.getChainId(),
@@ -81,9 +63,6 @@ export class AppService {
 				fee: fee,
 				memo: "Use your tokens wisely",
 			};
-
-
-			return result;
 		})();
 
 		await this.cacheManager.set('resultCreateTransaction', signingInstruction, { ttl: 10000 });
@@ -95,11 +74,9 @@ export class AppService {
 		const wallet = await Secp256k1HdWallet.fromMnemonic(req.mnemonic, {
 			prefix: 'aura',
 		});
-		const pubkey = encodeSecp256k1Pubkey((await wallet.getAccounts())[0].pubkey);
 		const address = (await wallet.getAccounts())[0].address;
 		const signingClient = await SigningStargateClient.offline(wallet);
-		const signingInstruction = await this.cacheManager.get('resultCreateTransaction'); +
-			console.log(signingInstruction);
+		const signingInstruction = await this.cacheManager.get('resultCreateTransaction');
 		const signerData: SignerData = {
 			accountNumber: signingInstruction['accountNumber'],
 			sequence: signingInstruction['sequence'],
@@ -138,9 +115,6 @@ export class AppService {
 		let resultSig1 = await this.cacheManager.get(`resultSign${address1}`);
 		let resultSig2 = await this.cacheManager.get(`resultSign${address2}`);
 
-		// let bodyBytes = new Uint8Array(this.signature1.bodyBytes.data);
-		// let sig1 = new Uint8Array(this.signature1.signature[0]);
-		// let sig2 = new Uint8Array(this.signature2.signature[0]);
 		let bodyBytes = resultSig1['bodyBytes'];
 		let sig1 = resultSig1['signature'];
 		let sig2 = resultSig2['signature'];
@@ -156,10 +130,7 @@ export class AppService {
 			]),
 		);
 		console.log(signedTx);
-		const result = await broadcaster.broadcastTx(Uint8Array.from(TxRaw.encode(signedTx).finish()));
-
-		return result;
-
+		return broadcaster.broadcastTx(Uint8Array.from(TxRaw.encode(signedTx).finish()));
 	}
 
 
@@ -228,7 +199,7 @@ export class AppService {
 		}
 	}
 
-	async simulateSign(signingInstruction, mnemonic) : Promise<[Secp256k1Pubkey, Uint8Array, Uint8Array]> {
+	async simulateSign(signingInstruction, mnemonic): Promise<[Secp256k1Pubkey, Uint8Array, Uint8Array]> {
 		const wallet = await Secp256k1HdWallet.fromMnemonic(mnemonic, { prefix: 'aura' });
 		const pubkey = encodeSecp256k1Pubkey((await wallet.getAccounts())[0].pubkey);
 		const address = (await wallet.getAccounts())[0].address;
