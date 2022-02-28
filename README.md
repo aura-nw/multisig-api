@@ -6,7 +6,7 @@
 
 [![codecov](https://img.shields.io/codecov/c/gh/aura-nw/multisig-api/dev?style=flat-square&token=FNWOTPBIRX)](https://codecov.io/gh/aura-nw/multisig-api)
 [![Known Vulnerabilities](https://snyk.io/test/github/aura-nw/multisig-api/badge.svg)](https://snyk.io/test/github/aura-nw/multisig-api/)
-[![Maintainability](https://api.codeclimate.com/v1/badges/cfbd79779e1a89cfb35b/maintainability)](https://codeclimate.com/github/hainguyen271018/multisig-api/maintainability)
+[![Maintainability](https://api.codeclimate.com/v1/badges/670351cb6c558dc7d9c2/maintainability)](https://codeclimate.com/github/aura-nw/multisig-api/maintainability)
 
 # Overview
 
