@@ -214,7 +214,7 @@ export class TransactionService
         this._logger.log(error);
         //Update status and txhash
         //TxHash is encoded transaction when send it to network
-        if(error.txId === 'undefined'){
+        if(error.txId !== 'undefined'){
           multisigTransaction.status = TRANSACTION_STATUS.PENDING;
           multisigTransaction.txHash = error.txId;
           await this.multisigTransactionRepos.update(multisigTransaction);
