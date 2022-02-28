@@ -2,47 +2,56 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateTransactionRequest {
     @ApiProperty({
-        description: 'Address of safe'
+        description: 'Address of safe',
+        example: 'aura1328x7tacz28w96zl4j50qnfg4gqjdd56wqd3ke'
     })
     from: string;
 
     @ApiProperty({
-        description: 'Address of receiver'
+        description: 'Address of receiver',
+        example: 'aura136v0nmlv0saryev8wqz89w80edzdu3quzm0ve9'
     })
     to: string;
 
     @ApiProperty({
-        description: 'Transaction amount'
+        description: 'Transaction amount',
+        example: 3000000
     })
     amount: number;
 
     @ApiProperty({
-        description: 'Transaction fee'
+        description: 'Transaction fee',
+        example: 0.01
     })
     fee: number;
 
     @ApiProperty({
-        description: 'Transaction gas limit'
+        description: 'Transaction gas limit',
+        example: 100000
     })
     gasLimit: number;
 
     @ApiProperty({
-        description: 'Chain Id'
+        description: 'Chain Id',
+        example: 4
     })
     internalChainId: number;
 
     @ApiProperty({
-        description: 'Owner who create transaction must sign transaction via wallet first. Then get bodyBytes of result.'
+        description: 'Owner who create transaction must sign transaction via wallet first. Then get bodyBytes of result.',
+        example: 'CogBChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEmgKK2F1cmExMzJha3g5OTg5Y2FueHV6a2ZqbnJneHd5Y2NmY210ZnpobWZscW0SK2F1cmExdHVlaDRodnJmbmZ3c3VobDMyd21sbWV2NjU2bmhxc2t2cTd0N3QaDAoFdWF1cmESAzIwMBIA'
     })
     bodyBytes: string;
 
     @ApiProperty({
-        description: 'Owner who create transaction must sign transaction via wallet first. Then get signature of result.'
+        description: 'Owner who create transaction must sign transaction via wallet first. Then get signature of result.',
+        example: 'Dj8pEXMADBGCjaRSAQwT1/7s+6fRrf985UZL2ujo0YMe+M2VEqYLERkc5tsrg8HAWuqzKVq5CV6a7KcOSgjNtw=='
     })
     signature: string;
 
     @ApiProperty({
         description: 'Address of owner who create transaction',
+        example: 'aura13t8ej6yvje8n9zl7hcvj8ks24tp5qvdsgfhnjx'
     })
     creatorAddress: string;
 }
