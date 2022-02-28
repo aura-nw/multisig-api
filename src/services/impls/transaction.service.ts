@@ -2,7 +2,6 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ResponseDto } from 'src/dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
-import { ConfigService } from 'src/shared/services/config.service';
 import { ITransactionService } from '../transaction.service';
 import {
   calculateFee,
