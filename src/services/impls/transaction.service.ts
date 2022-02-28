@@ -214,18 +214,18 @@ export class TransactionService
         this._logger.log(error);
         //Update status and txhash
         //TxHash is encoded transaction when send it to network
-        if(error.txId !== 'undefined'){
-          multisigTransaction.status = TRANSACTION_STATUS.PENDING;
-          multisigTransaction.txHash = error.txId;
-          await this.multisigTransactionRepos.update(multisigTransaction);
-        }
-        else{
+        if(typeof error.txId === 'undefined' || error.txId === null){
           multisigTransaction.status = TRANSACTION_STATUS.FAILED;
           await this.multisigTransactionRepos.update(multisigTransaction);
           this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
           this._logger.error(`${error.name}: ${error.message}`);
           this._logger.error(`${error.stack}`);
           return res.return(ErrorMap.E500, {'err': error.message});
+        }
+        else{
+          multisigTransaction.status = TRANSACTION_STATUS.PENDING;
+          multisigTransaction.txHash = error.txId;
+          await this.multisigTransactionRepos.update(multisigTransaction);
         }
       }
 
