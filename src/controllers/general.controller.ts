@@ -10,7 +10,7 @@ export class GeneralController {
     constructor(
         @Inject(SERVICE_INTERFACE.IGENERAL_SERVICE)
         private generalService: IGeneralService
-    ) {}
+    ) { }
 
     @Post(URL_CONSTANTS.NETWORK_LIST)
     @ApiOperation({ summary: 'Show network list' })
