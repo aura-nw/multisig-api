@@ -1,8 +1,7 @@
 import { CacheModule, Module } from '@nestjs/common';
-import { HttpModule} from '@nestjs/axios'
+import { HttpModule } from '@nestjs/axios'
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MultisigWalletController } from './controllers/multisig-wallet.controller';
-import { SimulatingController } from './controllers/simulating.controller';
 import { TransactionController } from './controllers/transaction.controller';
 import { OwnerController } from './controllers/owner.controller';
 import { NotificationController } from './controllers/notification.controller';
@@ -33,8 +32,8 @@ const controllers = [
   // AppController,
 ];
 const entities = [
-  ENTITIES_CONFIG.SAFE, 
-  ENTITIES_CONFIG.SAFE_OWNER, 
+  ENTITIES_CONFIG.SAFE,
+  ENTITIES_CONFIG.SAFE_OWNER,
   ENTITIES_CONFIG.CHAIN,
   ENTITIES_CONFIG.MULTISIG_CONFIRM,
   ENTITIES_CONFIG.MULTISIG_TRANSACTION,
@@ -111,4 +110,4 @@ const entities = [
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }
