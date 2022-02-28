@@ -18,12 +18,12 @@ export class GeneralController {
         return await this.generalService.showNetworkList();
     }
 
-    @Get('get-account-onchain/:safeAddress/:rpc')
+    @Get('get-account-onchain/:safeAddress/:internalChainId')
     @ApiOperation({ summary: 'Get account onchain' })
     async getAccountOnchain(
         @Param('safeAddress') safeAddress: string,
-        @Param('rpc') rpc: string
+        @Param('internalChainId') internalChainId: number
     ) {
-        return await this.generalService.getAccountOnchain(safeAddress, rpc);
+        return await this.generalService.getAccountOnchain(safeAddress, internalChainId);
     }
 }
