@@ -8,13 +8,10 @@ import {
   calculateFee,
   GasPrice,
   makeMultisignedTx,
-  MsgSendEncodeObject,
   StargateClient,
 } from '@cosmjs/stargate';
 import { fromBase64, toBase64 } from "@cosmjs/encoding";
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
-import { MsgSend } from 'cosmjs-types/cosmos/bank/v1beta1/tx';
-import { coins } from '@cosmjs/proto-signing';
 import { BaseService } from './base.service';
 import { ITransactionRepository } from 'src/repositories/itransaction.repository';
 import { IMultisigConfirmRepository } from 'src/repositories/imultisig-confirm.repository';
@@ -33,10 +30,8 @@ export class TransactionService
   implements ITransactionService
 {
   private readonly _logger = new Logger(TransactionService.name);
-  private _prefix: string;
 
   constructor(
-    private configService: ConfigService,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_TRANSACTION_REPOSITORY) private multisigTransactionRepos: IMultisigTransactionsRepository,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_CONFIRM_REPOSITORY) private multisigConfirmRepos: IMultisigConfirmRepository,
     @Inject(REPOSITORY_INTERFACE.IGENERAL_REPOSITORY) private chainRepos: IGeneralRepository,
@@ -48,7 +43,6 @@ export class TransactionService
     this._logger.log(
       '============== Constructor Transaction Service ==============',
     );
-    this._prefix = this.configService.get('PREFIX');
   }
 
   async createTransaction(
@@ -207,9 +201,7 @@ export class TransactionService
       let encodeTransaction = Uint8Array.from(TxRaw.encode(executeTransaction).finish());
 
       try {
-        const result = await client.broadcastTx(
-          encodeTransaction, 10
-        );
+        await client.broadcastTx(encodeTransaction, 10);
       } catch (error) {
         this._logger.log(error);
         //Update status and txhash
@@ -217,7 +209,6 @@ export class TransactionService
         if(typeof error.txId === 'undefined' || error.txId === null){
           multisigTransaction.status = TRANSACTION_STATUS.FAILED;
           await this.multisigTransactionRepos.update(multisigTransaction);
-          this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
           this._logger.error(`${error.name}: ${error.message}`);
           this._logger.error(`${error.stack}`);
           return res.return(ErrorMap.E500, {'err': error.message});
