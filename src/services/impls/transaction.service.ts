@@ -403,7 +403,14 @@ export class TransactionService
     // Loop to get Status based on Code and get Multisig Confirm of Multisig Tx
     for (let i = 0; i < result.length; i++) {
       if(result[i].Status == '0') result[i].Status = TRANSACTION_STATUS.SUCCESS;
-      else if(result[i].Status == '5') result[i].Status = TRANSACTION_STATUS.FAILED;
+      else {
+        try {
+          const code = parseInt(result[i].Status);
+          result[i].Status = TRANSACTION_STATUS.FAILED;
+        } catch (error) {
+          this._logger.error(error);
+        }
+      }
       // Check to define direction of Tx
       if (result[i].FromAddress == request.safeAddress) {
         result[i].Direction = TRANSFER_DIRECTION.OUTGOING;
