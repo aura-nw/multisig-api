@@ -70,6 +70,9 @@ export class TransactionController {
   @ApiOperation({
     summary: 'Returns a paginated list of transactions for a Safe',
   })
+  @ApiOkResponse({ status: 200, type: MODULE_RESPONSE.MultisigTransactionHistoryResponse, isArray: true, description: 'Get Transaction History of a Safe', schema: {} })
+  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  @HttpCode(HttpStatus.OK)
   async getAllTxs(
     @Body() request: MODULE_REQUEST.GetAllTransactionsRequest,
   ) {
@@ -81,7 +84,7 @@ export class TransactionController {
   @ApiOperation({
     summary: 'Get the list of signatures for a multisig transaction',
   })
-  @ApiOkResponse({ status: 200, type: MODULE_RESPONSE.MultisigSignatureRespone, description: 'List signature of multisig', schema: {} })
+  @ApiOkResponse({ status: 200, type: MODULE_RESPONSE.MultisigSignatureResponse, description: 'List signature of multisig', schema: {} })
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
   @HttpCode(HttpStatus.OK)
   async getSignaturesOfMultisigTx(
@@ -111,6 +114,9 @@ export class TransactionController {
   @ApiOperation({
     summary: 'Get details of a transaction',
   })
+  @ApiOkResponse({ status: 200, type: MODULE_RESPONSE.TransactionDetailsResponse, description: 'Details of a Transaction', schema: {} })
+  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  @HttpCode(HttpStatus.OK)
   async getTransactionDetails(
     @Param() param: MODULE_REQUEST.GetTransactionDetailsParam
   ) {
