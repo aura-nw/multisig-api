@@ -81,6 +81,9 @@ export class TransactionController {
   @ApiOperation({
     summary: 'Get the list of signatures for a multisig transaction',
   })
+  @ApiOkResponse({ status: 200, type: MODULE_RESPONSE.MultisigSignatureRespone, description: 'List signature of multisig', schema: {} })
+  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  @HttpCode(HttpStatus.OK)
   async getSignaturesOfMultisigTx(
     @Param() param: MODULE_REQUEST.GetMultisigSignaturesParam
   ) {
