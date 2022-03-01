@@ -15,6 +15,9 @@ export class Chain extends BaseEntityAutoId {
   @Column({ name: 'Websocket' })
   webSocket: string;
 
+  @Column({ name: 'Symbol' })
+  symbol: string;
+
   @Column({ name: 'Denom' })
   denom: string;
 
