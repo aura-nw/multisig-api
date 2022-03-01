@@ -404,12 +404,9 @@ export class TransactionService
     for (let i = 0; i < result.length; i++) {
       if(result[i].Status == '0') result[i].Status = TRANSACTION_STATUS.SUCCESS;
       else {
-        try {
-          const code = parseInt(result[i].Status);
-          result[i].Status = TRANSACTION_STATUS.FAILED;
-        } catch (error) {
-          this._logger.error(error);
-        }
+        const code = parseInt(result[i].Status);
+        console.log(code);
+        if(!isNaN(code)) result[i].Status = TRANSACTION_STATUS.FAILED;
       }
       // Check to define direction of Tx
       if (result[i].FromAddress == request.safeAddress) {
