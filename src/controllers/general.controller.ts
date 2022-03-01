@@ -1,7 +1,7 @@
-import { Controller, Get, Inject, Param, Post } from "@nestjs/common";
-import { ApiOperation, ApiTags } from "@nestjs/swagger";
+import { Controller, Get, HttpCode, HttpStatus, Inject, Param, Post } from "@nestjs/common";
+import { ApiBadRequestResponse, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { CONTROLLER_CONSTANTS, URL_CONSTANTS } from "src/common/constants/api.constant";
-import { SERVICE_INTERFACE } from "src/module.config";
+import { MODULE_RESPONSE, SERVICE_INTERFACE } from "src/module.config";
 import { IGeneralService } from "src/services/igeneral.service";
 
 @Controller(CONTROLLER_CONSTANTS.GENERAL)
@@ -14,6 +14,9 @@ export class GeneralController {
 
     @Post(URL_CONSTANTS.NETWORK_LIST)
     @ApiOperation({ summary: 'Show network list' })
+    @ApiOkResponse({ status: 200, type: MODULE_RESPONSE.NetworkListResponse, description: 'Show list of networks', schema: {} })
+    @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+    @HttpCode(HttpStatus.OK)
     async showNetworkList() {
         return this.generalService.showNetworkList();
     }
