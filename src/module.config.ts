@@ -36,6 +36,7 @@ import { GetTransactionDetailsParam } from './dtos/requests/multisig-wallet/get-
 import { RejectTransactionRequest } from './dtos/requests/transaction/reject-transaction.request';
 import { GetMultisigSignaturesParam } from './dtos/requests/multisig-wallet/get-multisig-signatures.request';
 import { ResponseDto } from './dtos/responses/response.dto';
+import { MultisigSignatureResponse } from './dtos/responses/multisig-transaction/multisig-signature.response';
 
 export const ENTITIES_CONFIG = {
   SAFE: Safe,
@@ -73,7 +74,8 @@ export const REQUEST_CONFIG = {
 };
 
 export const RESPONSE_CONFIG = {
-  RESPONSE_DTO: ResponseDto
+  RESPONSE_DTO: ResponseDto,
+  MULTISIG_SIGNATURE_RESPONE: MultisigSignatureResponse,
 }
 
 export module MODULE_REQUEST {
@@ -100,6 +102,7 @@ export module MODULE_REQUEST {
 
 export module MODULE_RESPONSE {
   export abstract class ResponseDto extends RESPONSE_CONFIG.RESPONSE_DTO { }
+  export abstract class MultisigSignatureRespone extends RESPONSE_CONFIG.MULTISIG_SIGNATURE_RESPONE { }
 }
 
 export const SERVICE_INTERFACE = {
