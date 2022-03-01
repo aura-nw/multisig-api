@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity } from 'typeorm';
 import { BaseEntityAutoId } from './base/base.entity';
 
 @Entity({ name: 'Chain' })

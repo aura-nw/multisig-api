@@ -26,7 +26,7 @@ export class TransactionController {
   constructor(
     @Inject(SERVICE_INTERFACE.ITRANSACTION_SERVICE)
     private transactionService: ITransactionService,
-  ) {}
+  ) { }
 
   @Post(URL_CONSTANTS.CREATE)
   @ApiOperation({ summary: 'Create multisig transaction' })
@@ -36,7 +36,7 @@ export class TransactionController {
     @Body() request: MODULE_REQUEST.CreateTransactionRequest,
   ) {
     this._logger.log('========== Create multisig transaction ==========');
-    return await this.transactionService.createTransaction(request);
+    return this.transactionService.createTransaction(request);
   }
 
   @Post(URL_CONSTANTS.CONFIRM_TRANSACTION)
@@ -44,7 +44,7 @@ export class TransactionController {
   async confirmTransaction(
     @Body() request: MODULE_REQUEST.ConfirmTransactionRequest,
   ) {
-    return await this.transactionService.confirmTransaction(request);
+    return this.transactionService.confirmTransaction(request);
   }
 
   @Post(URL_CONSTANTS.REJECT_TRANSACTION)
@@ -52,7 +52,7 @@ export class TransactionController {
   async rejectTransaction(
     @Body() request: MODULE_REQUEST.RejectTransactionParam,
   ) {
-    return await this.transactionService.rejectTransaction(request);
+    return this.transactionService.rejectTransaction(request);
   }
 
   @Post(URL_CONSTANTS.GET_ALL_TXS)
@@ -63,7 +63,7 @@ export class TransactionController {
     @Body() request: MODULE_REQUEST.GetAllTransactionsRequest,
   ) {
     this._logger.log('========== Get All Transactions ==========');
-    return await this.transactionService.getTransactionHistory(request);
+    return this.transactionService.getTransactionHistory(request);
   }
 
   @Get(URL_CONSTANTS.SIGNATURES)
@@ -74,7 +74,7 @@ export class TransactionController {
     @Param() param: MODULE_REQUEST.GetMultisigSignaturesParam
   ) {
     this._logger.log('========== Get Signatures of Multisig Transaction ==========');
-    return await this.transactionService.getListMultisigConfirmById(
+    return this.transactionService.getListMultisigConfirmById(
       param,
     );
   }
@@ -87,7 +87,7 @@ export class TransactionController {
     @Body() request: MODULE_REQUEST.SendTransactionRequest,
   ) {
     this._logger.log('========== Send transaction to AURA ==========');
-    return await this.transactionService.sendTransaction(request);
+    return this.transactionService.sendTransaction(request);
   }
 
   @Get(URL_CONSTANTS.TRANSACTION_DETAILS)
@@ -98,7 +98,7 @@ export class TransactionController {
     @Param() param: MODULE_REQUEST.GetTransactionDetailsParam
   ) {
     this._logger.log('========== Get details of a Transaction ==========');
-    return await this.transactionService.getTransactionDetails(
+    return this.transactionService.getTransactionDetails(
       param,
     );
   }
