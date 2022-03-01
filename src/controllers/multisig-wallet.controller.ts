@@ -11,12 +11,12 @@ import {
   HttpStatus,
   Param,
 } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   CONTROLLER_CONSTANTS,
   URL_CONSTANTS,
 } from 'src/common/constants/api.constant';
-import { MODULE_REQUEST, SERVICE_INTERFACE } from 'src/module.config';
+import { MODULE_REQUEST, MODULE_RESPONSE, SERVICE_INTERFACE } from 'src/module.config';
 import { IMultisigWalletService } from 'src/services/imultisig-wallet.service';
 @Controller(CONTROLLER_CONSTANTS.MULTISIG_WALLET)
 @ApiTags(CONTROLLER_CONSTANTS.MULTISIG_WALLET)
@@ -41,6 +41,7 @@ export class MultisigWalletController {
 
   @Get(URL_CONSTANTS.GET_SAFE)
   @ApiOperation({ summary: 'Get status of the multisig wallet by safeId' })
+  @ApiOkResponse({ status: 200, type: MODULE_RESPONSE.GetMultisigWalletResponse, description: 'Status of multisig wallet', schema: {} })
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
   @HttpCode(HttpStatus.OK)
   async getMultisigWallet(

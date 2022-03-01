@@ -35,6 +35,7 @@ import { RejectTransactionRequest } from './dtos/requests/transaction/reject-tra
 import { GetMultisigSignaturesParam } from './dtos/requests/multisig-wallet/get-multisig-signatures.request';
 import { ResponseDto } from './dtos/responses/response.dto';
 import { MultisigSignatureResponse } from './dtos/responses/multisig-transaction/multisig-signature.response';
+import { GetMultisigWalletResponse } from './dtos/responses/multisig-wallet/get-multisig-wallet.response';
 import { MultisigTransactionHistoryResponse } from './dtos/responses/multisig-transaction/multisig-transaction-history.response';
 import { TransactionDetailsResponse } from './dtos/responses/transaction/transaction-details.response';
 import { NetworkListResponse } from './dtos/responses/general/network-list.response';
@@ -75,6 +76,7 @@ export const REQUEST_CONFIG = {
 export const RESPONSE_CONFIG = {
   RESPONSE_DTO: ResponseDto,
   MULTISIG_SIGNATURE_RESPONSE: MultisigSignatureResponse,
+  GET_MULTISIG_WALLET_RESPONSE: GetMultisigWalletResponse,
   MULTISIG_TRANSACTION_HISTORY_RESPONSE: MultisigTransactionHistoryResponse,
   TRANSACTION_DETAILS_RESPONSE: TransactionDetailsResponse,
   NETWORK_LIST_RESPONSE: NetworkListResponse,
@@ -106,6 +108,7 @@ export module MODULE_REQUEST {
 
 export module MODULE_RESPONSE {
   export abstract class ResponseDto extends RESPONSE_CONFIG.RESPONSE_DTO { }
+  export abstract class GetMultisigWalletResponse extends RESPONSE_CONFIG.GET_MULTISIG_WALLET_RESPONSE { }
   export abstract class MultisigSignatureResponse extends RESPONSE_CONFIG.MULTISIG_SIGNATURE_RESPONSE { }
   export abstract class MultisigTransactionHistoryResponse extends RESPONSE_CONFIG.MULTISIG_TRANSACTION_HISTORY_RESPONSE { }
   export abstract class TransactionDetailsResponse extends RESPONSE_CONFIG.TRANSACTION_DETAILS_RESPONSE { }
