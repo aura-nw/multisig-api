@@ -1,44 +1,7 @@
-import { ConnectMultisigWalletRequest } from './dtos/requests/multisig-wallet/connect-multisig-wallet.request';
-import { CreateMultisigWalletRequest } from './dtos/requests/multisig-wallet/create-multisig-wallet.request';
-import {
-  ConfirmMultisigWalletRequest,
-  ConfirmSafePathParams,
-} from './dtos/requests/multisig-wallet/confirm-multisig-wallet.request';
-import {
-  DeleteMultisigWalletRequest,
-  DeleteSafePathParams,
-} from './dtos/requests/multisig-wallet/delete-multisig-wallet.request';
-import { SimulatingMultisigRequest } from './dtos/requests/simulating/simulating-multisig.request';
-import { SimulatingSignMsgRequest } from './dtos/requests/simulating/simulating-sign-msg.request';
-import { SendTransactionRequest } from './dtos/requests/transaction/send-transaction.request';
-import { ConfirmTransactionRequest } from './dtos/requests/transaction/confirm-transaction.request';
-import { Safe } from './entities/safe.entity';
-import { SafeOwner } from './entities/safe-owner.entity';
-import { Chain } from './entities/chain.entity';
-import { MultisigConfirm } from './entities/multisig-confirm.entity';
-import { MultisigTransaction } from './entities/multisig-transaction.entity';
-import { CreateTransactionRequest } from './dtos/requests/transaction/create-transaction.request';
-import { AuraTx } from './entities';
-import {
-  GetSafeBalancePathParams,
-  GetSafeBalanceQuery,
-  GetSafePathParams,
-  GetSafeQuery,
-} from './dtos/requests/multisig-wallet/get-safe.request';
-import {
-  GetSafesByOwnerAddressParams,
-  GetSafesByOwnerAddressQuery,
-} from './dtos/requests/multisig-wallet/get-safe-by-owner.request';
-import { GetAllTransactionsRequest } from './dtos/requests/transaction/get-all-transactions.request';
-import { GetTransactionDetailsParam } from './dtos/requests/multisig-wallet/get-transaction-details.request';
-import { RejectTransactionRequest } from './dtos/requests/transaction/reject-transaction.request';
-import { GetMultisigSignaturesParam } from './dtos/requests/multisig-wallet/get-multisig-signatures.request';
-import { ResponseDto } from './dtos/responses/response.dto';
-import { MultisigSignatureResponse } from './dtos/responses/multisig-transaction/multisig-signature.response';
-import { GetMultisigWalletResponse } from './dtos/responses/multisig-wallet/get-multisig-wallet.response';
-import { MultisigTransactionHistoryResponse } from './dtos/responses/multisig-transaction/multisig-transaction-history.response';
-import { TransactionDetailsResponse } from './dtos/responses/transaction/transaction-details.response';
-import { NetworkListResponse } from './dtos/responses/general/network-list.response';
+import { ConfirmMultisigWalletRequest, ConfirmSafePathParams, ConfirmTransactionRequest, ConnectMultisigWalletRequest, CreateMultisigWalletRequest, CreateTransactionRequest, DeleteMultisigWalletRequest, DeleteSafePathParams, GetAllTransactionsRequest, GetMultisigSignaturesParam, GetSafeBalancePathParams, GetSafeBalanceQuery, GetSafePathParams, GetSafeQuery, GetSafesByOwnerAddressParams, GetSafesByOwnerAddressQuery, GetTransactionDetailsParam, RejectTransactionRequest, SendTransactionRequest } from "./dtos/requests";
+import { GetMultisigWalletResponse, MultisigSignatureResponse, MultisigTransactionHistoryResponse, NetworkListResponse, ResponseDto, TransactionDetailsResponse } from "./dtos/responses";
+import { AuraTx, Chain, MultisigConfirm, MultisigTransaction, Safe, SafeOwner } from "./entities";
+
 
 export const ENTITIES_CONFIG = {
   SAFE: Safe,
@@ -50,8 +13,6 @@ export const ENTITIES_CONFIG = {
 };
 
 export const REQUEST_CONFIG = {
-  SIMULATING_MULTISIG_REQUEST: SimulatingMultisigRequest,
-  SIMULATING_SIGN_MSG_REQUEST: SimulatingSignMsgRequest,
   CREATE_MULTISIG_WALLET_REQUEST: CreateMultisigWalletRequest,
   CONFIRM_MULTISIG_WALLET_REQUEST: ConfirmMultisigWalletRequest,
   DELETE_MULTISIG_WALLET_REQUEST: DeleteMultisigWalletRequest,
@@ -83,8 +44,6 @@ export const RESPONSE_CONFIG = {
 }
 
 export module MODULE_REQUEST {
-  export abstract class SimulatingMultisigRequest extends REQUEST_CONFIG.SIMULATING_MULTISIG_REQUEST { }
-  export abstract class SimulatingSignMsgRequest extends REQUEST_CONFIG.SIMULATING_SIGN_MSG_REQUEST { }
   export abstract class CreateMultisigWalletRequest extends REQUEST_CONFIG.CREATE_MULTISIG_WALLET_REQUEST { }
   export abstract class ConfirmMultisigWalletRequest extends REQUEST_CONFIG.CONFIRM_MULTISIG_WALLET_REQUEST { }
   export abstract class DeleteMultisigWalletRequest extends REQUEST_CONFIG.DELETE_MULTISIG_WALLET_REQUEST { }
