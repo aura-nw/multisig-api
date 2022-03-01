@@ -33,6 +33,8 @@ import { GetAllTransactionsRequest } from './dtos/requests/transaction/get-all-t
 import { GetTransactionDetailsParam } from './dtos/requests/multisig-wallet/get-transaction-details.request';
 import { RejectTransactionRequest } from './dtos/requests/transaction/reject-transaction.request';
 import { GetMultisigSignaturesParam } from './dtos/requests/multisig-wallet/get-multisig-signatures.request';
+import { ResponseDto } from './dtos/responses/response.dto';
+import { MultisigSignatureResponse } from './dtos/responses/multisig-transaction/multisig-signature.response';
 
 export const ENTITIES_CONFIG = {
   SAFE: Safe,
@@ -67,6 +69,11 @@ export const REQUEST_CONFIG = {
   GET_MULTISIG_SIGNATURES_PARAM: GetMultisigSignaturesParam,
 };
 
+export const RESPONSE_CONFIG = {
+  RESPONSE_DTO: ResponseDto,
+  MULTISIG_SIGNATURE_RESPONE: MultisigSignatureResponse,
+}
+
 export module MODULE_REQUEST {
   export abstract class SimulatingMultisigRequest extends REQUEST_CONFIG.SIMULATING_MULTISIG_REQUEST { }
   export abstract class SimulatingSignMsgRequest extends REQUEST_CONFIG.SIMULATING_SIGN_MSG_REQUEST { }
@@ -89,6 +96,11 @@ export module MODULE_REQUEST {
   export abstract class GetMultisigSignaturesParam extends REQUEST_CONFIG.GET_MULTISIG_SIGNATURES_PARAM { }
   export abstract class GetSafeBalanceQuery extends REQUEST_CONFIG.GET_SAFE_BALANCE_QUERY { }
   export abstract class GetSafeBalancePathParams extends REQUEST_CONFIG.GET_SAFE_BALANCE_PATH_PARAMS { }
+}
+
+export module MODULE_RESPONSE {
+  export abstract class ResponseDto extends RESPONSE_CONFIG.RESPONSE_DTO { }
+  export abstract class MultisigSignatureRespone extends RESPONSE_CONFIG.MULTISIG_SIGNATURE_RESPONE { }
 }
 
 export const SERVICE_INTERFACE = {

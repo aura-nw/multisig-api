@@ -11,7 +11,6 @@ import {
   SERVICE_INTERFACE,
 } from './module.config';
 import { MultisigWalletService } from './services/impls/multisig-wallet.service';
-import { SimulatingService } from './services/impls/simulating.service';
 import { TransactionService } from './services/impls/transaction.service';
 import { SharedModule } from './shared/shared.module';
 import { GeneralService } from './services/impls/general.service';
@@ -26,7 +25,6 @@ import { TransactionRepository } from './repositories/impls/transaction.reposito
 import { SafeRepository } from './repositories/impls/safe.repository';
 
 const controllers = [
-  // SimulatingController,
   MultisigWalletController,
   TransactionController,
   OwnerController,
@@ -91,10 +89,6 @@ const entities = [
       useClass: SafeRepository,
     },
     //service
-    {
-      provide: SERVICE_INTERFACE.ISIMULATING_SERVICE,
-      useClass: SimulatingService,
-    },
     {
       provide: SERVICE_INTERFACE.ITRANSACTION_SERVICE,
       useClass: TransactionService,
