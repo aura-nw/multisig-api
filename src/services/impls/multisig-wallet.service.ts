@@ -408,12 +408,12 @@ export class MultisigWalletService
 
   async getMultisigWalletsByOwner(
     param: MODULE_REQUEST.GetSafesByOwnerAddressParams,
-    query: MODULE_REQUEST.GetSafesByOwnerAddressQuery,
+    // query: MODULE_REQUEST.GetSafesByOwnerAddressQuery,
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      const { address } = param;
-      const { internalChainId } = query;
+      const { address, internalChainId } = param;
+      // const { internalChainId } = query;
       const result = await this.safeRepo.getMultisigWalletsByOwner(
         address,
         internalChainId,
