@@ -32,7 +32,7 @@ export class CreateTransactionRequest {
     gasLimit: number;
 
     @ApiProperty({
-        description: 'Chain Id',
+        description: 'Offline Chain Id',
         example: 4
     })
     internalChainId: number;
