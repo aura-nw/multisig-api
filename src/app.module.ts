@@ -4,7 +4,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { MultisigWalletController } from './controllers/multisig-wallet.controller';
 import { TransactionController } from './controllers/transaction.controller';
 import { OwnerController } from './controllers/owner.controller';
-import { NotificationController } from './controllers/notification.controller';
 import {
   ENTITIES_CONFIG,
   REPOSITORY_INTERFACE,
@@ -27,7 +26,6 @@ const controllers = [
   MultisigWalletController,
   TransactionController,
   OwnerController,
-  NotificationController,
   GeneralController,
   // AppController,
 ];

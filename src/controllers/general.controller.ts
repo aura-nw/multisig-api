@@ -15,7 +15,7 @@ export class GeneralController {
     @Post(URL_CONSTANTS.NETWORK_LIST)
     @ApiOperation({ summary: 'Show network list' })
     async showNetworkList() {
-        return await this.generalService.showNetworkList();
+        return this.generalService.showNetworkList();
     }
 
     @Get('get-account-onchain/:safeAddress/:internalChainId')
@@ -24,6 +24,6 @@ export class GeneralController {
         @Param('safeAddress') safeAddress: string,
         @Param('internalChainId') internalChainId: number
     ) {
-        return await this.generalService.getAccountOnchain(safeAddress, internalChainId);
+        return this.generalService.getAccountOnchain(safeAddress, internalChainId);
     }
 }
