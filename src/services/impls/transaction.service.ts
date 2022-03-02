@@ -2,19 +2,15 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ResponseDto } from 'src/dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
-import { ConfigService } from 'src/shared/services/config.service';
 import { ITransactionService } from '../transaction.service';
 import {
   calculateFee,
   GasPrice,
   makeMultisignedTx,
-  MsgSendEncodeObject,
   StargateClient,
 } from '@cosmjs/stargate';
 import { fromBase64, toBase64 } from "@cosmjs/encoding";
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
-import { MsgSend } from 'cosmjs-types/cosmos/bank/v1beta1/tx';
-import { coins } from '@cosmjs/proto-signing';
 import { BaseService } from './base.service';
 import { ITransactionRepository } from 'src/repositories/itransaction.repository';
 import { IMultisigConfirmRepository } from 'src/repositories/imultisig-confirm.repository';
@@ -33,10 +29,8 @@ export class TransactionService
   implements ITransactionService
 {
   private readonly _logger = new Logger(TransactionService.name);
-  private _prefix: string;
 
   constructor(
-    private configService: ConfigService,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_TRANSACTION_REPOSITORY) private multisigTransactionRepos: IMultisigTransactionsRepository,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_CONFIRM_REPOSITORY) private multisigConfirmRepos: IMultisigConfirmRepository,
     @Inject(REPOSITORY_INTERFACE.IGENERAL_REPOSITORY) private chainRepos: IGeneralRepository,
@@ -48,7 +42,6 @@ export class TransactionService
     this._logger.log(
       '============== Constructor Transaction Service ==============',
     );
-    this._prefix = this.configService.get('PREFIX');
   }
 
   async createTransaction(
@@ -207,23 +200,22 @@ export class TransactionService
       let encodeTransaction = Uint8Array.from(TxRaw.encode(executeTransaction).finish());
 
       try {
-        const result = await client.broadcastTx(
-          encodeTransaction, 10
-        );
+        await client.broadcastTx(encodeTransaction, 10);
       } catch (error) {
         this._logger.log(error);
         //Update status and txhash
         //TxHash is encoded transaction when send it to network
-        if(error.txId === 'undefined'){
-          multisigTransaction.status = TRANSACTION_STATUS.PENDING;
-          multisigTransaction.txHash = error.txId;
+        if(typeof error.txId === 'undefined' || error.txId === null){
+          multisigTransaction.status = TRANSACTION_STATUS.FAILED;
           await this.multisigTransactionRepos.update(multisigTransaction);
-        }
-        else{
-          this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
           this._logger.error(`${error.name}: ${error.message}`);
           this._logger.error(`${error.stack}`);
           return res.return(ErrorMap.E500, {'err': error.message});
+        }
+        else{
+          multisigTransaction.status = TRANSACTION_STATUS.PENDING;
+          multisigTransaction.txHash = error.txId;
+          await this.multisigTransactionRepos.update(multisigTransaction);
         }
       }
 
@@ -412,12 +404,9 @@ export class TransactionService
     for (let i = 0; i < result.length; i++) {
       if(result[i].Status == '0') result[i].Status = TRANSACTION_STATUS.SUCCESS;
       else {
-        try {
-          const code = parseInt(result[i].Status);
-          result[i].Status = TRANSACTION_STATUS.FAILED;
-        } catch (error) {
-          this._logger.error(error);
-        }
+        const code = parseInt(result[i].Status);
+        console.log(code);
+        if(!isNaN(code)) result[i].Status = TRANSACTION_STATUS.FAILED;
       }
       // Check to define direction of Tx
       if (result[i].FromAddress == request.safeAddress) {
