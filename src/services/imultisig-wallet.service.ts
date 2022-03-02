@@ -35,6 +35,7 @@ export interface IMultisigWalletService {
    */
   getMultisigWalletsByOwner(
     param: MODULE_REQUEST.GetSafesByOwnerAddressParams,
+    query: MODULE_REQUEST.GetSafesByOwnerAddressQuery,
   ): Promise<ResponseDto>;
 
   // /**
