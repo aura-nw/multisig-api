@@ -2,9 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BaseRepository } from './base.repository';
 import { ObjectLiteral, Repository } from 'typeorm';
-import { ENTITIES_CONFIG } from 'src/module.config';
+import { ENTITIES_CONFIG, MODULE_REQUEST } from 'src/module.config';
 import { IMultisigTransactionsRepository } from '../imultisig-transaction.repository';
 import { Chain, Safe } from 'src/entities';
+import { TRANSACTION_STATUS } from 'src/common/constants/app.constant';
+import { off } from 'process';
 
 @Injectable()
 export class MultisigTransactionRepository
@@ -55,5 +57,19 @@ export class MultisigTransactionRepository
     if (condition.txHash) sqlQuerry.where('multisigTransaction.txHash = :param', { param })
     else sqlQuerry.where('multisigTransaction.id = :param', { param })
     return sqlQuerry.getRawOne();
+  }
+
+  async getQueueTransaction(request: MODULE_REQUEST.GetAllTransactionsRequest) {
+    const limit = request.pageSize;
+    const offset = limit * (request.pageIndex - 1);
+    return this.repos.query(`
+      SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, Status
+      FROM MultisigTransaction
+      WHERE (FromAddress = ? OR ToAddress = ?)
+      AND (Status = ? OR Status = ? OR Status = ?)
+      ORDER BY CreatedAt ASC
+      LIMIT ? OFFSET ?
+    `, [request.safeAddress, request.safeAddress, TRANSACTION_STATUS.AWAITING_CONFIRMATIONS, TRANSACTION_STATUS.AWAITING_EXECUTION, TRANSACTION_STATUS.PENDING,
+      limit, offset]);
   }
 }

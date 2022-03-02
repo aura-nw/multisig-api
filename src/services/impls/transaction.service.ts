@@ -399,13 +399,14 @@ export class TransactionService
     request: MODULE_REQUEST.GetAllTransactionsRequest
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
-    const result = await this.transRepos.getAuraTx(request.safeAddress, request.pageIndex, request.pageSize);
+    let result;
+    if(request.isHistory) result = await this.transRepos.getAuraTx(request);
+    else result = await this.multisigTransactionRepos.getQueueTransaction(request);
     // Loop to get Status based on Code and get Multisig Confirm of Multisig Tx
     for (let i = 0; i < result.length; i++) {
       if(result[i].Status == '0') result[i].Status = TRANSACTION_STATUS.SUCCESS;
       else {
         const code = parseInt(result[i].Status);
-        console.log(code);
         if(!isNaN(code)) result[i].Status = TRANSACTION_STATUS.FAILED;
       }
       // Check to define direction of Tx
