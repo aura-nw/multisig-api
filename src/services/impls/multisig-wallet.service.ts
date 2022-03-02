@@ -414,6 +414,7 @@ export class MultisigWalletService
     try {
       const { address } = param;
       const { internalChainId } = query;
+      // const { internalChainId } = query;
       const result = await this.safeRepo.getMultisigWalletsByOwner(
         address,
         internalChainId,

@@ -6,8 +6,6 @@ export class GetSafesByOwnerAddressQuery {
   internalChainId: number;
 }
 export class GetSafesByOwnerAddressParams {
-
   @ApiProperty()
-  @IsNotEmpty()
   address: string;
 }
