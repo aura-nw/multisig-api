@@ -31,13 +31,15 @@ export class OwnerController {
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
   @HttpCode(HttpStatus.OK)
   async getSafes(
-    @Query() query: MODULE_REQUEST.GetSafesByOwnerAddressParams,
+    @Param() param: MODULE_REQUEST.GetSafesByOwnerAddressParams,
+    @Query() query: MODULE_REQUEST.GetSafesByOwnerAddressQuery,
   ) {
     this._logger.log(
       '========== Return Safes where the address provided is an owner ==========',
     );
     return await this.multisigWalletService.getMultisigWalletsByOwner(
-      query,
+      param,
+      query
     );
   }
 }
