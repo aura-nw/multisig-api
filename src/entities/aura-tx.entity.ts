@@ -18,6 +18,9 @@ export class AuraTx extends BaseEntityAutoId {
   @Column({ name: 'GasWanted', type: 'float' })
   gasWanted: number;
 
+  @Column({ name: 'Fee', type: 'float' })
+  fee: number;
+
   @Column({ name: 'Height' })
   height: number;
 
