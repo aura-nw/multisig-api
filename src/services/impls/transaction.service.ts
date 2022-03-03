@@ -152,17 +152,26 @@ export class TransactionService
       }
 
       //Validate owner
-      // let listOwner = await this.safeRepos.getMultisigWalletsByOwner(multisigTransaction.fromAddress, request.internalChainId);
+      let listOwner = await this.safeRepos.getMultisigWalletsByOwner(request.owner, request.internalChainId);
 
-      // let checkOwner = listOwner.find(elelement => {
-      //   if (elelement.safeAddress === request.owner){
-      //     return true;
-      //   }
-      // });
+      let checkOwner = listOwner.find(elelement => {
+        if (elelement.safeAddress === multisigTransaction.fromAddress){
+          return true;
+        }
+      });
 
-      // if(!checkOwner){
-      //   return res.return(ErrorMap.PERMISSION_DENIED);
-      // }
+      if(!checkOwner){
+        return res.return(ErrorMap.PERMISSION_DENIED);
+      }
+
+      //Record owner send transaction
+      let sender = new MultisigConfirm();
+      sender.multisigTransactionId = request.transactionId;
+      sender.internalChainId = request.internalChainId;
+      sender.ownerAddress = request.owner;
+      sender.status = MULTISIG_CONFIRM_STATUS.SEND;
+
+      await this.multisigConfirmRepos.create(sender);
 
       //Get safe info
       let safeInfo = await this.safeRepos.findOne({
@@ -218,15 +227,6 @@ export class TransactionService
           await this.multisigTransactionRepos.update(multisigTransaction);
         }
       }
-
-      //Record owner send transaction
-      let sender = new MultisigConfirm();
-      sender.multisigTransactionId = request.transactionId;
-      sender.internalChainId = request.internalChainId;
-      sender.ownerAddress = request.owner;
-      sender.status = MULTISIG_CONFIRM_STATUS.SEND;
-
-      await this.multisigConfirmRepos.create(sender);
 
       return res.return(ErrorMap.SUCCESSFUL);
 
