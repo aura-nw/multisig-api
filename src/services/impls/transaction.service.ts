@@ -429,11 +429,10 @@ export class TransactionService
       const internalTxHash = param.internalTxHash;
       // Check if param entered is Id or TxHash
       let condition = this.calculateCondition(internalTxHash);
-      let rawResult, result;
+      let result;
+      let rawResult = await this.transRepos.getTransactionDetailsAuraTx(condition);
       // Query based on condition
-      if(condition.txHash) {
-        rawResult = await this.transRepos.getTransactionDetailsAuraTx(condition);
-      } else if(condition.id) {
+      if(!rawResult) {
         rawResult = await this.multisigTransactionRepos.getTransactionDetailsMultisigTransaction(condition);
       }
       // Create data form to return to client
@@ -449,6 +448,7 @@ export class TransactionService
           Denom: rawResult.Denom,
           GasUsed: rawResult.GasUsed,
           GasWanted: rawResult.GasWanted,
+          GasPrice: rawResult.GasPrice,
           ChainId: rawResult.ChainId,
         }
         // Get Status based on Code
@@ -468,6 +468,7 @@ export class TransactionService
           Denom: rawResult.Denom,
           GasUsed: '',
           GasWanted: rawResult.GasWanted,
+          GasPrice: rawResult.GasPrice,
           ChainId: rawResult.ChainId,
           Status: rawResult.Status,
           ConfirmationsRequired: rawResult.ConfirmationsRequired,
