@@ -54,6 +54,11 @@ export class TransactionDetailsResponse {
     })
     GasWanted: number;
 
+    @ApiProperty({ 
+        example: 0.01
+    })
+    GasPrice: number;
+
     @ApiProperty({
         example: 'aura-testnet'
     })

@@ -50,6 +50,7 @@ export class MultisigTransactionRepository
         'multisigTransaction.denom as Denom',
         'multisigTransaction.status as Status',
         'multisigTransaction.gas as GasWanted',
+        'multisigTransaction.fee as GasPrice',
         'safe.threshold as ConfirmationsRequired',
         'safe.creatorAddress as Signer',
         'chain.chainId as ChainId'
