@@ -169,8 +169,10 @@ export class TransactionService
         where: {id: multisigTransaction.safeId}
       })
 
+      //Get all signature of transaction
       let multisigConfirmArr = await this.multisigConfirmRepos.findByCondition({ 
-         multisigTransactionId: request.transactionId
+         multisigTransactionId: request.transactionId,
+         status: MULTISIG_CONFIRM_STATUS.CONFIRM
       });
 
       let addressSignarureMap = new Map<string, Uint8Array>();
