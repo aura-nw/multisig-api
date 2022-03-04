@@ -164,22 +164,15 @@ export class TransactionService
         return res.return(ErrorMap.PERMISSION_DENIED);
       }
 
-      //Record owner send transaction
-      let sender = new MultisigConfirm();
-      sender.multisigTransactionId = request.transactionId;
-      sender.internalChainId = request.internalChainId;
-      sender.ownerAddress = request.owner;
-      sender.status = MULTISIG_CONFIRM_STATUS.SEND;
-
-      await this.multisigConfirmRepos.create(sender);
-
       //Get safe info
       let safeInfo = await this.safeRepos.findOne({
         where: {id: multisigTransaction.safeId}
       })
 
+      //Get all signature of transaction
       let multisigConfirmArr = await this.multisigConfirmRepos.findByCondition({ 
-         multisigTransactionId: request.transactionId
+         multisigTransactionId: request.transactionId,
+         status: MULTISIG_CONFIRM_STATUS.CONFIRM
       });
 
       let addressSignarureMap = new Map<string, Uint8Array>();
@@ -209,7 +202,16 @@ export class TransactionService
       let encodeTransaction = Uint8Array.from(TxRaw.encode(executeTransaction).finish());
 
       try {
-        await client.broadcastTx(encodeTransaction, 10);
+        //Record owner send transaction
+        let sender = new MultisigConfirm();
+        sender.multisigTransactionId = request.transactionId;
+        sender.internalChainId = request.internalChainId;
+        sender.ownerAddress = request.owner;
+        sender.status = MULTISIG_CONFIRM_STATUS.SEND;
+
+        await this.multisigConfirmRepos.create(sender);
+
+        let result = await client.broadcastTx(encodeTransaction, 10);
       } catch (error) {
         this._logger.log(error);
         //Update status and txhash
@@ -226,6 +228,8 @@ export class TransactionService
           multisigTransaction.txHash = error.txId;
           await this.multisigTransactionRepos.update(multisigTransaction);
         }
+
+        
       }
 
       return res.return(ErrorMap.SUCCESSFUL);
