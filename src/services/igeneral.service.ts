@@ -10,5 +10,5 @@ export interface IGeneralService {
     /**
      * Get account onchain
      */
-    getAccountOnchain(safeAddress: string, rpc: string): Promise<ResponseDto>
+    getAccountOnchain(safeAddress: string, internalChainId: number): Promise<ResponseDto>
 }

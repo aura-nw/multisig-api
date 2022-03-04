@@ -27,12 +27,12 @@ export class GeneralService extends BaseService implements IGeneralService {
         return res.return(ErrorMap.SUCCESSFUL, result);
     }
 
-    async getAccountOnchain(safeAddress: string, rpc: string): Promise<ResponseDto> {
+    async getAccountOnchain(safeAddress: string, internalChainId: number): Promise<ResponseDto> {
         const res = new ResponseDto();
         try {
-            const condition = { rpc: rpc };
+            const condition = { id: internalChainId };
             const chain = await this.chainRepo.findByCondition(condition);
-            const client = await StargateClient.connect(rpc);
+            const client = await StargateClient.connect(chain[0].rpc);
             const accountOnChain = await client.getAccount(safeAddress);
             const balance = await client.getBalance(safeAddress, chain[0].denom);
             return res.return(ErrorMap.SUCCESSFUL, { accountOnChain, balance });

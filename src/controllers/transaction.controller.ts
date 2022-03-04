@@ -10,12 +10,12 @@ import {
   HttpCode,
   Logger,
 } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   CONTROLLER_CONSTANTS,
   URL_CONSTANTS,
 } from 'src/common/constants/api.constant';
-import { MODULE_REQUEST, SERVICE_INTERFACE } from 'src/module.config';
+import { MODULE_REQUEST, MODULE_RESPONSE, SERVICE_INTERFACE } from 'src/module.config';
 import { ITransactionService } from 'src/services/transaction.service';
 
 @Controller(CONTROLLER_CONSTANTS.TRANSACTION)
@@ -26,79 +26,102 @@ export class TransactionController {
   constructor(
     @Inject(SERVICE_INTERFACE.ITRANSACTION_SERVICE)
     private transactionService: ITransactionService,
-  ) {}
+  ) { }
 
   @Post(URL_CONSTANTS.CREATE)
-  @ApiOperation({ summary: 'Create multisig transaction' })
+  @ApiOperation({ summary: 'API Create multisig transaction',
+                  description: `It is used to allow owner of safe create transaction transfer native coin with another address. 
+                  Firs of all, owner must sign transaction via wallet extension then get signature and bodyBytes, what is result of action sign. Then call API to create transaction.`})
+  @ApiOkResponse({ status: 200, type: MODULE_RESPONSE.ResponseDto, description: 'The result returned is the ResponseDto class', schema: {} })
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
   @HttpCode(HttpStatus.OK)
   async createTransaction(
     @Body() request: MODULE_REQUEST.CreateTransactionRequest,
   ) {
     this._logger.log('========== Create multisig transaction ==========');
-    return await this.transactionService.createTransaction(request);
+    return this.transactionService.createTransaction(request);
   }
 
   @Post(URL_CONSTANTS.CONFIRM_TRANSACTION)
-  @ApiOperation({ summary: 'owner confirm their transaction' })
+  @ApiOperation({ summary: 'API Owner confirm their transaction. ',
+                  description: `It is used to owner of safe sign transaction. When transaction meet threshold, it changes to status AWAITING_EXECUTION ready to broadcast to network.` })
+  @ApiOkResponse({ status: 200, type: MODULE_RESPONSE.ResponseDto, description: 'The result returned is the ResponseDto class', schema: {} })
+  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  @HttpCode(HttpStatus.OK)
   async confirmTransaction(
     @Body() request: MODULE_REQUEST.ConfirmTransactionRequest,
   ) {
-    return await this.transactionService.confirmTransaction(request);
+    return this.transactionService.confirmTransaction(request);
   }
 
   @Post(URL_CONSTANTS.REJECT_TRANSACTION)
-  @ApiOperation({ summary: 'owner reject their transaction' })
+  @ApiOperation({ summary: 'Owner reject their transaction',
+                  description: `It is used to owner of safe reject transaction.` })
+  @ApiOkResponse({ status: 200, type: MODULE_RESPONSE.ResponseDto, description: 'The result returned is the ResponseDto class', schema: {} })
+  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  @HttpCode(HttpStatus.OK)
   async rejectTransaction(
     @Body() request: MODULE_REQUEST.RejectTransactionParam,
   ) {
-    return await this.transactionService.rejectTransaction(request);
+    return this.transactionService.rejectTransaction(request);
   }
 
   @Post(URL_CONSTANTS.GET_ALL_TXS)
   @ApiOperation({
     summary: 'Returns a paginated list of transactions for a Safe',
   })
+  @ApiOkResponse({ status: 200, type: MODULE_RESPONSE.MultisigTransactionHistoryResponse, isArray: true, description: 'Get Transaction History of a Safe', schema: {} })
+  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  @HttpCode(HttpStatus.OK)
   async getAllTxs(
     @Body() request: MODULE_REQUEST.GetAllTransactionsRequest,
   ) {
     this._logger.log('========== Get All Transactions ==========');
-    return await this.transactionService.getTransactionHistory(request);
+    return this.transactionService.getTransactionHistory(request);
   }
 
   @Get(URL_CONSTANTS.SIGNATURES)
   @ApiOperation({
     summary: 'Get the list of signatures for a multisig transaction',
   })
+  @ApiOkResponse({ status: 200, type: MODULE_RESPONSE.MultisigSignatureResponse, description: 'List signature of multisig', schema: {} })
+  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  @HttpCode(HttpStatus.OK)
   async getSignaturesOfMultisigTx(
     @Param() param: MODULE_REQUEST.GetMultisigSignaturesParam
   ) {
     this._logger.log('========== Get Signatures of Multisig Transaction ==========');
-    return await this.transactionService.getListMultisigConfirmById(
+    return this.transactionService.getListMultisigConfirmById(
       param,
     );
   }
 
   @Post(URL_CONSTANTS.SEND)
-  @ApiOperation({ summary: 'Send transaction to AURA' })
+  @ApiOperation({ summary: 'Send transaction to AURA',
+                  description: `It is used to owner of safe broadcast transaction to network. When it failed will throw information. 
+                  When it success, update transaction txHash to DB. Multisig sync service will crawl data from network then update result of transaction.` })
+  @ApiOkResponse({ status: 200, type: MODULE_RESPONSE.ResponseDto, description: 'The result returned is the ResponseDto class', schema: {} })
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
   @HttpCode(HttpStatus.OK)
   async sendTransaction(
     @Body() request: MODULE_REQUEST.SendTransactionRequest,
   ) {
     this._logger.log('========== Send transaction to AURA ==========');
-    return await this.transactionService.sendTransaction(request);
+    return this.transactionService.sendTransaction(request);
   }
 
   @Get(URL_CONSTANTS.TRANSACTION_DETAILS)
   @ApiOperation({
     summary: 'Get details of a transaction',
   })
+  @ApiOkResponse({ status: 200, type: MODULE_RESPONSE.TransactionDetailsResponse, description: 'Details of a Transaction', schema: {} })
+  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  @HttpCode(HttpStatus.OK)
   async getTransactionDetails(
     @Param() param: MODULE_REQUEST.GetTransactionDetailsParam
   ) {
     this._logger.log('========== Get details of a Transaction ==========');
-    return await this.transactionService.getTransactionDetails(
+    return this.transactionService.getTransactionDetails(
       param,
     );
   }

@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity } from 'typeorm';
 import { BaseEntityAutoId } from './base/base.entity';
 
 @Entity({ name: 'Chain' })
@@ -14,6 +14,9 @@ export class Chain extends BaseEntityAutoId {
 
   @Column({ name: 'Websocket' })
   webSocket: string;
+
+  @Column({ name: 'Symbol' })
+  symbol: string;
 
   @Column({ name: 'Denom' })
   denom: string;

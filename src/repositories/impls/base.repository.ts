@@ -22,7 +22,7 @@ export class BaseRepository implements IBaseRepository {
     this._log.log(
       `============== Call method findOne width parameters:${id} ==============`,
     );
-    return await this._repos.findOne(id);
+    return this._repos.findOne(id);
   }
 
   /**
@@ -41,7 +41,7 @@ export class BaseRepository implements IBaseRepository {
     if (orderBy) {
       opt['order'] = orderBy;
     }
-    return await this._repos.find(opt);
+    return this._repos.find(opt);
   }
 
   /**
@@ -50,7 +50,7 @@ export class BaseRepository implements IBaseRepository {
    * @returns
    */
   public async findWithRelations(relations: any): Promise<any[]> {
-    return await this._repos.find(relations);
+    return this._repos.find(relations);
   }
 
   /**
@@ -60,9 +60,9 @@ export class BaseRepository implements IBaseRepository {
    */
   public async findAll(orderBy?: any): Promise<any[]> {
     if (orderBy) {
-      return await this._repos.find({ order: orderBy });
+      return this._repos.find({ order: orderBy });
     } else {
-      return await this._repos.find();
+      return this._repos.find();
     }
   }
 
@@ -109,7 +109,7 @@ export class BaseRepository implements IBaseRepository {
    * @returns
    */
   public async create(data: any): Promise<any> {
-    return await this._repos.save(data);
+    return this._repos.save(data);
   }
 
   /**
@@ -118,7 +118,7 @@ export class BaseRepository implements IBaseRepository {
    * @returns
    */
   public async update(data: any): Promise<any> {
-    return await this._repos.save(data);
+    return this._repos.save(data);
   }
 
   /**
@@ -128,7 +128,7 @@ export class BaseRepository implements IBaseRepository {
    */
   public async remove(id: any): Promise<DeleteResult> {
     const entity = await this.findOne(id);
-    return await this._repos.delete(entity);
+    return this._repos.delete(entity);
   }
 
   private convertObjectToJson(obj: any) {

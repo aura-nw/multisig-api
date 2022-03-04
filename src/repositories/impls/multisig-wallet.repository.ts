@@ -23,8 +23,7 @@ export class MultisigWalletRepository extends BaseRepository implements IMultisi
     let sqlQuerry = this.repos.createQueryBuilder('safe').innerJoin(SafeOwner, 'safeOwner', 'safe.id = safeOwner.safeId')
       .where('safe.safeAddress = :safeAddress', { safe_address })
       .andWhere('safe.creatorAddress = :creatorAddress', { owner_address }).orWhere('')
-    let resultData = await sqlQuerry.getRawMany();
-    return resultData;
+    return sqlQuerry.getRawMany();
   }
 
   async getMultisigWalletsByOwner(ownerAddress: string, internalChainId: number): Promise<any[]> {
@@ -43,21 +42,20 @@ export class MultisigWalletRepository extends BaseRepository implements IMultisi
         'safe.creatorAddress as creatorAddress',
         'safe.status as status',
         'safeOwner.ownerAddress as ownerAddress',
-        'safeOwner.ownerPubkey as ownerPubkey'
+        'safeOwner.ownerPubkey as ownerPubkey',
+        'safeOwner.internalChainId as internalChainId'
       ]);
 
-    let resultData = await sqlQuerry.getRawMany();
-    return resultData;
+    return sqlQuerry.getRawMany();
   }
 
   async getThreshold(safeAddress: string) {
     let sqlQuerry = this.repos
-        .createQueryBuilder('safe')
-        .where('safe.safeAddress = :safeAddress', { safeAddress })
-        .select([
-            'safe.threshold as ConfirmationsRequired',
-        ]);
-    let resultData = await sqlQuerry.getRawOne();
-    return resultData;
+      .createQueryBuilder('safe')
+      .where('safe.safeAddress = :safeAddress', { safeAddress })
+      .select([
+        'safe.threshold as ConfirmationsRequired',
+      ]);
+    return sqlQuerry.getRawOne();
   }
 }

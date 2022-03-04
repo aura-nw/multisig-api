@@ -15,9 +15,9 @@ export class GeneralRepository extends BaseRepository implements IGeneralReposit
         super(repos);
         this._logger.log(
             '============== Constructor General Repository ==============',
-          );
+        );
     }
-    
+
     async showNetworkList() {
         let sqlQuerry = this.repos
             .createQueryBuilder('chain')
@@ -27,10 +27,10 @@ export class GeneralRepository extends BaseRepository implements IGeneralReposit
                 'chain.rest as rest',
                 'chain.rpc as rpc',
                 'chain.chainId as chainId',
+                'chain.symbol as symbol',
                 'chain.denom as denom',
                 'chain.prefix as prefix'
             ]);
-        let resultData = await sqlQuerry.getRawMany();
-        return resultData;
+        return sqlQuerry.getRawMany();
     }
 }

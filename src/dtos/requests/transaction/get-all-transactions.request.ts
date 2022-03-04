@@ -1,12 +1,23 @@
 import { ApiProperty } from "@nestjs/swagger";
 
 export class GetAllTransactionsRequest {
-    @ApiProperty()
+    @ApiProperty({
+        example: 'aura16urhpn3xjcja0frv750ty3w62qd8skht7e3tlh'
+    })
     safeAddress: string;
 
-    @ApiProperty()
-    pageSize: number = 0;
+    @ApiProperty({
+        example: true
+    })
+    isHistory: boolean;
 
-    @ApiProperty()
-    pageIndex: number = 10;
+    @ApiProperty({
+        example: 10
+    })
+    pageSize: number;
+
+    @ApiProperty({
+        example: 1
+    })
+    pageIndex: number;
 }

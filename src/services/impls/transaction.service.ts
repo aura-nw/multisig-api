@@ -2,19 +2,15 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ResponseDto } from 'src/dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
-import { ConfigService } from 'src/shared/services/config.service';
 import { ITransactionService } from '../transaction.service';
 import {
   calculateFee,
   GasPrice,
   makeMultisignedTx,
-  MsgSendEncodeObject,
   StargateClient,
 } from '@cosmjs/stargate';
 import { fromBase64, toBase64 } from "@cosmjs/encoding";
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
-import { MsgSend } from 'cosmjs-types/cosmos/bank/v1beta1/tx';
-import { coins } from '@cosmjs/proto-signing';
 import { BaseService } from './base.service';
 import { ITransactionRepository } from 'src/repositories/itransaction.repository';
 import { IMultisigConfirmRepository } from 'src/repositories/imultisig-confirm.repository';
@@ -33,10 +29,8 @@ export class TransactionService
   implements ITransactionService
 {
   private readonly _logger = new Logger(TransactionService.name);
-  private _prefix: string;
 
   constructor(
-    private configService: ConfigService,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_TRANSACTION_REPOSITORY) private multisigTransactionRepos: IMultisigTransactionsRepository,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_CONFIRM_REPOSITORY) private multisigConfirmRepos: IMultisigConfirmRepository,
     @Inject(REPOSITORY_INTERFACE.IGENERAL_REPOSITORY) private chainRepos: IGeneralRepository,
@@ -48,7 +42,6 @@ export class TransactionService
     this._logger.log(
       '============== Constructor Transaction Service ==============',
     );
-    this._prefix = this.configService.get('PREFIX');
   }
 
   async createTransaction(
@@ -159,25 +152,27 @@ export class TransactionService
       }
 
       //Validate owner
-      // let listOwner = await this.safeRepos.getMultisigWalletsByOwner(multisigTransaction.fromAddress, request.internalChainId);
+      let listOwner = await this.safeRepos.getMultisigWalletsByOwner(request.owner, request.internalChainId);
 
-      // let checkOwner = listOwner.find(elelement => {
-      //   if (elelement.safeAddress === request.owner){
-      //     return true;
-      //   }
-      // });
+      let checkOwner = listOwner.find(elelement => {
+        if (elelement.safeAddress === multisigTransaction.fromAddress){
+          return true;
+        }
+      });
 
-      // if(!checkOwner){
-      //   return res.return(ErrorMap.PERMISSION_DENIED);
-      // }
+      if(!checkOwner){
+        return res.return(ErrorMap.PERMISSION_DENIED);
+      }
 
       //Get safe info
       let safeInfo = await this.safeRepos.findOne({
         where: {id: multisigTransaction.safeId}
       })
 
+      //Get all signature of transaction
       let multisigConfirmArr = await this.multisigConfirmRepos.findByCondition({ 
-         multisigTransactionId: request.transactionId
+         multisigTransactionId: request.transactionId,
+         status: MULTISIG_CONFIRM_STATUS.CONFIRM
       });
 
       let addressSignarureMap = new Map<string, Uint8Array>();
@@ -207,26 +202,35 @@ export class TransactionService
       let encodeTransaction = Uint8Array.from(TxRaw.encode(executeTransaction).finish());
 
       try {
-        const result = await client.broadcastTx(
-          encodeTransaction, 10
-        );
+        //Record owner send transaction
+        let sender = new MultisigConfirm();
+        sender.multisigTransactionId = request.transactionId;
+        sender.internalChainId = request.internalChainId;
+        sender.ownerAddress = request.owner;
+        sender.status = MULTISIG_CONFIRM_STATUS.SEND;
+
+        await this.multisigConfirmRepos.create(sender);
+
+        let result = await client.broadcastTx(encodeTransaction, 10);
       } catch (error) {
         this._logger.log(error);
         //Update status and txhash
         //TxHash is encoded transaction when send it to network
-        multisigTransaction.status = TRANSACTION_STATUS.PENDING;
-        multisigTransaction.txHash = error.txId;
-        await this.multisigTransactionRepos.update(multisigTransaction);
+        if(typeof error.txId === 'undefined' || error.txId === null){
+          multisigTransaction.status = TRANSACTION_STATUS.FAILED;
+          await this.multisigTransactionRepos.update(multisigTransaction);
+          this._logger.error(`${error.name}: ${error.message}`);
+          this._logger.error(`${error.stack}`);
+          return res.return(ErrorMap.E500, {'err': error.message});
+        }
+        else{
+          multisigTransaction.status = TRANSACTION_STATUS.PENDING;
+          multisigTransaction.txHash = error.txId;
+          await this.multisigTransactionRepos.update(multisigTransaction);
+        }
+
+        
       }
-
-      //Record owner send transaction
-      let sender = new MultisigConfirm();
-      sender.multisigTransactionId = request.transactionId;
-      sender.internalChainId = request.internalChainId;
-      sender.ownerAddress = request.owner;
-      sender.status = MULTISIG_CONFIRM_STATUS.SEND;
-
-      await this.multisigConfirmRepos.create(sender);
 
       return res.return(ErrorMap.SUCCESSFUL);
 
@@ -399,11 +403,16 @@ export class TransactionService
     request: MODULE_REQUEST.GetAllTransactionsRequest
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
-    const result = await this.transRepos.getAuraTx(request.safeAddress, request.pageIndex, request.pageSize);
+    let result;
+    if(request.isHistory) result = await this.transRepos.getAuraTx(request);
+    else result = await this.multisigTransactionRepos.getQueueTransaction(request);
     // Loop to get Status based on Code and get Multisig Confirm of Multisig Tx
     for (let i = 0; i < result.length; i++) {
       if(result[i].Status == '0') result[i].Status = TRANSACTION_STATUS.SUCCESS;
-      else if(result[i].Status == '5') result[i].Status = TRANSACTION_STATUS.FAILED;
+      else {
+        const code = parseInt(result[i].Status);
+        if(!isNaN(code)) result[i].Status = TRANSACTION_STATUS.FAILED;
+      }
       // Check to define direction of Tx
       if (result[i].FromAddress == request.safeAddress) {
         result[i].Direction = TRANSFER_DIRECTION.OUTGOING;
@@ -424,11 +433,10 @@ export class TransactionService
       const internalTxHash = param.internalTxHash;
       // Check if param entered is Id or TxHash
       let condition = this.calculateCondition(internalTxHash);
-      let rawResult, result;
+      let result;
+      let rawResult = await this.transRepos.getTransactionDetailsAuraTx(condition);
       // Query based on condition
-      if(condition.txHash) {
-        rawResult = await this.transRepos.getTransactionDetailsAuraTx(condition);
-      } else if(condition.id) {
+      if(!rawResult) {
         rawResult = await this.multisigTransactionRepos.getTransactionDetailsMultisigTransaction(condition);
       }
       // Create data form to return to client
@@ -444,6 +452,7 @@ export class TransactionService
           Denom: rawResult.Denom,
           GasUsed: rawResult.GasUsed,
           GasWanted: rawResult.GasWanted,
+          GasPrice: rawResult.GasPrice,
           ChainId: rawResult.ChainId,
         }
         // Get Status based on Code
@@ -463,6 +472,7 @@ export class TransactionService
           Denom: rawResult.Denom,
           GasUsed: '',
           GasWanted: rawResult.GasWanted,
+          GasPrice: rawResult.GasPrice,
           ChainId: rawResult.ChainId,
           Status: rawResult.Status,
           ConfirmationsRequired: rawResult.ConfirmationsRequired,

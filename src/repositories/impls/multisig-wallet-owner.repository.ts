@@ -9,8 +9,7 @@ import { Safe } from 'src/entities';
 @Injectable()
 export class MultisigWalletOwnerRepository
   extends BaseRepository
-  implements IMultisigWalletOwnerRepository
-{
+  implements IMultisigWalletOwnerRepository {
   private readonly _logger = new Logger(MultisigWalletOwnerRepository.name);
   constructor(
     @InjectRepository(ENTITIES_CONFIG.SAFE_OWNER)
@@ -24,13 +23,12 @@ export class MultisigWalletOwnerRepository
 
   async getOwners(safeAddress: string) {
     let sqlQuerry = this.repos
-        .createQueryBuilder('safeOwner')
-        .innerJoin(Safe, 'safe', 'safe.id = safeOwner.safeId')
-        .where('safe.safeAddress = :safeAddress', { safeAddress })
-        .select([
-            'safeOwner.ownerAddress as OwnerAddress',
-        ]);
-    let resultData = await sqlQuerry.getRawMany();
-    return resultData;
+      .createQueryBuilder('safeOwner')
+      .innerJoin(Safe, 'safe', 'safe.id = safeOwner.safeId')
+      .where('safe.safeAddress = :safeAddress', { safeAddress })
+      .select([
+        'safeOwner.ownerAddress as OwnerAddress',
+      ]);
+    return sqlQuerry.getRawMany();
   }
 }

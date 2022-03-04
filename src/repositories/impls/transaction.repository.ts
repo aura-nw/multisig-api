@@ -1,8 +1,9 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { off } from "process";
+import { TRANSACTION_STATUS } from "src/common/constants/app.constant";
 import { Chain, Safe } from "src/entities";
-import { ENTITIES_CONFIG } from "src/module.config";
+import { ENTITIES_CONFIG, MODULE_REQUEST } from "src/module.config";
 import { ObjectLiteral, Repository } from "typeorm";
 import { ITransactionRepository } from "../itransaction.repository";
 import { BaseRepository } from "./base.repository";
@@ -19,42 +20,25 @@ export class TransactionRepository
         super(repos);
         this._logger.log(
             '============== Constructor Transaction Repository ==============',
-          );
+        );
     }
 
-    async getAuraTx(safeAddress: string, pageIndex: number, pageSize: number) {
-        const limit = pageSize;
-        const offset = limit * (pageIndex - 1);
-        // let sqlQuerry = this.repos
-        //     .createQueryBuilder('auraTx')
-        //     .where('auraTx.fromAddress = :safeAddress', { safeAddress })
-        //     .orWhere('auraTx.toAddress = :safeAddress', { safeAddress })
-        //     .select([
-        //         'auraTx.id as id',
-        //         'auraTx.createdAt as createdAt',
-        //         'auraTx.updatedAt as updatedAt',
-        //         'auraTx.fromAddress as fromAddress',
-        //         'auraTx.toAddress as toAddress',
-        //         'auraTx.txHash as txHash',
-        //         'auraTx.amount as amount',
-        //         'auraTx.denom as denom',
-        //     ])
-        //     .limit(limit).offset(offset)
-        //     .orderBy('auraTx.createdAt', 'DESC');
-        // let resultData = await sqlQuerry.getRawMany();
-        let resultData = await this.repos
+    async getAuraTx(request: MODULE_REQUEST.GetAllTransactionsRequest) {
+        const limit = request.pageSize;
+        const offset = limit * (request.pageIndex - 1);
+        return this.repos
             .query(`
+                SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, Code as Status
+                FROM AuraTx
+                WHERE (FromAddress = ? OR ToAddress = ?)
+                UNION
                 SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, Status
                 FROM MultisigTransaction
-                WHERE FromAddress = ? OR ToAddress = ?
-                UNION
-                SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, Code
-                FROM AuraTx
-                WHERE FromAddress = ? OR ToAddress = ?
-                ORDER BY CreatedAt ASC
+                WHERE (FromAddress = ? OR ToAddress = ?)
+                AND Status = ?
+                ORDER BY CreatedAt DESC
                 LIMIT ? OFFSET ?;
-            `, [ safeAddress, safeAddress, safeAddress, safeAddress, limit, offset ]);
-        return resultData;
+            `, [request.safeAddress, request.safeAddress, request.safeAddress, request.safeAddress, TRANSACTION_STATUS.CANCELLED, limit, offset]);
     }
 
     async getTransactionDetailsAuraTx(condition: any) {
@@ -75,9 +59,9 @@ export class TransactionRepository
                 'auraTx.denom as Denom',
                 'auraTx.gasUsed as GasUsed',
                 'auraTx.gasWanted as GasWanted',
+                'auraTx.fee as GasPrice',
                 'chain.chainId as ChainId'
             ]);
-        let resultData = await sqlQuerry.getRawOne();
-        return resultData;
+        return sqlQuerry.getRawOne();
     }
 }

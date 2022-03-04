@@ -45,13 +45,13 @@ export interface IBaseRepository {
    * create
    * @param data
    */
-  create(data: any | any): Promise<any>;
+  create(data: any): Promise<any>;
 
   /**
    * update
    * @param data
    */
-  update(data: any | any): Promise<any>;
+  update(data: any): Promise<any>;
 
   /**
    * remove

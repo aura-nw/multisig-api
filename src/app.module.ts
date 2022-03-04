@@ -1,18 +1,15 @@
 import { CacheModule, Module } from '@nestjs/common';
-import { HttpModule} from '@nestjs/axios'
+import { HttpModule } from '@nestjs/axios'
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MultisigWalletController } from './controllers/multisig-wallet.controller';
-import { SimulatingController } from './controllers/simulating.controller';
 import { TransactionController } from './controllers/transaction.controller';
 import { OwnerController } from './controllers/owner.controller';
-import { NotificationController } from './controllers/notification.controller';
 import {
   ENTITIES_CONFIG,
   REPOSITORY_INTERFACE,
   SERVICE_INTERFACE,
 } from './module.config';
 import { MultisigWalletService } from './services/impls/multisig-wallet.service';
-import { SimulatingService } from './services/impls/simulating.service';
 import { TransactionService } from './services/impls/transaction.service';
 import { SharedModule } from './shared/shared.module';
 import { GeneralService } from './services/impls/general.service';
@@ -27,17 +24,15 @@ import { TransactionRepository } from './repositories/impls/transaction.reposito
 import { SafeRepository } from './repositories/impls/safe.repository';
 
 const controllers = [
-  // SimulatingController,
   MultisigWalletController,
   TransactionController,
   OwnerController,
-  NotificationController,
   GeneralController,
   // AppController,
 ];
 const entities = [
-  ENTITIES_CONFIG.SAFE, 
-  ENTITIES_CONFIG.SAFE_OWNER, 
+  ENTITIES_CONFIG.SAFE,
+  ENTITIES_CONFIG.SAFE_OWNER,
   ENTITIES_CONFIG.CHAIN,
   ENTITIES_CONFIG.MULTISIG_CONFIRM,
   ENTITIES_CONFIG.MULTISIG_TRANSACTION,
@@ -93,10 +88,6 @@ const entities = [
     },
     //service
     {
-      provide: SERVICE_INTERFACE.ISIMULATING_SERVICE,
-      useClass: SimulatingService,
-    },
-    {
       provide: SERVICE_INTERFACE.ITRANSACTION_SERVICE,
       useClass: TransactionService,
     },
@@ -110,4 +101,4 @@ const entities = [
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }

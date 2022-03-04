@@ -11,12 +11,12 @@ import {
   HttpStatus,
   Param,
 } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   CONTROLLER_CONSTANTS,
   URL_CONSTANTS,
 } from 'src/common/constants/api.constant';
-import { MODULE_REQUEST, SERVICE_INTERFACE } from 'src/module.config';
+import { MODULE_REQUEST, MODULE_RESPONSE, SERVICE_INTERFACE } from 'src/module.config';
 import { IMultisigWalletService } from 'src/services/imultisig-wallet.service';
 @Controller(CONTROLLER_CONSTANTS.MULTISIG_WALLET)
 @ApiTags(CONTROLLER_CONSTANTS.MULTISIG_WALLET)
@@ -36,11 +36,12 @@ export class MultisigWalletController {
     @Body() request: MODULE_REQUEST.CreateMultisigWalletRequest,
   ) {
     this._logger.log('========== Create a multisig wallet ==========');
-    return await this.multisigWalletService.createMultisigWallet(request);
+    return this.multisigWalletService.createMultisigWallet(request);
   }
 
   @Get(URL_CONSTANTS.GET_SAFE)
   @ApiOperation({ summary: 'Get status of the multisig wallet by safeId' })
+  @ApiOkResponse({ status: 200, type: MODULE_RESPONSE.GetMultisigWalletResponse, description: 'Status of multisig wallet', schema: {} })
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
   @HttpCode(HttpStatus.OK)
   async getMultisigWallet(
@@ -50,7 +51,7 @@ export class MultisigWalletController {
     this._logger.log(
       '========== Get status of the multisig wallet by safeId ==========',
     );
-    return await this.multisigWalletService.getMultisigWallet(param, query);
+    return this.multisigWalletService.getMultisigWallet(param, query);
   }
 
   @Get(URL_CONSTANTS.GET_SAFE_BALANCE)
@@ -64,7 +65,7 @@ export class MultisigWalletController {
     this._logger.log(
       '========== Get status of the multisig wallet by safeId ==========',
     );
-    return await this.multisigWalletService.getBalance(param, query);
+    return this.multisigWalletService.getBalance(param, query);
   }
 
   @Post(URL_CONSTANTS.CONFIRM_SAFE)
@@ -76,7 +77,7 @@ export class MultisigWalletController {
     @Body() request: MODULE_REQUEST.ConfirmMultisigWalletRequest,
   ) {
     this._logger.log('========== Confirm multisig wallet ==========');
-    return await this.multisigWalletService.confirm(param, request);
+    return this.multisigWalletService.confirm(param, request);
   }
 
   @Delete(URL_CONSTANTS.DELETE_SAFE)
@@ -88,15 +89,6 @@ export class MultisigWalletController {
     @Body() request: MODULE_REQUEST.DeleteMultisigWalletRequest,
   ) {
     this._logger.log('========== Delete pending multisig wallet ==========');
-    return await this.multisigWalletService.deletePending(param, request);
+    return this.multisigWalletService.deletePending(param, request);
   }
-
-  // @Post()
-  // @ApiOperation({ summary: 'Connect multisig wallet' })
-  // @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
-  // @HttpCode(HttpStatus.OK)
-  // async createIAO(@Body() request: MODULE_REQUEST.ConnectMultisigWalletRequest) {
-  //   this._logger.log('========== Connect multisig wallet ==========');
-  //   return await this.multisigWalletService.connectMultisigWalletByAddress(request);
-  // }
 }

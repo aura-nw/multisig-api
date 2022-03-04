@@ -1,4 +1,3 @@
-import { ConfigService } from 'src/shared/services/config.service';
 import { Column, Entity } from 'typeorm';
 import { BaseEntityAutoId } from './base/base.entity';
 

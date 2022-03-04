@@ -25,4 +25,8 @@ export class ListSafeByOwnerResponse {
   @Expose()
   @ApiProperty()
   ownerPubkey: string;
+
+  @Expose()
+  @ApiProperty()
+  internalChainId: number;
 }

@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity } from 'typeorm';
 import { BaseEntityAutoId } from './base/base.entity';
 
 @Entity({ name: 'AuraTx' })
@@ -18,6 +18,9 @@ export class AuraTx extends BaseEntityAutoId {
   @Column({ name: 'GasWanted', type: 'float' })
   gasWanted: number;
 
+  @Column({ name: 'Fee', type: 'float' })
+  fee: number;
+
   @Column({ name: 'Height' })
   height: number;
 
@@ -30,13 +33,13 @@ export class AuraTx extends BaseEntityAutoId {
   @Column({ name: 'RawLogs' })
   rawLogs: string;
 
-  @Column({name: 'FromAddress'})
+  @Column({ name: 'FromAddress' })
   fromAddress: string;
 
-  @Column({name: 'ToAddress'})
+  @Column({ name: 'ToAddress' })
   toAddress: string;
 
-  @Column({name: 'Amount', type: 'float'})
+  @Column({ name: 'Amount', type: 'float' })
   amount: number;
 
   @Column({ name: 'Denom' })
