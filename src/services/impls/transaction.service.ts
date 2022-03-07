@@ -148,7 +148,7 @@ export class TransactionService
         !multisigTransaction ||
         multisigTransaction.status != TRANSACTION_STATUS.AWAITING_EXECUTION
       ) {
-        return res.return(ErrorMap.TRANSACTION_NOT_VALID);
+        throw Error(ErrorMap.TRANSACTION_NOT_VALID.Message);
       }
 
       //Validate owner
@@ -161,7 +161,7 @@ export class TransactionService
       });
 
       if(!checkOwner){
-        return res.return(ErrorMap.PERMISSION_DENIED);
+        throw Error(ErrorMap.PERMISSION_DENIED.Message);
       }
 
       //Get safe info
@@ -230,7 +230,7 @@ export class TransactionService
         }        
       }
 
-      return res.return(ErrorMap.SUCCESSFUL);
+      return res.return(ErrorMap.SUCCESSFUL, 'Successfull');
 
     } catch (error) {
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
