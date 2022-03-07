@@ -211,7 +211,7 @@ export class TransactionService
 
         await this.multisigConfirmRepos.create(sender);
 
-        let result = await client.broadcastTx(encodeTransaction, 10);
+        await client.broadcastTx(encodeTransaction, 10);
       } catch (error) {
         this._logger.log(error);
         //Update status and txhash
@@ -227,9 +227,7 @@ export class TransactionService
           multisigTransaction.status = TRANSACTION_STATUS.PENDING;
           multisigTransaction.txHash = error.txId;
           await this.multisigTransactionRepos.update(multisigTransaction);
-        }
-
-        
+        }        
       }
 
       return res.return(ErrorMap.SUCCESSFUL);
@@ -238,7 +236,7 @@ export class TransactionService
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
       this._logger.error(`${error.name}: ${error.message}`);
       this._logger.error(`${error.stack}`);
-      return res.return(ErrorMap.E500);
+      return res.return(ErrorMap.E500, {'Error:' : error.message});
     }
   }
 
