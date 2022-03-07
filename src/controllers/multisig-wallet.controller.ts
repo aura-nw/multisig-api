@@ -11,12 +11,22 @@ import {
   HttpStatus,
   Param,
 } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import {
   CONTROLLER_CONSTANTS,
   URL_CONSTANTS,
 } from 'src/common/constants/api.constant';
-import { MODULE_REQUEST, MODULE_RESPONSE, SERVICE_INTERFACE } from 'src/module.config';
+import { SwaggerBaseApiResponse } from 'src/dtos/responses';
+import {
+  MODULE_REQUEST,
+  MODULE_RESPONSE,
+  SERVICE_INTERFACE,
+} from 'src/module.config';
 import { IMultisigWalletService } from 'src/services/imultisig-wallet.service';
 @Controller(CONTROLLER_CONSTANTS.MULTISIG_WALLET)
 @ApiTags(CONTROLLER_CONSTANTS.MULTISIG_WALLET)
@@ -26,10 +36,16 @@ export class MultisigWalletController {
   constructor(
     @Inject(SERVICE_INTERFACE.IMULTISIG_WALLET_SERVICE)
     private multisigWalletService: IMultisigWalletService,
-  ) { }
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a multisig wallet' })
+  @ApiOkResponse({
+    status: 200,
+    type: SwaggerBaseApiResponse(MODULE_RESPONSE.CreateSafeResponse),
+    description: 'Safe information',
+    schema: {},
+  })
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
   @HttpCode(HttpStatus.OK)
   async createMultisigWallet(
@@ -41,7 +57,12 @@ export class MultisigWalletController {
 
   @Get(URL_CONSTANTS.GET_SAFE)
   @ApiOperation({ summary: 'Get status of the multisig wallet by safeId' })
-  @ApiOkResponse({ status: 200, type: MODULE_RESPONSE.GetMultisigWalletResponse, description: 'Status of multisig wallet', schema: {} })
+  @ApiOkResponse({
+    status: 200,
+    type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetMultisigWalletResponse),
+    description: 'Status of multisig wallet',
+    schema: {},
+  })
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
   @HttpCode(HttpStatus.OK)
   async getMultisigWallet(
