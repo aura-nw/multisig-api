@@ -26,6 +26,7 @@ import { plainToInstance } from 'class-transformer';
 import { ListSafeByOwnerResponse } from 'src/dtos/responses/multisig-wallet/get-safe-by-owner.response';
 import { IGeneralRepository } from 'src/repositories/igeneral.repository';
 import { Chain } from 'src/entities';
+import { CustomError } from 'src/common/customError';
 @Injectable()
 export class MultisigWalletService
   extends BaseService
@@ -59,13 +60,13 @@ export class MultisigWalletService
 
       // Check input
       if (otherOwnersAddress.indexOf(creatorAddress) > -1)
-        return ResponseDto.response(ErrorMap.OTHER_ADDRESS_INCLUDE_CREATOR);
+        throw new CustomError(ErrorMap.OTHER_ADDRESS_INCLUDE_CREATOR);
       if (this._commonUtil.checkIfDuplicateExists(otherOwnersAddress))
-        return ResponseDto.response(ErrorMap.DUPLICATE_SAFE_OWNER);
+        throw new CustomError(ErrorMap.DUPLICATE_SAFE_OWNER);
       const chainInfo = (await this.generalRepo.findOne(
         internalChainId,
       )) as Chain;
-      if (!chainInfo) return ResponseDto.response(ErrorMap.CHAIN_ID_NOT_EXIST);
+      if (!chainInfo) throw new CustomError(ErrorMap.CHAIN_ID_NOT_EXIST);
 
       // Filter empty string in otherOwnersAddress
       otherOwnersAddress =
@@ -85,7 +86,7 @@ export class MultisigWalletService
         threshold,
       );
       if (existInDB)
-        return ResponseDto.response(ErrorMap.DUPLICATE_SAFE_ADDRESS_HASH);
+        throw new CustomError(ErrorMap.DUPLICATE_SAFE_ADDRESS_HASH);
       safe.addressHash = safeAddressHash;
 
       // check if need create safe address
@@ -101,7 +102,7 @@ export class MultisigWalletService
           safe.safePubkey = safeInfo.pubkey;
           safe.status = SAFE_STATUS.CREATED;
         } catch (error) {
-          return ResponseDto.response(
+          throw new CustomError(
             ErrorMap.CANNOT_CREATE_SAFE_ADDRESS,
             error.message,
           );
@@ -113,7 +114,7 @@ export class MultisigWalletService
       // insert
       const result = await this.insertSafe(safe);
       if (result.error !== ErrorMap.SUCCESSFUL) {
-        return ResponseDto.response(result.error, result.errorMsg);
+        throw new CustomError(result.error, result.errorMsg);
       }
       const safeId = result.safe?.id;
 
@@ -126,10 +127,7 @@ export class MultisigWalletService
       try {
         await this.safeOwnerRepo.create(safeCreator);
       } catch (err) {
-        return ResponseDto.response(
-          ErrorMap.INSERT_SAFE_OWNER_FAILED,
-          err.message,
-        );
+        throw new CustomError(ErrorMap.INSERT_SAFE_OWNER_FAILED, err.message);
       }
 
       // TODO: bulk insert safe creator and all safe owners
@@ -142,15 +140,15 @@ export class MultisigWalletService
         try {
           await this.safeOwnerRepo.create(safeOwner);
         } catch (err) {
-          return ResponseDto.response(
-            ErrorMap.INSERT_SAFE_OWNER_FAILED,
-            err.message,
-          );
+          throw new CustomError(ErrorMap.INSERT_SAFE_OWNER_FAILED, err.message);
         }
       }
 
       return ResponseDto.response(ErrorMap.SUCCESSFUL, safe);
     } catch (error) {
+      if (error instanceof CustomError) {
+        return ResponseDto.response(error.errorMap, error.msg);
+      }
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
       this._logger.error(`${error.name}: ${error.message}`);
       this._logger.error(`${error.stack}`);
