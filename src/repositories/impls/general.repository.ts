@@ -26,6 +26,7 @@ export class GeneralRepository extends BaseRepository implements IGeneralReposit
                 'chain.name as name',
                 'chain.rest as rest',
                 'chain.rpc as rpc',
+                'chain.explorer as explorer',
                 'chain.chainId as chainId',
                 'chain.symbol as symbol',
                 'chain.denom as denom',
