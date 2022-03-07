@@ -1,5 +1,6 @@
 import { ConfirmMultisigWalletRequest, ConfirmSafePathParams, ConfirmTransactionRequest, ConnectMultisigWalletRequest, CreateMultisigWalletRequest, CreateTransactionRequest, DeleteMultisigWalletRequest, DeleteSafePathParams, GetAllTransactionsRequest, GetMultisigSignaturesParam, GetSafeBalancePathParams, GetSafeBalanceQuery, GetSafePathParams, GetSafeQuery, GetSafesByOwnerAddressParams, GetSafesByOwnerAddressQuery, GetTransactionDetailsParam, RejectTransactionRequest, SendTransactionRequest } from "./dtos/requests";
 import { GetMultisigWalletResponse, MultisigSignatureResponse, MultisigTransactionHistoryResponse, NetworkListResponse, ResponseDto, TransactionDetailsResponse } from "./dtos/responses";
+import { CreateSafeResponse } from "./dtos/responses/multisig-wallet/create-safe.response";
 import { AuraTx, Chain, MultisigConfirm, MultisigTransaction, Safe, SafeOwner } from "./entities";
 
 
@@ -37,6 +38,7 @@ export const REQUEST_CONFIG = {
 export const RESPONSE_CONFIG = {
   RESPONSE_DTO: ResponseDto,
   MULTISIG_SIGNATURE_RESPONSE: MultisigSignatureResponse,
+  CREATE_SAFE_RESPONSE: CreateSafeResponse,
   GET_MULTISIG_WALLET_RESPONSE: GetMultisigWalletResponse,
   MULTISIG_TRANSACTION_HISTORY_RESPONSE: MultisigTransactionHistoryResponse,
   TRANSACTION_DETAILS_RESPONSE: TransactionDetailsResponse,
@@ -67,6 +69,7 @@ export module MODULE_REQUEST {
 
 export module MODULE_RESPONSE {
   export abstract class ResponseDto extends RESPONSE_CONFIG.RESPONSE_DTO { }
+  export abstract class CreateSafeResponse extends RESPONSE_CONFIG.CREATE_SAFE_RESPONSE { }
   export abstract class GetMultisigWalletResponse extends RESPONSE_CONFIG.GET_MULTISIG_WALLET_RESPONSE { }
   export abstract class MultisigSignatureResponse extends RESPONSE_CONFIG.MULTISIG_SIGNATURE_RESPONSE { }
   export abstract class MultisigTransactionHistoryResponse extends RESPONSE_CONFIG.MULTISIG_TRANSACTION_HISTORY_RESPONSE { }
