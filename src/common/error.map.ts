@@ -73,7 +73,7 @@ export const ErrorMap = {
   },
   CANNOT_CREATE_SAFE_ADDRESS: {
     Code: 'E018',
-    Message: 'Cannot create safe addresss!',
+    Message: 'Permission denied!',
   },
   INSERT_SAFE_FAILED: {
     Code: 'E019',
