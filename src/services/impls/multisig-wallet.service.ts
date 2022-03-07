@@ -146,9 +146,8 @@ export class MultisigWalletService
 
       return ResponseDto.response(ErrorMap.SUCCESSFUL, safe);
     } catch (error) {
-      if (error instanceof CustomError) {
+      if (error instanceof CustomError)
         return ResponseDto.response(error.errorMap, error.msg);
-      }
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
       this._logger.error(`${error.name}: ${error.message}`);
       this._logger.error(`${error.stack}`);
@@ -172,7 +171,7 @@ export class MultisigWalletService
         this._logger.debug(
           `Not found any safe with condition: ${JSON.stringify(condition)}`,
         );
-        return ResponseDto.response(ErrorMap.NO_SAFES_FOUND);
+        throw new CustomError(ErrorMap.NO_SAFES_FOUND);
       }
       const safe = safes[0];
 
@@ -184,7 +183,7 @@ export class MultisigWalletService
         this._logger.debug(
           `Not found any safe owner with safeId: ${safeId} and internalChainId: ${internalChainId}`,
         );
-        return ResponseDto.response(ErrorMap.NO_SAFE_OWNERS_FOUND);
+        throw new CustomError(ErrorMap.NO_SAFE_OWNERS_FOUND);
       }
 
       // get confirm list
@@ -205,7 +204,7 @@ export class MultisigWalletService
       const chainInfo = (await this.generalRepo.findOne(
         safeInfo.internalChainId,
       )) as Chain;
-      if (!chainInfo) return ResponseDto.response(ErrorMap.CHAIN_ID_NOT_EXIST);
+      if (!chainInfo) throw new CustomError(ErrorMap.CHAIN_ID_NOT_EXIST);
 
       // if safe created => Get balance
       if (safeInfo.address !== null) {
@@ -218,14 +217,13 @@ export class MultisigWalletService
           );
           safeInfo.balance = [balance];
         } catch (error) {
-          return ResponseDto.response(
-            ErrorMap.GET_BALANCE_FAILED,
-            error.message,
-          );
+          throw new CustomError(ErrorMap.GET_BALANCE_FAILED, error.message);
         }
       }
       return ResponseDto.response(ErrorMap.SUCCESSFUL, safeInfo);
     } catch (error) {
+      if (error instanceof CustomError)
+        return ResponseDto.response(error.errorMap, error.msg);
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
       this._logger.error(`${error.name}: ${error.message}`);
       this._logger.error(`${error.stack}`);
@@ -249,19 +247,19 @@ export class MultisigWalletService
         this._logger.debug(
           `Not found any safe with condition: ${JSON.stringify(condition)}`,
         );
-        return ResponseDto.response(ErrorMap.NO_SAFES_FOUND);
+        throw new CustomError(ErrorMap.NO_SAFES_FOUND);
       }
       const safe = safes[0];
 
       if (!safe.safeAddress || safe.safeAddress === null) {
         // cannot get balance because safe address is null
-        return ResponseDto.response(ErrorMap.SAFE_ADDRESS_IS_NULL);
+        throw new CustomError(ErrorMap.SAFE_ADDRESS_IS_NULL);
       }
       // get chainInfo
       const chainInfo = (await this.generalRepo.findOne(
         safe.internalChainId,
       )) as Chain;
-      if (!chainInfo) return ResponseDto.response(ErrorMap.CHAIN_ID_NOT_EXIST);
+      if (!chainInfo) throw new CustomError(ErrorMap.CHAIN_ID_NOT_EXIST);
 
       try {
         const network = new Network(chainInfo.rpc);
@@ -272,10 +270,11 @@ export class MultisigWalletService
         );
         return ResponseDto.response(ErrorMap.SUCCESSFUL, [balance]);
       } catch (error) {
-        return ResponseDto.response(ErrorMap.GET_BALANCE_FAILED, error.message);
+        throw new CustomError(ErrorMap.GET_BALANCE_FAILED, error.message);
       }
     } catch (error) {
-      console.log(error);
+      if (error instanceof CustomError)
+        return ResponseDto.response(error.errorMap, error.msg);
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
       this._logger.error(`${error.name}: ${error.message}`);
       this._logger.error(`${error.stack}`);
@@ -294,33 +293,33 @@ export class MultisigWalletService
       // find safe
       const safes = (await this.safeRepo.findByCondition(condition)) as Safe[];
       if (!safes || safes.length === 0)
-        return ResponseDto.response(ErrorMap.NO_SAFES_FOUND);
+        throw new CustomError(ErrorMap.NO_SAFES_FOUND);
       const safe = safes[0];
 
       // check safe
       if (safe.status !== SAFE_STATUS.PENDING)
-        return ResponseDto.response(ErrorMap.SAFE_NOT_PENDING);
+        throw new CustomError(ErrorMap.SAFE_NOT_PENDING);
 
       // get safe owners
       const safeOwners = (await this.safeOwnerRepo.findByCondition({
         safeId: safe.id,
       })) as SafeOwner[];
       if (safeOwners.length === 0)
-        return ResponseDto.response(ErrorMap.NO_SAFE_OWNERS_FOUND);
+        throw new CustomError(ErrorMap.NO_SAFE_OWNERS_FOUND);
 
       // get safe owner by address
       const index = safeOwners.findIndex((s) => s.ownerAddress === myAddress);
       // const safeOwner = safeOwners[safeOwnerIndex];
       if (index === -1)
-        return ResponseDto.response(ErrorMap.SAFE_OWNERS_NOT_INCLUDE_ADDRESS);
+        throw new CustomError(ErrorMap.SAFE_OWNERS_NOT_INCLUDE_ADDRESS);
       if (safeOwners[index].ownerPubkey !== null)
-        return ResponseDto.response(ErrorMap.SAFE_OWNER_PUBKEY_NOT_EMPTY);
+        throw new CustomError(ErrorMap.SAFE_OWNER_PUBKEY_NOT_EMPTY);
 
       // update safe owner
       safeOwners[index].ownerPubkey = myPubkey;
       const updateResult = await this.safeOwnerRepo.update(safeOwners[index]);
       if (!updateResult)
-        return ResponseDto.response(ErrorMap.UPDATE_SAFE_OWNER_FAILED, {});
+        throw new CustomError(ErrorMap.UPDATE_SAFE_OWNER_FAILED);
 
       // check all owner confirmed
       const notReady = safeOwners.findIndex((s) => s.ownerPubkey === null);
@@ -336,7 +335,7 @@ export class MultisigWalletService
       const chainInfo = (await this.generalRepo.findOne(
         safe.internalChainId,
       )) as Chain;
-      if (!chainInfo) return ResponseDto.response(ErrorMap.CHAIN_ID_NOT_EXIST);
+      if (!chainInfo) throw new CustomError(ErrorMap.CHAIN_ID_NOT_EXIST);
 
       try {
         const safeInfo = this.createSafeAddressAndPubkey(
@@ -348,7 +347,7 @@ export class MultisigWalletService
         safe.safePubkey = safeInfo.pubkey;
         safe.status = SAFE_STATUS.CREATED;
       } catch (error) {
-        return ResponseDto.response(
+        throw new CustomError(
           ErrorMap.CANNOT_CREATE_SAFE_ADDRESS,
           error.message,
         );
@@ -357,6 +356,8 @@ export class MultisigWalletService
       await this.safeRepo.update(safe);
       return ResponseDto.response(ErrorMap.SUCCESSFUL, safe);
     } catch (error) {
+      if (error instanceof CustomError)
+        return ResponseDto.response(error.errorMap, error.msg);
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
       this._logger.error(`${error.name}: ${error.message}`);
       this._logger.error(`${error.stack}`);
@@ -375,13 +376,12 @@ export class MultisigWalletService
 
       // get safe & check
       const safes = await this.safeRepo.findByCondition(condition);
-      if (safes.length === 0)
-        return ResponseDto.response(ErrorMap.NO_SAFES_FOUND);
+      if (safes.length === 0) throw new CustomError(ErrorMap.NO_SAFES_FOUND);
       const safe = safes[0] as Safe;
       if (safe.creatorAddress !== myAddress)
-        return ResponseDto.response(ErrorMap.ADDRESS_NOT_CREATOR);
+        throw new CustomError(ErrorMap.ADDRESS_NOT_CREATOR);
       if (safe.status !== SAFE_STATUS.PENDING)
-        return ResponseDto.response(ErrorMap.SAFE_NOT_PENDING);
+        throw new CustomError(ErrorMap.SAFE_NOT_PENDING);
 
       // update status pending => deleted
       safe.status = SAFE_STATUS.DELETED;
@@ -389,6 +389,8 @@ export class MultisigWalletService
       await this.safeRepo.update(safe);
       return ResponseDto.response(ErrorMap.SUCCESSFUL, {});
     } catch (error) {
+      if (error instanceof CustomError)
+        return ResponseDto.response(error.errorMap, error.msg);
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
       this._logger.error(`${error.name}: ${error.message}`);
       this._logger.error(`${error.stack}`);
@@ -422,6 +424,8 @@ export class MultisigWalletService
       });
       return ResponseDto.response(ErrorMap.SUCCESSFUL, response);
     } catch (error) {
+      if (error instanceof CustomError)
+        return ResponseDto.response(error.errorMap, error.msg);
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
       this._logger.error(`${error.name}: ${error.message}`);
       this._logger.error(`${error.stack}`);
