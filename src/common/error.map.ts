@@ -73,7 +73,7 @@ export const ErrorMap = {
   },
   PERMISSION_DENIED: {
     Code: 'E018',
-    Message: 'Permission denied!'
+    Message: 'Permission denied!',
   },
   INSERT_SAFE_FAILED: {
     Code: 'E019',
