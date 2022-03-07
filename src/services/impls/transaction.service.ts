@@ -3,13 +3,8 @@ import { ResponseDto } from 'src/dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
 import { ITransactionService } from '../transaction.service';
-import {
-  calculateFee,
-  GasPrice,
-  makeMultisignedTx,
-  StargateClient,
-} from '@cosmjs/stargate';
-import { fromBase64, toBase64 } from "@cosmjs/encoding";
+import { calculateFee, GasPrice, makeMultisignedTx, StargateClient,} from '@cosmjs/stargate';
+import { fromBase64 } from "@cosmjs/encoding";
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { BaseService } from './base.service';
 import { ITransactionRepository } from 'src/repositories/itransaction.repository';
@@ -24,10 +19,7 @@ import { ConfirmTransactionRequest } from 'src/dtos/requests/transaction/confirm
 import { IMultisigWalletOwnerRepository } from 'src/repositories/imultisig-wallet-owner.repository';
 
 @Injectable()
-export class TransactionService
-  extends BaseService
-  implements ITransactionService
-{
+export class TransactionService extends BaseService implements ITransactionService{
   private readonly _logger = new Logger(TransactionService.name);
 
   constructor(
@@ -133,21 +125,14 @@ export class TransactionService
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      let chain = await this.chainRepos.findOne({
-        where: { id: request.internalChainId },
-      });
+      let chain = await this.chainRepos.findOne({where: { id: request.internalChainId }});
 
       const client = await StargateClient.connect(chain.rpc);
 
       //get information multisig transaction Id
-      let multisigTransaction = await this.multisigTransactionRepos.findOne({
-        where: { id: request.transactionId },
-      });
+      let multisigTransaction = await this.multisigTransactionRepos.findOne({ where: { id: request.transactionId }});
 
-      if (
-        !multisigTransaction ||
-        multisigTransaction.status != TRANSACTION_STATUS.AWAITING_EXECUTION
-      ) {
+      if (!multisigTransaction || multisigTransaction.status != TRANSACTION_STATUS.AWAITING_EXECUTION) {
         return res.return(ErrorMap.TRANSACTION_NOT_VALID);
       }
 
@@ -236,7 +221,7 @@ export class TransactionService
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
       this._logger.error(`${error.name}: ${error.message}`);
       this._logger.error(`${error.stack}`);
-      return res.return(ErrorMap.E500);
+      return res.return(ErrorMap.E500, {'Error:': error.message});
     }
   }
 
@@ -305,6 +290,7 @@ export class TransactionService
         await this.multisigTransactionRepos.update(transaction);
       }
       return res.return(ErrorMap.SUCCESSFUL);
+
     } catch (error) {
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
       this._logger.error(`${error.name}: ${error.message}`);
