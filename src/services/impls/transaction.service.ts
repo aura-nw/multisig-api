@@ -230,7 +230,7 @@ export class TransactionService extends BaseService implements ITransactionServi
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      //Check status of multisig transaction
+      //Check status of multisig transaction when confirm transaction
       let transaction = await this.multisigTransactionRepos.findOne({
         where: { id: request.transactionId, internalChainId: request.internalChainId },
       });
@@ -302,7 +302,7 @@ export class TransactionService extends BaseService implements ITransactionServi
   async rejectTransaction(request: MODULE_REQUEST.RejectTransactionParam): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      //Check status of multisig transaction
+      //Check status of multisig transaction when reject transaction
       let transaction = await this.multisigTransactionRepos.findOne({
         where: { id: request.transactionId, internalChainId: request.internalChainId },
       });
