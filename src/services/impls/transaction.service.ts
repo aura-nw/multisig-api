@@ -392,6 +392,10 @@ export class TransactionService
     status?: string
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
+
+    const multisig = await this.multisigTransactionRepos.findOne(param.id);
+    if(!multisig) return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
+
     const result =
       await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
         param.id, status!!
@@ -403,6 +407,10 @@ export class TransactionService
     request: MODULE_REQUEST.GetAllTransactionsRequest
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
+
+    const safe = await this.safeRepos.findOne(request.safeAddress);
+    if(!safe) return res.return(ErrorMap.NO_SAFES_FOUND);
+
     let result;
     if(request.isHistory) result = await this.transRepos.getAuraTx(request);
     else result = await this.multisigTransactionRepos.getQueueTransaction(request);
@@ -430,6 +438,10 @@ export class TransactionService
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
+
+      const safe = await this.safeRepos.findOne(param.safeAddress);
+      if(!safe) return res.return(ErrorMap.NO_SAFES_FOUND);
+
       const internalTxHash = param.internalTxHash;
       // Check if param entered is Id or TxHash
       let condition = this.calculateCondition(internalTxHash);
@@ -439,6 +451,8 @@ export class TransactionService
       if(!rawResult) {
         rawResult = await this.multisigTransactionRepos.getTransactionDetailsMultisigTransaction(condition);
       }
+      if(!rawResult) return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
+
       // Create data form to return to client
       if(rawResult.Code) {
         result = {
