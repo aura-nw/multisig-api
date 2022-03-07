@@ -392,7 +392,9 @@ export class TransactionService extends BaseService implements ITransactionServi
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
 
-    const safe = await this.safeRepos.findOne(request.safeAddress);
+    const safeAddress = { safeAddress: request.safeAddress };
+
+    const safe = await this.safeRepos.findByCondition(safeAddress);
     if(!safe) return res.return(ErrorMap.NO_SAFES_FOUND);
 
     let result;
@@ -422,11 +424,13 @@ export class TransactionService extends BaseService implements ITransactionServi
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
+      const safeAddress = { safeAddress: param.safeAddress };
 
-      const safe = await this.safeRepos.findOne(param.safeAddress);
+      const safe = await this.safeRepos.findByCondition(safeAddress);
       if(!safe) return res.return(ErrorMap.NO_SAFES_FOUND);
 
       const internalTxHash = param.internalTxHash;
+
       // Check if param entered is Id or TxHash
       let condition = this.calculateCondition(internalTxHash);
       let result;
