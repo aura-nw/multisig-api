@@ -13,7 +13,11 @@ export interface IBaseRepository {
    * @param filterCondition
    * @param orderBy
    */
-  findByCondition(filterCondition: any, orderBy?: any, select?: string[]): Promise<any[]>;
+  findByCondition(
+    filterCondition: any,
+    orderBy?: any,
+    select?: string[],
+  ): Promise<any[]>;
 
   /**
    * findAll
@@ -46,6 +50,12 @@ export interface IBaseRepository {
    * @param data
    */
   create(data: any): Promise<any>;
+
+  /**
+   * insert
+   * @param data
+   */
+  insert(data: any): Promise<any>;
 
   /**
    * update
