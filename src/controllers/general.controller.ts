@@ -1,7 +1,7 @@
 import { Controller, Get, HttpCode, HttpStatus, Inject, Param, Post } from "@nestjs/common";
 import { ApiBadRequestResponse, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { CONTROLLER_CONSTANTS, URL_CONSTANTS } from "src/common/constants/api.constant";
-import { MODULE_RESPONSE, SERVICE_INTERFACE } from "src/module.config";
+import { MODULE_REQUEST, MODULE_RESPONSE, SERVICE_INTERFACE } from "src/module.config";
 import { IGeneralService } from "src/services/igeneral.service";
 
 @Controller(CONTROLLER_CONSTANTS.GENERAL)
@@ -21,12 +21,14 @@ export class GeneralController {
         return this.generalService.showNetworkList();
     }
 
-    @Get('get-account-onchain/:safeAddress/:internalChainId')
+    @Get(URL_CONSTANTS.ACCOUNT_ONCHAIN)
     @ApiOperation({ summary: 'Get account onchain' })
+    @ApiOkResponse({ status: 200, type: MODULE_RESPONSE.GetAccountOnchainResponse, description: 'Show information of a multisig address', schema: {} })
+    @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+    @HttpCode(HttpStatus.OK)
     async getAccountOnchain(
-        @Param('safeAddress') safeAddress: string,
-        @Param('internalChainId') internalChainId: number
+        @Param() param: MODULE_REQUEST.GetAccountOnchainParam
     ) {
-        return this.generalService.getAccountOnchain(safeAddress, internalChainId);
+        return this.generalService.getAccountOnchain(param);
     }
 }
