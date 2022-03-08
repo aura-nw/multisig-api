@@ -11,12 +11,12 @@ import { ITransactionRepository } from 'src/repositories/itransaction.repository
 import { IMultisigConfirmRepository } from 'src/repositories/imultisig-confirm.repository';
 import { IMultisigTransactionsRepository } from 'src/repositories/imultisig-transaction.repository';
 import { MultisigConfirm, MultisigTransaction } from 'src/entities';
-import { assert } from '@cosmjs/utils';
 import { IGeneralRepository } from 'src/repositories/igeneral.repository';
 import { IMultisigWalletRepository } from 'src/repositories/imultisig-wallet.repository';
-import { MULTISIG_CONFIRM_STATUS, TRANSACTION_STATUS, TRANSFER_DIRECTION } from 'src/common/constants/app.constant';
+import { MULTISIG_CONFIRM_STATUS, NETWORK_URL_TYPE, TRANSACTION_STATUS, TRANSFER_DIRECTION } from 'src/common/constants/app.constant';
 import { ConfirmTransactionRequest } from 'src/dtos/requests/transaction/confirm-transaction.request';
 import { IMultisigWalletOwnerRepository } from 'src/repositories/imultisig-wallet-owner.repository';
+import { CustomError } from 'src/common/customError';
 
 @Injectable()
 export class TransactionService extends BaseService implements ITransactionService{
@@ -51,7 +51,7 @@ export class TransactionService extends BaseService implements ITransactionServi
       });
 
       if(!checkOwner){
-        return res.return(ErrorMap.PERMISSION_DENIED);
+        throw new CustomError(ErrorMap.PERMISSION_DENIED);
       }
 
       let chain = await this.chainRepos.findOne({
@@ -67,7 +67,7 @@ export class TransactionService extends BaseService implements ITransactionServi
       });
 
       if (Number(balance.amount) < request.amount) {
-        return res.return(ErrorMap.BALANCE_NOT_ENOUGH);
+        throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
       }
 
       const signingInstruction = await (async () => {
@@ -75,7 +75,9 @@ export class TransactionService extends BaseService implements ITransactionServi
 
         //Check account
         const accountOnChain = await client.getAccount(request.from);
-        assert(accountOnChain, 'Account does not exist on chain');
+        if(!accountOnChain){
+          throw new CustomError(ErrorMap.E001);
+        }
 
         return {
           accountNumber: accountOnChain.accountNumber,
@@ -92,7 +94,7 @@ export class TransactionService extends BaseService implements ITransactionServi
       transaction.gas = request.gasLimit;
       transaction.fee = request.fee;
       transaction.accountNumber = signingInstruction.accountNumber;
-      transaction.typeUrl = '/cosmos.bank.v1beta1.MsgSend';
+      transaction.typeUrl = NETWORK_URL_TYPE.COSMOS;
       transaction.denom = chain.denom;
       transaction.status = TRANSACTION_STATUS.AWAITING_CONFIRMATIONS;
       transaction.internalChainId = request.internalChainId;
@@ -116,7 +118,7 @@ export class TransactionService extends BaseService implements ITransactionServi
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
       this._logger.error(`${error.name}: ${error.message}`);
       this._logger.error(`${error.stack}`);
-      return res.return(ErrorMap.E500, {'Error:': error.message});
+      return res.return(error.message === ErrorMap.E500.Message ? ErrorMap.E500 : error.errorMap);
     }
   }
 
@@ -133,7 +135,7 @@ export class TransactionService extends BaseService implements ITransactionServi
       let multisigTransaction = await this.multisigTransactionRepos.findOne({ where: { id: request.transactionId }});
 
       if (!multisigTransaction || multisigTransaction.status != TRANSACTION_STATUS.AWAITING_EXECUTION) {
-        return res.return(ErrorMap.TRANSACTION_NOT_VALID);
+        throw new CustomError(ErrorMap.TRANSACTION_NOT_VALID);
       }
 
       //Validate owner
@@ -146,7 +148,7 @@ export class TransactionService extends BaseService implements ITransactionServi
       });
 
       if(!checkOwner){
-        return res.return(ErrorMap.PERMISSION_DENIED);
+        throw new CustomError(ErrorMap.PERMISSION_DENIED);
       }
 
       //Get safe info
@@ -221,35 +223,27 @@ export class TransactionService extends BaseService implements ITransactionServi
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
       this._logger.error(`${error.name}: ${error.message}`);
       this._logger.error(`${error.stack}`);
-      return res.return(ErrorMap.E500, {'Error:': error.message});
+      return res.return(error.message === ErrorMap.E500.Message ? ErrorMap.E500 : error.errorMap);
     }
   }
 
-  async confirmTransaction(
-    request: MODULE_REQUEST.ConfirmTransactionRequest,
-  ): Promise<ResponseDto> {
+  async confirmTransaction( request: MODULE_REQUEST.ConfirmTransactionRequest,): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
+
       //Check status of multisig transaction when confirm transaction
       let transaction = await this.multisigTransactionRepos.findOne({
-        where: { id: request.transactionId, internalChainId: request.internalChainId },
+        where: { id: request.transactionId, internalChainId: request.internalChainId }
       });
 
       if (!transaction) {
-        return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
+        throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
       }
 
-      //Validate owner
-      let listOwner = await this.safeRepos.getMultisigWalletsByOwner(request.fromAddress, request.internalChainId);
-
-      let checkOwner = listOwner.find(elelement => {
-        if (elelement.safeAddress === transaction.fromAddress){
-          return true;
-        }
-      });
+      let checkOwner = await this.multisigConfirmRepos.validateOwner(request.fromAddress, transaction.fromAddress, request.internalChainId);
 
       if(!checkOwner){
-        return res.return(ErrorMap.PERMISSION_DENIED);
+        throw new CustomError(ErrorMap.PERMISSION_DENIED);
       }
 
       //Check status of multisig confirm
@@ -260,12 +254,8 @@ export class TransactionService extends BaseService implements ITransactionServi
       });
 
       if(listConfirm.length > 0){
-        return res.return(ErrorMap.USER_HAS_COMFIRMED);
+        throw new CustomError(ErrorMap.USER_HAS_COMFIRMED);
       }
-
-      let safe = await this.safeRepos.findOne({
-        where: { id: transaction.safeId },
-      });
 
       let multisigConfirm = new MultisigConfirm();
       multisigConfirm.multisigTransactionId = request.transactionId;
@@ -277,25 +267,15 @@ export class TransactionService extends BaseService implements ITransactionServi
 
       await this.multisigConfirmRepos.create(multisigConfirm);
 
-      //Check transaction available
-      let listConfirmAfterSign = await this.multisigConfirmRepos.findByCondition({
-        multisigTransactionId: request.transactionId,
-        status: MULTISIG_CONFIRM_STATUS.CONFIRM,
-        internalChainId: request.internalChainId
-      });
-
-      if (listConfirmAfterSign.length >= safe.threshold) {
-        transaction.status = TRANSACTION_STATUS.AWAITING_EXECUTION;
-
-        await this.multisigTransactionRepos.update(transaction);
-      }
+      await this.multisigTransactionRepos.validateTransaction(request.transactionId, request.internalChainId);
+      
       return res.return(ErrorMap.SUCCESSFUL);
 
     } catch (error) {
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
       this._logger.error(`${error.name}: ${error.message}`);
       this._logger.error(`${error.stack}`);
-      return res.return(ErrorMap.E500);
+      return res.return(error.message === ErrorMap.E500.Message ? ErrorMap.E500 : error.errorMap);
     }
   }
 
@@ -308,7 +288,7 @@ export class TransactionService extends BaseService implements ITransactionServi
       });
 
       if (!transaction) {
-        return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
+        throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
       }
 
       //Validate owner
@@ -321,7 +301,7 @@ export class TransactionService extends BaseService implements ITransactionServi
       });
 
       if(!checkOwner){
-        return res.return(ErrorMap.PERMISSION_DENIED);
+        throw new CustomError(ErrorMap.PERMISSION_DENIED);
       }
 
       //Check status of multisig confirm
@@ -332,7 +312,7 @@ export class TransactionService extends BaseService implements ITransactionServi
       });
 
       if(listConfirm.length > 0){
-        return res.return(ErrorMap.USER_HAS_COMFIRMED);
+        throw new CustomError(ErrorMap.USER_HAS_COMFIRMED);
       }
 
       let multisigConfirm = new MultisigConfirm();
@@ -348,7 +328,7 @@ export class TransactionService extends BaseService implements ITransactionServi
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
       this._logger.error(`${error.name}: ${error.message}`);
       this._logger.error(`${error.stack}`);
-      return res.return(ErrorMap.E500);
+      return res.return(error.message === ErrorMap.E500.Message ? ErrorMap.E500 : error.errorMap);
     }
   }
 
