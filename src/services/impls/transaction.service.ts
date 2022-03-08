@@ -11,10 +11,9 @@ import { ITransactionRepository } from 'src/repositories/itransaction.repository
 import { IMultisigConfirmRepository } from 'src/repositories/imultisig-confirm.repository';
 import { IMultisigTransactionsRepository } from 'src/repositories/imultisig-transaction.repository';
 import { MultisigConfirm, MultisigTransaction } from 'src/entities';
-import { assert } from '@cosmjs/utils';
 import { IGeneralRepository } from 'src/repositories/igeneral.repository';
 import { IMultisigWalletRepository } from 'src/repositories/imultisig-wallet.repository';
-import { MULTISIG_CONFIRM_STATUS, TRANSACTION_STATUS, TRANSFER_DIRECTION } from 'src/common/constants/app.constant';
+import { MULTISIG_CONFIRM_STATUS, NETWORK_URL_TYPE, TRANSACTION_STATUS, TRANSFER_DIRECTION } from 'src/common/constants/app.constant';
 import { ConfirmTransactionRequest } from 'src/dtos/requests/transaction/confirm-transaction.request';
 import { IMultisigWalletOwnerRepository } from 'src/repositories/imultisig-wallet-owner.repository';
 import { CustomError } from 'src/common/customError';
@@ -95,7 +94,7 @@ export class TransactionService extends BaseService implements ITransactionServi
       transaction.gas = request.gasLimit;
       transaction.fee = request.fee;
       transaction.accountNumber = signingInstruction.accountNumber;
-      transaction.typeUrl = '/cosmos.bank.v1beta1.MsgSend';
+      transaction.typeUrl = NETWORK_URL_TYPE.COSMOS;
       transaction.denom = chain.denom;
       transaction.status = TRANSACTION_STATUS.AWAITING_CONFIRMATIONS;
       transaction.internalChainId = request.internalChainId;
@@ -228,28 +227,20 @@ export class TransactionService extends BaseService implements ITransactionServi
     }
   }
 
-  async confirmTransaction(
-    request: MODULE_REQUEST.ConfirmTransactionRequest,
-  ): Promise<ResponseDto> {
+  async confirmTransaction( request: MODULE_REQUEST.ConfirmTransactionRequest,): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
+
       //Check status of multisig transaction when confirm transaction
       let transaction = await this.multisigTransactionRepos.findOne({
-        where: { id: request.transactionId, internalChainId: request.internalChainId },
+        where: { id: request.transactionId, internalChainId: request.internalChainId }
       });
 
       if (!transaction) {
         throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
       }
 
-      //Validate owner
-      let listOwner = await this.safeRepos.getMultisigWalletsByOwner(request.fromAddress, request.internalChainId);
-
-      let checkOwner = listOwner.find(elelement => {
-        if (elelement.safeAddress === transaction.fromAddress){
-          return true;
-        }
-      });
+      let checkOwner = await this.multisigConfirmRepos.validateOwner(request.fromAddress, transaction.fromAddress, request.internalChainId);
 
       if(!checkOwner){
         throw new CustomError(ErrorMap.PERMISSION_DENIED);
@@ -266,10 +257,6 @@ export class TransactionService extends BaseService implements ITransactionServi
         throw new CustomError(ErrorMap.USER_HAS_COMFIRMED);
       }
 
-      let safe = await this.safeRepos.findOne({
-        where: { id: transaction.safeId },
-      });
-
       let multisigConfirm = new MultisigConfirm();
       multisigConfirm.multisigTransactionId = request.transactionId;
       multisigConfirm.ownerAddress = request.fromAddress;
@@ -280,18 +267,8 @@ export class TransactionService extends BaseService implements ITransactionServi
 
       await this.multisigConfirmRepos.create(multisigConfirm);
 
-      //Check transaction available
-      let listConfirmAfterSign = await this.multisigConfirmRepos.findByCondition({
-        multisigTransactionId: request.transactionId,
-        status: MULTISIG_CONFIRM_STATUS.CONFIRM,
-        internalChainId: request.internalChainId
-      });
-
-      if (listConfirmAfterSign.length >= safe.threshold) {
-        transaction.status = TRANSACTION_STATUS.AWAITING_EXECUTION;
-
-        await this.multisigTransactionRepos.update(transaction);
-      }
+      await this.multisigTransactionRepos.validateTransaction(request.transactionId, request.internalChainId);
+      
       return res.return(ErrorMap.SUCCESSFUL);
 
     } catch (error) {

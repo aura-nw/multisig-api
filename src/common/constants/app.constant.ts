@@ -38,3 +38,7 @@ export enum TRANSFER_DIRECTION {
   OUTGOING = 'OUTGOING',
   UNKNOWN = 'UNKNOWN',
 }
+
+export enum NETWORK_URL_TYPE {
+  COSMOS = '/cosmos.bank.v1beta1.MsgSend'
+}
