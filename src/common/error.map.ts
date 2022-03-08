@@ -103,6 +103,14 @@ export const ErrorMap = {
     Code: 'E025',
     Message: 'Get balance failed!',
   },
+  CANNOT_CREATE_SAFE_ADDRESS: {
+    Code: 'E026',
+    Message: 'Cannot create safe addresss!',
+  },
+  USER_HAS_REJECTED: {
+    Code: 'E027',
+    Message: 'User has rejected before!',
+  },
   C001: {
     Code: 'C001',
     Message: `Missing result from Chaincode`,
