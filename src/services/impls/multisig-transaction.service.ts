@@ -7,17 +7,11 @@ import { calculateFee, GasPrice, makeMultisignedTx, StargateClient,} from '@cosm
 import { fromBase64 } from "@cosmjs/encoding";
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { BaseService } from './base.service';
-import { ITransactionRepository } from 'src/repositories/itransaction.repository';
-import { IMultisigConfirmRepository } from 'src/repositories/imultisig-confirm.repository';
-import { IMultisigTransactionsRepository } from 'src/repositories/imultisig-transaction.repository';
 import { MultisigConfirm, MultisigTransaction } from 'src/entities';
-import { assert } from '@cosmjs/utils';
-import { IGeneralRepository } from 'src/repositories/igeneral.repository';
-import { IMultisigWalletRepository } from 'src/repositories/imultisig-wallet.repository';
-import { MULTISIG_CONFIRM_STATUS, TRANSACTION_STATUS, TRANSFER_DIRECTION } from 'src/common/constants/app.constant';
-import { ConfirmTransactionRequest } from 'src/dtos/requests/transaction/confirm-transaction.request';
-import { IMultisigWalletOwnerRepository } from 'src/repositories/imultisig-wallet-owner.repository';
+import { MULTISIG_CONFIRM_STATUS, NETWORK_URL_TYPE, TRANSACTION_STATUS } from 'src/common/constants/app.constant';
 import { CustomError } from 'src/common/customError';
+import { IGeneralRepository, IMultisigConfirmRepository, IMultisigTransactionsRepository, IMultisigWalletRepository } from 'src/repositories';
+import { ConfirmTransactionRequest } from 'src/dtos/requests';
 
 @Injectable()
 export class MultisigTransactionService extends BaseService implements IMultisigTransactionService{
@@ -27,9 +21,7 @@ export class MultisigTransactionService extends BaseService implements IMultisig
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_TRANSACTION_REPOSITORY) private multisigTransactionRepos: IMultisigTransactionsRepository,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_CONFIRM_REPOSITORY) private multisigConfirmRepos: IMultisigConfirmRepository,
     @Inject(REPOSITORY_INTERFACE.IGENERAL_REPOSITORY) private chainRepos: IGeneralRepository,
-    @Inject(REPOSITORY_INTERFACE.ITRANSACTION_REPOSITORY) private transRepos: ITransactionRepository,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_REPOSITORY) private safeRepos: IMultisigWalletRepository,
-    @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_OWNER_REPOSITORY) private safeOwnerRepos: IMultisigWalletOwnerRepository,
   ) {
     super(multisigTransactionRepos);
     this._logger.log(
@@ -43,15 +35,9 @@ export class MultisigTransactionService extends BaseService implements IMultisig
     const res = new ResponseDto();
     try {
       //Validate transaction creator
-      let listOwner = await this.safeRepos.getMultisigWalletsByOwner(request.creatorAddress, request.internalChainId);
+      let checkOwner = await this.multisigConfirmRepos.validateOwner(request.creatorAddress, request.from, request.internalChainId);
 
-      let checkOwner = listOwner.find(elelement => {
-        if (elelement.safeAddress === request.from){
-          return true;
-        }
-      });
-
-      if(!checkOwner){
+      if(checkOwner){
         throw new CustomError(ErrorMap.PERMISSION_DENIED);
       }
 
@@ -95,7 +81,7 @@ export class MultisigTransactionService extends BaseService implements IMultisig
       transaction.gas = request.gasLimit;
       transaction.fee = request.fee;
       transaction.accountNumber = signingInstruction.accountNumber;
-      transaction.typeUrl = '/cosmos.bank.v1beta1.MsgSend';
+      transaction.typeUrl = NETWORK_URL_TYPE.COSMOS;
       transaction.denom = chain.denom;
       transaction.status = TRANSACTION_STATUS.AWAITING_CONFIRMATIONS;
       transaction.internalChainId = request.internalChainId;
@@ -228,47 +214,31 @@ export class MultisigTransactionService extends BaseService implements IMultisig
     }
   }
 
-  async confirmTransaction(
-    request: MODULE_REQUEST.ConfirmTransactionRequest,
-  ): Promise<ResponseDto> {
+  async confirmTransaction( request: MODULE_REQUEST.ConfirmTransactionRequest,): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
+
       //Check status of multisig transaction when confirm transaction
       let transaction = await this.multisigTransactionRepos.findOne({
-        where: { id: request.transactionId, internalChainId: request.internalChainId },
+        where: { id: request.transactionId, internalChainId: request.internalChainId }
       });
 
       if (!transaction) {
         throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
       }
 
-      //Validate owner
-      let listOwner = await this.safeRepos.getMultisigWalletsByOwner(request.fromAddress, request.internalChainId);
+      let checkOwner = await this.multisigConfirmRepos.validateOwner(request.fromAddress, transaction.fromAddress, request.internalChainId);
 
-      let checkOwner = listOwner.find(elelement => {
-        if (elelement.safeAddress === transaction.fromAddress){
-          return true;
-        }
-      });
-
-      if(!checkOwner){
+      if(checkOwner){
         throw new CustomError(ErrorMap.PERMISSION_DENIED);
       }
 
-      //Check status of multisig confirm
-      let listConfirm =
-        await this.multisigConfirmRepos.findByCondition({
-          multisigTransactionId: request.transactionId,
-          ownerAddress: request.fromAddress
-      });
+      //User has confirmed transaction before
+      let checkOnwerHasSigned = await this.multisigConfirmRepos.checkUserHasSigned(request.transactionId, request.fromAddress);
 
-      if(listConfirm.length > 0){
+      if(checkOnwerHasSigned){
         throw new CustomError(ErrorMap.USER_HAS_COMFIRMED);
       }
-
-      let safe = await this.safeRepos.findOne({
-        where: { id: transaction.safeId },
-      });
 
       let multisigConfirm = new MultisigConfirm();
       multisigConfirm.multisigTransactionId = request.transactionId;
@@ -280,18 +250,8 @@ export class MultisigTransactionService extends BaseService implements IMultisig
 
       await this.multisigConfirmRepos.create(multisigConfirm);
 
-      //Check transaction available
-      let listConfirmAfterSign = await this.multisigConfirmRepos.findByCondition({
-        multisigTransactionId: request.transactionId,
-        status: MULTISIG_CONFIRM_STATUS.CONFIRM,
-        internalChainId: request.internalChainId
-      });
-
-      if (listConfirmAfterSign.length >= safe.threshold) {
-        transaction.status = TRANSACTION_STATUS.AWAITING_EXECUTION;
-
-        await this.multisigTransactionRepos.update(transaction);
-      }
+      await this.multisigTransactionRepos.validateTransaction(request.transactionId, request.internalChainId);
+      
       return res.return(ErrorMap.SUCCESSFUL);
 
     } catch (error) {
@@ -315,27 +275,17 @@ export class MultisigTransactionService extends BaseService implements IMultisig
       }
 
       //Validate owner
-      let listOwner = await this.safeRepos.getMultisigWalletsByOwner(request.fromAddress, request.internalChainId);
+      let checkOwner = await this.multisigConfirmRepos.validateOwner(request.fromAddress, transaction.fromAddress, request.internalChainId);
 
-      let checkOwner = listOwner.find(elelement => {
-        if (elelement.safeAddress === transaction.fromAddress){
-          return true;
-        }
-      });
-
-      if(!checkOwner){
+      if(checkOwner){
         throw new CustomError(ErrorMap.PERMISSION_DENIED);
       }
 
-      //Check status of multisig confirm
-      let listConfirm =
-        await this.multisigConfirmRepos.findByCondition({
-          multisigTransactionId: request.transactionId,
-          ownerAddress: request.fromAddress
-      });
+      //Check user has rejected transaction before
+      let checkOnwerHasSigned = await this.multisigConfirmRepos.checkUserHasSigned(request.transactionId, request.fromAddress);
 
-      if(listConfirm.length > 0){
-        throw new CustomError(ErrorMap.USER_HAS_COMFIRMED);
+      if(checkOnwerHasSigned){
+        throw new CustomError(ErrorMap.USER_HAS_REJECTED);
       }
 
       let multisigConfirm = new MultisigConfirm();
