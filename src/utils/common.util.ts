@@ -1,9 +1,15 @@
-import { Pubkey, pubkeyToAddress } from '@cosmjs/amino';
+import {
+  createMultisigThresholdPubkey,
+  Pubkey,
+  pubkeyToAddress,
+  SinglePubkey,
+} from '@cosmjs/amino';
+import { PUBKEY_TYPES } from 'src/common/constants/app.constant';
 import { ConfigService, ENV_CONFIG } from '../shared/services/config.service';
 
 export class CommonUtil {
   private configService: ConfigService = new ConfigService();
-  constructor() { }
+  constructor() {}
 
   /**
    * Calculate address from public key
@@ -48,5 +54,30 @@ export class CommonUtil {
     return strArr.filter((e) => {
       return e !== '';
     });
+  }
+
+  createSafeAddressAndPubkey(
+    pubKeyArrString: string[],
+    threshold: number,
+    prefix: string,
+  ): {
+    pubkey: string;
+    address: string;
+  } {
+    const arrPubkeys = pubKeyArrString.map(this.createPubkeys);
+    const multisigPubkey = createMultisigThresholdPubkey(arrPubkeys, threshold);
+    const multiSigWalletAddress = this.pubkeyToAddress(multisigPubkey, prefix);
+    return {
+      pubkey: JSON.stringify(multisigPubkey),
+      address: multiSigWalletAddress,
+    };
+  }
+
+  private createPubkeys(value: string): SinglePubkey {
+    const result: SinglePubkey = {
+      type: PUBKEY_TYPES.SECP256K1,
+      value,
+    };
+    return result;
   }
 }
