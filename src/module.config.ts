@@ -90,6 +90,7 @@ export const SERVICE_INTERFACE = {
   IMULTISIG_WALLET_SERVICE: 'IMultisigWalletService',
   ITRANSACTION_SERVICE: 'ITransactionService',
   IGENERAL_SERVICE: 'IGeneralService',
+  IMULTISIG_TRANSACTION_SERVICE: 'IMultisigTransactionService'
 };
 
 export const REPOSITORY_INTERFACE = {

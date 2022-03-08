@@ -10,7 +10,7 @@ import {
   SERVICE_INTERFACE,
 } from './module.config';
 import { MultisigWalletService } from './services/impls/multisig-wallet.service';
-import { TransactionService } from './services/impls/transaction.service';
+import { MultisigTransactionService } from './services/impls/multisig-transaction.service';
 import { SharedModule } from './shared/shared.module';
 import { ConfigService } from './shared/services/config.service';
 import { MultisigWalletRepository } from './repositories/impls/multisig-wallet.repository';
@@ -19,6 +19,7 @@ import { MultisigTransactionRepository } from './repositories/impls/multisig-tra
 import { MultisigConfirmRepository } from './repositories/impls/multisig-confirm.repository';
 import { TransactionRepository } from './repositories/impls/transaction.repository';
 import { SafeRepository } from './repositories/impls/safe.repository';
+import { TransactionService } from './services/impls/transaction.service';
 
 const controllers = [
   MultisigWalletController,
@@ -89,8 +90,8 @@ const entities = [
     },
     //service
     {
-      provide: SERVICE_INTERFACE.ITRANSACTION_SERVICE,
-      useClass: TransactionService,
+      provide: SERVICE_INTERFACE.IMULTISIG_TRANSACTION_SERVICE,
+      useClass: MultisigTransactionService,
     },
     {
       provide: SERVICE_INTERFACE.IMULTISIG_WALLET_SERVICE,
@@ -99,6 +100,10 @@ const entities = [
     {
       provide: SERVICE_INTERFACE.IGENERAL_SERVICE,
       useClass: GeneralService,
+    },
+    {
+      provide: SERVICE_INTERFACE.ITRANSACTION_SERVICE,
+      useClass: TransactionService,
     },
   ],
 })
