@@ -5,7 +5,7 @@ import { IGeneralService } from "../igeneral.service";
 import { ConfigService } from "src/shared/services/config.service";
 import { BaseService } from "./base.service";
 import { CommonUtil } from "src/utils/common.util";
-import { REPOSITORY_INTERFACE } from "src/module.config";
+import { MODULE_REQUEST, REPOSITORY_INTERFACE } from "src/module.config";
 import { IGeneralRepository } from "src/repositories/igeneral.repository";
 import { ErrorMap } from "src/common/error.map";
 
@@ -27,15 +27,16 @@ export class GeneralService extends BaseService implements IGeneralService {
         return res.return(ErrorMap.SUCCESSFUL, result);
     }
 
-    async getAccountOnchain(safeAddress: string, internalChainId: number): Promise<ResponseDto> {
+    async getAccountOnchain(param: MODULE_REQUEST.GetAccountOnchainParam): Promise<ResponseDto> {
         const res = new ResponseDto();
         try {
-            const condition = { id: internalChainId };
+            const condition = { id: param.internalChainId };
             const chain = await this.chainRepo.findByCondition(condition);
             const client = await StargateClient.connect(chain[0].rpc);
-            const accountOnChain = await client.getAccount(safeAddress);
-            const balance = await client.getBalance(safeAddress, chain[0].denom);
-            return res.return(ErrorMap.SUCCESSFUL, { accountOnChain, balance });
+            const accountOnChain = await client.getAccount(param.safeAddress);
+            // const balance = await client.getBalance(param.safeAddress, chain[0].denom);
+            // return res.return(ErrorMap.SUCCESSFUL, { accountOnChain, balance });
+            return res.return(ErrorMap.SUCCESSFUL, accountOnChain);
         } catch (error) {
             console.log(error);
         }

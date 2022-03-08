@@ -1,5 +1,7 @@
 import { ConfirmMultisigWalletRequest, ConfirmSafePathParams, ConfirmTransactionRequest, ConnectMultisigWalletRequest, CreateMultisigWalletRequest, CreateTransactionRequest, DeleteMultisigWalletRequest, DeleteSafePathParams, GetAllTransactionsRequest, GetMultisigSignaturesParam, GetSafeBalancePathParams, GetSafeBalanceQuery, GetSafePathParams, GetSafeQuery, GetSafesByOwnerAddressParams, GetSafesByOwnerAddressQuery, GetTransactionDetailsParam, RejectTransactionRequest, SendTransactionRequest } from "./dtos/requests";
+import { GetAccountOnchainParam } from "./dtos/requests/general/get-account-onchain.request";
 import { GetMultisigWalletResponse, MultisigSignatureResponse, MultisigTransactionHistoryResponse, NetworkListResponse, ResponseDto, TransactionDetailsResponse } from "./dtos/responses";
+import { GetAccountOnchainResponse } from "./dtos/responses/general/get-account-onchain.response";
 import { CreateSafeResponse } from "./dtos/responses/multisig-wallet/create-safe.response";
 import { AuraTx, Chain, MultisigConfirm, MultisigTransaction, Safe, SafeOwner } from "./entities";
 
@@ -35,6 +37,7 @@ export const REQUEST_CONFIG = {
   GET_TRANSACTION_DETAILS_PARAM: GetTransactionDetailsParam,
   REJECT_TRANSACTION_PARAM: RejectTransactionRequest,
   GET_MULTISIG_SIGNATURES_PARAM: GetMultisigSignaturesParam,
+  GET_ACCOUNT_ONCHAIN_PARAM: GetAccountOnchainParam,
 };
 
 export const RESPONSE_CONFIG = {
@@ -46,7 +49,7 @@ export const RESPONSE_CONFIG = {
   TRANSACTION_DETAILS_RESPONSE: TransactionDetailsResponse,
   NETWORK_LIST_RESPONSE: NetworkListResponse,
   MULTISIG_SIGNATURE_RESPONE: MultisigSignatureResponse,
-  GET_MULTISIG_WALLET_RESPONSE: GetMultisigWalletResponse,
+  GET_ACCOUNT_ONCHAIN_RESPONSE: GetAccountOnchainResponse,
 }
 
 export module MODULE_REQUEST {
@@ -67,6 +70,7 @@ export module MODULE_REQUEST {
   export abstract class GetSafesByOwnerAddressParams extends REQUEST_CONFIG.GET_SAFES_BY_OWNER_PARAM { }
   export abstract class GetAllTransactionsRequest extends REQUEST_CONFIG.GET_ALL_TRANSACTION_REQUEST { }
   export abstract class GetMultisigSignaturesParam extends REQUEST_CONFIG.GET_MULTISIG_SIGNATURES_PARAM { }
+  export abstract class GetAccountOnchainParam extends REQUEST_CONFIG.GET_ACCOUNT_ONCHAIN_PARAM { }
 }
 
 export module MODULE_RESPONSE {
@@ -78,7 +82,7 @@ export module MODULE_RESPONSE {
   export abstract class TransactionDetailsResponse extends RESPONSE_CONFIG.TRANSACTION_DETAILS_RESPONSE { }
   export abstract class NetworkListResponse extends RESPONSE_CONFIG.NETWORK_LIST_RESPONSE { }
   export abstract class MultisigSignatureRespone extends RESPONSE_CONFIG.MULTISIG_SIGNATURE_RESPONE { }
-  export abstract class GetMultisigWalletResponse extends RESPONSE_CONFIG.GET_MULTISIG_WALLET_RESPONSE { }
+  export abstract class GetAccountOnchainResponse extends RESPONSE_CONFIG.GET_ACCOUNT_ONCHAIN_RESPONSE { }
 }
 
 export const SERVICE_INTERFACE = {
