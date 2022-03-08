@@ -292,13 +292,7 @@ export class TransactionService extends BaseService implements ITransactionServi
       }
 
       //Validate owner
-      let listOwner = await this.safeRepos.getMultisigWalletsByOwner(request.fromAddress, request.internalChainId);
-
-      let checkOwner = listOwner.find(elelement => {
-        if (elelement.safeAddress === transaction.fromAddress){
-          return true;
-        }
-      });
+      let checkOwner = await this.multisigConfirmRepos.validateOwner(request.fromAddress, transaction.fromAddress, request.internalChainId);
 
       if(!checkOwner){
         throw new CustomError(ErrorMap.PERMISSION_DENIED);
