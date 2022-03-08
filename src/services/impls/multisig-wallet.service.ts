@@ -372,22 +372,13 @@ export class MultisigWalletService
     try {
       const { safeId } = param;
       const { myAddress } = request;
+
       const condition = this.calculateCondition(safeId);
-
-      // get safe & check
-      const safes = await this.safeRepo.findByCondition(condition);
-      if (safes.length === 0) throw new CustomError(ErrorMap.NO_SAFES_FOUND);
-      const safe = safes[0] as Safe;
-      if (safe.creatorAddress !== myAddress)
-        throw new CustomError(ErrorMap.ADDRESS_NOT_CREATOR);
-      if (safe.status !== SAFE_STATUS.PENDING)
-        throw new CustomError(ErrorMap.SAFE_NOT_PENDING);
-
-      // update status pending => deleted
-      safe.status = SAFE_STATUS.DELETED;
-
-      await this.safeRepo.update(safe);
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, {});
+      const deletedSafe = await this.safeRepo.deletePendingSafe(
+        condition,
+        myAddress,
+      );
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, deletedSafe);
     } catch (error) {
       if (error instanceof CustomError)
         return ResponseDto.response(error.errorMap, error.msg);
