@@ -1,4 +1,5 @@
 import { ResponseDto } from "src/dtos/responses/response.dto";
+import { MODULE_REQUEST } from "src/module.config";
 
 export interface IGeneralService {
 
@@ -10,5 +11,5 @@ export interface IGeneralService {
     /**
      * Get account onchain
      */
-    getAccountOnchain(safeAddress: string, internalChainId: number): Promise<ResponseDto>
+    getAccountOnchain(param: MODULE_REQUEST.GetAccountOnchainParam): Promise<ResponseDto>
 }
