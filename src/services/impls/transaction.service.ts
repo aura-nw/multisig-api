@@ -2,21 +2,16 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ResponseDto } from 'src/dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
-import { ITransactionService } from '../transaction.service';
 import { calculateFee, GasPrice, makeMultisignedTx, StargateClient,} from '@cosmjs/stargate';
 import { fromBase64 } from "@cosmjs/encoding";
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { BaseService } from './base.service';
-import { ITransactionRepository } from 'src/repositories/itransaction.repository';
-import { IMultisigConfirmRepository } from 'src/repositories/imultisig-confirm.repository';
-import { IMultisigTransactionsRepository } from 'src/repositories/imultisig-transaction.repository';
 import { MultisigConfirm, MultisigTransaction } from 'src/entities';
-import { IGeneralRepository } from 'src/repositories/igeneral.repository';
-import { IMultisigWalletRepository } from 'src/repositories/imultisig-wallet.repository';
 import { MULTISIG_CONFIRM_STATUS, NETWORK_URL_TYPE, TRANSACTION_STATUS, TRANSFER_DIRECTION } from 'src/common/constants/app.constant';
-import { ConfirmTransactionRequest } from 'src/dtos/requests/transaction/confirm-transaction.request';
-import { IMultisigWalletOwnerRepository } from 'src/repositories/imultisig-wallet-owner.repository';
 import { CustomError } from 'src/common/customError';
+import { IGeneralRepository, IMultisigConfirmRepository, IMultisigTransactionsRepository, IMultisigWalletOwnerRepository, IMultisigWalletRepository, ITransactionRepository } from 'src/repositories';
+import { ConfirmTransactionRequest } from 'src/dtos/requests';
+import { ITransactionService } from '../transaction.service';
 
 @Injectable()
 export class TransactionService extends BaseService implements ITransactionService{
@@ -292,13 +287,7 @@ export class TransactionService extends BaseService implements ITransactionServi
       }
 
       //Validate owner
-      let listOwner = await this.safeRepos.getMultisigWalletsByOwner(request.fromAddress, request.internalChainId);
-
-      let checkOwner = listOwner.find(elelement => {
-        if (elelement.safeAddress === transaction.fromAddress){
-          return true;
-        }
-      });
+      let checkOwner = await this.multisigConfirmRepos.validateOwner(request.fromAddress, transaction.fromAddress, request.internalChainId);
 
       if(!checkOwner){
         throw new CustomError(ErrorMap.PERMISSION_DENIED);
