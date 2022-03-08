@@ -30,10 +30,10 @@ npm i --save-dev @nestjs/testing
 
 - Inside the newly created block, define the functions that will be run on different events:
 
-  - beforeAll: Runs a function before any of the tests in this file run.
-  - afterAll: Runs a function after all the tests in this file have completed.
-  - beforeEach: Runs a function before each of the tests in this file runs.
-  - afterAll: Runs a function after each one of the tests in this file completes.
+  - `beforeAll`: Runs a function before any of the tests in this file run.
+  - `afterAll`: Runs a function after all the tests in this file have completed.
+  - `beforeEach`: Runs a function before each of the tests in this file runs.
+  - `afterEach`: Runs a function after each one of the tests in this file completes.
 
   ```ts
   describe(OwnerController.name, () => {
