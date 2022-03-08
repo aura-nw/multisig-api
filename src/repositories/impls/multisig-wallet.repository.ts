@@ -8,7 +8,6 @@ import { Safe, SafeOwner } from 'src/entities';
 import { CustomError } from 'src/common/customError';
 import { ErrorMap } from 'src/common/error.map';
 import { SAFE_STATUS } from 'src/common/constants/app.constant';
-import { CommonUtil } from 'src/utils/common.util';
 import { createHash } from 'crypto';
 
 @Injectable()
@@ -17,7 +16,6 @@ export class MultisigWalletRepository
   implements IMultisigWalletRepository
 {
   private readonly _logger = new Logger(MultisigWalletRepository.name);
-  // private _commonUtil: CommonUtil = new CommonUtil();
   constructor(
     @InjectRepository(ENTITIES_CONFIG.SAFE)
     private readonly repos: Repository<ObjectLiteral>,
@@ -74,7 +72,8 @@ export class MultisigWalletRepository
     return sqlQuerry.getRawOne();
   }
 
-  async deletePendingSafe(condition: any, myAddress: string) {
+  async deletePendingSafe(safeId: string, myAddress: string) {
+    const condition = this.calculateCondition(safeId);
     const safes = await this.findByCondition(condition);
     if (safes.length === 0) throw new CustomError(ErrorMap.NO_SAFES_FOUND);
     const safe = safes[0] as Safe;
@@ -176,5 +175,60 @@ export class MultisigWalletRepository
     } catch (err) {
       throw new CustomError(ErrorMap.INSERT_SAFE_FAILED, err.message);
     }
+  }
+
+  async getSafe(safeId: string, internalChainId?: number): Promise<any> {
+    let condition = this.calculateCondition(safeId, internalChainId);
+
+    // find safes
+    const safes = await this.findByCondition(condition);
+    if (!safes || safes.length === 0) {
+      this._logger.debug(
+        `Not found any safe with condition: ${JSON.stringify(condition)}`,
+      );
+      throw new CustomError(ErrorMap.NO_SAFES_FOUND);
+    }
+    return safes[0];
+  }
+
+  async getPendingSafe(safeId: string, internalChainId?: number): Promise<any> {
+    const safe = await this.getSafe(safeId, internalChainId);
+    // check safe
+    if (safe.status !== SAFE_STATUS.PENDING)
+      throw new CustomError(ErrorMap.SAFE_NOT_PENDING);
+    return safe;
+  }
+
+  async confirmSafe(
+    safe: Safe,
+    pubkeys: string[],
+    prefix: string,
+  ): Promise<Safe> {
+    try {
+      const safeInfo = this._commonUtil.createSafeAddressAndPubkey(
+        pubkeys,
+        safe.threshold,
+        prefix,
+      );
+      safe.safeAddress = safeInfo.address;
+      safe.safePubkey = safeInfo.pubkey;
+      safe.status = SAFE_STATUS.CREATED;
+    } catch (error) {
+      throw new CustomError(ErrorMap.CANNOT_CREATE_SAFE_ADDRESS, error.message);
+    }
+    // update safe
+    await this.update(safe);
+    return safe;
+  }
+
+  private calculateCondition(safeId: string, internalChainId?: number) {
+    return isNaN(Number(safeId))
+      ? {
+          safeAddress: safeId,
+          internalChainId: internalChainId || '',
+        }
+      : {
+          id: safeId,
+        };
   }
 }

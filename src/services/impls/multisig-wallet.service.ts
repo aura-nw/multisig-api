@@ -109,29 +109,10 @@ export class MultisigWalletService
     try {
       const { safeId } = param;
       const { internalChainId } = query;
-      // build search condition
-      let condition = this.calculateCondition(safeId, internalChainId);
-
-      // find safes
-      const safes = await this.safeRepo.findByCondition(condition);
-      if (!safes || safes.length === 0) {
-        this._logger.debug(
-          `Not found any safe with condition: ${JSON.stringify(condition)}`,
-        );
-        throw new CustomError(ErrorMap.NO_SAFES_FOUND);
-      }
-      const safe = safes[0];
+      const safe = await this.safeRepo.getSafe(safeId, internalChainId);
 
       // find safe owner
-      const owners = (await this.safeOwnerRepo.findByCondition({
-        safeId: safe.id,
-      })) as SafeOwner[];
-      if (!owners || owners.length === 0) {
-        this._logger.debug(
-          `Not found any safe owner with safeId: ${safeId} and internalChainId: ${internalChainId}`,
-        );
-        throw new CustomError(ErrorMap.NO_SAFE_OWNERS_FOUND);
-      }
+      const owners = await this.safeOwnerRepo.getSafeOwnersWithError(safe.id);
 
       // get confirm list
       const confirms = owners.filter(({ ownerPubkey }) => ownerPubkey !== null);
@@ -148,10 +129,7 @@ export class MultisigWalletService
       safeInfo.internalChainId = safe.internalChainId;
 
       // get chainInfo
-      const chainInfo = (await this.generalRepo.findOne(
-        safeInfo.internalChainId,
-      )) as Chain;
-      if (!chainInfo) throw new CustomError(ErrorMap.CHAIN_ID_NOT_EXIST);
+      const chainInfo = await this.generalRepo.findChain(internalChainId);
 
       // if safe created => Get balance
       if (safeInfo.address !== null) {
@@ -185,28 +163,16 @@ export class MultisigWalletService
     try {
       const { safeId } = param;
       const { internalChainId } = query;
-      // build search condition
-      const condition = this.calculateCondition(safeId, internalChainId);
 
       // find safes
-      const safes = await this.safeRepo.findByCondition(condition);
-      if (!safes || safes.length === 0) {
-        this._logger.debug(
-          `Not found any safe with condition: ${JSON.stringify(condition)}`,
-        );
-        throw new CustomError(ErrorMap.NO_SAFES_FOUND);
-      }
-      const safe = safes[0];
+      const safe = await this.safeRepo.getSafe(safeId, internalChainId);
 
       if (!safe.safeAddress || safe.safeAddress === null) {
         // cannot get balance because safe address is null
         throw new CustomError(ErrorMap.SAFE_ADDRESS_IS_NULL);
       }
       // get chainInfo
-      const chainInfo = (await this.generalRepo.findOne(
-        safe.internalChainId,
-      )) as Chain;
-      if (!chainInfo) throw new CustomError(ErrorMap.CHAIN_ID_NOT_EXIST);
+      const chainInfo = await this.generalRepo.findChain(internalChainId);
 
       try {
         const network = new Network(chainInfo.rpc);
@@ -236,72 +202,33 @@ export class MultisigWalletService
     try {
       const { safeId } = param;
       const { myAddress, myPubkey } = request;
-      const condition = this.calculateCondition(safeId);
+
       // find safe
-      const safes = (await this.safeRepo.findByCondition(condition)) as Safe[];
-      if (!safes || safes.length === 0)
-        throw new CustomError(ErrorMap.NO_SAFES_FOUND);
-      const safe = safes[0];
+      const safe = await this.safeRepo.getPendingSafe(safeId);
 
-      // check safe
-      if (safe.status !== SAFE_STATUS.PENDING)
-        throw new CustomError(ErrorMap.SAFE_NOT_PENDING);
-
-      // get safe owners
-      const safeOwners = (await this.safeOwnerRepo.findByCondition({
-        safeId: safe.id,
-      })) as SafeOwner[];
-      if (safeOwners.length === 0)
-        throw new CustomError(ErrorMap.NO_SAFE_OWNERS_FOUND);
-
-      // get safe owner by address
-      const index = safeOwners.findIndex((s) => s.ownerAddress === myAddress);
-      // const safeOwner = safeOwners[safeOwnerIndex];
-      if (index === -1)
-        throw new CustomError(ErrorMap.SAFE_OWNERS_NOT_INCLUDE_ADDRESS);
-      if (safeOwners[index].ownerPubkey !== null)
-        throw new CustomError(ErrorMap.SAFE_OWNER_PUBKEY_NOT_EMPTY);
+      // get confirm status
+      const { safeOwner, fullConfirmed, pubkeys } =
+        await this.safeOwnerRepo.getConfirmSafeStatus(
+          safeId,
+          myAddress,
+          myPubkey,
+        );
 
       // update safe owner
-      safeOwners[index].ownerPubkey = myPubkey;
-      const updateResult = await this.safeOwnerRepo.update(safeOwners[index]);
-      if (!updateResult)
-        throw new CustomError(ErrorMap.UPDATE_SAFE_OWNER_FAILED);
+      await this.safeOwnerRepo.updateSafeOwner(safeOwner);
 
-      // check all owner confirmed
-      const notReady = safeOwners.findIndex((s) => s.ownerPubkey === null);
-      if (notReady !== -1)
+      if (!fullConfirmed)
         return ResponseDto.response(ErrorMap.SUCCESSFUL, safe);
 
-      // calculate owner pubKey array
-      const pubkeys = safeOwners.map((s) => {
-        return s.ownerAddress === myAddress ? myPubkey : s.ownerPubkey;
-      });
+      // get chainInfo
+      const chainInfo = await this.generalRepo.findChain(safe.internalChainId);
 
-      // generate safe address and pubkey
-      const chainInfo = (await this.generalRepo.findOne(
-        safe.internalChainId,
-      )) as Chain;
-      if (!chainInfo) throw new CustomError(ErrorMap.CHAIN_ID_NOT_EXIST);
-
-      try {
-        const safeInfo = this._commonUtil.createSafeAddressAndPubkey(
-          pubkeys,
-          safe.threshold,
-          chainInfo.prefix,
-        );
-        safe.safeAddress = safeInfo.address;
-        safe.safePubkey = safeInfo.pubkey;
-        safe.status = SAFE_STATUS.CREATED;
-      } catch (error) {
-        throw new CustomError(
-          ErrorMap.CANNOT_CREATE_SAFE_ADDRESS,
-          error.message,
-        );
-      }
-      // update safe
-      await this.safeRepo.update(safe);
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, safe);
+      const result = await this.safeRepo.confirmSafe(
+        safe,
+        pubkeys,
+        chainInfo.prefix,
+      );
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
     } catch (error) {
       if (error instanceof CustomError)
         return ResponseDto.response(error.errorMap, error.msg);
@@ -320,9 +247,8 @@ export class MultisigWalletService
       const { safeId } = param;
       const { myAddress } = request;
 
-      const condition = this.calculateCondition(safeId);
       const deletedSafe = await this.safeRepo.deletePendingSafe(
-        condition,
+        safeId,
         myAddress,
       );
       return ResponseDto.response(ErrorMap.SUCCESSFUL, deletedSafe);
@@ -369,55 +295,5 @@ export class MultisigWalletService
       this._logger.error(`${error.stack}`);
       return ResponseDto.response(ErrorMap.E500, error.message);
     }
-  }
-
-  private calculateCondition(safeId: string, internalChainId?: number) {
-    return isNaN(Number(safeId))
-      ? {
-          safeAddress: safeId,
-          internalChainId: internalChainId || '',
-        }
-      : {
-          id: safeId,
-        };
-  }
-
-  private async makeAddressHash(
-    internalChainId: number,
-    addresses: string[],
-    threshold: number,
-  ) {
-    const safeAddress = {
-      addresses: addresses.sort(),
-      threshold,
-      internalChainId,
-    };
-    const safeAddressHash = createHash('sha256')
-      .update(JSON.stringify(safeAddress))
-      .digest('base64');
-    const existSafe = await this.safeRepo.findByCondition(
-      {
-        addressHash: safeAddressHash,
-      },
-      null,
-      ['id', 'addressHash', 'status'],
-    );
-    // filter deleted status
-    if (existSafe && existSafe.length > 0) {
-      const existList = existSafe.filter(
-        (safe) => safe.status !== SAFE_STATUS.DELETED,
-      );
-      if (existList && existList.length > 0) {
-        this._logger.debug(`Safe with these information already exists!`);
-        return {
-          existInDB: true,
-          safeAddressHash,
-        };
-      }
-    }
-    return {
-      existInDB: false,
-      safeAddressHash,
-    };
   }
 }

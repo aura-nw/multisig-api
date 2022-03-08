@@ -25,7 +25,7 @@ export interface IMultisigWalletRepository extends IBaseRepository {
    */
   getThreshold(safeAddress: string): any;
 
-  deletePendingSafe(condition: any, myAddress: string): Promise<Safe>;
+  deletePendingSafe(safeId: string, myAddress: string): Promise<Safe>;
 
   insertSafe(
     creatorAddress: string,
@@ -35,4 +35,8 @@ export interface IMultisigWalletRepository extends IBaseRepository {
     internalChainId: number,
     chainPrefix: string,
   ): Promise<any>;
+
+  getSafe(safeId: string, internalChainId?: number): Promise<any>;
+  getPendingSafe(safeId: string, internalChainId?: number): Promise<any>;
+  confirmSafe(safe: Safe, pubkeys: string[], prefix: string): Promise<Safe>;
 }
