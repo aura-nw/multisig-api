@@ -242,18 +242,14 @@ export class TransactionService extends BaseService implements ITransactionServi
 
       let checkOwner = await this.multisigConfirmRepos.validateOwner(request.fromAddress, transaction.fromAddress, request.internalChainId);
 
-      if(!checkOwner){
+      if(checkOwner){
         throw new CustomError(ErrorMap.PERMISSION_DENIED);
       }
 
-      //Check status of multisig confirm
-      let listConfirm =
-        await this.multisigConfirmRepos.findByCondition({
-          multisigTransactionId: request.transactionId,
-          ownerAddress: request.fromAddress
-      });
+      //User has confirmed transaction before
+      let checkOnwerHasSigned = await this.multisigConfirmRepos.checkUserHasSigned(request.transactionId, request.fromAddress);
 
-      if(listConfirm.length > 0){
+      if(checkOnwerHasSigned){
         throw new CustomError(ErrorMap.USER_HAS_COMFIRMED);
       }
 
@@ -294,11 +290,11 @@ export class TransactionService extends BaseService implements ITransactionServi
       //Validate owner
       let checkOwner = await this.multisigConfirmRepos.validateOwner(request.fromAddress, transaction.fromAddress, request.internalChainId);
 
-      if(!checkOwner){
+      if(checkOwner){
         throw new CustomError(ErrorMap.PERMISSION_DENIED);
       }
 
-      //Check status of multisig confirm
+      //Check user has rejected transaction before
       let checkOnwerHasSigned = await this.multisigConfirmRepos.checkUserHasSigned(request.transactionId, request.fromAddress);
 
       if(checkOnwerHasSigned){
