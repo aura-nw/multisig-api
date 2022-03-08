@@ -16,4 +16,9 @@ export interface IMultisigConfirmRepository extends IBaseRepository {
      */
     checkUserHasSigned(transactionId: number, ownerAddress: string): any;
 
+    /**
+     * Insert into table MultisigConfirm
+     */
+    insertIntoMultisigConfirm(multisigTransactionId: number, ownerAddress: string, signature: string, bodyBytes: string, internalChainId: number, status: string);
+
 }
