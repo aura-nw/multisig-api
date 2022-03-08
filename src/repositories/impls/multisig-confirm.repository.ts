@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { MultisigConfirm } from "src/entities";
 import { ENTITIES_CONFIG, REPOSITORY_INTERFACE } from "src/module.config";
 import { ObjectLiteral, Repository } from "typeorm";
 import { IMultisigConfirmRepository } from "../imultisig-confirm.repository";
@@ -21,6 +22,17 @@ export class MultisigConfirmRepository
             '============== Constructor Multisig Confirm Repository ==============',
         );
     }
+  async insertIntoMultisigConfirm(multisigTransactionId: number, ownerAddress: string, signature: string, bodyBytes: string, internalChainId: number, status: string) {
+      let multisigConfirm = new MultisigConfirm();
+      multisigConfirm.multisigTransactionId = multisigTransactionId;
+      multisigConfirm.ownerAddress = ownerAddress;
+      multisigConfirm.signature = signature;
+      multisigConfirm.bodyBytes = bodyBytes;
+      multisigConfirm.internalChainId = internalChainId;
+      multisigConfirm.status = status;
+
+      await this.create(multisigConfirm);
+  }
   async checkUserHasSigned(transactionId: number, ownerAddress: string) {
     let listConfirm =  await this.findByCondition({ multisigTransactionId: transactionId,  ownerAddress: ownerAddress});
 

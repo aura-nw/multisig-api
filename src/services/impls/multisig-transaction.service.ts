@@ -240,15 +240,7 @@ export class MultisigTransactionService extends BaseService implements IMultisig
         throw new CustomError(ErrorMap.USER_HAS_COMFIRMED);
       }
 
-      let multisigConfirm = new MultisigConfirm();
-      multisigConfirm.multisigTransactionId = request.transactionId;
-      multisigConfirm.ownerAddress = request.fromAddress;
-      multisigConfirm.signature = request.signature;
-      multisigConfirm.bodyBytes = request.bodyBytes;
-      multisigConfirm.internalChainId = request.internalChainId;
-      multisigConfirm.status = MULTISIG_CONFIRM_STATUS.CONFIRM;
-
-      await this.multisigConfirmRepos.create(multisigConfirm);
+      await this.multisigConfirmRepos.insertIntoMultisigConfirm(request.transactionId, request.fromAddress, request.signature, request.bodyBytes, request.internalChainId, MULTISIG_CONFIRM_STATUS.CONFIRM);
 
       await this.multisigTransactionRepos.validateTransaction(request.transactionId, request.internalChainId);
       
@@ -288,13 +280,7 @@ export class MultisigTransactionService extends BaseService implements IMultisig
         throw new CustomError(ErrorMap.USER_HAS_REJECTED);
       }
 
-      let multisigConfirm = new MultisigConfirm();
-      multisigConfirm.multisigTransactionId = request.transactionId;
-      multisigConfirm.ownerAddress = request.fromAddress;
-      multisigConfirm.internalChainId = request.internalChainId;
-      multisigConfirm.status = MULTISIG_CONFIRM_STATUS.REJECT;
-
-      await this.multisigConfirmRepos.create(multisigConfirm);
+      await this.multisigConfirmRepos.insertIntoMultisigConfirm(request.transactionId, request.fromAddress, '', '', request.internalChainId, MULTISIG_CONFIRM_STATUS.REJECT);
 
       return res.return(ErrorMap.SUCCESSFUL);
     } catch (error) {
