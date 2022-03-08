@@ -16,7 +16,8 @@ import {
   URL_CONSTANTS,
 } from 'src/common/constants/api.constant';
 import { MODULE_REQUEST, MODULE_RESPONSE, SERVICE_INTERFACE } from 'src/module.config';
-import { ITransactionService } from 'src/services/transaction.service';
+import { TransactionService } from 'src/services/impls/transaction.service';
+import { IMultisigTransactionService } from 'src/services/multisig-transaction.service';
 
 @Controller(CONTROLLER_CONSTANTS.TRANSACTION)
 @ApiTags(CONTROLLER_CONSTANTS.TRANSACTION)
@@ -25,7 +26,9 @@ export class TransactionController {
 
   constructor(
     @Inject(SERVICE_INTERFACE.ITRANSACTION_SERVICE)
-    private transactionService: ITransactionService,
+    private transactionService: TransactionService,
+    @Inject(SERVICE_INTERFACE.IMULTISIG_TRANSACTION_SERVICE)
+    private multisigTransactionService: IMultisigTransactionService,
   ) { }
 
   @Post(URL_CONSTANTS.CREATE)
@@ -39,7 +42,7 @@ export class TransactionController {
     @Body() request: MODULE_REQUEST.CreateTransactionRequest,
   ) {
     this._logger.log('========== Create multisig transaction ==========');
-    return this.transactionService.createTransaction(request);
+    return this.multisigTransactionService.createTransaction(request);
   }
 
   @Post(URL_CONSTANTS.CONFIRM_TRANSACTION)
@@ -51,7 +54,7 @@ export class TransactionController {
   async confirmTransaction(
     @Body() request: MODULE_REQUEST.ConfirmTransactionRequest,
   ) {
-    return this.transactionService.confirmTransaction(request);
+    return this.multisigTransactionService.confirmTransaction(request);
   }
 
   @Post(URL_CONSTANTS.REJECT_TRANSACTION)
@@ -63,7 +66,7 @@ export class TransactionController {
   async rejectTransaction(
     @Body() request: MODULE_REQUEST.RejectTransactionParam,
   ) {
-    return this.transactionService.rejectTransaction(request);
+    return this.multisigTransactionService.rejectTransaction(request);
   }
 
   @Post(URL_CONSTANTS.GET_ALL_TXS)
@@ -107,7 +110,7 @@ export class TransactionController {
     @Body() request: MODULE_REQUEST.SendTransactionRequest,
   ) {
     this._logger.log('========== Send transaction to AURA ==========');
-    return this.transactionService.sendTransaction(request);
+    return this.multisigTransactionService.sendTransaction(request);
   }
 
   @Get(URL_CONSTANTS.TRANSACTION_DETAILS)

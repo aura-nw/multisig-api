@@ -8,6 +8,7 @@ import { CommonUtil } from "src/utils/common.util";
 import { MODULE_REQUEST, REPOSITORY_INTERFACE } from "src/module.config";
 import { IGeneralRepository } from "src/repositories/igeneral.repository";
 import { ErrorMap } from "src/common/error.map";
+import { ISafeRepository } from "src/repositories/isafe.repository";
 
 export class GeneralService extends BaseService implements IGeneralService {
     private readonly _logger = new Logger(GeneralService.name);
@@ -16,6 +17,8 @@ export class GeneralService extends BaseService implements IGeneralService {
         private configService: ConfigService,
         @Inject(REPOSITORY_INTERFACE.IGENERAL_REPOSITORY)
         private chainRepo: IGeneralRepository,
+        @Inject(REPOSITORY_INTERFACE.ISAFE_REPOSITORY)
+        private safeRepo: ISafeRepository
     ) {
         super(chainRepo);
         this._logger.log("============== Constructor General Service ==============");
@@ -30,8 +33,14 @@ export class GeneralService extends BaseService implements IGeneralService {
     async getAccountOnchain(param: MODULE_REQUEST.GetAccountOnchainParam): Promise<ResponseDto> {
         const res = new ResponseDto();
         try {
+            const safeAddress = { safeAddress: param.safeAddress };
+            const safe = await this.safeRepo.findByCondition(safeAddress);
+            if(!safe) return res.return(ErrorMap.NO_SAFES_FOUND);
+
             const condition = { id: param.internalChainId };
             const chain = await this.chainRepo.findByCondition(condition);
+            if(!chain) return res.return(ErrorMap.CHAIN_ID_NOT_EXIST);
+
             const client = await StargateClient.connect(chain[0].rpc);
             const accountOnChain = await client.getAccount(param.safeAddress);
             // const balance = await client.getBalance(param.safeAddress, chain[0].denom);
