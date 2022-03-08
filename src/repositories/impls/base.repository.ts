@@ -7,7 +7,7 @@ import { CommonUtil } from '../../utils/common.util';
 export class BaseRepository implements IBaseRepository {
   private _repos: Repository<any>;
   private _log = new Logger(BaseRepository.name);
-  private _commonUtil: CommonUtil = new CommonUtil();
+  protected _commonUtil: CommonUtil = new CommonUtil();
 
   public constructor(repos) {
     this._repos = repos;
@@ -31,7 +31,11 @@ export class BaseRepository implements IBaseRepository {
    * @param orderBy
    * @returns
    */
-  public async findByCondition(condition: any, orderBy?: any, select?: string[]): Promise<any[]> {
+  public async findByCondition(
+    condition: any,
+    orderBy?: any,
+    select?: string[],
+  ): Promise<any[]> {
     this._log.log(
       `============== Call method findOne width parameters: condition:${this.convertObjectToJson(
         condition,
@@ -110,6 +114,15 @@ export class BaseRepository implements IBaseRepository {
    */
   public async create(data: any): Promise<any> {
     return this._repos.save(data);
+  }
+
+  /**
+   * insert - fail if duplicate entity
+   * @param data
+   * @returns
+   */
+  public async insert(data: any): Promise<any> {
+    return this._repos.insert(data);
   }
 
   /**

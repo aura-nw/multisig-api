@@ -1,4 +1,4 @@
-export enum AppConstants { }
+export enum AppConstants {}
 
 export enum ORDER_BY {
   DESC = 'DESC',
@@ -25,16 +25,20 @@ export enum TRANSACTION_STATUS {
   PENDING = 'PENDING',
   CANCELLED = 'CANCELLED',
   SUCCESS = 'SUCCESS',
-  FAILED = 'FAILED'
+  FAILED = 'FAILED',
 }
 export enum MULTISIG_CONFIRM_STATUS {
   CONFIRM = 'CONFIRM',
   REJECT = 'REJECT',
-  SEND = 'SEND'
+  SEND = 'SEND',
 }
 
 export enum TRANSFER_DIRECTION {
   INCOMING = 'INCOMING',
   OUTGOING = 'OUTGOING',
   UNKNOWN = 'UNKNOWN',
+}
+
+export enum PUBKEY_TYPES {
+  SECP256K1 = 'tendermint/PubKeySecp256k1',
 }
