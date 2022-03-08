@@ -30,17 +30,17 @@ export class MultisigConfirmRepository
       result = true;
     }
 
-    return true;
+    return result;
   }
     async validateOwner(ownerAddres: string, transactionAddress: string, internalChainId: number) {
         //Validate owner
       let listSafe = await this.safeRepos.getMultisigWalletsByOwner(ownerAddres, internalChainId);
 
-      let result = false;
+      let result = true;
 
       listSafe.find(elelement => {
         if (elelement.safeAddress === transactionAddress){
-          result = true;
+          result = false;
         }
       });
       
