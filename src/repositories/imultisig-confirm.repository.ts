@@ -11,4 +11,9 @@ export interface IMultisigConfirmRepository extends IBaseRepository {
      */
     validateOwner(ownerAddres: string, transactionAddress: string, internalChainId: number): any;
 
+    /**
+     * Check user has confirmed transaction before
+     */
+    checkUserHasSigned(transactionId: number, ownerAddress: string): any;
+
 }
