@@ -1,5 +1,5 @@
 import { CacheModule, Module } from '@nestjs/common';
-import { HttpModule } from '@nestjs/axios'
+import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MultisigWalletController } from './controllers/multisig-wallet.controller';
 import { TransactionController } from './controllers/transaction.controller';
@@ -18,7 +18,6 @@ import { MultisigWalletOwnerRepository } from './repositories/impls/multisig-wal
 import { MultisigTransactionRepository } from './repositories/impls/multisig-transaction.repository';
 import { MultisigConfirmRepository } from './repositories/impls/multisig-confirm.repository';
 import { TransactionRepository } from './repositories/impls/transaction.repository';
-import { SafeRepository } from './repositories/impls/safe.repository';
 import { TransactionService } from './services/impls/transaction.service';
 
 const controllers = [
@@ -41,8 +40,8 @@ const entities = [
     HttpModule.registerAsync({
       useFactory: () => ({
         timeout: 5000,
-        maxRedirects: 5
-      })
+        maxRedirects: 5,
+      }),
     }),
     CacheModule.register({ ttl: 10000 }),
     SharedModule,
@@ -84,10 +83,6 @@ const entities = [
       provide: REPOSITORY_INTERFACE.ITRANSACTION_REPOSITORY,
       useClass: TransactionRepository,
     },
-    {
-      provide: REPOSITORY_INTERFACE.ISAFE_REPOSITORY,
-      useClass: SafeRepository,
-    },
     //service
     {
       provide: SERVICE_INTERFACE.IMULTISIG_TRANSACTION_SERVICE,
@@ -107,4 +102,4 @@ const entities = [
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}

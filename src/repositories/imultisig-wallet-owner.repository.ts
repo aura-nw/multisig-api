@@ -1,3 +1,4 @@
+import { SafeOwner } from 'src/entities';
 import { IBaseRepository } from './ibase.repository';
 
 export interface IMultisigWalletOwnerRepository extends IBaseRepository {
@@ -14,4 +15,18 @@ export interface IMultisigWalletOwnerRepository extends IBaseRepository {
     creatorPubkey: string,
     otherOwnersAddress: string[],
   ): any;
+
+  getSafeOwnersWithError(safeId: string): Promise<any>;
+
+  getConfirmSafeStatus(
+    safeId: string,
+    myAddress: string,
+    myPubkey: string,
+  ): Promise<{
+    safeOwner: SafeOwner;
+    fullConfirmed: boolean;
+    pubkeys: string[];
+  }>;
+
+  updateSafeOwner(safeOwner: SafeOwner): Promise<void>;
 }

@@ -63,4 +63,49 @@ export class MultisigWalletOwnerRepository
       throw new CustomError(ErrorMap.INSERT_SAFE_OWNER_FAILED, err.message);
     }
   }
+
+  async getSafeOwnersWithError(safeId: string): Promise<any> {
+    const owners = (await this.findByCondition({ safeId })) as SafeOwner[];
+    if (!owners || owners.length === 0) {
+      this._logger.debug(`Not found any safe owner with safeId: ${safeId}`);
+      throw new CustomError(ErrorMap.NO_SAFE_OWNERS_FOUND);
+    }
+    return owners;
+  }
+
+  async getConfirmSafeStatus(
+    safeId: string,
+    myAddress: string,
+    myPubkey: string,
+  ): Promise<{
+    safeOwner: SafeOwner;
+    fullConfirmed: boolean;
+    pubkeys: string[];
+  }> {
+    // get safe owners
+    const safeOwners = await this.getSafeOwnersWithError(safeId);
+
+    // get safe owner by address
+    const index = safeOwners.findIndex((s) => s.ownerAddress === myAddress);
+    if (index === -1)
+      throw new CustomError(ErrorMap.SAFE_OWNERS_NOT_INCLUDE_ADDRESS);
+    if (safeOwners[index].ownerPubkey !== null)
+      throw new CustomError(ErrorMap.SAFE_OWNER_PUBKEY_NOT_EMPTY);
+
+    safeOwners[index].ownerPubkey = myPubkey;
+    // check all owner confirmed
+    const notReadyOwner = safeOwners.findIndex((s) => s.ownerPubkey === null);
+    const fullConfirmed = notReadyOwner !== -1 ? false : true;
+
+    // calculate owner pubKey array
+    const pubkeys = safeOwners.map((s) => {
+      return s.ownerAddress === myAddress ? myPubkey : s.ownerPubkey;
+    });
+    return { safeOwner: safeOwners[index], fullConfirmed, pubkeys };
+  }
+
+  async updateSafeOwner(safeOwner: SafeOwner): Promise<void> {
+    const updateResult = await this.update(safeOwner);
+    if (!updateResult) throw new CustomError(ErrorMap.UPDATE_SAFE_OWNER_FAILED);
+  }
 }

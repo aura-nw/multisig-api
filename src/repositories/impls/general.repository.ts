@@ -41,7 +41,7 @@ export class GeneralRepository
     return sqlQuerry.getRawMany();
   }
 
-  async findChain(internalChainId: number) {
+  async findChain(internalChainId: number): Promise<Chain> {
     const chainInfo = (await this.findOne(internalChainId)) as Chain;
     if (!chainInfo) throw new CustomError(ErrorMap.CHAIN_ID_NOT_EXIST);
     return chainInfo;
