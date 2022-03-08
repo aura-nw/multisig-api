@@ -26,7 +26,6 @@ export class TransactionService extends BaseService implements ITransactionServi
         this._logger.log(
           '============== Constructor Transaction Service ==============',
         );
-      }
 
     async getListMultisigConfirm(
         internalTxHash: string,
