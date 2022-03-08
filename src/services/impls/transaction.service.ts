@@ -37,15 +37,9 @@ export class TransactionService extends BaseService implements ITransactionServi
     const res = new ResponseDto();
     try {
       //Validate transaction creator
-      let listOwner = await this.safeRepos.getMultisigWalletsByOwner(request.creatorAddress, request.internalChainId);
+      let checkOwner = await this.multisigConfirmRepos.validateOwner(request.creatorAddress, request.from, request.internalChainId);
 
-      let checkOwner = listOwner.find(elelement => {
-        if (elelement.safeAddress === request.from){
-          return true;
-        }
-      });
-
-      if(!checkOwner){
+      if(checkOwner){
         throw new CustomError(ErrorMap.PERMISSION_DENIED);
       }
 
