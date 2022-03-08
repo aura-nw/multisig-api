@@ -14,120 +14,21 @@ import { ConfirmTransactionRequest } from 'src/dtos/requests';
 import { ITransactionService } from '../transaction.service';
 
 @Injectable()
-export class TransactionService extends BaseService implements ITransactionService{
-  private readonly _logger = new Logger(TransactionService.name);
+export class TransactionService extends BaseService implements ITransactionService {
+    private readonly _logger = new Logger(TransactionService.name);
 
-  constructor(
-    @Inject(REPOSITORY_INTERFACE.IMULTISIG_TRANSACTION_REPOSITORY) private multisigTransactionRepos: IMultisigTransactionsRepository,
-    @Inject(REPOSITORY_INTERFACE.IMULTISIG_CONFIRM_REPOSITORY) private multisigConfirmRepos: IMultisigConfirmRepository,
-    @Inject(REPOSITORY_INTERFACE.IGENERAL_REPOSITORY) private chainRepos: IGeneralRepository,
-    @Inject(REPOSITORY_INTERFACE.ITRANSACTION_REPOSITORY) private transRepos: ITransactionRepository,
-    @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_REPOSITORY) private safeRepos: IMultisigWalletRepository,
-    @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_OWNER_REPOSITORY) private safeOwnerRepos: IMultisigWalletOwnerRepository,
-  ) {
-    super(multisigTransactionRepos);
-    this._logger.log(
-      '============== Constructor Transaction Service ==============',
-    );
-  }
-
-  async createTransaction(
-    request: MODULE_REQUEST.CreateTransactionRequest,
-  ): Promise<ResponseDto> {
-    const res = new ResponseDto();
-    try {
-      //Validate transaction creator
-      let checkOwner = await this.multisigConfirmRepos.validateOwner(request.creatorAddress, request.from, request.internalChainId);
-
-      if(checkOwner){
-        throw new CustomError(ErrorMap.PERMISSION_DENIED);
+    constructor(
+        @Inject(REPOSITORY_INTERFACE.IMULTISIG_TRANSACTION_REPOSITORY) private multisigTransactionRepos: IMultisigTransactionsRepository,
+        @Inject(REPOSITORY_INTERFACE.IMULTISIG_CONFIRM_REPOSITORY) private multisigConfirmRepos: IMultisigConfirmRepository,
+        @Inject(REPOSITORY_INTERFACE.ITRANSACTION_REPOSITORY) private transRepos: ITransactionRepository,
+        @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_REPOSITORY) private safeRepos: IMultisigWalletRepository,
+        @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_OWNER_REPOSITORY) private safeOwnerRepos: IMultisigWalletOwnerRepository,
+      ) {
+        super(transRepos);
+        this._logger.log(
+          '============== Constructor Transaction Service ==============',
+        );
       }
-
-      let chain = await this.chainRepos.findOne({
-        where: { id: request.internalChainId },
-      });
-
-      const client = await StargateClient.connect(chain.rpc);
-
-      let balance = await client.getBalance(request.from, chain.denom);
-
-      let safe = await this.safeRepos.findOne({
-        where: { safeAddress: request.from },
-      });
-
-      if (Number(balance.amount) < request.amount) {
-        throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
-      }
-
-      const signingInstruction = await (async () => {
-        const client = await StargateClient.connect(chain.rpc);
-
-        //Check account
-        const accountOnChain = await client.getAccount(request.from);
-        if(!accountOnChain){
-          throw new CustomError(ErrorMap.E001);
-        }
-
-        return {
-          accountNumber: accountOnChain.accountNumber,
-          sequence: accountOnChain.sequence,
-          chainId: chain.chainId,
-        };
-      })();
-
-      let transaction = new MultisigTransaction();
-
-      transaction.fromAddress = request.from;
-      transaction.toAddress = request.to;
-      transaction.amount = request.amount;
-      transaction.gas = request.gasLimit;
-      transaction.fee = request.fee;
-      transaction.accountNumber = signingInstruction.accountNumber;
-      transaction.typeUrl = NETWORK_URL_TYPE.COSMOS;
-      transaction.denom = chain.denom;
-      transaction.status = TRANSACTION_STATUS.AWAITING_CONFIRMATIONS;
-      transaction.internalChainId = request.internalChainId;
-      transaction.sequence = signingInstruction.sequence.toString();
-      transaction.safeId = safe.id;
-
-      let transactionResult = await this.multisigTransactionRepos.create(transaction);
-
-      let requestSign = new ConfirmTransactionRequest();
-      requestSign.fromAddress = request.creatorAddress;
-      requestSign.transactionId = transactionResult.id;
-      requestSign.bodyBytes = request.bodyBytes;
-      requestSign.signature = request.signature;
-      requestSign.internalChainId = request.internalChainId;
-
-      //Sign to transaction
-      await this.confirmTransaction(requestSign);
-
-      return res.return(ErrorMap.SUCCESSFUL, transactionResult.id, {'transactionId:': transactionResult.id});
-    } catch (error) {
-      this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
-      this._logger.error(`${error.name}: ${error.message}`);
-      this._logger.error(`${error.stack}`);
-      return res.return(error.message === ErrorMap.E500.Message ? ErrorMap.E500 : error.errorMap);
-    }
-  }
-
-  async sendTransaction(
-    request: MODULE_REQUEST.SendTransactionRequest,
-  ): Promise<ResponseDto> {
-    const res = new ResponseDto();
-    try {
-      let chain = await this.chainRepos.findOne({where: { id: request.internalChainId }});
-
-      const client = await StargateClient.connect(chain.rpc);
-
-      //get information multisig transaction Id
-      let multisigTransaction = await this.multisigTransactionRepos.findOne({ where: { id: request.transactionId }});
-
-      if (!multisigTransaction || multisigTransaction.status != TRANSACTION_STATUS.AWAITING_EXECUTION) {
-        throw new CustomError(ErrorMap.TRANSACTION_NOT_VALID);
-      }
-    }
-  }
 
     async getListMultisigConfirm(
         internalTxHash: string,
