@@ -299,14 +299,10 @@ export class TransactionService extends BaseService implements ITransactionServi
       }
 
       //Check status of multisig confirm
-      let listConfirm =
-        await this.multisigConfirmRepos.findByCondition({
-          multisigTransactionId: request.transactionId,
-          ownerAddress: request.fromAddress
-      });
+      let checkOnwerHasSigned = await this.multisigConfirmRepos.checkUserHasSigned(request.transactionId, request.fromAddress);
 
-      if(listConfirm.length > 0){
-        throw new CustomError(ErrorMap.USER_HAS_COMFIRMED);
+      if(checkOnwerHasSigned){
+        throw new CustomError(ErrorMap.USER_HAS_REJECTED);
       }
 
       let multisigConfirm = new MultisigConfirm();

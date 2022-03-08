@@ -21,18 +21,26 @@ export class MultisigConfirmRepository
             '============== Constructor Multisig Confirm Repository ==============',
         );
     }
+  async checkUserHasSigned(transactionId: number, ownerAddress: string) {
+    let listConfirm =  await this.findByCondition({ multisigTransactionId: transactionId,  ownerAddress: ownerAddress});
+
+    let result = false;
+
+    if(listConfirm.length > 0){
+      result = true;
+    }
+
+    return true;
+  }
     async validateOwner(ownerAddres: string, transactionAddress: string, internalChainId: number) {
         //Validate owner
       let listSafe = await this.safeRepos.getMultisigWalletsByOwner(ownerAddres, internalChainId);
 
-      let result;
+      let result = false;
 
       listSafe.find(elelement => {
         if (elelement.safeAddress === transactionAddress){
           result = true;
-        }
-        else{
-          result = false;
         }
       });
       
