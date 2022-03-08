@@ -18,4 +18,9 @@ export interface IMultisigTransactionsRepository extends IBaseRepository {
      * @param request 
      */
     getQueueTransaction(request: MODULE_REQUEST.GetAllTransactionsRequest): any;
+
+    /**
+     * Validate transaction
+     */
+    validateTransaction(transactionId: number, internalChainId: number): any;
 }

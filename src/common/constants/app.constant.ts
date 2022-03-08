@@ -39,6 +39,6 @@ export enum TRANSFER_DIRECTION {
   UNKNOWN = 'UNKNOWN',
 }
 
-export enum PUBKEY_TYPES {
-  SECP256K1 = 'tendermint/PubKeySecp256k1',
+export enum NETWORK_URL_TYPE {
+  COSMOS = '/cosmos.bank.v1beta1.MsgSend'
 }
