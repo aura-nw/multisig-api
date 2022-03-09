@@ -129,7 +129,7 @@ export class MultisigWalletService
       safeInfo.internalChainId = safe.internalChainId;
 
       // get chainInfo
-      const chainInfo = await this.generalRepo.findChain(internalChainId);
+      const chainInfo = await this.generalRepo.findChain(safe.internalChainId);
 
       // if safe created => Get balance
       if (safeInfo.address !== null) {
@@ -172,7 +172,7 @@ export class MultisigWalletService
         throw new CustomError(ErrorMap.SAFE_ADDRESS_IS_NULL);
       }
       // get chainInfo
-      const chainInfo = await this.generalRepo.findChain(internalChainId);
+      const chainInfo = await this.generalRepo.findChain(safe.internalChainId);
 
       try {
         const network = new Network(chainInfo.rpc);
