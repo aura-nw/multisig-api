@@ -34,61 +34,19 @@ export class MultisigTransactionService extends BaseService implements IMultisig
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
+      //Validate safe
+      let signResult = await this.signingInstruction(request.internalChainId, request.from, request.amount);
+
       //Validate transaction creator
-      let checkOwner = await this.multisigConfirmRepos.validateOwner(request.creatorAddress, request.from, request.internalChainId);
-
-      if(checkOwner){
-        throw new CustomError(ErrorMap.PERMISSION_DENIED);
-      }
-
-      let chain = await this.chainRepos.findOne({
-        where: { id: request.internalChainId },
-      });
-
-      const client = await StargateClient.connect(chain.rpc);
-
-      let balance = await client.getBalance(request.from, chain.denom);
+      await this.multisigConfirmRepos.validateOwner(request.creatorAddress, request.from, request.internalChainId);
 
       let safe = await this.safeRepos.findOne({
         where: { safeAddress: request.from },
       });
 
-      if (Number(balance.amount) < request.amount) {
-        throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
-      }
-
-      const signingInstruction = await (async () => {
-        const client = await StargateClient.connect(chain.rpc);
-
-        //Check account
-        const accountOnChain = await client.getAccount(request.from);
-        if(!accountOnChain){
-          throw new CustomError(ErrorMap.E001);
-        }
-
-        return {
-          accountNumber: accountOnChain.accountNumber,
-          sequence: accountOnChain.sequence,
-          chainId: chain.chainId,
-        };
-      })();
-
-      let transaction = new MultisigTransaction();
-
-      transaction.fromAddress = request.from;
-      transaction.toAddress = request.to;
-      transaction.amount = request.amount;
-      transaction.gas = request.gasLimit;
-      transaction.fee = request.fee;
-      transaction.accountNumber = signingInstruction.accountNumber;
-      transaction.typeUrl = NETWORK_URL_TYPE.COSMOS;
-      transaction.denom = chain.denom;
-      transaction.status = TRANSACTION_STATUS.AWAITING_CONFIRMATIONS;
-      transaction.internalChainId = request.internalChainId;
-      transaction.sequence = signingInstruction.sequence.toString();
-      transaction.safeId = safe.id;
-
-      let transactionResult = await this.multisigTransactionRepos.create(transaction);
+      //Safe data into DB
+      let transactionResult = await this.multisigTransactionRepos.insertMultisigTransaction(request.from,  request.to, request.amount, request.gasLimit, request.fee, signResult.accountNumber,
+                              NETWORK_URL_TYPE.COSMOS, signResult.denom, TRANSACTION_STATUS.AWAITING_CONFIRMATIONS, request.internalChainId, signResult.sequence.toString(), safe.id);
 
       let requestSign = new ConfirmTransactionRequest();
       requestSign.fromAddress = request.creatorAddress;
@@ -126,17 +84,7 @@ export class MultisigTransactionService extends BaseService implements IMultisig
       }
 
       //Validate owner
-      let listOwner = await this.safeRepos.getMultisigWalletsByOwner(request.owner, request.internalChainId);
-
-      let checkOwner = listOwner.find(elelement => {
-        if (elelement.safeAddress === multisigTransaction.fromAddress){
-          return true;
-        }
-      });
-
-      if(!checkOwner){
-        throw new CustomError(ErrorMap.PERMISSION_DENIED);
-      }
+      await this.multisigConfirmRepos.validateOwner(request.owner, multisigTransaction.fromAddress, request.internalChainId);
 
       //Get safe info
       let safeInfo = await this.safeRepos.findOne({
@@ -177,13 +125,7 @@ export class MultisigTransactionService extends BaseService implements IMultisig
 
       try {
         //Record owner send transaction
-        let sender = new MultisigConfirm();
-        sender.multisigTransactionId = request.transactionId;
-        sender.internalChainId = request.internalChainId;
-        sender.ownerAddress = request.owner;
-        sender.status = MULTISIG_CONFIRM_STATUS.SEND;
-
-        await this.multisigConfirmRepos.create(sender);
+        await this.multisigConfirmRepos.insertIntoMultisigConfirm(request.transactionId, request.owner, '', '', request.internalChainId, MULTISIG_CONFIRM_STATUS.SEND);
 
         await client.broadcastTx(encodeTransaction, 10);
       } catch (error) {
@@ -217,28 +159,12 @@ export class MultisigTransactionService extends BaseService implements IMultisig
   async confirmTransaction( request: MODULE_REQUEST.ConfirmTransactionRequest,): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
+      let transaction = await this.multisigTransactionRepos.checkExistMultisigTransaction(request.transactionId, request.internalChainId);
 
-      //Check status of multisig transaction when confirm transaction
-      let transaction = await this.multisigTransactionRepos.findOne({
-        where: { id: request.transactionId, internalChainId: request.internalChainId }
-      });
-
-      if (!transaction) {
-        throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
-      }
-
-      let checkOwner = await this.multisigConfirmRepos.validateOwner(request.fromAddress, transaction.fromAddress, request.internalChainId);
-
-      if(checkOwner){
-        throw new CustomError(ErrorMap.PERMISSION_DENIED);
-      }
+      await this.multisigConfirmRepos.validateOwner(request.fromAddress, transaction.fromAddress, request.internalChainId);
 
       //User has confirmed transaction before
-      let checkOnwerHasSigned = await this.multisigConfirmRepos.checkUserHasSigned(request.transactionId, request.fromAddress);
-
-      if(checkOnwerHasSigned){
-        throw new CustomError(ErrorMap.USER_HAS_COMFIRMED);
-      }
+      await this.multisigConfirmRepos.checkUserHasSigned(request.transactionId, request.fromAddress);
 
       await this.multisigConfirmRepos.insertIntoMultisigConfirm(request.transactionId, request.fromAddress, request.signature, request.bodyBytes, request.internalChainId, MULTISIG_CONFIRM_STATUS.CONFIRM);
 
@@ -258,27 +184,13 @@ export class MultisigTransactionService extends BaseService implements IMultisig
     const res = new ResponseDto();
     try {
       //Check status of multisig transaction when reject transaction
-      let transaction = await this.multisigTransactionRepos.findOne({
-        where: { id: request.transactionId, internalChainId: request.internalChainId },
-      });
-
-      if (!transaction) {
-        throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
-      }
+      let transaction = await this.multisigTransactionRepos.checkExistMultisigTransaction(request.transactionId, request.internalChainId);
 
       //Validate owner
-      let checkOwner = await this.multisigConfirmRepos.validateOwner(request.fromAddress, transaction.fromAddress, request.internalChainId);
-
-      if(checkOwner){
-        throw new CustomError(ErrorMap.PERMISSION_DENIED);
-      }
+      await this.multisigConfirmRepos.validateOwner(request.fromAddress, transaction.fromAddress, request.internalChainId);
 
       //Check user has rejected transaction before
-      let checkOnwerHasSigned = await this.multisigConfirmRepos.checkUserHasSigned(request.transactionId, request.fromAddress);
-
-      if(checkOnwerHasSigned){
-        throw new CustomError(ErrorMap.USER_HAS_REJECTED);
-      }
+      await this.multisigConfirmRepos.checkUserHasSigned(request.transactionId, request.fromAddress);
 
       await this.multisigConfirmRepos.insertIntoMultisigConfirm(request.transactionId, request.fromAddress, '', '', request.internalChainId, MULTISIG_CONFIRM_STATUS.REJECT);
 
@@ -288,6 +200,34 @@ export class MultisigTransactionService extends BaseService implements IMultisig
       this._logger.error(`${error.name}: ${error.message}`);
       this._logger.error(`${error.stack}`);
       return res.return(error.message === ErrorMap.E500.Message ? ErrorMap.E500 : error.errorMap);
+    }
+  }
+
+  async signingInstruction(internalChainId: number, sendAddress: string, amount: number) : Promise<any> {
+
+    let chain = await this.chainRepos.findOne({
+      where: { id: internalChainId },
+    });
+
+    const client = await StargateClient.connect(chain.rpc);
+
+    let balance = await client.getBalance(sendAddress, chain.denom);
+
+    //Check account
+    const accountOnChain = await client.getAccount(sendAddress);
+    if(!accountOnChain){
+      throw new CustomError(ErrorMap.E001);
+    }
+
+    if (Number(balance.amount) < amount) {
+      throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
+    }
+
+    return {
+      accountNumber: accountOnChain.accountNumber,
+      sequence: accountOnChain.sequence,
+      chainId: chain.chainId,
+      denom: chain.denom
     }
   }
 }
