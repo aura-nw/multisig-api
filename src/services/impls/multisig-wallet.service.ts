@@ -15,6 +15,7 @@ import {
   ENTITIES_CONFIG,
   MODULE_REQUEST,
   REPOSITORY_INTERFACE,
+  RESPONSE_CONFIG,
 } from 'src/module.config';
 import { CommonUtil } from 'src/utils/common.util';
 import { Network } from 'src/utils/network.utils';
@@ -161,7 +162,9 @@ export class MultisigWalletService
           safe.safeAddress,
           chainInfo.denom,
         );
-        return ResponseDto.response(ErrorMap.SUCCESSFUL, [balance]);
+        const response = new RESPONSE_CONFIG.GET_SAFE_BALANCE();
+        response.balances = [balance];
+        return ResponseDto.response(ErrorMap.SUCCESSFUL, response);
       } catch (error) {
         throw new CustomError(ErrorMap.GET_BALANCE_FAILED, error.message);
       }
