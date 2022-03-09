@@ -77,57 +77,19 @@ export class MultisigTransactionService extends BaseService implements IMultisig
       const client = await StargateClient.connect(chain.rpc);
 
       //get information multisig transaction Id
-      let multisigTransaction = await this.multisigTransactionRepos.findOne({ where: { id: request.transactionId }});
-
-      if (!multisigTransaction || multisigTransaction.status != TRANSACTION_STATUS.AWAITING_EXECUTION) {
-        throw new CustomError(ErrorMap.TRANSACTION_NOT_VALID);
-      }
+      let multisigTransaction = await this.multisigTransactionRepos.validateTxBroadcast(request.transactionId);
 
       //Validate owner
       await this.multisigConfirmRepos.validateOwner(request.owner, multisigTransaction.fromAddress, request.internalChainId);
 
-      //Get safe info
-      let safeInfo = await this.safeRepos.findOne({
-        where: {id: multisigTransaction.safeId}
-      })
-
-      //Get all signature of transaction
-      let multisigConfirmArr = await this.multisigConfirmRepos.findByCondition({ 
-         multisigTransactionId: request.transactionId,
-         status: MULTISIG_CONFIRM_STATUS.CONFIRM
-      });
-
-      let addressSignarureMap = new Map<string, Uint8Array>();
-
-      multisigConfirmArr.forEach((x) => {
-        let encodeSignature = fromBase64(x.signature);
-        addressSignarureMap.set(x.ownerAddress, encodeSignature);
-      });
-
-      //Fee
-      const gasPrice = GasPrice.fromString(String(multisigTransaction.fee).concat(multisigTransaction.denom));
-      const sendFee = calculateFee(multisigTransaction.gas, gasPrice);
-
-      let encodedBodyBytes = fromBase64(multisigConfirmArr[0].bodyBytes);
-
-      //Pubkey 
-      const safePubkey = JSON.parse(safeInfo.safePubkey);
-
-      let executeTransaction = makeMultisignedTx(
-        safePubkey,
-        multisigTransaction.sequence,
-        sendFee,
-        encodedBodyBytes,
-        addressSignarureMap,
-      );
-
-      let encodeTransaction = Uint8Array.from(TxRaw.encode(executeTransaction).finish());
+      //Make tx
+      let txBroadcast = await this.makeTx(request.transactionId, multisigTransaction);
 
       try {
         //Record owner send transaction
         await this.multisigConfirmRepos.insertIntoMultisigConfirm(request.transactionId, request.owner, '', '', request.internalChainId, MULTISIG_CONFIRM_STATUS.SEND);
 
-        await client.broadcastTx(encodeTransaction, 10);
+        await client.broadcastTx(txBroadcast, 10);
       } catch (error) {
         this._logger.log(error);
         //Update status and txhash
@@ -229,5 +191,40 @@ export class MultisigTransactionService extends BaseService implements IMultisig
       chainId: chain.chainId,
       denom: chain.denom
     }
+  }
+
+  async makeTx(transactionId: number, multisigTransaction: MultisigTransaction) : Promise<any> {
+    //Get safe info
+    let safeInfo = await this.safeRepos.findOne({ where: {id: multisigTransaction.safeId}})
+
+    //Get all signature of transaction
+    let multisigConfirmArr = await this.multisigConfirmRepos.findByCondition({  multisigTransactionId: transactionId, status: MULTISIG_CONFIRM_STATUS.CONFIRM });
+
+    let addressSignarureMap = new Map<string, Uint8Array>();
+
+    multisigConfirmArr.forEach((x) => {
+      let encodeSignature = fromBase64(x.signature);
+      addressSignarureMap.set(x.ownerAddress, encodeSignature);
+    });
+
+    //Fee
+    const gasPrice = GasPrice.fromString(String(multisigTransaction.fee).concat(multisigTransaction.denom));
+    const sendFee = calculateFee(multisigTransaction.gas, gasPrice);
+
+    let encodedBodyBytes = fromBase64(multisigConfirmArr[0].bodyBytes);
+
+    //Pubkey 
+    const safePubkey = JSON.parse(safeInfo.safePubkey);
+
+    let executeTransaction = makeMultisignedTx(
+      safePubkey,
+      Number(multisigTransaction.sequence),
+      sendFee,
+      encodedBodyBytes,
+      addressSignarureMap,
+    );
+
+    let encodeTransaction = Uint8Array.from(TxRaw.encode(executeTransaction).finish());
+    return encodeTransaction;
   }
 }

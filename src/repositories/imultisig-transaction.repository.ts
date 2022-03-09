@@ -35,4 +35,9 @@ export interface IMultisigTransactionsRepository extends IBaseRepository {
      * Check exist multisig transaction
      */
     checkExistMultisigTransaction(transactionId: number, internalChainId: number): Promise<any>;
+
+    /**
+     * Validate when send tx
+     */
+    validateTxBroadcast(transactionId: number): Promise<any>;
 }
