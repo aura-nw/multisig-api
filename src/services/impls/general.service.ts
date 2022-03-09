@@ -39,11 +39,11 @@ export class GeneralService extends BaseService implements IGeneralService {
     try {
       const safeAddress = { safeAddress: param.safeAddress };
       const safe = await this.safeRepo.findByCondition(safeAddress);
-      if (!safe) return res.return(ErrorMap.NO_SAFES_FOUND);
+      if (safe.length === 0) return res.return(ErrorMap.NO_SAFES_FOUND);
 
       const condition = { id: param.internalChainId };
       const chain = await this.chainRepo.findByCondition(condition);
-      if (!chain) return res.return(ErrorMap.CHAIN_ID_NOT_EXIST);
+      if (chain.length === 0) return res.return(ErrorMap.CHAIN_ID_NOT_EXIST);
 
       const client = await StargateClient.connect(chain[0].rpc);
       const accountOnChain = await client.getAccount(param.safeAddress);
