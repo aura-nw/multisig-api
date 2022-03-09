@@ -30,4 +30,9 @@ export interface IMultisigTransactionsRepository extends IBaseRepository {
     insertMultisigTransaction(from: string, to: string, amount: number, gasLimit: number, fee: number, 
         accountNumber: number, typeUrl: string, denom: string, status: string, internalChainId: number,
         sequence: string, safeId: number): Promise<any>;
+
+    /**
+     * Check exist multisig transaction
+     */
+    checkExistMultisigTransaction(transactionId: number, internalChainId: number): Promise<any>;
 }
