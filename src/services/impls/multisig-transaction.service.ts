@@ -34,14 +34,11 @@ export class MultisigTransactionService extends BaseService implements IMultisig
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      //Validate transaction creator
-      let checkOwner = await this.multisigConfirmRepos.validateOwner(request.creatorAddress, request.from, request.internalChainId);
-
-      if(checkOwner){
-        throw new CustomError(ErrorMap.PERMISSION_DENIED);
-      }
-
+      //Validate safe
       let signResult = await this.signingInstruction(request.internalChainId, request.from, request.amount);
+
+      //Validate transaction creator
+      await this.multisigConfirmRepos.validateOwner(request.creatorAddress, request.from, request.internalChainId);
 
       let safe = await this.safeRepos.findOne({
         where: { safeAddress: request.from },
@@ -138,13 +135,7 @@ export class MultisigTransactionService extends BaseService implements IMultisig
 
       try {
         //Record owner send transaction
-        let sender = new MultisigConfirm();
-        sender.multisigTransactionId = request.transactionId;
-        sender.internalChainId = request.internalChainId;
-        sender.ownerAddress = request.owner;
-        sender.status = MULTISIG_CONFIRM_STATUS.SEND;
-
-        await this.multisigConfirmRepos.create(sender);
+        await this.multisigConfirmRepos.insertIntoMultisigConfirm(request.transactionId, request.owner, '', '', request.internalChainId, MULTISIG_CONFIRM_STATUS.SEND);
 
         await client.broadcastTx(encodeTransaction, 10);
       } catch (error) {
@@ -188,18 +179,10 @@ export class MultisigTransactionService extends BaseService implements IMultisig
         throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
       }
 
-      let checkOwner = await this.multisigConfirmRepos.validateOwner(request.fromAddress, transaction.fromAddress, request.internalChainId);
-
-      if(checkOwner){
-        throw new CustomError(ErrorMap.PERMISSION_DENIED);
-      }
+      await this.multisigConfirmRepos.validateOwner(request.fromAddress, transaction.fromAddress, request.internalChainId);
 
       //User has confirmed transaction before
-      let checkOnwerHasSigned = await this.multisigConfirmRepos.checkUserHasSigned(request.transactionId, request.fromAddress);
-
-      if(checkOnwerHasSigned){
-        throw new CustomError(ErrorMap.USER_HAS_COMFIRMED);
-      }
+      await this.multisigConfirmRepos.checkUserHasSigned(request.transactionId, request.fromAddress);
 
       await this.multisigConfirmRepos.insertIntoMultisigConfirm(request.transactionId, request.fromAddress, request.signature, request.bodyBytes, request.internalChainId, MULTISIG_CONFIRM_STATUS.CONFIRM);
 
@@ -228,18 +211,10 @@ export class MultisigTransactionService extends BaseService implements IMultisig
       }
 
       //Validate owner
-      let checkOwner = await this.multisigConfirmRepos.validateOwner(request.fromAddress, transaction.fromAddress, request.internalChainId);
-
-      if(checkOwner){
-        throw new CustomError(ErrorMap.PERMISSION_DENIED);
-      }
+      await this.multisigConfirmRepos.validateOwner(request.fromAddress, transaction.fromAddress, request.internalChainId);
 
       //Check user has rejected transaction before
-      let checkOnwerHasSigned = await this.multisigConfirmRepos.checkUserHasSigned(request.transactionId, request.fromAddress);
-
-      if(checkOnwerHasSigned){
-        throw new CustomError(ErrorMap.USER_HAS_REJECTED);
-      }
+      await this.multisigConfirmRepos.checkUserHasSigned(request.transactionId, request.fromAddress);
 
       await this.multisigConfirmRepos.insertIntoMultisigConfirm(request.transactionId, request.fromAddress, '', '', request.internalChainId, MULTISIG_CONFIRM_STATUS.REJECT);
 
