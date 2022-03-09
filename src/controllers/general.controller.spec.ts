@@ -20,13 +20,16 @@ describe(GeneralController.name, () => {
   let testModule: TestingModule;
   let generalController: GeneralController;
 
-  let mockFindOneChain: jest.Mock;
-  let mockFindAllChain: jest.Mock;
+  let mockFindChainByCondition: jest.Mock;
+  let mockCreateQueryBuilder: jest.Mock;
   let mockFindSafeByCondition: jest.Mock;
 
   beforeAll(async () => {
-    mockFindOneChain = jest.fn();
-    mockFindAllChain = jest.fn();
+    mockFindChainByCondition = jest.fn();
+    mockCreateQueryBuilder = jest.fn(() => ({
+        select: jest.fn().mockReturnThis(),
+        getRawMany: jest.fn().mockResolvedValue([]),
+    }));
     mockFindSafeByCondition = jest.fn();
 
     testModule = await Test.createTestingModule({
@@ -37,8 +40,8 @@ describe(GeneralController.name, () => {
         {
           provide: getRepositoryToken(ENTITIES_CONFIG.CHAIN),
           useValue: {
-            findOne: mockFindOneChain,
-            showNetworkList: mockFindAllChain,
+            find: mockFindChainByCondition,
+            createQueryBuilder: mockCreateQueryBuilder,
           },
         },
         {
@@ -47,19 +50,23 @@ describe(GeneralController.name, () => {
             find: mockFindSafeByCondition,
           },
         },
+        {
+          provide: getRepositoryToken(ENTITIES_CONFIG.SAFE_OWNER),
+          useValue: {},
+        },
         //repository
         {
           provide: REPOSITORY_INTERFACE.IGENERAL_REPOSITORY,
           useClass: GeneralRepository,
         },
         {
-          provide: REPOSITORY_INTERFACE.IMULTISIG_WALLET_OWNER_REPOSITORY,
-          useClass: MultisigWalletOwnerRepository,
-        },
-        {
           provide: REPOSITORY_INTERFACE.IMULTISIG_WALLET_REPOSITORY,
           useClass: MultisigWalletRepository,
         },
+        {
+            provide: REPOSITORY_INTERFACE.IMULTISIG_WALLET_OWNER_REPOSITORY,
+            useClass: MultisigWalletOwnerRepository,
+          },
         //service
         {
           provide: SERVICE_INTERFACE.IMULTISIG_WALLET_SERVICE,
@@ -72,13 +79,6 @@ describe(GeneralController.name, () => {
       ],
       imports: [
         SharedModule,
-        // TypeOrmModule.forFeature([...entities]),
-        // TypeOrmModule.forRootAsync({
-        //   imports: [SharedModule],
-        //   useFactory: (configService: ConfigService) =>
-        //     configService.typeOrmConfig,
-        //   inject: [ConfigService],
-        // }),
       ],
     }).compile();
     generalController = testModule.get<GeneralController>(GeneralController);
@@ -96,7 +96,7 @@ describe(GeneralController.name, () => {
     it(`should return: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
       const result = await generalController.showNetworkList();
 
-      mockFindAllChain.mockResolvedValue(mockChain);
+    //   mockFindAllChain.mockResolvedValue(mockChain);
 
       expect(result.Message).toEqual(ErrorMap.SUCCESSFUL.Message);
     });
@@ -106,10 +106,10 @@ describe(GeneralController.name, () => {
     it(`should return error: ${ErrorMap.NO_SAFES_FOUND}`, async () => {
       const param: MODULE_REQUEST.GetAccountOnchainParam = {
         safeAddress: '123',
-        internalChainId: 14,
+        internalChainId: 3,
       };
 
-      mockFindSafeByCondition.mockResolvedValue(mockSafe);
+      mockFindSafeByCondition.mockResolvedValue([]);
 
       const result = await generalController.getAccountOnchain(param);
       expect(result.Message).toEqual(ErrorMap.NO_SAFES_FOUND.Message);
@@ -117,11 +117,13 @@ describe(GeneralController.name, () => {
 
     it(`should return error: ${ErrorMap.CHAIN_ID_NOT_EXIST}`, async () => {
       const param: MODULE_REQUEST.GetAccountOnchainParam = {
-        safeAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
+        safeAddress: 'aura1hnr59hsqchckgtd49nsejmy5mj400nv6cpmm9v',
         internalChainId: 1,
       };
-
-      mockFindOneChain.mockResolvedValue(mockSafe);
+      // find safe
+      mockFindSafeByCondition.mockResolvedValue(mockSafe);
+      // find chain
+      mockFindChainByCondition.mockResolvedValue([]);
 
       const result = await generalController.getAccountOnchain(param);
       expect(result.Message).toEqual(ErrorMap.CHAIN_ID_NOT_EXIST.Message);
