@@ -77,6 +77,12 @@ export class MultisigWalletController {
 
   @Get(URL_CONSTANTS.GET_SAFE_BALANCE)
   @ApiOperation({ summary: 'Get balance of the multisig wallet by safeId' })
+  @ApiOkResponse({
+    status: 200,
+    type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetSafeBalanceResponse),
+    description: 'Status of multisig wallet',
+    schema: {},
+  })
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
   @HttpCode(HttpStatus.OK)
   async getBalance(

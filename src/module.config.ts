@@ -30,6 +30,7 @@ import {
 } from './dtos/responses';
 import { GetAccountOnchainResponse } from './dtos/responses/general/get-account-onchain.response';
 import { CreateSafeResponse } from './dtos/responses/multisig-wallet/create-safe.response';
+import { GetBalanceResponse } from './dtos/responses/multisig-wallet/get-balance.reponse';
 import {
   AuraTx,
   Chain,
@@ -75,6 +76,7 @@ export const RESPONSE_CONFIG = {
   RESPONSE_DTO: ResponseDto,
   MULTISIG_SIGNATURE_RESPONSE: MultisigSignatureResponse,
   CREATE_SAFE_RESPONSE: CreateSafeResponse,
+  GET_SAFE_BALANCE: GetBalanceResponse,
   GET_MULTISIG_WALLET_RESPONSE: GetMultisigWalletResponse,
   MULTISIG_TRANSACTION_HISTORY_RESPONSE: MultisigTransactionHistoryResponse,
   TRANSACTION_DETAILS_RESPONSE: TransactionDetailsResponse,
@@ -108,6 +110,7 @@ export module MODULE_REQUEST {
 export module MODULE_RESPONSE {
   export abstract class ResponseDto extends RESPONSE_CONFIG.RESPONSE_DTO {}
   export abstract class CreateSafeResponse extends RESPONSE_CONFIG.CREATE_SAFE_RESPONSE {}
+  export abstract class GetSafeBalanceResponse extends RESPONSE_CONFIG.GET_SAFE_BALANCE {}
   export abstract class GetMultisigWalletResponse extends RESPONSE_CONFIG.GET_MULTISIG_WALLET_RESPONSE {}
   export abstract class MultisigSignatureResponse extends RESPONSE_CONFIG.MULTISIG_SIGNATURE_RESPONSE {}
   export abstract class MultisigTransactionHistoryResponse extends RESPONSE_CONFIG.MULTISIG_TRANSACTION_HISTORY_RESPONSE {}
