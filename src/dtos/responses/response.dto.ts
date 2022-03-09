@@ -1,4 +1,6 @@
+import { Logger } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
+import { CustomError } from 'src/common/customError';
 import { ErrorMap } from '../../common/error.map';
 
 export class ResponseDto {
@@ -38,6 +40,16 @@ export class ResponseDto {
   ) {
     const res = new ResponseDto();
     return res.return(errorMap, data, additionalData);
+  }
+
+  public static responseError(moduleName: string, error: Error | CustomError) {
+    if (error instanceof CustomError)
+      return this.response(error.errorMap, error.msg);
+    const _logger = new Logger(moduleName);
+    _logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
+    _logger.error(`${error.name}: ${error.message}`);
+    _logger.error(`${error.stack}`);
+    return ResponseDto.response(ErrorMap.E500, error.message);
   }
 }
 

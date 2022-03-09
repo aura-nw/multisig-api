@@ -221,6 +221,18 @@ export class MultisigWalletRepository
     return safe;
   }
 
+  async getCreatedSafe(
+    safeId: string,
+    internalChainId?: number,
+  ): Promise<Safe> {
+    const safe = await this.getSafe(safeId, internalChainId);
+
+    if (!safe.safeAddress || safe.safeAddress === null) {
+      throw new CustomError(ErrorMap.SAFE_ADDRESS_IS_NULL);
+    }
+    return safe;
+  }
+
   private calculateCondition(safeId: string, internalChainId?: number) {
     return isNaN(Number(safeId))
       ? {
