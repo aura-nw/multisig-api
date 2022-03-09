@@ -28,6 +28,16 @@ export class MultisigTransactionRepository
     );
   }
 
+  async updateTxBroadcastSucces(transactionId: number, txHash: string): Promise<any> {
+    let multisigTransaction = await this.findOne({where: {
+      id: transactionId
+    }});
+
+    multisigTransaction.status = TRANSACTION_STATUS.PENDING;
+    multisigTransaction.txHash = txHash;
+    await this.update(multisigTransaction);
+  }
+
   async validateTxBroadcast(transactionId: number): Promise<any> {
       let multisigTransaction = await this.findOne({ where: { id: transactionId }});
 

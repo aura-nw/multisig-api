@@ -90,15 +90,13 @@ export class MultisigTransactionService extends BaseService implements IMultisig
       } catch (error) {
         //Update status and txhash
         //TxHash is encoded transaction when send it to network
-        if(typeof error.txId === 'undefined' || error.txId === null){
+        if(typeof error.txId === 'undefined'){
           multisigTransaction.status = TRANSACTION_STATUS.FAILED;
           await this.multisigTransactionRepos.update(multisigTransaction);
           return ResponseDto.responseError(MultisigTransactionService.name ,error);
         }
         else{
-          multisigTransaction.status = TRANSACTION_STATUS.PENDING;
-          multisigTransaction.txHash = error.txId;
-          await this.multisigTransactionRepos.update(multisigTransaction);
+          await this.multisigTransactionRepos.updateTxBroadcastSucces(multisigTransaction.id, error.txId);
         }        
       }
 
