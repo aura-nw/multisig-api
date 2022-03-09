@@ -4,7 +4,7 @@ import { BaseRepository } from './base.repository';
 import { ObjectLiteral, Repository } from 'typeorm';
 import { ENTITIES_CONFIG, MODULE_REQUEST, REPOSITORY_INTERFACE } from 'src/module.config';
 import { IMultisigTransactionsRepository } from '../imultisig-transaction.repository';
-import { Chain, Safe } from 'src/entities';
+import { Chain, MultisigTransaction, Safe } from 'src/entities';
 import { MULTISIG_CONFIRM_STATUS, TRANSACTION_STATUS } from 'src/common/constants/app.constant';
 import { IMultisigConfirmRepository } from '../imultisig-confirm.repository';
 import { IMultisigWalletRepository } from '../imultisig-wallet.repository';
@@ -25,6 +25,26 @@ export class MultisigTransactionRepository
       '============== Constructor Multisig Transaction Repository ==============',
     );
   }
+
+  async insertMultisigTransaction(from: string, to: string, amount: number, gasLimit: number, fee: number, accountNumber: number, typeUrl: string, denom: string, status: string, internalChainId: number, sequence: string, safeId: number): Promise<any> {
+      let transaction = new MultisigTransaction();
+
+      transaction.fromAddress = from;
+      transaction.toAddress = to;
+      transaction.amount = amount;
+      transaction.gas = gasLimit;
+      transaction.fee = fee;
+      transaction.accountNumber = accountNumber;
+      transaction.typeUrl = typeUrl;
+      transaction.denom = denom;
+      transaction.status = status;
+      transaction.internalChainId = internalChainId;
+      transaction.sequence = sequence;
+      transaction.safeId = safeId;
+
+      return await this.create(transaction);
+  }
+
   async validateTransaction(transactionId: number, internalChainId: number) {
     //Check transaction available
     let listConfirmAfterSign = await this.multisigConfirmRepos.findByCondition({
