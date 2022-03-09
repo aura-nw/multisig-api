@@ -40,4 +40,9 @@ export interface IMultisigTransactionsRepository extends IBaseRepository {
      * Validate when send tx
      */
     validateTxBroadcast(transactionId: number): Promise<any>;
+
+    /**
+     * Update tx when broadcasted success
+     */
+    updateTxBroadcastSucces(transactionId: number, txHash: string): Promise<any>;
 }

@@ -7,7 +7,7 @@ import { calculateFee, GasPrice, makeMultisignedTx, StargateClient,} from '@cosm
 import { fromBase64 } from "@cosmjs/encoding";
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { BaseService } from './base.service';
-import { MultisigConfirm, MultisigTransaction } from 'src/entities';
+import { MultisigTransaction } from 'src/entities';
 import { MULTISIG_CONFIRM_STATUS, NETWORK_URL_TYPE, TRANSACTION_STATUS } from 'src/common/constants/app.constant';
 import { CustomError } from 'src/common/customError';
 import { IGeneralRepository, IMultisigConfirmRepository, IMultisigTransactionsRepository, IMultisigWalletRepository } from 'src/repositories';
@@ -60,10 +60,7 @@ export class MultisigTransactionService extends BaseService implements IMultisig
 
       return res.return(ErrorMap.SUCCESSFUL, transactionResult.id, {'transactionId:': transactionResult.id});
     } catch (error) {
-      this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
-      this._logger.error(`${error.name}: ${error.message}`);
-      this._logger.error(`${error.stack}`);
-      return res.return(error.message === ErrorMap.E500.Message ? ErrorMap.E500 : error.errorMap);
+      return ResponseDto.responseError(MultisigTransactionService.name ,error);
     }
   }
 
@@ -91,30 +88,22 @@ export class MultisigTransactionService extends BaseService implements IMultisig
 
         await client.broadcastTx(txBroadcast, 10);
       } catch (error) {
-        this._logger.log(error);
         //Update status and txhash
         //TxHash is encoded transaction when send it to network
-        if(typeof error.txId === 'undefined' || error.txId === null){
+        if(typeof error.txId === 'undefined'){
           multisigTransaction.status = TRANSACTION_STATUS.FAILED;
           await this.multisigTransactionRepos.update(multisigTransaction);
-          this._logger.error(`${error.name}: ${error.message}`);
-          this._logger.error(`${error.stack}`);
-          return res.return(ErrorMap.E500, {'err': error.message});
+          return ResponseDto.responseError(MultisigTransactionService.name ,error);
         }
         else{
-          multisigTransaction.status = TRANSACTION_STATUS.PENDING;
-          multisigTransaction.txHash = error.txId;
-          await this.multisigTransactionRepos.update(multisigTransaction);
+          await this.multisigTransactionRepos.updateTxBroadcastSucces(multisigTransaction.id, error.txId);
         }        
       }
 
       return res.return(ErrorMap.SUCCESSFUL);
 
     } catch (error) {
-      this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
-      this._logger.error(`${error.name}: ${error.message}`);
-      this._logger.error(`${error.stack}`);
-      return res.return(error.message === ErrorMap.E500.Message ? ErrorMap.E500 : error.errorMap);
+      return ResponseDto.responseError(MultisigTransactionService.name ,error);
     }
   }
 
@@ -135,10 +124,7 @@ export class MultisigTransactionService extends BaseService implements IMultisig
       return res.return(ErrorMap.SUCCESSFUL);
 
     } catch (error) {
-      this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
-      this._logger.error(`${error.name}: ${error.message}`);
-      this._logger.error(`${error.stack}`);
-      return res.return(error.message === ErrorMap.E500.Message ? ErrorMap.E500 : error.errorMap);
+      return ResponseDto.responseError(MultisigTransactionService.name ,error);
     }
   }
 
@@ -158,10 +144,7 @@ export class MultisigTransactionService extends BaseService implements IMultisig
 
       return res.return(ErrorMap.SUCCESSFUL);
     } catch (error) {
-      this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
-      this._logger.error(`${error.name}: ${error.message}`);
-      this._logger.error(`${error.stack}`);
-      return res.return(error.message === ErrorMap.E500.Message ? ErrorMap.E500 : error.errorMap);
+      return ResponseDto.responseError(MultisigTransactionService.name ,error);
     }
   }
 
