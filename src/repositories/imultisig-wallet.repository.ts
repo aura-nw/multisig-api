@@ -39,4 +39,5 @@ export interface IMultisigWalletRepository extends IBaseRepository {
   getSafe(safeId: string, internalChainId?: number): Promise<any>;
   getPendingSafe(safeId: string, internalChainId?: number): Promise<any>;
   confirmSafe(safe: Safe, pubkeys: string[], prefix: string): Promise<Safe>;
+  getCreatedSafe(safeId: string, internalChainId?: number): Promise<Safe>;
 }
