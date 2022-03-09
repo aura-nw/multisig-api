@@ -41,54 +41,15 @@ export class MultisigTransactionService extends BaseService implements IMultisig
         throw new CustomError(ErrorMap.PERMISSION_DENIED);
       }
 
-      let chain = await this.chainRepos.findOne({
-        where: { id: request.internalChainId },
-      });
-
-      const client = await StargateClient.connect(chain.rpc);
-
-      let balance = await client.getBalance(request.from, chain.denom);
+      let signResult = await this.signingInstruction(request.internalChainId, request.from, request.amount);
 
       let safe = await this.safeRepos.findOne({
         where: { safeAddress: request.from },
       });
 
-      if (Number(balance.amount) < request.amount) {
-        throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
-      }
-
-      const signingInstruction = await (async () => {
-        const client = await StargateClient.connect(chain.rpc);
-
-        //Check account
-        const accountOnChain = await client.getAccount(request.from);
-        if(!accountOnChain){
-          throw new CustomError(ErrorMap.E001);
-        }
-
-        return {
-          accountNumber: accountOnChain.accountNumber,
-          sequence: accountOnChain.sequence,
-          chainId: chain.chainId,
-        };
-      })();
-
-      let transaction = new MultisigTransaction();
-
-      transaction.fromAddress = request.from;
-      transaction.toAddress = request.to;
-      transaction.amount = request.amount;
-      transaction.gas = request.gasLimit;
-      transaction.fee = request.fee;
-      transaction.accountNumber = signingInstruction.accountNumber;
-      transaction.typeUrl = NETWORK_URL_TYPE.COSMOS;
-      transaction.denom = chain.denom;
-      transaction.status = TRANSACTION_STATUS.AWAITING_CONFIRMATIONS;
-      transaction.internalChainId = request.internalChainId;
-      transaction.sequence = signingInstruction.sequence.toString();
-      transaction.safeId = safe.id;
-
-      let transactionResult = await this.multisigTransactionRepos.create(transaction);
+      //Safe data into DB
+      let transactionResult = await this.multisigTransactionRepos.insertMultisigTransaction(request.from,  request.to, request.amount, request.gasLimit, request.fee, signResult.accountNumber,
+                              NETWORK_URL_TYPE.COSMOS, signResult.denom, TRANSACTION_STATUS.AWAITING_CONFIRMATIONS, request.internalChainId, signResult.sequence.toString(), safe.id);
 
       let requestSign = new ConfirmTransactionRequest();
       requestSign.fromAddress = request.creatorAddress;
@@ -290,4 +251,32 @@ export class MultisigTransactionService extends BaseService implements IMultisig
       return res.return(error.message === ErrorMap.E500.Message ? ErrorMap.E500 : error.errorMap);
     }
   }
+
+  async signingInstruction(internalChainId: number, sendAddress: string, amount: number) : Promise<any> {
+
+    let chain = await this.chainRepos.findOne({
+      where: { id: internalChainId },
+    });
+
+    const client = await StargateClient.connect(chain.rpc);
+
+    let balance = await client.getBalance(sendAddress, chain.denom);
+
+    //Check account
+    const accountOnChain = await client.getAccount(sendAddress);
+    if(!accountOnChain){
+      throw new CustomError(ErrorMap.E001);
+    }
+
+    if (Number(balance.amount) < amount) {
+      throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
+    }
+
+    return {
+      accountNumber: accountOnChain.accountNumber,
+      sequence: accountOnChain.sequence,
+      chainId: chain.chainId,
+      denom: chain.denom
+    };
+  };
 }
