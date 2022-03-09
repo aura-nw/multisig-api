@@ -9,12 +9,12 @@ export interface IMultisigConfirmRepository extends IBaseRepository {
     /**
      * Validate owner
      */
-    validateOwner(ownerAddres: string, transactionAddress: string, internalChainId: number): any;
+    validateOwner(ownerAddres: string, transactionAddress: string, internalChainId: number): Promise<any>;
 
     /**
      * Check user has confirmed transaction before
      */
-    checkUserHasSigned(transactionId: number, ownerAddress: string): any;
+    checkUserHasSigned(transactionId: number, ownerAddress: string): Promise<any>;
 
     /**
      * Insert into table MultisigConfirm
