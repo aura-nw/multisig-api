@@ -84,17 +84,7 @@ export class MultisigTransactionService extends BaseService implements IMultisig
       }
 
       //Validate owner
-      let listOwner = await this.safeRepos.getMultisigWalletsByOwner(request.owner, request.internalChainId);
-
-      let checkOwner = listOwner.find(elelement => {
-        if (elelement.safeAddress === multisigTransaction.fromAddress){
-          return true;
-        }
-      });
-
-      if(!checkOwner){
-        throw new CustomError(ErrorMap.PERMISSION_DENIED);
-      }
+      await this.multisigConfirmRepos.validateOwner(request.owner, multisigTransaction.fromAddress, request.internalChainId);
 
       //Get safe info
       let safeInfo = await this.safeRepos.findOne({
@@ -169,15 +159,7 @@ export class MultisigTransactionService extends BaseService implements IMultisig
   async confirmTransaction( request: MODULE_REQUEST.ConfirmTransactionRequest,): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-
-      //Check status of multisig transaction when confirm transaction
-      let transaction = await this.multisigTransactionRepos.findOne({
-        where: { id: request.transactionId, internalChainId: request.internalChainId }
-      });
-
-      if (!transaction) {
-        throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
-      }
+      let transaction = await this.multisigTransactionRepos.checkExistMultisigTransaction(request.transactionId, request.internalChainId);
 
       await this.multisigConfirmRepos.validateOwner(request.fromAddress, transaction.fromAddress, request.internalChainId);
 
@@ -202,13 +184,7 @@ export class MultisigTransactionService extends BaseService implements IMultisig
     const res = new ResponseDto();
     try {
       //Check status of multisig transaction when reject transaction
-      let transaction = await this.multisigTransactionRepos.findOne({
-        where: { id: request.transactionId, internalChainId: request.internalChainId },
-      });
-
-      if (!transaction) {
-        throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
-      }
+      let transaction = await this.multisigTransactionRepos.checkExistMultisigTransaction(request.transactionId, request.internalChainId);
 
       //Validate owner
       await this.multisigConfirmRepos.validateOwner(request.fromAddress, transaction.fromAddress, request.internalChainId);
@@ -252,6 +228,6 @@ export class MultisigTransactionService extends BaseService implements IMultisig
       sequence: accountOnChain.sequence,
       chainId: chain.chainId,
       denom: chain.denom
-    };
-  };
+    }
+  }
 }
