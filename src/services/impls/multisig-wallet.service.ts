@@ -102,6 +102,7 @@ export class MultisigWalletService
     param: MODULE_REQUEST.GetSafePathParams,
     query: MODULE_REQUEST.GetSafeQuery,
   ): Promise<ResponseDto> {
+    let msgError = '';
     try {
       const { safeId } = param;
       const { internalChainId } = query;
@@ -135,10 +136,17 @@ export class MultisigWalletService
           );
           safeInfo.balance = [balance];
         } catch (error) {
-          throw new CustomError(ErrorMap.GET_BALANCE_FAILED, error.message);
+          msgError = error.message;
+          this._logger.error(error.message);
+          safeInfo.balance = [
+            {
+              denom: chainInfo.denom,
+              amount: '-1',
+            },
+          ];
         }
       }
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, safeInfo);
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, safeInfo, msgError);
     } catch (error) {
       return ResponseDto.responseError(MultisigWalletService.name, error);
     }
