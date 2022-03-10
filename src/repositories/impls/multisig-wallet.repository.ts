@@ -86,11 +86,30 @@ export class MultisigWalletRepository
     return safe;
   }
 
+  async findDuplicateSafeHash(addressHash) {
+    const existSafe = await this.findByCondition({ addressHash }, null, [
+      'id',
+      'addressHash',
+      'status',
+    ]);
+    // filter deleted status
+    if (existSafe && existSafe.length > 0) {
+      const existList = existSafe.filter(
+        (safe) => safe.status !== SAFE_STATUS.DELETED,
+      );
+      if (existList && existList.length > 0) {
+        this._logger.debug(`Safe with these information already exists!`);
+        throw new CustomError(ErrorMap.DUPLICATE_SAFE_ADDRESS_HASH);
+      }
+    }
+    return false;
+  }
+
   async makeAddressHash(
     internalChainId: number,
     addresses: string[],
     threshold: number,
-  ) {
+  ): Promise<string> {
     const safeAddress = {
       addresses: addresses.sort(),
       threshold,
@@ -99,30 +118,10 @@ export class MultisigWalletRepository
     const safeAddressHash = createHash('sha256')
       .update(JSON.stringify(safeAddress))
       .digest('base64');
-    const existSafe = await this.findByCondition(
-      {
-        addressHash: safeAddressHash,
-      },
-      null,
-      ['id', 'addressHash', 'status'],
-    );
-    // filter deleted status
-    if (existSafe && existSafe.length > 0) {
-      const existList = existSafe.filter(
-        (safe) => safe.status !== SAFE_STATUS.DELETED,
-      );
-      if (existList && existList.length > 0) {
-        this._logger.debug(`Safe with these information already exists!`);
-        return {
-          existInDB: true,
-          safeAddressHash,
-        };
-      }
-    }
-    return {
-      existInDB: false,
-      safeAddressHash,
-    };
+    const isDuplicate = await this.findDuplicateSafeHash(safeAddressHash);
+    if (isDuplicate)
+      throw new CustomError(ErrorMap.DUPLICATE_SAFE_ADDRESS_HASH);
+    return safeAddressHash;
   }
 
   async insertSafe(
@@ -140,13 +139,13 @@ export class MultisigWalletRepository
     newSafe.internalChainId = internalChainId;
 
     // check duplicate with safe address hash
-    const { existInDB, safeAddressHash } = await this.makeAddressHash(
+    const safeAddressHash = await this.makeAddressHash(
       newSafe.internalChainId,
       [creatorAddress, ...otherOwnersAddress],
       threshold,
     );
-    if (existInDB) throw new CustomError(ErrorMap.DUPLICATE_SAFE_ADDRESS_HASH);
     newSafe.addressHash = safeAddressHash;
+    newSafe.status = SAFE_STATUS.PENDING;
 
     // check if need create safe address
     if (otherOwnersAddress.length === 0) {
@@ -156,7 +155,6 @@ export class MultisigWalletRepository
           threshold,
           chainPrefix,
         );
-
         newSafe.safeAddress = address;
         newSafe.safePubkey = pubkey;
         newSafe.status = SAFE_STATUS.CREATED;
@@ -166,8 +164,6 @@ export class MultisigWalletRepository
           error.message,
         );
       }
-    } else {
-      newSafe.status = SAFE_STATUS.PENDING;
     }
     try {
       const result = await this.create(newSafe);
