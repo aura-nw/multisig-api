@@ -1,26 +1,14 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Query,
-  Inject,
-  Body,
-  Delete,
-  Logger,
-  HttpCode,
-  HttpStatus,
-  Param,
-} from '@nestjs/common';
-import {
-  ApiBadRequestResponse,
-  ApiOkResponse,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { Controller, Query, Inject, Body, Logger, Param } from '@nestjs/common';
+import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import {
   CONTROLLER_CONSTANTS,
   URL_CONSTANTS,
 } from 'src/common/constants/api.constant';
+import {
+  CommonDelete,
+  CommonGet,
+  CommonPost,
+} from 'src/decorators/common.decorator';
 import { SwaggerBaseApiResponse } from 'src/dtos/responses';
 import {
   MODULE_REQUEST,
@@ -38,16 +26,13 @@ export class MultisigWalletController {
     private multisigWalletService: IMultisigWalletService,
   ) {}
 
-  @Post()
-  @ApiOperation({ summary: 'Create a multisig wallet' })
+  @CommonPost({ summary: 'Create a multisig wallet' })
   @ApiOkResponse({
     status: 200,
     type: SwaggerBaseApiResponse(MODULE_RESPONSE.CreateSafeResponse),
     description: 'Safe information',
     schema: {},
   })
-  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
-  @HttpCode(HttpStatus.OK)
   async createMultisigWallet(
     @Body() request: MODULE_REQUEST.CreateMultisigWalletRequest,
   ) {
@@ -55,16 +40,16 @@ export class MultisigWalletController {
     return this.multisigWalletService.createMultisigWallet(request);
   }
 
-  @Get(URL_CONSTANTS.GET_SAFE)
-  @ApiOperation({ summary: 'Get status of the multisig wallet by safeId' })
+  @CommonGet({
+    url: URL_CONSTANTS.GET_SAFE,
+    summary: 'Get status of the multisig wallet by safeId',
+  })
   @ApiOkResponse({
     status: 200,
     type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetMultisigWalletResponse),
     description: 'Status of multisig wallet',
     schema: {},
   })
-  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
-  @HttpCode(HttpStatus.OK)
   async getMultisigWallet(
     @Param() param: MODULE_REQUEST.GetSafePathParams,
     @Query() query: MODULE_REQUEST.GetSafeQuery,
@@ -75,16 +60,16 @@ export class MultisigWalletController {
     return this.multisigWalletService.getMultisigWallet(param, query);
   }
 
-  @Get(URL_CONSTANTS.GET_SAFE_BALANCE)
-  @ApiOperation({ summary: 'Get balance of the multisig wallet by safeId' })
+  @CommonGet({
+    url: URL_CONSTANTS.GET_SAFE_BALANCE,
+    summary: 'Get balance of the multisig wallet by safeId',
+  })
   @ApiOkResponse({
     status: 200,
     type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetSafeBalanceResponse),
     description: 'Status of multisig wallet',
     schema: {},
   })
-  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
-  @HttpCode(HttpStatus.OK)
   async getBalance(
     @Param() param: MODULE_REQUEST.GetSafeBalancePathParams,
     @Query() query: MODULE_REQUEST.GetSafeBalanceQuery,
@@ -95,10 +80,10 @@ export class MultisigWalletController {
     return this.multisigWalletService.getBalance(param, query);
   }
 
-  @Post(URL_CONSTANTS.CONFIRM_SAFE)
-  @ApiOperation({ summary: 'Confirm multisig wallet' })
-  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
-  @HttpCode(HttpStatus.OK)
+  @CommonPost({
+    url: URL_CONSTANTS.CONFIRM_SAFE,
+    summary: 'Confirm multisig wallet',
+  })
   async confirmMultisigWallet(
     @Param() param: MODULE_REQUEST.ConfirmSafePathParams,
     @Body() request: MODULE_REQUEST.ConfirmMultisigWalletRequest,
@@ -107,10 +92,10 @@ export class MultisigWalletController {
     return this.multisigWalletService.confirm(param, request);
   }
 
-  @Delete(URL_CONSTANTS.DELETE_SAFE)
-  @ApiOperation({ summary: 'Delete pending multisig wallet' })
-  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
-  @HttpCode(HttpStatus.OK)
+  @CommonDelete({
+    url: URL_CONSTANTS.DELETE_SAFE,
+    summary: 'Delete pending multisig wallet',
+  })
   async deletePendingMultisigWallet(
     @Param() param: MODULE_REQUEST.DeleteSafePathParams,
     @Body() request: MODULE_REQUEST.DeleteMultisigWalletRequest,
