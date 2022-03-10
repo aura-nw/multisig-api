@@ -1,5 +1,5 @@
 import { Controller, Query, Inject, Body, Logger, Param } from '@nestjs/common';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import {
   CONTROLLER_CONSTANTS,
   URL_CONSTANTS,
@@ -26,12 +26,14 @@ export class MultisigWalletController {
     private multisigWalletService: IMultisigWalletService,
   ) {}
 
-  @CommonPost({ summary: 'Create a multisig wallet' })
-  @ApiOkResponse({
-    status: 200,
-    type: SwaggerBaseApiResponse(MODULE_RESPONSE.CreateSafeResponse),
-    description: 'Safe information',
-    schema: {},
+  @CommonPost({
+    summary: 'Create a multisig wallet',
+    apiOkResponseOptions: {
+      status: 200,
+      type: SwaggerBaseApiResponse(MODULE_RESPONSE.CreateSafeResponse),
+      description: 'Safe information',
+      schema: {},
+    },
   })
   async createMultisigWallet(
     @Body() request: MODULE_REQUEST.CreateMultisigWalletRequest,
@@ -43,12 +45,12 @@ export class MultisigWalletController {
   @CommonGet({
     url: URL_CONSTANTS.GET_SAFE,
     summary: 'Get status of the multisig wallet by safeId',
-  })
-  @ApiOkResponse({
-    status: 200,
-    type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetMultisigWalletResponse),
-    description: 'Status of multisig wallet',
-    schema: {},
+    apiOkResponseOptions: {
+      status: 200,
+      type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetMultisigWalletResponse),
+      description: 'Status of multisig wallet',
+      schema: {},
+    },
   })
   async getMultisigWallet(
     @Param() param: MODULE_REQUEST.GetSafePathParams,
@@ -63,12 +65,12 @@ export class MultisigWalletController {
   @CommonGet({
     url: URL_CONSTANTS.GET_SAFE_BALANCE,
     summary: 'Get balance of the multisig wallet by safeId',
-  })
-  @ApiOkResponse({
-    status: 200,
-    type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetSafeBalanceResponse),
-    description: 'Status of multisig wallet',
-    schema: {},
+    apiOkResponseOptions: {
+      status: 200,
+      type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetSafeBalanceResponse),
+      description: 'Status of multisig wallet',
+      schema: {},
+    },
   })
   async getBalance(
     @Param() param: MODULE_REQUEST.GetSafeBalancePathParams,
