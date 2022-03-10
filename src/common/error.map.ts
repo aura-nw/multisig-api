@@ -73,7 +73,7 @@ export const ErrorMap = {
   },
   PERMISSION_DENIED: {
     Code: 'E018',
-    Message: 'Permission denied!'
+    Message: 'Permission denied!',
   },
   INSERT_SAFE_FAILED: {
     Code: 'E019',
@@ -106,6 +106,10 @@ export const ErrorMap = {
   CANNOT_CREATE_SAFE_ADDRESS: {
     Code: 'E026',
     Message: 'Cannot create safe addresss!',
+  },
+  USER_HAS_REJECTED: {
+    Code: 'E027',
+    Message: 'User has rejected before!',
   },
   C001: {
     Code: 'C001',

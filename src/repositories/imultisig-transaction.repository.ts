@@ -18,4 +18,31 @@ export interface IMultisigTransactionsRepository extends IBaseRepository {
      * @param request 
      */
     getQueueTransaction(request: MODULE_REQUEST.GetAllTransactionsRequest): any;
+
+    /**
+     * Validate transaction
+     */
+    validateTransaction(transactionId: number, internalChainId: number): any;
+
+    /**
+     * Insert data into table multisig transaction
+     */
+    insertMultisigTransaction(from: string, to: string, amount: number, gasLimit: number, fee: number, 
+        accountNumber: number, typeUrl: string, denom: string, status: string, internalChainId: number,
+        sequence: string, safeId: number): Promise<any>;
+
+    /**
+     * Check exist multisig transaction
+     */
+    checkExistMultisigTransaction(transactionId: number, internalChainId: number): Promise<any>;
+
+    /**
+     * Validate when send tx
+     */
+    validateTxBroadcast(transactionId: number): Promise<any>;
+
+    /**
+     * Update tx when broadcasted success
+     */
+    updateTxBroadcastSucces(transactionId: number, txHash: string): Promise<any>;
 }

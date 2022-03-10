@@ -1,5 +1,5 @@
 import { CacheModule, Module } from '@nestjs/common';
-import { HttpModule } from '@nestjs/axios'
+import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MultisigWalletController } from './controllers/multisig-wallet.controller';
 import { TransactionController } from './controllers/transaction.controller';
@@ -10,7 +10,7 @@ import {
   SERVICE_INTERFACE,
 } from './module.config';
 import { MultisigWalletService } from './services/impls/multisig-wallet.service';
-import { TransactionService } from './services/impls/transaction.service';
+import { MultisigTransactionService } from './services/impls/multisig-transaction.service';
 import { SharedModule } from './shared/shared.module';
 import { GeneralService } from './services/impls/general.service';
 import { ConfigService } from './shared/services/config.service';
@@ -21,7 +21,7 @@ import { GeneralRepository } from './repositories/impls/general.repository';
 import { MultisigTransactionRepository } from './repositories/impls/multisig-transaction.repository';
 import { MultisigConfirmRepository } from './repositories/impls/multisig-confirm.repository';
 import { TransactionRepository } from './repositories/impls/transaction.repository';
-import { SafeRepository } from './repositories/impls/safe.repository';
+import { TransactionService } from './services/impls/transaction.service';
 
 const controllers = [
   MultisigWalletController,
@@ -43,8 +43,8 @@ const entities = [
     HttpModule.registerAsync({
       useFactory: () => ({
         timeout: 5000,
-        maxRedirects: 5
-      })
+        maxRedirects: 5,
+      }),
     }),
     CacheModule.register({ ttl: 10000 }),
     SharedModule,
@@ -82,14 +82,10 @@ const entities = [
       provide: REPOSITORY_INTERFACE.ITRANSACTION_REPOSITORY,
       useClass: TransactionRepository,
     },
-    {
-      provide: REPOSITORY_INTERFACE.ISAFE_REPOSITORY,
-      useClass: SafeRepository,
-    },
     //service
     {
-      provide: SERVICE_INTERFACE.ITRANSACTION_SERVICE,
-      useClass: TransactionService,
+      provide: SERVICE_INTERFACE.IMULTISIG_TRANSACTION_SERVICE,
+      useClass: MultisigTransactionService,
     },
     {
       provide: SERVICE_INTERFACE.IMULTISIG_WALLET_SERVICE,
@@ -99,6 +95,10 @@ const entities = [
       provide: SERVICE_INTERFACE.IGENERAL_SERVICE,
       useClass: GeneralService,
     },
+    {
+      provide: SERVICE_INTERFACE.ITRANSACTION_SERVICE,
+      useClass: TransactionService,
+    },
   ],
 })
-export class AppModule { }
+export class AppModule {}

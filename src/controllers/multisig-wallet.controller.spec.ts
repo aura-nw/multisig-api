@@ -27,7 +27,7 @@ jest.mock('src/utils/network.utils', () => {
   return {
     Network: jest.fn().mockImplementation(() => {
       return {
-        constructor: () => { },
+        constructor: () => {},
         init: mockInitNetwork,
         getBalance: () => {
           const mockCoin = {
@@ -80,6 +80,7 @@ describe(MultisigWalletController.name, () => {
           provide: getRepositoryToken(ENTITIES_CONFIG.SAFE_OWNER),
           useValue: {
             save: mockInsertSafeOwner,
+            insert: mockInsertSafeOwner,
             find: mockFindSafeOwnerByCondition,
           },
         },
@@ -123,7 +124,7 @@ describe(MultisigWalletController.name, () => {
     );
   });
 
-  beforeEach(() => { });
+  beforeEach(() => {});
   afterEach(() => {
     jest.clearAllMocks();
   });

@@ -1,12 +1,15 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BaseRepository } from './base.repository';
 import { ObjectLiteral, Repository } from 'typeorm';
-import { ENTITIES_CONFIG, MODULE_REQUEST } from 'src/module.config';
+import { ENTITIES_CONFIG, MODULE_REQUEST, REPOSITORY_INTERFACE } from 'src/module.config';
 import { IMultisigTransactionsRepository } from '../imultisig-transaction.repository';
-import { Chain, Safe } from 'src/entities';
-import { TRANSACTION_STATUS } from 'src/common/constants/app.constant';
-import { off } from 'process';
+import { Chain, MultisigTransaction, Safe } from 'src/entities';
+import { MULTISIG_CONFIRM_STATUS, TRANSACTION_STATUS } from 'src/common/constants/app.constant';
+import { IMultisigConfirmRepository } from '../imultisig-confirm.repository';
+import { IMultisigWalletRepository } from '../imultisig-wallet.repository';
+import { CustomError } from 'src/common/customError';
+import { ErrorMap } from 'src/common/error.map';
 
 @Injectable()
 export class MultisigTransactionRepository
@@ -14,6 +17,8 @@ export class MultisigTransactionRepository
   implements IMultisigTransactionsRepository {
   private readonly _logger = new Logger(MultisigTransactionRepository.name);
   constructor(
+    @Inject(REPOSITORY_INTERFACE.IMULTISIG_CONFIRM_REPOSITORY) private multisigConfirmRepos: IMultisigConfirmRepository,
+    @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_REPOSITORY) private safeRepos: IMultisigWalletRepository,
     @InjectRepository(ENTITIES_CONFIG.MULTISIG_TRANSACTION)
     private readonly repos: Repository<ObjectLiteral>
   ) {
@@ -21,6 +26,80 @@ export class MultisigTransactionRepository
     this._logger.log(
       '============== Constructor Multisig Transaction Repository ==============',
     );
+  }
+
+  async updateTxBroadcastSucces(transactionId: number, txHash: string): Promise<any> {
+    let multisigTransaction = await this.findOne({where: {
+      id: transactionId
+    }});
+
+    multisigTransaction.status = TRANSACTION_STATUS.PENDING;
+    multisigTransaction.txHash = txHash;
+    await this.update(multisigTransaction);
+  }
+
+  async validateTxBroadcast(transactionId: number): Promise<any> {
+      let multisigTransaction = await this.findOne({ where: { id: transactionId }});
+
+      if (!multisigTransaction || multisigTransaction.status != TRANSACTION_STATUS.AWAITING_EXECUTION) {
+        throw new CustomError(ErrorMap.TRANSACTION_NOT_VALID);
+      }
+
+      return multisigTransaction;
+  }
+
+  async checkExistMultisigTransaction(transactionId: number, internalChainId: number): Promise<any> {
+    let transaction = await this.findOne({
+      where: { id: transactionId, internalChainId: internalChainId }
+    });
+
+    if (!transaction) {
+      throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
+    }
+
+    return transaction;
+  }
+
+  async insertMultisigTransaction(from: string, to: string, amount: number, gasLimit: number, fee: number, accountNumber: number, typeUrl: string, denom: string, status: string, internalChainId: number, sequence: string, safeId: number): Promise<any> {
+      let transaction = new MultisigTransaction();
+
+      transaction.fromAddress = from;
+      transaction.toAddress = to;
+      transaction.amount = amount;
+      transaction.gas = gasLimit;
+      transaction.fee = fee;
+      transaction.accountNumber = accountNumber;
+      transaction.typeUrl = typeUrl;
+      transaction.denom = denom;
+      transaction.status = status;
+      transaction.internalChainId = internalChainId;
+      transaction.sequence = sequence;
+      transaction.safeId = safeId;
+
+      return await this.create(transaction);
+  }
+
+  async validateTransaction(transactionId: number, internalChainId: number) {
+    //Check transaction available
+    let listConfirmAfterSign = await this.multisigConfirmRepos.findByCondition({
+      multisigTransactionId: transactionId,
+      status: MULTISIG_CONFIRM_STATUS.CONFIRM,
+      internalChainId: internalChainId
+    });
+
+    let transaction = await this.findOne({
+      where: { id: transactionId, internalChainId: internalChainId }
+    });
+
+    let safe = await this.safeRepos.findOne({
+      where: { id: transaction.safeId },
+    });
+
+    if (listConfirmAfterSign.length >= safe.threshold) {
+      transaction.status = TRANSACTION_STATUS.AWAITING_EXECUTION;
+
+      await this.update(transaction);
+    }
   }
 
   async getMultisigTxId(internalTxHash: string) {
