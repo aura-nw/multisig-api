@@ -1,11 +1,9 @@
 import { IBaseService } from '../ibase.service';
 import { ResponseDto } from '../../dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
-import { Logger } from '@nestjs/common';
 
 export class BaseService implements IBaseService {
   private _repos: any;
-  private _log = new Logger(BaseService.name);
   public constructor(repos: any) {
     this._repos = repos;
   }
@@ -16,9 +14,8 @@ export class BaseService implements IBaseService {
    * @returns
    */
   public async findOne(id: any): Promise<ResponseDto> {
-    const response = new ResponseDto();
     const result = await this._repos.findOne(id);
-    return response.return(ErrorMap.SUCCESSFUL, result);
+    return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
   }
 
   /**
@@ -31,9 +28,8 @@ export class BaseService implements IBaseService {
     condition: any,
     orderBy: any = null,
   ): Promise<ResponseDto> {
-    const response = new ResponseDto();
     const result = await this._repos.findByCondition(condition, orderBy);
-    return response.return(ErrorMap.SUCCESSFUL, result);
+    return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
   }
 
   /**
@@ -42,9 +38,8 @@ export class BaseService implements IBaseService {
    * @returns
    */
   public async findWithRelations(relations: any): Promise<ResponseDto> {
-    const response = new ResponseDto();
     const result = await this._repos.findWithRelations(relations);
-    return response.return(ErrorMap.SUCCESSFUL, result);
+    return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
   }
 
   /**
@@ -53,9 +48,8 @@ export class BaseService implements IBaseService {
    * @returns
    */
   public async findAll(orderBy?: any): Promise<ResponseDto> {
-    const response = new ResponseDto();
     const result = await this._repos.findAll(orderBy);
-    return response.return(ErrorMap.SUCCESSFUL, result);
+    return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
   }
 
   /**
@@ -72,14 +66,13 @@ export class BaseService implements IBaseService {
     condition: any = null,
     orderBy: any = null,
   ): Promise<ResponseDto> {
-    const response = new ResponseDto();
     const result = await this._repos.findAndCount(
       pageIndex,
       pageSize,
       condition,
       orderBy,
     );
-    return response.return(ErrorMap.SUCCESSFUL, result);
+    return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
   }
 
   /**
@@ -88,9 +81,8 @@ export class BaseService implements IBaseService {
    * @returns
    */
   public async create<T>(data: T | any): Promise<ResponseDto> {
-    const response = new ResponseDto();
     const result = await this._repos.create(data);
-    return response.return(ErrorMap.SUCCESSFUL, result);
+    return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
   }
 
   /**
@@ -99,9 +91,8 @@ export class BaseService implements IBaseService {
    * @returns
    */
   public async update<T>(data: T | any): Promise<ResponseDto> {
-    const response = new ResponseDto();
     const result = await this._repos.update(data);
-    return response.return(ErrorMap.SUCCESSFUL, result);
+    return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
   }
 
   /**
@@ -110,8 +101,7 @@ export class BaseService implements IBaseService {
    * @returns
    */
   public async remove(id: any): Promise<ResponseDto> {
-    const response = new ResponseDto();
     const result = await this._repos.remove(id);
-    return response.return(ErrorMap.SUCCESSFUL, result);
+    return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
   }
 }
