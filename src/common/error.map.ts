@@ -115,6 +115,10 @@ export const ErrorMap = {
     Code: 'E028',
     Message: 'Safe address not valid!',
   },
+  SAFE_HAS_PENDING_TX: {
+    Code: 'E028',
+    Message: 'Safe has pending tx!',
+  },
   C001: {
     Code: 'C001',
     Message: `Missing result from Chaincode`,

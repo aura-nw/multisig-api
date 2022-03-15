@@ -69,6 +69,9 @@ export class MultisigTransactionService
         request.internalChainId,
       );
 
+      //Validate safe don't have tx pending
+      await this.multisigTransactionRepos.validateCreateTx(request.from);
+
       let safe = await this.safeRepos.findOne({
         where: { safeAddress: request.from },
       });
