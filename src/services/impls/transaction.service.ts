@@ -122,7 +122,7 @@ export class TransactionService extends BaseService implements ITransactionServi
             rawResult = await this.multisigTransactionRepos.getTransactionDetailsMultisigTransaction(condition);
           }
           if(!rawResult) return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
-          console.log(rawResult)
+          
           // Check if From and ToAddress is null
           if(rawResult.FromAddress === '') {
             const tx = await this.multisigTransactionRepos.getTransactionDetailsMultisigTransaction(condition);
