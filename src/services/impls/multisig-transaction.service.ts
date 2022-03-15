@@ -69,6 +69,9 @@ export class MultisigTransactionService
         request.internalChainId,
       );
 
+      //Validate safe don't have tx pending
+      await this.multisigTransactionRepos.validateCreateTx(request.from);
+
       let safe = await this.safeRepos.findOne({
         where: { safeAddress: request.from },
       });
@@ -165,7 +168,7 @@ export class MultisigTransactionService
             multisigTransaction.id,
             error.txId,
           );
-          return res.return(ErrorMap.SUCCESSFUL, {'TxHash:' : error.txId});
+          return res.return(ErrorMap.SUCCESSFUL, {'TxHash' : error.txId});
         }
       }
     } catch (error) {
@@ -256,15 +259,9 @@ export class MultisigTransactionService
     }
   }
 
-  async signingInstruction(
-    internalChainId: number,
-    sendAddress: string,
-    amount: number,
-  ): Promise<any> {
-    let chain = await this.chainRepos.findOne({
-      where: { id: internalChainId },
-    });
+  async signingInstruction(internalChainId: number, sendAddress: string, amount: number) : Promise<any> {
 
+    const chain = await this.chainRepos.findChain(internalChainId);
     const client = await StargateClient.connect(chain.rpc);
 
     let balance = await client.getBalance(sendAddress, chain.denom);
