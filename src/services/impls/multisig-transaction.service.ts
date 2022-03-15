@@ -154,6 +154,7 @@ export class MultisigTransactionService
 
         await client.broadcastTx(txBroadcast, 10);
       } catch (error) {
+        this._logger.log(error);
         //Update status and txhash
         //TxHash is encoded transaction when send it to network
         if (typeof error.txId === 'undefined') {
