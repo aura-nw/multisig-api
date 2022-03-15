@@ -165,7 +165,7 @@ export class MultisigTransactionService
             multisigTransaction.id,
             error.txId,
           );
-          return res.return(ErrorMap.SUCCESSFUL, {'TxHash:' : error.txId});
+          return res.return(ErrorMap.SUCCESSFUL, {'TxHash' : error.txId});
         }
       }
     } catch (error) {

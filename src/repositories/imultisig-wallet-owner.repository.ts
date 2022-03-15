@@ -29,4 +29,14 @@ export interface IMultisigWalletOwnerRepository extends IBaseRepository {
   }>;
 
   updateSafeOwner(safeOwner: SafeOwner): Promise<void>;
+
+  /**
+   * Recover safe owner
+   */
+  recoverSafeOwner(
+    safeId: string,
+    ownerAddress: string,
+    ownerPubkey: string,
+    internalChainId: number,
+  ): Promise<any>;
 }

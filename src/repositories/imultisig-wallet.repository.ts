@@ -43,6 +43,7 @@ export interface IMultisigWalletRepository extends IBaseRepository {
 
   recoverSafe(
     safeAddress: string,
+    safePubkey: string,
     creatorAddress: string,
     creatorPubkey: string,
     otherOwnersAddress: string[],
