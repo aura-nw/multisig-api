@@ -26,6 +26,57 @@ export class MultisigWalletRepository
     );
   }
 
+  async recoverSafe(
+    safeAddress: string,
+    creatorAddress: string,
+    creatorPubkey: string,
+    otherOwnersAddress: string[],
+    threshold: number,
+    internalChainId: number,
+    chainPrefix: string,
+  ): Promise<any> {
+    const newSafe = new ENTITIES_CONFIG.SAFE();
+    newSafe.creatorAddress = creatorAddress;
+    newSafe.creatorPubkey = creatorPubkey;
+    newSafe.threshold = threshold;
+    newSafe.safeAddress = safeAddress;
+    newSafe.internalChainId = internalChainId;
+
+    // check duplicate with safe address hash
+    const safeAddressHash = await this.makeAddressHash(
+      newSafe.internalChainId,
+      [creatorAddress, ...otherOwnersAddress],
+      threshold,
+    );
+    newSafe.addressHash = safeAddressHash;
+    newSafe.status = SAFE_STATUS.CREATED;
+
+    // check if need create safe address
+    if (otherOwnersAddress.length === 0) {
+      try {
+        const { address, pubkey } = this._commonUtil.createSafeAddressAndPubkey(
+          [creatorPubkey],
+          threshold,
+          chainPrefix,
+        );
+        newSafe.safeAddress = address;
+        newSafe.safePubkey = pubkey;
+        newSafe.status = SAFE_STATUS.CREATED;
+      } catch (error) {
+        throw new CustomError(
+          ErrorMap.CANNOT_CREATE_SAFE_ADDRESS,
+          error.message,
+        );
+      }
+    }
+    try {
+      const result = await this.create(newSafe);
+      return result;
+    } catch (err) {
+      throw new CustomError(ErrorMap.INSERT_SAFE_FAILED, err.message);
+    }
+  }
+
   async checkOwnerMultisigWallet(owner_address: string, safe_address: string) {
     const sqlQuerry = this.repos
       .createQueryBuilder('safe')

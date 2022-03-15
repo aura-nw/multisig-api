@@ -24,5 +24,6 @@ export const URL_CONSTANTS = {
   CONFIRM_SAFE: ':safeId',
   DELETE_SAFE: ':safeId',
   GET_SAFES_BY_OWNER: ':address/safes',
+  CHECK_ACCOUNT_ON_NETWORK: 'check-account-on-network'
 };
 

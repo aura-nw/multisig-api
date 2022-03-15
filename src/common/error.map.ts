@@ -111,6 +111,10 @@ export const ErrorMap = {
     Code: 'E027',
     Message: 'User has rejected before!',
   },
+  SAFE_ADRESS_NOT_VALID: {
+    Code: 'E028',
+    Message: 'Safe address not valid!',
+  },
   C001: {
     Code: 'C001',
     Message: `Missing result from Chaincode`,
