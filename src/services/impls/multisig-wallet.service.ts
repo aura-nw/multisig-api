@@ -21,9 +21,6 @@ import { plainToInstance } from 'class-transformer';
 import { ListSafeByOwnerResponse } from 'src/dtos/responses/multisig-wallet/get-safe-by-owner.response';
 import { IGeneralRepository } from 'src/repositories/igeneral.repository';
 import { CustomError } from 'src/common/customError';
-import { StargateClient } from '@cosmjs/stargate';
-import { pubkeyToAddress } from '@cosmjs/amino';
-import { ConfirmMultisigWalletRequest } from 'src/dtos/requests';
 @Injectable()
 export class MultisigWalletService
   extends BaseService
@@ -254,59 +251,6 @@ export class MultisigWalletService
         return res;
       });
       return ResponseDto.response(ErrorMap.SUCCESSFUL, response);
-    } catch (error) {
-      return ResponseDto.responseError(MultisigWalletService.name, error);
-    }
-  }
-
-  async checkAccountOnNetwork(
-    accountAddress: string,
-    internalChainId: number,
-  ): Promise<any> {
-    let chainInfo = await this.generalRepo.findOne({
-      where: { id: internalChainId },
-    });
-
-    let client = await StargateClient.connect(chainInfo.rpc);
-
-    try {
-      let accountOnChain = await client.getAccount(accountAddress);
-      console.log(accountOnChain);
-      let otherOwnersAddress = [];
-      for (let i = 1; i < accountOnChain.pubkey.value.pubkeys.length; i++) {
-        let ownerAddress = pubkeyToAddress(accountOnChain.pubkey.value.pubkeys[i], chainInfo.prefix);
-        otherOwnersAddress.push(ownerAddress);
-      }
-
-      // insert safe
-      const result = await this.safeRepo.recoverSafe(
-        accountOnChain.address,
-        pubkeyToAddress(accountOnChain.pubkey.value.pubkeys[0], chainInfo.prefix),
-        accountOnChain.pubkey.value.pubkeys[0].value,
-        otherOwnersAddress,
-        accountOnChain.pubkey.value.threshold,
-        internalChainId,
-        chainInfo.prefix,
-      );
-      const safeId = result.id;
-
-      // insert safe_creator
-      await this.safeOwnerRepo.insertOwners(
-        safeId,
-        internalChainId,
-        pubkeyToAddress(accountOnChain.pubkey.value.pubkeys[0], chainInfo.prefix),
-        accountOnChain.pubkey.value.pubkeys[0].value,
-        otherOwnersAddress,
-      );
-
-      // insert safe owner
-      for (let i = 1; i < accountOnChain.pubkey.value.pubkeys.length; i++) {
-        let insertOwnerRequest = new ConfirmMultisigWalletRequest();
-        insertOwnerRequest.myAddress = pubkeyToAddress(accountOnChain.pubkey.value.pubkeys[i], chainInfo.prefix);
-        insertOwnerRequest.myPubkey = accountOnChain.pubkey.value.pubkeys[i].value;
-
-        await this.confirm(safeId, insertOwnerRequest);
-      }
     } catch (error) {
       return ResponseDto.responseError(MultisigWalletService.name, error);
     }
