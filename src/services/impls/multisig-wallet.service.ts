@@ -1,8 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { createHash } from 'crypto';
 import { ResponseDto } from 'src/dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
-import { ConfigService } from 'src/shared/services/config.service';
 import { IMultisigWalletService } from '../imultisig-wallet.service';
 import { IMultisigWalletRepository } from 'src/repositories/imultisig-wallet.repository';
 import { IMultisigWalletOwnerRepository } from 'src/repositories/imultisig-wallet-owner.repository';
@@ -10,9 +8,7 @@ import {
   SAFE_OWNER_STATUS,
   SAFE_STATUS,
 } from 'src/common/constants/app.constant';
-import { createMultisigThresholdPubkey, SinglePubkey } from '@cosmjs/amino';
 import {
-  ENTITIES_CONFIG,
   MODULE_REQUEST,
   REPOSITORY_INTERFACE,
   RESPONSE_CONFIG,
@@ -21,13 +17,13 @@ import { CommonUtil } from 'src/utils/common.util';
 import { Network } from 'src/utils/network.utils';
 import { BaseService } from './base.service';
 import { GetMultisigWalletResponse } from 'src/dtos/responses/multisig-wallet/get-multisig-wallet.response';
-import { Safe } from 'src/entities/safe.entity';
-import { SafeOwner } from 'src/entities/safe-owner.entity';
 import { plainToInstance } from 'class-transformer';
 import { ListSafeByOwnerResponse } from 'src/dtos/responses/multisig-wallet/get-safe-by-owner.response';
 import { IGeneralRepository } from 'src/repositories/igeneral.repository';
-import { Chain } from 'src/entities';
 import { CustomError } from 'src/common/customError';
+import { StargateClient } from '@cosmjs/stargate';
+import { pubkeyToAddress } from '@cosmjs/amino';
+import { ConfirmMultisigWalletRequest } from 'src/dtos/requests';
 @Injectable()
 export class MultisigWalletService
   extends BaseService
@@ -37,7 +33,6 @@ export class MultisigWalletService
   private _commonUtil: CommonUtil = new CommonUtil();
 
   constructor(
-    private configService: ConfigService = new ConfigService(),
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_REPOSITORY)
     private safeRepo: IMultisigWalletRepository,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_OWNER_REPOSITORY)
@@ -102,9 +97,11 @@ export class MultisigWalletService
     param: MODULE_REQUEST.GetSafePathParams,
     query: MODULE_REQUEST.GetSafeQuery,
   ): Promise<ResponseDto> {
+    let msgError = '';
     try {
       const { safeId } = param;
       const { internalChainId } = query;
+
       const safe = await this.safeRepo.getSafe(safeId, internalChainId);
 
       // find safe owner
@@ -135,10 +132,17 @@ export class MultisigWalletService
           );
           safeInfo.balance = [balance];
         } catch (error) {
-          throw new CustomError(ErrorMap.GET_BALANCE_FAILED, error.message);
+          msgError = error.message;
+          this._logger.error(error.message);
+          safeInfo.balance = [
+            {
+              denom: chainInfo.denom,
+              amount: '-1',
+            },
+          ];
         }
       }
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, safeInfo);
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, safeInfo, msgError);
     } catch (error) {
       return ResponseDto.responseError(MultisigWalletService.name, error);
     }
@@ -249,6 +253,59 @@ export class MultisigWalletService
         return res;
       });
       return ResponseDto.response(ErrorMap.SUCCESSFUL, response);
+    } catch (error) {
+      return ResponseDto.responseError(MultisigWalletService.name, error);
+    }
+  }
+
+  async checkAccountOnNetwork(
+    accountAddress: string,
+    internalChainId: number,
+  ): Promise<any> {
+    let chainInfo = await this.generalRepo.findOne({
+      where: { id: internalChainId },
+    });
+
+    let client = await StargateClient.connect(chainInfo.rpc);
+
+    try {
+      let accountOnChain = await client.getAccount(accountAddress);
+      console.log(accountOnChain);
+      let otherOwnersAddress = [];
+      for (let i = 1; i < accountOnChain.pubkey.value.pubkeys.length; i++) {
+        let ownerAddress = pubkeyToAddress(accountOnChain.pubkey.value.pubkeys[i], chainInfo.prefix);
+        otherOwnersAddress.push(ownerAddress);
+      }
+
+      // insert safe
+      const result = await this.safeRepo.recoverSafe(
+        accountOnChain.address,
+        pubkeyToAddress(accountOnChain.pubkey.value.pubkeys[0], chainInfo.prefix),
+        accountOnChain.pubkey.value.pubkeys[0].value,
+        otherOwnersAddress,
+        accountOnChain.pubkey.value.threshold,
+        internalChainId,
+        chainInfo.prefix,
+      );
+      const safeId = result.id;
+
+      // insert safe_creator
+      await this.safeOwnerRepo.insertOwners(
+        safeId,
+        internalChainId,
+        pubkeyToAddress(accountOnChain.pubkey.value.pubkeys[0], chainInfo.prefix),
+        accountOnChain.pubkey.value.pubkeys[0].value,
+        otherOwnersAddress,
+      );
+
+      // insert safe owner
+      for (let i = 1; i < accountOnChain.pubkey.value.pubkeys.length; i++) {
+        let insertOwnerRequest = new ConfirmMultisigWalletRequest();
+        insertOwnerRequest.myAddress = pubkeyToAddress(accountOnChain.pubkey.value.pubkeys[i], chainInfo.prefix);
+        insertOwnerRequest.myPubkey = accountOnChain.pubkey.value.pubkeys[i].value;
+
+        await this.confirm(safeId, insertOwnerRequest);
+      }
     } catch (error) {
       return ResponseDto.responseError(MultisigWalletService.name, error);
     }

@@ -122,6 +122,15 @@ export class TransactionService extends BaseService implements ITransactionServi
             rawResult = await this.multisigTransactionRepos.getTransactionDetailsMultisigTransaction(condition);
           }
           if(!rawResult) return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
+          
+          // Check if From and ToAddress is null
+          if(rawResult.FromAddress === '') {
+            const tx = await this.multisigTransactionRepos.getTransactionDetailsMultisigTransaction(condition);
+            if(tx.FromAddress !== '') {
+              rawResult.FromAddress = tx.FromAddress;
+              rawResult.ToAddress = tx.ToAddress;
+            }
+          }
     
           // Create data form to return to client
           if(rawResult.Code) {
