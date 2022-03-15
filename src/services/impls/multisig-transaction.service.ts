@@ -259,15 +259,9 @@ export class MultisigTransactionService
     }
   }
 
-  async signingInstruction(
-    internalChainId: number,
-    sendAddress: string,
-    amount: number,
-  ): Promise<any> {
-    let chain = await this.chainRepos.findOne({
-      where: { id: internalChainId },
-    });
+  async signingInstruction(internalChainId: number, sendAddress: string, amount: number) : Promise<any> {
 
+    const chain = await this.chainRepos.findChain(internalChainId);
     const client = await StargateClient.connect(chain.rpc);
 
     let balance = await client.getBalance(sendAddress, chain.denom);
