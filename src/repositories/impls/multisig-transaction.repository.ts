@@ -145,11 +145,11 @@ export class MultisigTransactionRepository
     return this.repos.query(`
       SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, Status
       FROM MultisigTransaction
-      WHERE (FromAddress = ? OR ToAddress = ?)
+      WHERE FromAddress = ?
       AND (Status = ? OR Status = ? OR Status = ?)
       ORDER BY CreatedAt DESC
       LIMIT ? OFFSET ?
-    `, [request.safeAddress, request.safeAddress, TRANSACTION_STATUS.AWAITING_CONFIRMATIONS, TRANSACTION_STATUS.AWAITING_EXECUTION, TRANSACTION_STATUS.PENDING,
+    `, [request.safeAddress, TRANSACTION_STATUS.AWAITING_CONFIRMATIONS, TRANSACTION_STATUS.AWAITING_EXECUTION, TRANSACTION_STATUS.PENDING,
       limit, offset]);
   }
 }

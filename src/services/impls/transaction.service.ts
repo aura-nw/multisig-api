@@ -85,20 +85,15 @@ export class TransactionService extends BaseService implements ITransactionServi
             const code = parseInt(result[i].Status);
             if(!isNaN(code)) result[i].Status = TRANSACTION_STATUS.FAILED;
           }
-          // Check to define direction of Tx
-          if (result[i].FromAddress == request.safeAddress) {
-            result[i].Direction = TRANSFER_DIRECTION.OUTGOING;
-            // Get the number of owners that had signed
-            if(result[i].TxHash) {
-              result[i].Confirmations = await (await this.getListMultisigConfirm(result[i].TxHash, MULTISIG_CONFIRM_STATUS.CONFIRM)).length;
-            } else {
-              const param: MODULE_REQUEST.GetMultisigSignaturesParam = { id: result[i].Id }
-              result[i].Confirmations = await (await this.getListMultisigConfirmById(param, MULTISIG_CONFIRM_STATUS.CONFIRM)).Data.length;
-            }
-            result[i].ConfirmationsRequired = await (await this.safeRepos.getThreshold(safeAddress.safeAddress)).ConfirmationsRequired;
-          } else if (result[i].ToAddress == request.safeAddress) {
-            result[i].Direction = TRANSFER_DIRECTION.INCOMING;
+          result[i].Direction = TRANSFER_DIRECTION.OUTGOING;
+          // Get the number of owners that had signed
+          if(result[i].TxHash) {
+            result[i].Confirmations = await (await this.getListMultisigConfirm(result[i].TxHash, MULTISIG_CONFIRM_STATUS.CONFIRM)).length;
+          } else {
+            const param: MODULE_REQUEST.GetMultisigSignaturesParam = { id: result[i].Id }
+            result[i].Confirmations = await (await this.getListMultisigConfirmById(param, MULTISIG_CONFIRM_STATUS.CONFIRM)).Data.length;
           }
+          result[i].ConfirmationsRequired = await (await this.safeRepos.getThreshold(safeAddress.safeAddress)).ConfirmationsRequired;
         }
         return res.return(ErrorMap.SUCCESSFUL, result);
       }
