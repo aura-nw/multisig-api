@@ -85,15 +85,25 @@ export class TransactionService extends BaseService implements ITransactionServi
             const code = parseInt(result[i].Status);
             if(!isNaN(code)) result[i].Status = TRANSACTION_STATUS.FAILED;
           }
-          result[i].Direction = TRANSFER_DIRECTION.OUTGOING;
-          // Get the number of owners that had signed
-          if(result[i].TxHash) {
-            result[i].Confirmations = await (await this.getListMultisigConfirm(result[i].TxHash, MULTISIG_CONFIRM_STATUS.CONFIRM)).length;
-          } else {
-            const param: MODULE_REQUEST.GetMultisigSignaturesParam = { id: result[i].Id }
-            result[i].Confirmations = await (await this.getListMultisigConfirmById(param, MULTISIG_CONFIRM_STATUS.CONFIRM)).Data.length;
+          // Check if get queue or history transactions
+          if(!request.isHistory) {
+            result[i].Direction = TRANSFER_DIRECTION.OUTGOING;
           }
-          result[i].ConfirmationsRequired = await (await this.safeRepos.getThreshold(safeAddress.safeAddress)).ConfirmationsRequired;
+          else {
+            // Get direction of transaction
+            if(request.safeAddress === result[i].FromAddress) result[i].Direction = TRANSFER_DIRECTION.OUTGOING;
+            else result[i].Direction = TRANSFER_DIRECTION.INCOMING;
+          }
+          if(result[i].Direction === TRANSFER_DIRECTION.OUTGOING) {
+            // Get the number of owners that had signed
+            if(result[i].TxHash) {
+              result[i].Confirmations = await (await this.getListMultisigConfirm(result[i].TxHash, MULTISIG_CONFIRM_STATUS.CONFIRM)).length;
+            } else {
+              const param: MODULE_REQUEST.GetMultisigSignaturesParam = { id: result[i].Id }
+              result[i].Confirmations = await (await this.getListMultisigConfirmById(param, MULTISIG_CONFIRM_STATUS.CONFIRM)).Data.length;
+            }
+            result[i].ConfirmationsRequired = await (await this.safeRepos.getThreshold(safeAddress.safeAddress)).ConfirmationsRequired;
+          }
         }
         return res.return(ErrorMap.SUCCESSFUL, result);
       }
