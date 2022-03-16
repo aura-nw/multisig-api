@@ -204,7 +204,7 @@ export class MultisigTransactionRepository
       FROM MultisigTransaction
       WHERE FromAddress = ?
       AND (Status = ? OR Status = ? OR Status = ?)
-      ORDER BY CreatedAt DESC
+      ORDER BY UpdatedAt DESC
       LIMIT ? OFFSET ?
     `,
       [
