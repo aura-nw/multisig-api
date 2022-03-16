@@ -24,6 +24,26 @@ export class MultisigWalletOwnerRepository
     );
   }
 
+  async recoverSafeOwner(
+    safeId: string,
+    ownerAddress: string,
+    ownerPubkey: string,
+    internalChainId: number,
+  ): Promise<any> {
+    const newSafeOwner = new ENTITIES_CONFIG.SAFE_OWNER();
+    newSafeOwner.ownerAddress = ownerAddress;
+    newSafeOwner.ownerPubkey = ownerPubkey;
+    newSafeOwner.safeId = safeId;
+    newSafeOwner.internalChainId = internalChainId;
+
+    try {
+      const result = await this.create(newSafeOwner);
+      return result;
+    } catch (err) {
+      throw new CustomError(ErrorMap.INSERT_SAFE_FAILED, err.message);
+    }
+  }
+
   async getOwners(safeAddress: string) {
     let sqlQuerry = this.repos
       .createQueryBuilder('safeOwner')

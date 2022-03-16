@@ -56,22 +56,15 @@ export class MultisigTransactionService
     const res = new ResponseDto();
     try {
       //Validate safe
-      let signResult = await this.signingInstruction(
-        request.internalChainId,
-        request.from,
-        request.amount,
-      );
+      let signResult = await this.signingInstruction(request.internalChainId, request.from, request.amount);
 
       //Validate transaction creator
-      await this.multisigConfirmRepos.validateOwner(
-        request.creatorAddress,
-        request.from,
-        request.internalChainId,
-      );
+      await this.multisigConfirmRepos.validateOwner(request.creatorAddress, request.from, request.internalChainId);
 
-      let safe = await this.safeRepos.findOne({
-        where: { safeAddress: request.from },
-      });
+      //Validate safe don't have tx pending
+      await this.multisigTransactionRepos.validateCreateTx(request.from);
+
+      let safe = await this.safeRepos.findOne({where: { safeAddress: request.from }});
 
       //Safe data into DB
       let transactionResult =
@@ -113,30 +106,18 @@ export class MultisigTransactionService
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      let chain = await this.chainRepos.findOne({
-        where: { id: request.internalChainId },
-      });
+      let chain = await this.chainRepos.findOne({where: { id: request.internalChainId }});
 
       const client = await StargateClient.connect(chain.rpc);
 
       //get information multisig transaction Id
-      let multisigTransaction =
-        await this.multisigTransactionRepos.validateTxBroadcast(
-          request.transactionId,
-        );
+      let multisigTransaction = await this.multisigTransactionRepos.validateTxBroadcast(request.transactionId);
 
       //Validate owner
-      await this.multisigConfirmRepos.validateOwner(
-        request.owner,
-        multisigTransaction.fromAddress,
-        request.internalChainId,
-      );
+      await this.multisigConfirmRepos.validateOwner(request.owner, multisigTransaction.fromAddress, request.internalChainId);
 
       //Make tx
-      let txBroadcast = await this.makeTx(
-        request.transactionId,
-        multisigTransaction,
-      );
+      let txBroadcast = await this.makeTx(request.transactionId, multisigTransaction);
 
       try {
         //Record owner send transaction
@@ -165,7 +146,7 @@ export class MultisigTransactionService
             multisigTransaction.id,
             error.txId,
           );
-          return res.return(ErrorMap.SUCCESSFUL, {'TxHash:' : error.txId});
+          return res.return(ErrorMap.SUCCESSFUL, {'TxHash' : error.txId});
         }
       }
     } catch (error) {
@@ -178,23 +159,12 @@ export class MultisigTransactionService
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      let transaction =
-        await this.multisigTransactionRepos.checkExistMultisigTransaction(
-          request.transactionId,
-          request.internalChainId,
-        );
+      let transaction = await this.multisigTransactionRepos.checkExistMultisigTransaction(request.transactionId, request.internalChainId);
 
-      await this.multisigConfirmRepos.validateOwner(
-        request.fromAddress,
-        transaction.fromAddress,
-        request.internalChainId,
-      );
+      await this.multisigConfirmRepos.validateOwner(request.fromAddress, transaction.fromAddress, request.internalChainId);
 
       //User has confirmed transaction before
-      await this.multisigConfirmRepos.checkUserHasSigned(
-        request.transactionId,
-        request.fromAddress,
-      );
+      await this.multisigConfirmRepos.checkUserHasSigned( request.transactionId, request.fromAddress);
 
       await this.multisigConfirmRepos.insertIntoMultisigConfirm(
         request.transactionId,
@@ -205,10 +175,7 @@ export class MultisigTransactionService
         MULTISIG_CONFIRM_STATUS.CONFIRM,
       );
 
-      await this.multisigTransactionRepos.validateTransaction(
-        request.transactionId,
-        request.internalChainId,
-      );
+      await this.multisigTransactionRepos.validateTransaction(request.transactionId, request.internalChainId);
 
       return res.return(ErrorMap.SUCCESSFUL);
     } catch (error) {
@@ -223,23 +190,13 @@ export class MultisigTransactionService
     try {
       //Check status of multisig transaction when reject transaction
       let transaction =
-        await this.multisigTransactionRepos.checkExistMultisigTransaction(
-          request.transactionId,
-          request.internalChainId,
-        );
+        await this.multisigTransactionRepos.checkExistMultisigTransaction(request.transactionId, request.internalChainId);
 
       //Validate owner
-      await this.multisigConfirmRepos.validateOwner(
-        request.fromAddress,
-        transaction.fromAddress,
-        request.internalChainId,
-      );
+      await this.multisigConfirmRepos.validateOwner(request.fromAddress, transaction.fromAddress, request.internalChainId);
 
       //Check user has rejected transaction before
-      await this.multisigConfirmRepos.checkUserHasSigned(
-        request.transactionId,
-        request.fromAddress,
-      );
+      await this.multisigConfirmRepos.checkUserHasSigned(request.transactionId, request.fromAddress);
 
       await this.multisigConfirmRepos.insertIntoMultisigConfirm(
         request.transactionId,
@@ -256,15 +213,9 @@ export class MultisigTransactionService
     }
   }
 
-  async signingInstruction(
-    internalChainId: number,
-    sendAddress: string,
-    amount: number,
-  ): Promise<any> {
-    let chain = await this.chainRepos.findOne({
-      where: { id: internalChainId },
-    });
+  async signingInstruction(internalChainId: number, sendAddress: string, amount: number) : Promise<any> {
 
+    const chain = await this.chainRepos.findChain(internalChainId);
     const client = await StargateClient.connect(chain.rpc);
 
     let balance = await client.getBalance(sendAddress, chain.denom);
@@ -304,15 +255,13 @@ export class MultisigTransactionService
 
     let addressSignarureMap = new Map<string, Uint8Array>();
 
-    multisigConfirmArr.forEach((x) => {
+    multisigConfirmArr.forEach((x) => { 
       let encodeSignature = fromBase64(x.signature);
       addressSignarureMap.set(x.ownerAddress, encodeSignature);
     });
 
     //Fee
-    const gasPrice = GasPrice.fromString(
-      String(multisigTransaction.fee).concat(multisigTransaction.denom),
-    );
+    const gasPrice = GasPrice.fromString(String(multisigTransaction.fee).concat(multisigTransaction.denom));
     const sendFee = calculateFee(multisigTransaction.gas, gasPrice);
 
     let encodedBodyBytes = fromBase64(multisigConfirmArr[0].bodyBytes);
@@ -328,9 +277,7 @@ export class MultisigTransactionService
       addressSignarureMap,
     );
 
-    let encodeTransaction = Uint8Array.from(
-      TxRaw.encode(executeTransaction).finish(),
-    );
+    let encodeTransaction = Uint8Array.from(TxRaw.encode(executeTransaction).finish());
     return encodeTransaction;
   }
 }
