@@ -5,6 +5,7 @@ import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
 import { IMultisigTransactionService } from '../multisig-transaction.service';
 import {
   calculateFee,
+  coins,
   GasPrice,
   makeMultisignedTx,
   StargateClient,
@@ -68,20 +69,8 @@ export class MultisigTransactionService
 
       //Safe data into DB
       let transactionResult =
-        await this.multisigTransactionRepos.insertMultisigTransaction(
-          request.from,
-          request.to,
-          request.amount,
-          request.gasLimit,
-          request.fee,
-          signResult.accountNumber,
-          NETWORK_URL_TYPE.COSMOS,
-          signResult.denom,
-          TRANSACTION_STATUS.AWAITING_CONFIRMATIONS,
-          request.internalChainId,
-          signResult.sequence.toString(),
-          safe.id,
-        );
+        await this.multisigTransactionRepos.insertMultisigTransaction(request.from, request.to, request.amount, request.gasLimit, request.fee, signResult.accountNumber,
+          NETWORK_URL_TYPE.COSMOS,  signResult.denom, TRANSACTION_STATUS.AWAITING_CONFIRMATIONS, request.internalChainId, signResult.sequence.toString(), safe.id);
 
       let requestSign = new ConfirmTransactionRequest();
       requestSign.fromAddress = request.creatorAddress;
@@ -93,9 +82,7 @@ export class MultisigTransactionService
       //Sign to transaction
       await this.confirmTransaction(requestSign);
 
-      return res.return(ErrorMap.SUCCESSFUL, transactionResult.id, {
-        'transactionId:': transactionResult.id,
-      });
+      return res.return(ErrorMap.SUCCESSFUL, transactionResult.id, {'transactionId:': transactionResult.id});
     } catch (error) {
       return ResponseDto.responseError(MultisigTransactionService.name, error);
     }
@@ -121,14 +108,7 @@ export class MultisigTransactionService
 
       try {
         //Record owner send transaction
-        await this.multisigConfirmRepos.insertIntoMultisigConfirm(
-          request.transactionId,
-          request.owner,
-          '',
-          '',
-          request.internalChainId,
-          MULTISIG_CONFIRM_STATUS.SEND,
-        );
+        await this.multisigConfirmRepos.insertIntoMultisigConfirm(request.transactionId, request.owner, '', '', request.internalChainId, MULTISIG_CONFIRM_STATUS.SEND);
 
         await client.broadcastTx(txBroadcast, 10);
       } catch (error) {
@@ -137,15 +117,9 @@ export class MultisigTransactionService
         if (typeof error.txId === 'undefined') {
           multisigTransaction.status = TRANSACTION_STATUS.FAILED;
           await this.multisigTransactionRepos.update(multisigTransaction);
-          return ResponseDto.responseError(
-            MultisigTransactionService.name,
-            error,
-          );
+          return ResponseDto.responseError(MultisigTransactionService.name, error);
         } else {
-          await this.multisigTransactionRepos.updateTxBroadcastSucces(
-            multisigTransaction.id,
-            error.txId,
-          );
+          await this.multisigTransactionRepos.updateTxBroadcastSucces(multisigTransaction.id, error.txId);
           return res.return(ErrorMap.SUCCESSFUL, {'TxHash' : error.txId});
         }
       }
@@ -261,8 +235,10 @@ export class MultisigTransactionService
     });
 
     //Fee
-    const gasPrice = GasPrice.fromString(String(multisigTransaction.fee).concat(multisigTransaction.denom));
-    const sendFee = calculateFee(multisigTransaction.gas, gasPrice);
+    const sendFee = {
+      amount: coins(multisigTransaction.fee, multisigTransaction.denom),
+      gas: multisigTransaction.gas.toString(),
+    };
 
     let encodedBodyBytes = fromBase64(multisigConfirmArr[0].bodyBytes);
 
