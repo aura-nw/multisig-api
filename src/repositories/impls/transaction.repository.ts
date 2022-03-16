@@ -36,7 +36,7 @@ export class TransactionRepository
                 FROM MultisigTransaction
                 WHERE (FromAddress = ? OR ToAddress = ?)
                 AND (Status = ? OR Status = ?)
-                ORDER BY CreatedAt DESC
+                ORDER BY UpdatedAt DESC
                 LIMIT ? OFFSET ?;
             `, [request.safeAddress, request.safeAddress, request.safeAddress, request.safeAddress, TRANSACTION_STATUS.CANCELLED, TRANSACTION_STATUS.FAILED, limit, offset]);
     }
