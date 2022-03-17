@@ -78,7 +78,6 @@ export class TransactionService extends BaseService implements ITransactionServi
         let result;
         if(request.isHistory) result = await this.transRepos.getAuraTx(request);
         else result = await this.multisigTransactionRepos.getQueueTransaction(request);
-        console.log(result);
         // Loop to get Status based on Code and get Multisig Confirm of Multisig Tx
         for (let i = 0; i < result.length; i++) {
           if(result[i].Status == '0') result[i].Status = TRANSACTION_STATUS.SUCCESS;
@@ -126,7 +125,7 @@ export class TransactionService extends BaseService implements ITransactionServi
           let result;
           let rawResult = await this.transRepos.getTransactionDetailsAuraTx(condition);
           // Query based on condition
-          if(!rawResult || rawResult.Code !== 0) {
+          if(!rawResult || rawResult.Code !== '0') {
             rawResult = await this.multisigTransactionRepos.getTransactionDetailsMultisigTransaction(condition);
           }
           if(!rawResult) return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
