@@ -34,11 +34,11 @@ export class TransactionRepository
                 UNION
                 SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, Status
                 FROM MultisigTransaction
-                WHERE (FromAddress = ? OR ToAddress = ?)
+                WHERE FromAddress = ?
                 AND (Status = ? OR Status = ?)
                 ORDER BY UpdatedAt DESC
                 LIMIT ? OFFSET ?;
-            `, [request.safeAddress, request.safeAddress, request.safeAddress, request.safeAddress, TRANSACTION_STATUS.CANCELLED, TRANSACTION_STATUS.FAILED, limit, offset]);
+            `, [request.safeAddress, request.safeAddress, request.safeAddress, TRANSACTION_STATUS.CANCELLED, TRANSACTION_STATUS.FAILED, limit, offset]);
     }
 
     async getTransactionDetailsAuraTx(condition: any) {
