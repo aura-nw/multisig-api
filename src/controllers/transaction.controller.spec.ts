@@ -31,6 +31,7 @@ describe(TransactionController.name, () => {
   let mockCreateQueryBuilder: jest.Mock;
   let mockFindSafeByCondition: jest.Mock;
   let mockFindOneMultisigTransaction: jest.Mock;
+  let mockGetMultisigConfirm: jest.Mock;
 
   beforeAll(async () => {
     mockFindOneChain = jest.fn();
@@ -43,6 +44,12 @@ describe(TransactionController.name, () => {
     }));
     mockFindSafeByCondition = jest.fn();
     mockFindOneMultisigTransaction = jest.fn();
+    mockGetMultisigConfirm = jest.fn(() => ({
+      where: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      getRawMany: jest.fn().mockResolvedValue([]),
+    }));
 
     testModule = await Test.createTestingModule({
       controllers: [TransactionController],
@@ -72,7 +79,9 @@ describe(TransactionController.name, () => {
         },
         {
           provide: getRepositoryToken(ENTITIES_CONFIG.MULTISIG_CONFIRM),
-          useValue: {},
+          useValue: {
+            createQueryBuilder: mockGetMultisigConfirm
+          },
         },
         {
           provide: getRepositoryToken(ENTITIES_CONFIG.SAFE),
@@ -179,6 +188,15 @@ describe(TransactionController.name, () => {
       mockFindOneMultisigTransaction.mockResolvedValue(undefined);
       const result = await transactionController.getSignaturesOfMultisigTx(param);
       expect(result.Message).toEqual(ErrorMap.TRANSACTION_NOT_EXIST.Message);
+    });
+
+    it(`should return: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
+      const param: MODULE_REQUEST.GetMultisigSignaturesParam = {
+        id: 1
+      }
+      mockFindOneMultisigTransaction.mockResolvedValue([]);
+      const result = await transactionController.getSignaturesOfMultisigTx(param);
+      expect(result.Message).toEqual(ErrorMap.SUCCESSFUL.Message);
     })
   })
 
