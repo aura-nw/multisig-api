@@ -73,7 +73,7 @@ export class TransactionService extends BaseService implements ITransactionServi
         const safeAddress = { safeAddress: request.safeAddress };
     
         const safe = await this.safeRepos.findByCondition(safeAddress);
-        if(!safe) return res.return(ErrorMap.NO_SAFES_FOUND);
+        if(safe.length === 0) return res.return(ErrorMap.NO_SAFES_FOUND);
     
         let result;
         if(request.isHistory) result = await this.transRepos.getAuraTx(request);
