@@ -29,6 +29,8 @@ describe(TransactionController.name, () => {
   let transactionController: TransactionController;
   let mockFindOneChain: jest.Mock;
   let mockCreateQueryBuilder: jest.Mock;
+  let mockFindSafeByCondition: jest.Mock;
+  let mockFindOneMultisigTransaction: jest.Mock;
 
   beforeAll(async () => {
     mockFindOneChain = jest.fn();
@@ -39,6 +41,8 @@ describe(TransactionController.name, () => {
       select: jest.fn().mockReturnThis(),
       getRawMany: jest.fn().mockResolvedValue([]),
     }));
+    mockFindSafeByCondition = jest.fn();
+    mockFindOneMultisigTransaction = jest.fn();
 
     testModule = await Test.createTestingModule({
       controllers: [TransactionController],
@@ -58,7 +62,9 @@ describe(TransactionController.name, () => {
         },
         {
           provide: getRepositoryToken(ENTITIES_CONFIG.MULTISIG_TRANSACTION),
-          useValue: {},
+          useValue: {
+            findOne: mockFindOneMultisigTransaction
+          },
         },
         {
           provide: getRepositoryToken(ENTITIES_CONFIG.AURA_TX),
@@ -71,7 +77,8 @@ describe(TransactionController.name, () => {
         {
           provide: getRepositoryToken(ENTITIES_CONFIG.SAFE),
           useValue: {
-            createQueryBuilder: mockCreateQueryBuilder
+            createQueryBuilder: mockCreateQueryBuilder,
+            find: mockFindSafeByCondition,
           },
         },
         // //mock
@@ -162,4 +169,31 @@ describe(TransactionController.name, () => {
       expect(result.Message).toEqual(ErrorMap.E500.Message);
     });
   });
+
+  describe('when get multisig transaction confirm', () => {
+    it(`should return: ${ErrorMap.TRANSACTION_NOT_EXIST.Message}`, async () => {
+      // find multisig transaction
+      const param: MODULE_REQUEST.GetMultisigSignaturesParam = {
+        id: 1000
+      }
+      mockFindOneMultisigTransaction.mockResolvedValue(undefined);
+      const result = await transactionController.getSignaturesOfMultisigTx(param);
+      expect(result.Message).toEqual(ErrorMap.TRANSACTION_NOT_EXIST.Message);
+    })
+  })
+
+  describe('when get safe transactions', () => {
+    it(`should return: ${ErrorMap.NO_SAFES_FOUND.Message}`, async () => {
+      // find safe
+      const request: MODULE_REQUEST.GetAllTransactionsRequest = {
+        safeAddress: '123',
+        isHistory: true,
+        pageIndex: 1,
+        pageSize: 10
+      }
+      mockFindSafeByCondition.mockResolvedValue([]);
+      const result = await transactionController.getAllTxs(request);
+      expect(result.Message).toEqual(ErrorMap.NO_SAFES_FOUND.Message);
+    })
+  })
 });
