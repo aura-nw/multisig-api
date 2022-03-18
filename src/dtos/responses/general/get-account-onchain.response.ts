@@ -1,12 +1,15 @@
 import { Pubkey } from "@cosmjs/amino";
 import { ApiProperty } from "@nestjs/swagger";
+import { IsNumber, IsString } from "class-validator";
 
 export class GetAccountOnchainResponse {
+    @IsString()
     @ApiProperty({
         example: 'aura1r2gv6rx0fxdmepu8gd2gmn5j8cjetkqrw836x5'
     })
     address: string;
 
+    @IsString()
     @ApiProperty({
         example: {
             type: 'tendermint/PubKeyMultisigThreshold',
@@ -23,11 +26,13 @@ export class GetAccountOnchainResponse {
     })
     pubkey: Pubkey;
 
+    @IsNumber()
     @ApiProperty({
         example: 39
     })
     accountNumber: number;
 
+    @IsNumber()
     @ApiProperty({
         example: 13
     })
