@@ -24,6 +24,7 @@ import {
   IGeneralRepository,
   IMultisigConfirmRepository,
   IMultisigTransactionsRepository,
+  IMultisigWalletOwnerRepository,
   IMultisigWalletRepository,
 } from 'src/repositories';
 import { ConfirmTransactionRequest } from 'src/dtos/requests';
@@ -44,6 +45,8 @@ export class MultisigTransactionService
     private chainRepos: IGeneralRepository,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_REPOSITORY)
     private safeRepos: IMultisigWalletRepository,
+    @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_OWNER_REPOSITORY)
+    private safeOwnerRepo: IMultisigWalletOwnerRepository,
   ) {
     super(multisigTransactionRepos);
     this._logger.log(
@@ -180,6 +183,24 @@ export class MultisigTransactionService
         request.internalChainId,
         MULTISIG_CONFIRM_STATUS.REJECT,
       );
+
+      let rejectConfirms = await this.multisigConfirmRepos.findByCondition({
+        multisigTransactionId: request.transactionId,
+        status: MULTISIG_CONFIRM_STATUS.REJECT,
+      });
+  
+      let safeOwner = await this.safeOwnerRepo.findByCondition({
+          safeId: transaction.safeId
+      });
+  
+      let safe = await this.safeRepos.findOne({
+        where: { id: transaction.safeId },
+      });
+
+      if (safeOwner.length - rejectConfirms.length < safe.threshold) {
+        transaction.status = TRANSACTION_STATUS.CANCELLED;
+        await this.multisigTransactionRepos.update(transaction);
+      }
 
       return res.return(ErrorMap.SUCCESSFUL);
     } catch (error) {
