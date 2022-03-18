@@ -5,7 +5,7 @@
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/aura-nw/multisig-api/issues)
 
 [![codecov](https://img.shields.io/codecov/c/gh/aura-nw/multisig-api/dev?style=flat-square&token=FNWOTPBIRX)](https://codecov.io/gh/aura-nw/multisig-api)
-[![Known Vulnerabilities](https://snyk.io/test/github/aura-nw/multisig-api/badge.svg)](https://snyk.io/test/github/aura-nw/multisig-api/)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=aura-nw_multisig-api&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=aura-nw_multisig-api)
 [![Maintainability](https://api.codeclimate.com/v1/badges/670351cb6c558dc7d9c2/maintainability)](https://codeclimate.com/github/aura-nw/multisig-api/maintainability)
 
 # Overview
