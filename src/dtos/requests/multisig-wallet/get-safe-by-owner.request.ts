@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsNumber } from 'class-validator';
 
 export class GetSafesByOwnerAddressQuery {
+  @IsNumber()
   @ApiProperty()
   internalChainId: number;
 }
