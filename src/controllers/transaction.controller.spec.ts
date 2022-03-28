@@ -1,7 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ErrorMap } from 'src/common/error.map';
-import { mockChain, mockCreateTransactionRequest } from 'src/mock/transaction.mock';
+import { mockSafe } from 'src/mock/safe.mock';
+import { mockChain, mockCreateTransactionRequest, mockTransaction } from 'src/mock/transaction.mock';
 import {
   ENTITIES_CONFIG,
   MODULE_REQUEST,
@@ -32,6 +33,7 @@ describe(TransactionController.name, () => {
   let mockFindSafeByCondition: jest.Mock;
   let mockFindOneMultisigTransaction: jest.Mock;
   let mockGetMultisigConfirm: jest.Mock;
+  let mockGetTransactions: jest.Mock;
 
   beforeAll(async () => {
     mockFindOneChain = jest.fn();
@@ -49,6 +51,9 @@ describe(TransactionController.name, () => {
       select: jest.fn().mockReturnThis(),
       orderBy: jest.fn().mockReturnThis(),
       getRawMany: jest.fn().mockResolvedValue([]),
+    }));
+    mockGetTransactions = jest.fn(() => ({
+      query: jest.fn().mockResolvedValue([]),
     }));
 
     testModule = await Test.createTestingModule({
@@ -70,7 +75,8 @@ describe(TransactionController.name, () => {
         {
           provide: getRepositoryToken(ENTITIES_CONFIG.MULTISIG_TRANSACTION),
           useValue: {
-            findOne: mockFindOneMultisigTransaction
+            findOne: mockFindOneMultisigTransaction,
+            query: mockGetTransactions,
           },
         },
         {
@@ -197,8 +203,8 @@ describe(TransactionController.name, () => {
       mockFindOneMultisigTransaction.mockResolvedValue([]);
       const result = await transactionController.getSignaturesOfMultisigTx(param);
       expect(result.Message).toEqual(ErrorMap.SUCCESSFUL.Message);
-    })
-  })
+    });
+  });
 
   describe('when get safe transactions', () => {
     it(`should return: ${ErrorMap.NO_SAFES_FOUND.Message}`, async () => {
@@ -212,6 +218,19 @@ describe(TransactionController.name, () => {
       mockFindSafeByCondition.mockResolvedValue([]);
       const result = await transactionController.getAllTxs(request);
       expect(result.Message).toEqual(ErrorMap.NO_SAFES_FOUND.Message);
-    })
+    });
+
+    // it(`should return: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
+    //   const request: MODULE_REQUEST.GetAllTransactionsRequest = {
+    //     safeAddress: 'aura1hnr59hsqchckgtd49nsejmy5mj400nv6cpmm9v',
+    //     isHistory: true,
+    //     pageIndex: 1,
+    //     pageSize: 10
+    //   };
+    //   mockFindSafeByCondition.mockResolvedValue(mockSafe);
+    //   // mockGetTransactions.mockResolvedValue(mockTransaction);
+    //   const result = await transactionController.getAllTxs(request);
+    //   expect(result.Message).toEqual(ErrorMap.SUCCESSFUL.Message);
+    // })
   })
 });

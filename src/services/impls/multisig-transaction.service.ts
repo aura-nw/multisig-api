@@ -113,8 +113,9 @@ export class MultisigTransactionService
         //Record owner send transaction
         await this.multisigConfirmRepos.insertIntoMultisigConfirm(request.transactionId, request.owner, '', '', request.internalChainId, MULTISIG_CONFIRM_STATUS.SEND);
 
-        await client.broadcastTx(txBroadcast, 10);
+        await client.broadcastTx(txBroadcast, 1000, 100);
       } catch (error) {
+        console.log('Error', error);
         //Update status and txhash
         //TxHash is encoded transaction when send it to network
         if (typeof error.txId === 'undefined') {
