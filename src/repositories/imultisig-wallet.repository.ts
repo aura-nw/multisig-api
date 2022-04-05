@@ -1,0 +1,54 @@
+import { Safe } from 'src/entities';
+import { IBaseRepository } from './ibase.repository';
+
+export interface IMultisigWalletRepository extends IBaseRepository {
+  /**
+   *
+   * @param ownerAddress string
+   */
+  getMultisigWalletsByOwner(
+    ownerAddress: string,
+    internalChainId: number,
+  ): Promise<any[]>;
+  /**
+   * get multisig wallet information
+   */
+  checkOwnerMultisigWallet(
+    owner_address: string,
+    safe_address: string,
+    pubkeys: string,
+  );
+
+  /**
+   * Get Threshold and Creator of Safe
+   * @param safeAddress Address of Safe
+   */
+  getThreshold(safeAddress: string): any;
+
+  deletePendingSafe(safeId: string, myAddress: string): Promise<Safe>;
+
+  insertSafe(
+    creatorAddress: string,
+    creatorPubkey: string,
+    otherOwnersAddress: string[],
+    threshold: number,
+    internalChainId: number,
+    chainPrefix: string,
+  ): Promise<any>;
+
+  getSafe(safeId: string, internalChainId?: number): Promise<any>;
+  getPendingSafe(safeId: string, internalChainId?: number): Promise<any>;
+  confirmSafe(safe: Safe, pubkeys: string[], prefix: string): Promise<Safe>;
+  getCreatedSafe(safeId: string, internalChainId?: number): Promise<Safe>;
+
+  recoverSafe(
+    safeAddress: string,
+    safePubkey: string,
+    creatorAddress: string,
+    creatorPubkey: string,
+    otherOwnersAddress: string[],
+    threshold: number,
+    internalChainId: number,
+    chainPrefix: string,
+  ): Promise<any>;
+}

@@ -1,55 +1,117 @@
 import { CacheModule, Module } from '@nestjs/common';
+import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppController } from './controllers/app.controller';
 import { MultisigWalletController } from './controllers/multisig-wallet.controller';
-import { SimulatingController } from './controllers/simulating.controller';
 import { TransactionController } from './controllers/transaction.controller';
 import { OwnerController } from './controllers/owner.controller';
-import { NotificationController } from './controllers/notification.controller';
-import { SERVICE_INTERFACE } from './module.config';
-import { AppService } from './services/app.service';
+import {
+  ENTITIES_CONFIG,
+  REPOSITORY_INTERFACE,
+  SERVICE_INTERFACE,
+} from './module.config';
 import { MultisigWalletService } from './services/impls/multisig-wallet.service';
-import { SimulatingService } from './services/impls/simulating.service';
-import { TransactionService } from './services/impls/transaction.service';
+import { MultisigTransactionService } from './services/impls/multisig-transaction.service';
 import { SharedModule } from './shared/shared.module';
+import { GeneralService } from './services/impls/general.service';
+import { ConfigService } from './shared/services/config.service';
+import { MultisigWalletRepository } from './repositories/impls/multisig-wallet.repository';
+import { MultisigWalletOwnerRepository } from './repositories/impls/multisig-wallet-owner.repository';
+import { GeneralController } from './controllers/general.controller';
+import { GeneralRepository } from './repositories/impls/general.repository';
+import { MultisigTransactionRepository } from './repositories/impls/multisig-transaction.repository';
+import { MultisigConfirmRepository } from './repositories/impls/multisig-confirm.repository';
+import { TransactionRepository } from './repositories/impls/transaction.repository';
+import { TransactionService } from './services/impls/transaction.service';
+import { SmartContractController } from './controllers/smart-contract.controller';
+import { SmartContractService } from './services/impls/smart-contract.service';
+import { SmartContractRepository } from './repositories/impls/smart-contract.repository';
 
 const controllers = [
-  SimulatingController,
   MultisigWalletController,
   TransactionController,
   OwnerController,
-  NotificationController,
+  GeneralController,
+  SmartContractController,
   // AppController,
 ];
-const entities = [];
-const providers = [];
+const entities = [
+  ENTITIES_CONFIG.SAFE,
+  ENTITIES_CONFIG.SAFE_OWNER,
+  ENTITIES_CONFIG.CHAIN,
+  ENTITIES_CONFIG.MULTISIG_CONFIRM,
+  ENTITIES_CONFIG.MULTISIG_TRANSACTION,
+  ENTITIES_CONFIG.AURA_TX,
+  ENTITIES_CONFIG.SMART_CONTRACT_TX,
+];
 @Module({
   imports: [
+    HttpModule.registerAsync({
+      useFactory: () => ({
+        timeout: 5000,
+        maxRedirects: 5,
+      }),
+    }),
     CacheModule.register({ ttl: 10000 }),
     SharedModule,
     TypeOrmModule.forFeature([...entities]),
+    TypeOrmModule.forRootAsync({
+      imports: [SharedModule],
+      useFactory: (configService: ConfigService) => configService.typeOrmConfig,
+      inject: [ConfigService],
+    }),
   ],
   controllers: [...controllers],
   providers: [
-    // AppService,
     //repository
-    // {
-    //     provide: REPOSITORY_INTERFACE.xxx,
-    //     useClass: xxx
-    // },
+    {
+      provide: REPOSITORY_INTERFACE.IMULTISIG_WALLET_REPOSITORY,
+      useClass: MultisigWalletRepository,
+    },
+    {
+      provide: REPOSITORY_INTERFACE.IMULTISIG_WALLET_OWNER_REPOSITORY,
+      useClass: MultisigWalletOwnerRepository,
+    },
+    {
+      provide: REPOSITORY_INTERFACE.IGENERAL_REPOSITORY,
+      useClass: GeneralRepository,
+    },
+    {
+      provide: REPOSITORY_INTERFACE.IMULTISIG_TRANSACTION_REPOSITORY,
+      useClass: MultisigTransactionRepository,
+    },
+    {
+      provide: REPOSITORY_INTERFACE.IMULTISIG_CONFIRM_REPOSITORY,
+      useClass: MultisigConfirmRepository,
+    },
+    {
+      provide: REPOSITORY_INTERFACE.ITRANSACTION_REPOSITORY,
+      useClass: TransactionRepository,
+    },
+    {
+      provide: REPOSITORY_INTERFACE.ISMART_CONTRACT_REPOSITORY,
+      useClass: SmartContractRepository,
+    },
     //service
     {
-      provide: SERVICE_INTERFACE.ISIMULATING_SERVICE,
-      useClass: SimulatingService,
+      provide: SERVICE_INTERFACE.IMULTISIG_TRANSACTION_SERVICE,
+      useClass: MultisigTransactionService,
+    },
+    {
+      provide: SERVICE_INTERFACE.IMULTISIG_WALLET_SERVICE,
+      useClass: MultisigWalletService,
+    },
+    {
+      provide: SERVICE_INTERFACE.IGENERAL_SERVICE,
+      useClass: GeneralService,
     },
     {
       provide: SERVICE_INTERFACE.ITRANSACTION_SERVICE,
       useClass: TransactionService,
     },
     {
-      provide: SERVICE_INTERFACE.IMULTISIG_WALLET_SERVICE,
-      useClass: MultisigWalletService,
-    },
+      provide: SERVICE_INTERFACE.ISMART_CONTRACT_SERVICE,
+      useClass: SmartContractService,
+    }
   ],
 })
 export class AppModule {}
