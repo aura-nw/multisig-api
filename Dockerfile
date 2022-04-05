@@ -1,4 +1,4 @@
-FROM node:dubnium
+FROM node:16.10 as build-stage
 
 ARG PORT=3000
 
