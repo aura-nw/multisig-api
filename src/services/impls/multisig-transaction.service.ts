@@ -28,6 +28,7 @@ import {
   IMultisigWalletRepository,
 } from 'src/repositories';
 import { ConfirmTransactionRequest } from 'src/dtos/requests';
+import { ISmartContractRepository } from 'src/repositories/ismart-contract.repository';
 
 @Injectable()
 export class MultisigTransactionService
@@ -47,6 +48,8 @@ export class MultisigTransactionService
     private safeRepos: IMultisigWalletRepository,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_OWNER_REPOSITORY)
     private safeOwnerRepo: IMultisigWalletOwnerRepository,
+    @Inject(REPOSITORY_INTERFACE.ISMART_CONTRACT_REPOSITORY)
+    private smartContractRepos: ISmartContractRepository,
   ) {
     super(multisigTransactionRepos);
     this._logger.log(
@@ -67,6 +70,7 @@ export class MultisigTransactionService
 
       //Validate safe don't have tx pending
       await this.multisigTransactionRepos.validateCreateTx(request.from);
+      await this.smartContractRepos.validateCreateTx(request.from);
 
       let safe = await this.safeRepos.findOne({where: { safeAddress: request.from }});
 

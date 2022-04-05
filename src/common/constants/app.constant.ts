@@ -40,5 +40,6 @@ export enum TRANSFER_DIRECTION {
 }
 
 export enum NETWORK_URL_TYPE {
-  COSMOS = '/cosmos.bank.v1beta1.MsgSend'
+  COSMOS = '/cosmos.bank.v1beta1.MsgSend',
+  EXECUTE_CONTRACT = '/cosmwasm.wasm.v1.MsgExecuteContract',
 }
