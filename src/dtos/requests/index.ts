@@ -12,3 +12,6 @@ export * from './transaction/get-all-transactions.request';
 export * from './transaction/reject-transaction.request';
 export * from './transaction/send-transaction.request';
 export * from './paginator.request';
+export * from './smart-contract/execute-message.request';
+export * from './smart-contract/query-message.request';
+export * from './general/get-account-onchain.request';
