@@ -25,4 +25,10 @@ export class GetAllTransactionsRequest {
         example: 1
     })
     pageIndex: number;
+
+    @IsNumber()
+    @ApiProperty({
+        example: 13
+    })
+    internalChainId: number;
 }

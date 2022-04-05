@@ -9,6 +9,9 @@ export class MultisigConfirm extends BaseEntityAutoId {
     @Column({name: 'MultisigTransactionId'})
     multisigTransactionId: number;
 
+    @Column({name: 'SmartContractTxId'})
+    smartContractTxId: number;
+
     @Column({name: 'BodyBytes'})
     bodyBytes: string;
 

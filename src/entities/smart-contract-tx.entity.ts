@@ -1,22 +1,25 @@
-import { BaseEntityAutoId } from "./base/base.entity";
 import { Column, Entity } from "typeorm";
+import { BaseEntityAutoId } from "./base/base.entity";
 
-@Entity({ name: 'MultisigTransaction' })
-export class MultisigTransaction extends BaseEntityAutoId {
+@Entity({ name: 'SmartContractTx' })
+export class SmartContractTx extends BaseEntityAutoId {
     @Column({name: 'SafeId'})
     safeId: number;
- 
+
     @Column({name: 'FromAddress'})
     fromAddress: string;
 
-    @Column({name: 'ToAddress'})
-    toAddress: string;
+    @Column({name: 'ContractAddress'})
+    contractAddress: string;
 
-    @Column({name: 'Amount', type: 'float'})
-    amount: number;
+    @Column({name: 'Function'})
+    function: string;
+    
+    @Column({name: 'Parameters'})
+    parameters: string;
 
-    @Column({name: 'Denom'})
-    denom: string;
+    @Column({name: 'TxHash'})
+    txHash: string;
 
     @Column({name: 'Status'})
     status: string;
@@ -38,7 +41,4 @@ export class MultisigTransaction extends BaseEntityAutoId {
 
     @Column({name: 'Fee', type: 'float'})
     fee: number;
-
-    @Column({name: 'TxHash'})
-    txHash: string;
 }
