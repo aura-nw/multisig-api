@@ -18,8 +18,10 @@ import {
   GetTransactionDetailsParam,
   RejectTransactionRequest,
   SendTransactionRequest,
+  GetAccountOnchainParam,
+  QueryMessageRequest,
+  ExecuteMessageRequest,
 } from './dtos/requests';
-import { GetAccountOnchainParam } from './dtos/requests/general/get-account-onchain.request';
 import {
   GetMultisigWalletResponse,
   MultisigSignatureResponse,
@@ -27,10 +29,10 @@ import {
   NetworkListResponse,
   ResponseDto,
   TransactionDetailsResponse,
+  GetAccountOnchainResponse,
+  CreateSafeResponse,
+  GetBalanceResponse,
 } from './dtos/responses';
-import { GetAccountOnchainResponse } from './dtos/responses/general/get-account-onchain.response';
-import { CreateSafeResponse } from './dtos/responses/multisig-wallet/create-safe.response';
-import { GetBalanceResponse } from './dtos/responses/multisig-wallet/get-balance.reponse';
 import {
   AuraTx,
   Chain,
@@ -38,6 +40,7 @@ import {
   MultisigTransaction,
   Safe,
   SafeOwner,
+  SmartContractTx,
 } from './entities';
 
 export const ENTITIES_CONFIG = {
@@ -47,6 +50,7 @@ export const ENTITIES_CONFIG = {
   MULTISIG_CONFIRM: MultisigConfirm,
   MULTISIG_TRANSACTION: MultisigTransaction,
   AURA_TX: AuraTx,
+  SMART_CONTRACT_TX: SmartContractTx,
 };
 
 export const REQUEST_CONFIG = {
@@ -70,6 +74,8 @@ export const REQUEST_CONFIG = {
   REJECT_TRANSACTION_PARAM: RejectTransactionRequest,
   GET_MULTISIG_SIGNATURES_PARAM: GetMultisigSignaturesParam,
   GET_ACCOUNT_ONCHAIN_PARAM: GetAccountOnchainParam,
+  QUERY_MESSAGE_REQUEST: QueryMessageRequest,
+  EXECUTE_MESSAGE_REQUEST: ExecuteMessageRequest,
 };
 
 export const RESPONSE_CONFIG = {
@@ -105,6 +111,8 @@ export module MODULE_REQUEST {
   export abstract class GetSafeBalanceQuery extends REQUEST_CONFIG.GET_SAFE_BALANCE_QUERY {}
   export abstract class GetSafeBalancePathParams extends REQUEST_CONFIG.GET_SAFE_BALANCE_PATH_PARAMS {}
   export abstract class GetAccountOnchainParam extends REQUEST_CONFIG.GET_ACCOUNT_ONCHAIN_PARAM {}
+  export abstract class QueryMessageRequest extends REQUEST_CONFIG.QUERY_MESSAGE_REQUEST {}
+  export abstract class ExecuteMessageRequest extends REQUEST_CONFIG.EXECUTE_MESSAGE_REQUEST {}
 }
 
 export module MODULE_RESPONSE {
@@ -125,6 +133,7 @@ export const SERVICE_INTERFACE = {
   ITRANSACTION_SERVICE: 'ITransactionService',
   IGENERAL_SERVICE: 'IGeneralService',
   IMULTISIG_TRANSACTION_SERVICE: 'IMultisigTransactionService',
+  ISMART_CONTRACT_SERVICE: 'ISmartContractService',
 };
 
 export const REPOSITORY_INTERFACE = {
@@ -134,6 +143,7 @@ export const REPOSITORY_INTERFACE = {
   IGENERAL_REPOSITORY: 'IGeneralRepository',
   IMULTISIG_TRANSACTION_REPOSITORY: 'IMultisigTransactionsRepository',
   IMULTISIG_CONFIRM_REPOSITORY: 'IMultisigConfirmRepository',
+  ISMART_CONTRACT_REPOSITORY: 'ISmartContractRepository',
 };
 
 export const PROVIDER_INTERFACE = {};

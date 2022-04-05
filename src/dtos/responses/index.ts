@@ -5,3 +5,6 @@ export * from './multisig-wallet/get-multisig-wallet.response';
 export * from './multisig-wallet/get-safe-by-owner.response';
 export * from './response.dto';
 export * from './transaction/transaction-details.response';
+export * from './general/get-account-onchain.response';
+export * from './multisig-wallet/create-safe.response';
+export * from './multisig-wallet/get-balance.reponse';

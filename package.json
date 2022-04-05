@@ -24,7 +24,10 @@
     "migration:revert": "ts-node node_modules/typeorm/cli.js -f ormconfig migration:revert"
   },
   "dependencies": {
+    "@auranw/aurajs": "^1.0.0-alpha1",
     "@cosmjs/amino": "^0.26.5",
+    "@cosmjs/cosmwasm": "^0.25.6",
+    "@cosmjs/cosmwasm-stargate": "^0.28.1",
     "@cosmjs/stargate": "^0.26.5",
     "@nestjs/axios": "0.0.4",
     "@nestjs/common": "^8.2.6",
@@ -32,6 +35,7 @@
     "@nestjs/platform-express": "^7.5.1",
     "@nestjs/swagger": "^4.7.12",
     "@nestjs/typeorm": "^7.1.5",
+    "@terra-money/terra.js": "^3.0.7",
     "axios": "^0.21.2",
     "cache-manager": "^3.6.0",
     "class-transformer": "^0.5.1",
