@@ -31,14 +31,26 @@ export class TransactionRepository
                 SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, Code as Status
                 FROM AuraTx
                 WHERE (FromAddress = ? OR ToAddress = ?)
+                AND InternalChainId = ?
                 UNION
                 SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, Status
                 FROM MultisigTransaction
                 WHERE FromAddress = ?
                 AND (Status = ? OR Status = ?)
+                AND InternalChainId = ?
                 ORDER BY UpdatedAt DESC
                 LIMIT ? OFFSET ?;
-            `, [request.safeAddress, request.safeAddress, request.safeAddress, TRANSACTION_STATUS.CANCELLED, TRANSACTION_STATUS.FAILED, limit, offset]);
+            `, [
+                request.safeAddress, 
+                request.safeAddress, 
+                request.internalChainId,
+                request.safeAddress, 
+                TRANSACTION_STATUS.CANCELLED, 
+                TRANSACTION_STATUS.FAILED, 
+                request.internalChainId, 
+                limit, 
+                offset
+            ]);
     }
 
     async getTransactionDetailsAuraTx(condition: any) {

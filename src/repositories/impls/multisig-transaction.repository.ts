@@ -204,6 +204,7 @@ export class MultisigTransactionRepository
       FROM MultisigTransaction
       WHERE FromAddress = ?
       AND (Status = ? OR Status = ? OR Status = ?)
+      AND InternalChainId = ?
       ORDER BY UpdatedAt DESC
       LIMIT ? OFFSET ?
     `,
@@ -213,6 +214,7 @@ export class MultisigTransactionRepository
         TRANSACTION_STATUS.AWAITING_CONFIRMATIONS,
         TRANSACTION_STATUS.AWAITING_EXECUTION,
         TRANSACTION_STATUS.PENDING,
+        request.internalChainId,
         limit,
         offset,
       ],
