@@ -5,6 +5,7 @@ export const CONTROLLER_CONSTANTS = {
   OWNER: 'owner',
   NOTIFICATION: 'notification',
   GENERAL: 'general',
+  SMART_CONTRACT: 'smartcontract',
 };
 export const URL_CONSTANTS = {
   broadcasting: 'broadcasting',
@@ -24,6 +25,8 @@ export const URL_CONSTANTS = {
   CONFIRM_SAFE: ':safeId',
   DELETE_SAFE: ':safeId',
   GET_SAFES_BY_OWNER: ':address/safes',
-  CHECK_ACCOUNT_ON_NETWORK: 'check-account-on-network'
+  CHECK_ACCOUNT_ON_NETWORK: 'check-account-on-network',
+  QUERY_MESSAGE: 'query-message',
+  EXECUTE_MESSAGE: 'execute-message',
 };
 
