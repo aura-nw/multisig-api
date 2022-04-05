@@ -21,6 +21,7 @@ import { plainToInstance } from 'class-transformer';
 import { ListSafeByOwnerResponse } from 'src/dtos/responses/multisig-wallet/get-safe-by-owner.response';
 import { IGeneralRepository } from 'src/repositories/igeneral.repository';
 import { CustomError } from 'src/common/customError';
+import { Chain } from 'src/entities';
 @Injectable()
 export class MultisigWalletService
   extends BaseService

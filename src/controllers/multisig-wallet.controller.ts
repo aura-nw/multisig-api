@@ -10,11 +10,7 @@ import {
   CommonPost,
 } from 'src/decorators/common.decorator';
 import { SwaggerBaseApiResponse } from 'src/dtos/responses';
-import {
-  MODULE_REQUEST,
-  MODULE_RESPONSE,
-  SERVICE_INTERFACE,
-} from 'src/module.config';
+import { MODULE_REQUEST, MODULE_RESPONSE, SERVICE_INTERFACE } from 'src/module.config';
 import { IMultisigWalletService } from 'src/services/imultisig-wallet.service';
 @Controller(CONTROLLER_CONSTANTS.MULTISIG_WALLET)
 @ApiTags(CONTROLLER_CONSTANTS.MULTISIG_WALLET)
@@ -105,4 +101,13 @@ export class MultisigWalletController {
     this._logger.log('========== Delete pending multisig wallet ==========');
     return this.multisigWalletService.deletePending(param, request);
   }
+
+  // @Post()
+  // @ApiOperation({ summary: 'Connect multisig wallet' })
+  // @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  // @HttpCode(HttpStatus.OK)
+  // async createIAO(@Body() request: MODULE_REQUEST.ConnectMultisigWalletRequest) {
+  //   this._logger.log('========== Connect multisig wallet ==========');
+  //   return await this.multisigWalletService.connectMultisigWalletByAddress(request);
+  // }
 }
