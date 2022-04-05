@@ -1,8 +1,9 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
 import { TRANSACTION_STATUS } from "src/common/constants/app.constant";
 import { CustomError } from "src/common/customError";
 import { ErrorMap } from "src/common/error.map";
-import { REPOSITORY_INTERFACE } from "src/module.config";
+import { ENTITIES_CONFIG, REPOSITORY_INTERFACE } from "src/module.config";
 import { ObjectLiteral, Repository } from "typeorm";
 import { ISmartContractRepository } from "../ismart-contract.repository";
 import { BaseRepository } from "./base.repository";
@@ -11,7 +12,7 @@ import { BaseRepository } from "./base.repository";
 export class SmartContractRepository extends BaseRepository implements ISmartContractRepository {
     private readonly _logger = new Logger(SmartContractRepository.name);
     constructor(
-        @Inject(REPOSITORY_INTERFACE.ISMART_CONTRACT_REPOSITORY)
+        @InjectRepository(ENTITIES_CONFIG.SMART_CONTRACT_TX)
         private repos: Repository<ObjectLiteral>,
     ) {
         super(repos);
