@@ -21,4 +21,9 @@ export interface IMultisigConfirmRepository extends IBaseRepository {
      */
     insertIntoMultisigConfirm(multisigTransactionId: number, ownerAddress: string, signature: string, bodyBytes: string, internalChainId: number, status: string);
 
+    /**
+     * Get list of confirmation with owner's pubkey
+     * @param multisigTransactionId 
+     */
+    getListConfirmWithPubkey(multisigTransactionId: number, status: string, safeId: number): any;
 }
