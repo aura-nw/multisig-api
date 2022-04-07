@@ -4,8 +4,10 @@ import {
   pubkeyToAddress,
   SinglePubkey,
 } from '@cosmjs/amino';
+import { Fee, LCDClient, LegacyAminoMultisigPublicKey, MsgSend, MultiSignature, SignatureV2, SimplePublicKey } from '@terra-money/terra.js';
 import { PUBKEY_TYPES } from 'src/common/constants/app.constant';
-import { ConfigService, ENV_CONFIG } from '../shared/services/config.service';
+import { MultisigTransaction, Safe } from 'src/entities';
+import { ConfigService } from '../shared/services/config.service';
 
 export class CommonUtil {
   private configService: ConfigService = new ConfigService();
@@ -79,5 +81,58 @@ export class CommonUtil {
       value,
     };
     return result;
+  }
+
+  async makeTerraTx(multisigTransaction: MultisigTransaction, safe: Safe, multisigConfirmArr: any[], client: LCDClient) {
+    const multisigPubkey = LegacyAminoMultisigPublicKey.fromAmino(JSON.parse(safe.safePubkey))
+    const multisig = new MultiSignature(multisigPubkey)
+
+    const amount = {};
+    amount[multisigTransaction.denom] = multisigTransaction.amount;
+    const send = new MsgSend(
+      multisigTransaction.fromAddress,
+      multisigTransaction.toAddress,
+      amount
+    );
+
+    const tx = await client.tx.create(
+      [
+        {
+          address: multisigTransaction.fromAddress,
+          sequenceNumber: Number(multisigTransaction.sequence),
+          publicKey: multisigPubkey
+        },
+      ],
+      {
+        msgs: [send],
+        fee: new Fee(multisigTransaction.gas, multisigTransaction.fee + multisigTransaction.denom),
+        gas: multisigTransaction.gas.toString()
+      }
+    );
+
+    let addressSignarureMap = [];
+    multisigConfirmArr.forEach((x) => {
+      const pubkeyAmino: SimplePublicKey.Amino = {
+        type: PUBKEY_TYPES.SECP256K1,
+        value: x.pubkey
+      };
+      const amino: SignatureV2.Amino = {
+        signature: x.signature,
+        pub_key: pubkeyAmino
+      };
+      const sig = SignatureV2.fromAmino(amino);
+      addressSignarureMap.push(sig);
+    });
+
+    multisig.appendSignatureV2s(addressSignarureMap);
+    tx.appendSignatures([
+      new SignatureV2(
+        multisigPubkey,
+        multisig.toSignatureDescriptor(),
+        Number(multisigTransaction.sequence)
+      ),
+    ]);
+
+    return tx;
   }
 }
