@@ -2,13 +2,13 @@ import { Inject, Logger } from '@nestjs/common';
 import { StargateClient } from '@cosmjs/stargate';
 import { ResponseDto } from 'src/dtos/responses/response.dto';
 import { IGeneralService } from '../igeneral.service';
-import { ConfigService } from 'src/shared/services/config.service';
 import { BaseService } from './base.service';
 import { CommonUtil } from 'src/utils/common.util';
 import { MODULE_REQUEST, REPOSITORY_INTERFACE } from 'src/module.config';
 import { IGeneralRepository } from 'src/repositories/igeneral.repository';
 import { ErrorMap } from 'src/common/error.map';
 import { IMultisigWalletRepository } from 'src/repositories';
+import { LCDClient } from '@terra-money/terra.js';
 
 export class GeneralService extends BaseService implements IGeneralService {
   private readonly _logger = new Logger(GeneralService.name);
@@ -45,8 +45,17 @@ export class GeneralService extends BaseService implements IGeneralService {
       const chain = await this.chainRepo.findByCondition(condition);
       if (chain.length === 0) return res.return(ErrorMap.CHAIN_ID_NOT_EXIST);
 
-      const client = await StargateClient.connect(chain[0].rpc);
-      const accountOnChain = await client.getAccount(param.safeAddress);
+      let client, accountOnChain;
+      if(chain[0].name !== 'Terra Testnet') {
+        client = await StargateClient.connect(chain[0].rpc);
+        accountOnChain = await client.getAccount(param.safeAddress);
+      } else {
+        client = new LCDClient({
+          chainID: chain[0].chainId,
+          URL: chain[0].rest,
+        });
+        accountOnChain = await client.auth.accountInfo(param.safeAddress);
+      }
       // const balance = await client.getBalance(param.safeAddress, chain[0].denom);
       // return res.return(ErrorMap.SUCCESSFUL, { accountOnChain, balance });
       return res.return(ErrorMap.SUCCESSFUL, accountOnChain);
