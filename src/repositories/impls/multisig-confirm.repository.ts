@@ -2,7 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CustomError } from 'src/common/customError';
 import { ErrorMap } from 'src/common/error.map';
-import { MultisigConfirm } from 'src/entities';
+import { MultisigConfirm, Safe, SafeOwner } from 'src/entities';
 import { ENTITIES_CONFIG, REPOSITORY_INTERFACE } from 'src/module.config';
 import { ObjectLiteral, Repository } from 'typeorm';
 import { IMultisigConfirmRepository } from '../imultisig-confirm.repository';
@@ -99,6 +99,23 @@ export class MultisigConfirmRepository
       .orderBy('multisigConfirm.createdAt', 'ASC');
     if (status)
       sqlQuerry.andWhere('multisigConfirm.status = :status', { status });
+    return sqlQuerry.getRawMany();
+  }
+
+  async getListConfirmWithPubkey(multisigTransactionId: number, status: string, safeId: number) {
+    let sqlQuerry = this.repos
+      .createQueryBuilder('multisigConfirm')
+      .innerJoin(SafeOwner, 'safeOwner', 'multisigConfirm.ownerAddress = safeOwner.ownerAddress')
+      .innerJoin(Safe, 'safe', 'safe.id = safeOwner.safeId')
+      .where('multisigConfirm.multisigTransactionId = :multisigTransactionId', {
+        multisigTransactionId,
+      })
+      .andWhere('multisigConfirm.status = :status', { status })
+      .andWhere('safeOwner.safeId = :safeId', { safeId })
+      .select([
+        'multisigConfirm.signature as signature',
+        'safeOwner.ownerPubkey as pubkey'
+      ])
     return sqlQuerry.getRawMany();
   }
 }
