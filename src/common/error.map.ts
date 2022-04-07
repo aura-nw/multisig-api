@@ -116,8 +116,12 @@ export const ErrorMap = {
     Message: 'Safe address not valid!',
   },
   SAFE_HAS_PENDING_TX: {
-    Code: 'E028',
+    Code: 'E029',
     Message: 'Safe has pending tx!',
+  },
+  BROADCAST_TX_FAILED: {
+    Code: 'E030',
+    Message: 'Broadcast transaction failed!'
   },
   C001: {
     Code: 'C001',
