@@ -123,6 +123,10 @@ export const ErrorMap = {
     Code: 'E030',
     Message: 'Broadcast transaction failed!'
   },
+  ADDRESS_PUBKEY_MISMATCH: {
+    Code: 'E031',
+    Message: 'The provided public key does not match the address'
+  },
   C001: {
     Code: 'C001',
     Message: `Missing result from Chaincode`,

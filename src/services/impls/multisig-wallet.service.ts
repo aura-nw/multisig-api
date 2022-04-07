@@ -22,6 +22,9 @@ import { ListSafeByOwnerResponse } from 'src/dtos/responses/multisig-wallet/get-
 import { IGeneralRepository } from 'src/repositories/igeneral.repository';
 import { CustomError } from 'src/common/customError';
 import { Chain } from 'src/entities';
+import { encodeSecp256k1Pubkey, pubkeyToAddress } from '@cosmjs/amino';
+import { fromBase64 } from '@cosmjs/encoding';
+import { SimplePublicKey } from '@terra-money/terra.js';
 @Injectable()
 export class MultisigWalletService
   extends BaseService
@@ -60,6 +63,8 @@ export class MultisigWalletService
 
       // Find chain
       const chainInfo = await this.generalRepo.findChain(internalChainId);
+
+      this.checkAddressPubkeyMismatch(creatorAddress, creatorPubkey, chainInfo);
 
       // Filter empty string in otherOwnersAddress
       otherOwnersAddress =
@@ -182,8 +187,13 @@ export class MultisigWalletService
     try {
       const { safeId } = param;
       const { myAddress, myPubkey } = request;
+
       // find safe
       const safe = await this.safeRepo.getPendingSafe(safeId);
+      // get chainInfo
+      const chainInfo = await this.generalRepo.findChain(safe.internalChainId);
+
+      this.checkAddressPubkeyMismatch(myAddress, myPubkey, chainInfo);
       // get confirm status
       const { safeOwner, fullConfirmed, pubkeys } =
         await this.safeOwnerRepo.getConfirmSafeStatus(
@@ -195,8 +205,7 @@ export class MultisigWalletService
       await this.safeOwnerRepo.updateSafeOwner(safeOwner);
       if (!fullConfirmed)
         return ResponseDto.response(ErrorMap.SUCCESSFUL, safe);
-      // get chainInfo
-      const chainInfo = await this.generalRepo.findChain(safe.internalChainId);
+
       const result = await this.safeRepo.confirmSafe(
         safe,
         pubkeys,
@@ -254,5 +263,25 @@ export class MultisigWalletService
     } catch (error) {
       return ResponseDto.responseError(MultisigWalletService.name, error);
     }
+  }
+
+  checkAddressPubkeyMismatch(address: string, pubkey: string, chain: Chain) {
+    let generatedAddress;
+
+    if(chain.name !== 'Terra Testnet') {
+      // get address from pubkey
+      const pubkeyFormated = encodeSecp256k1Pubkey(fromBase64(pubkey));
+      generatedAddress = pubkeyToAddress(
+        pubkeyFormated,
+        chain.prefix,
+      );
+    } else {
+      const simplePubkey = new SimplePublicKey(pubkey);
+      generatedAddress = simplePubkey.address();
+      console.log(generatedAddress)
+    }
+
+    if(generatedAddress !== address)
+      throw new CustomError(ErrorMap.ADDRESS_PUBKEY_MISMATCH);
   }
 }
