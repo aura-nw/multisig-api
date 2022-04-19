@@ -13,7 +13,7 @@ import {
 import { fromBase64 } from '@cosmjs/encoding';
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { BaseService } from './base.service';
-import { Chain, MultisigTransaction } from 'src/entities';
+import { MultisigTransaction } from 'src/entities';
 import {
   MULTISIG_CONFIRM_STATUS,
   NETWORK_URL_TYPE,
@@ -29,15 +29,13 @@ import {
 } from 'src/repositories';
 import { ConfirmTransactionRequest } from 'src/dtos/requests';
 import { ISmartContractRepository } from 'src/repositories/ismart-contract.repository';
-import { Coins, Fee, LCDClient, LegacyAminoMultisigPublicKey, MnemonicKey, MsgSend, MultiSignature, SignatureV2, SignDoc, SimplePublicKey } from '@terra-money/terra.js';
-import { CommonUtil } from 'src/utils/common.util';
 
 @Injectable()
 export class MultisigTransactionService
   extends BaseService
-  implements IMultisigTransactionService {
+  implements IMultisigTransactionService
+{
   private readonly _logger = new Logger(MultisigTransactionService.name);
-  private _commonUtil: CommonUtil = new CommonUtil();
 
   constructor(
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_TRANSACTION_REPOSITORY)
@@ -74,12 +72,12 @@ export class MultisigTransactionService
       await this.multisigTransactionRepos.validateCreateTx(request.from);
       await this.smartContractRepos.validateCreateTx(request.from);
 
-      let safe = await this.safeRepos.findOne({ where: { safeAddress: request.from } });
+      let safe = await this.safeRepos.findOne({where: { safeAddress: request.from }});
 
       //Safe data into DB
       let transactionResult =
         await this.multisigTransactionRepos.insertMultisigTransaction(request.from, request.to, request.amount, request.gasLimit, request.fee, signResult.accountNumber,
-          NETWORK_URL_TYPE.COSMOS, signResult.denom, TRANSACTION_STATUS.AWAITING_CONFIRMATIONS, request.internalChainId, signResult.sequence.toString(), safe.id);
+          NETWORK_URL_TYPE.COSMOS,  signResult.denom, TRANSACTION_STATUS.AWAITING_CONFIRMATIONS, request.internalChainId, signResult.sequence.toString(), safe.id);
 
       let requestSign = new ConfirmTransactionRequest();
       requestSign.fromAddress = request.creatorAddress;
@@ -91,7 +89,7 @@ export class MultisigTransactionService
       //Sign to transaction
       await this.confirmTransaction(requestSign);
 
-      return res.return(ErrorMap.SUCCESSFUL, transactionResult.id, { 'transactionId:': transactionResult.id });
+      return res.return(ErrorMap.SUCCESSFUL, transactionResult.id, {'transactionId:': transactionResult.id});
     } catch (error) {
       return ResponseDto.responseError(MultisigTransactionService.name, error);
     }
@@ -102,15 +100,9 @@ export class MultisigTransactionService
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      let chain = await this.chainRepos.findOne({ where: { id: request.internalChainId } });
+      let chain = await this.chainRepos.findOne({where: { id: request.internalChainId }});
 
-      let client;
-      if (chain.name !== 'Terra Testnet') client = await StargateClient.connect(chain.rpc);
-      else
-        client = new LCDClient({
-          chainID: chain.chainId,
-          URL: chain.rest,
-        });
+      const client = await StargateClient.connect(chain.rpc);
 
       //get information multisig transaction Id
       let multisigTransaction = await this.multisigTransactionRepos.validateTxBroadcast(request.transactionId);
@@ -119,39 +111,24 @@ export class MultisigTransactionService
       await this.multisigConfirmRepos.validateOwner(request.owner, multisigTransaction.fromAddress, request.internalChainId);
 
       //Make tx
-      let txBroadcast = await this.makeTx(request.transactionId, multisigTransaction, chain, client);
+      let txBroadcast = await this.makeTx(request.transactionId, multisigTransaction);
 
       try {
         //Record owner send transaction
         await this.multisigConfirmRepos.insertIntoMultisigConfirm(request.transactionId, request.owner, '', '', request.internalChainId, MULTISIG_CONFIRM_STATUS.SEND);
 
-        if(chain.name !== 'Terra Testnet') await client.broadcastTx(txBroadcast, 1000, 100);
-        else {
-          const result = await client.tx.broadcast(txBroadcast);
-          console.log(result)
-          if(result.code === 0) {
-            multisigTransaction.status = TRANSACTION_STATUS.SUCCESS;
-            multisigTransaction.txHash = result.txhash;
-            await this.multisigTransactionRepos.update(multisigTransaction);
-            return res.return(ErrorMap.SUCCESSFUL, { 'TxHash': result.txhash });
-          } else {
-            multisigTransaction.status = TRANSACTION_STATUS.FAILED;
-            multisigTransaction.txHash = result.txhash;
-            await this.multisigTransactionRepos.update(multisigTransaction);
-            return res.return(ErrorMap.BROADCAST_TX_FAILED, { 'Log': result.raw_log });
-          }
-        }
+        await client.broadcastTx(txBroadcast, 10);
       } catch (error) {
         console.log('Error', error);
         //Update status and txhash
         //TxHash is encoded transaction when send it to network
-        if (typeof error.txId === 'undefined') {
+        if (typeof error.txId === 'undefined' || error.txId === null) {
           multisigTransaction.status = TRANSACTION_STATUS.FAILED;
           await this.multisigTransactionRepos.update(multisigTransaction);
           return ResponseDto.responseError(MultisigTransactionService.name, error);
         } else {
           await this.multisigTransactionRepos.updateTxBroadcastSucces(multisigTransaction.id, error.txId);
-          return res.return(ErrorMap.SUCCESSFUL, { 'TxHash': error.txId });
+          return res.return(ErrorMap.SUCCESSFUL, {'TxHash' : error.txId});
         }
       }
     } catch (error) {
@@ -169,7 +146,7 @@ export class MultisigTransactionService
       await this.multisigConfirmRepos.validateOwner(request.fromAddress, transaction.fromAddress, request.internalChainId);
 
       //User has confirmed transaction before
-      await this.multisigConfirmRepos.checkUserHasSigned(request.transactionId, request.fromAddress);
+      await this.multisigConfirmRepos.checkUserHasSigned( request.transactionId, request.fromAddress);
 
       await this.multisigConfirmRepos.insertIntoMultisigConfirm(
         request.transactionId,
@@ -216,11 +193,11 @@ export class MultisigTransactionService
         multisigTransactionId: request.transactionId,
         status: MULTISIG_CONFIRM_STATUS.REJECT,
       });
-
+  
       let safeOwner = await this.safeOwnerRepo.findByCondition({
-        safeId: transaction.safeId
+          safeId: transaction.safeId
       });
-
+  
       let safe = await this.safeRepos.findOne({
         where: { id: transaction.safeId },
       });
@@ -236,47 +213,26 @@ export class MultisigTransactionService
     }
   }
 
-  async signingInstruction(internalChainId: number, sendAddress: string, amount: number): Promise<any> {
+  async signingInstruction(internalChainId: number, sendAddress: string, amount: number) : Promise<any> {
 
     const chain = await this.chainRepos.findChain(internalChainId);
+    const client = await StargateClient.connect(chain.rpc);
 
-    let balance, accountOnChain;
-    if (chain.name !== 'Terra Testnet') {
-      const client = await StargateClient.connect(chain.rpc);
+    let balance = await client.getBalance(sendAddress, chain.denom);
 
-      balance = await client.getBalance(sendAddress, chain.denom);
+    //Check account
+    const accountOnChain = await client.getAccount(sendAddress);
+    if (!accountOnChain) {
+      throw new CustomError(ErrorMap.E001);
+    }
 
-      //Check account
-      accountOnChain = await client.getAccount(sendAddress);
-      if (!accountOnChain) {
-        throw new CustomError(ErrorMap.E001);
-      }
-
-      if (Number(balance.amount) < amount) {
-        throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
-      }
-    } else {
-      const bombay = new LCDClient({
-        chainID: chain.chainId,
-        URL: chain.rest,
-      });
-
-      balance = await (await bombay.bank.balance(sendAddress))[0].toString().match(/\d+/g)[0];
-
-      //Check account
-      accountOnChain = await bombay.auth.accountInfo(sendAddress);
-      if (!accountOnChain) {
-        throw new CustomError(ErrorMap.E001);
-      }
-
-      if (Number(balance) < amount) {
-        throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
-      }
+    if (Number(balance.amount) < amount) {
+      throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
     }
 
     return {
-      accountNumber: (chain.name !== 'Terra Testnet') ? accountOnChain.accountNumber : accountOnChain.getAccountNumber(),
-      sequence: (chain.name !== 'Terra Testnet') ? accountOnChain.sequence : accountOnChain.getSequenceNumber(),
+      accountNumber: accountOnChain.accountNumber,
+      sequence: accountOnChain.sequence,
       chainId: chain.chainId,
       denom: chain.denom,
     };
@@ -285,57 +241,45 @@ export class MultisigTransactionService
   async makeTx(
     transactionId: number,
     multisigTransaction: MultisigTransaction,
-    chain: Chain,
-    client: StargateClient | LCDClient
   ): Promise<any> {
     //Get safe info
     let safeInfo = await this.safeRepos.findOne({
       where: { id: multisigTransaction.safeId },
     });
 
-    if (chain.name !== 'Terra Testnet') {
-      //Get all signature of transaction
-      let multisigConfirmArr = await this.multisigConfirmRepos.findByCondition({
-        multisigTransactionId: transactionId,
-        status: MULTISIG_CONFIRM_STATUS.CONFIRM,
-      });
+    //Get all signature of transaction
+    let multisigConfirmArr = await this.multisigConfirmRepos.findByCondition({
+      multisigTransactionId: transactionId,
+      status: MULTISIG_CONFIRM_STATUS.CONFIRM,
+    });
 
-      let addressSignarureMap = new Map<string, Uint8Array>();
+    let addressSignarureMap = new Map<string, Uint8Array>();
 
-      multisigConfirmArr.forEach((x) => {
-        let encodeSignature = fromBase64(x.signature);
-        addressSignarureMap.set(x.ownerAddress, encodeSignature);
-      });
+    multisigConfirmArr.forEach((x) => { 
+      let encodeSignature = fromBase64(x.signature);
+      addressSignarureMap.set(x.ownerAddress, encodeSignature);
+    });
 
-      //Fee
-      const sendFee = {
-        amount: coins(multisigTransaction.fee, multisigTransaction.denom),
-        gas: multisigTransaction.gas.toString(),
-      };
+    //Fee
+    const sendFee = {
+      amount: coins(multisigTransaction.fee, multisigTransaction.denom),
+      gas: multisigTransaction.gas.toString(),
+    };
 
-      let encodedBodyBytes = fromBase64(multisigConfirmArr[0].bodyBytes);
+    let encodedBodyBytes = fromBase64(multisigConfirmArr[0].bodyBytes);
 
-      //Pubkey
-      const safePubkey = JSON.parse(safeInfo.safePubkey);
+    //Pubkey
+    const safePubkey = JSON.parse(safeInfo.safePubkey);
 
-      let executeTransaction = makeMultisignedTx(
-        safePubkey,
-        Number(multisigTransaction.sequence),
-        sendFee,
-        encodedBodyBytes,
-        addressSignarureMap,
-      );
+    let executeTransaction = makeMultisignedTx(
+      safePubkey,
+      Number(multisigTransaction.sequence),
+      sendFee,
+      encodedBodyBytes,
+      addressSignarureMap,
+    );
 
-      let encodeTransaction = Uint8Array.from(TxRaw.encode(executeTransaction).finish());
-      return encodeTransaction;
-    } else {
-
-      let multisigConfirmArr = await this.multisigConfirmRepos.getListConfirmWithPubkey(multisigTransaction.id, MULTISIG_CONFIRM_STATUS.CONFIRM, safeInfo.id);
-
-      const tx = await this._commonUtil.makeTerraTx(multisigTransaction, safeInfo, multisigConfirmArr, client as LCDClient);
-
-      return tx;
-    }
+    let encodeTransaction = Uint8Array.from(TxRaw.encode(executeTransaction).finish());
+    return encodeTransaction;
   }
 }
-
