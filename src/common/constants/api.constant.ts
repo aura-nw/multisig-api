@@ -27,6 +27,9 @@ export const URL_CONSTANTS = {
   GET_SAFES_BY_OWNER: ':address/safes',
   CHECK_ACCOUNT_ON_NETWORK: 'check-account-on-network',
   QUERY_MESSAGE: 'query-message',
-  EXECUTE_MESSAGE: 'execute-message',
+  CREATE_EXECUTE_MESSAGE: 'create-execute-message',
+  CONFIRM_EXECUTE_MESSAGE: 'confirm-execute-message',
+  REJECT_EXECUTE_MESSAGE: 'reject-execute-message',
+  SEND_EXECUTE_MESSAGE: 'send-execute-message',
 };
 

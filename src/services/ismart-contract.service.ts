@@ -13,4 +13,24 @@ export interface ISmartContractService {
      * @param request 
      */
     createExecuteMessage(request: MODULE_REQUEST.ExecuteMessageRequest): Promise<ResponseDto>;
+
+    /**
+     * Sign an execute message transaction
+     */
+    confirmExecuteMessage(request: MODULE_REQUEST.ConfirmTransactionRequest): Promise<ResponseDto>;
+
+    /**
+     * Reject an execute message
+     */
+    rejectExecuteMessage(
+        request: MODULE_REQUEST.RejectTransactionParam,
+    ): Promise<ResponseDto>;
+
+    /**
+     * Broadcast an execute message
+     * @param request 
+     */
+    sendExecuteMessage(
+        request: MODULE_REQUEST.SendTransactionRequest,
+    ): Promise<ResponseDto>;
 }

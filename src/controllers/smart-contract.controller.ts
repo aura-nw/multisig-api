@@ -27,16 +27,55 @@ export class SmartContractController {
         return this.smartContractService.queryMessage(request);
     }
 
-    @Post(URL_CONSTANTS.EXECUTE_MESSAGE)
+    @Post(URL_CONSTANTS.CREATE_EXECUTE_MESSAGE)
     @ApiOperation({ summary: 'API to call write function of smart contract',
                   description: `It is used to call a write function of a smart contract and return the result.`})
     @ApiOkResponse({ status: 200, type: MODULE_RESPONSE.ResponseDto, description: 'The result returned is the ResponseDto class', schema: {} })
     @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
     @HttpCode(HttpStatus.OK)
-    async executeMessage(
+    async createExecuteMessage(
         @Body() request: MODULE_REQUEST.ExecuteMessageRequest
     ) {
         this._logger.log('========== Execute message smart contract ==========');
         return this.smartContractService.createExecuteMessage(request);
+    }
+
+    @Post(URL_CONSTANTS.CONFIRM_EXECUTE_MESSAGE)
+    @ApiOperation({ summary: 'API to call write function of smart contract',
+                  description: `It is used to call a write function of a smart contract and return the result.`})
+    @ApiOkResponse({ status: 200, type: MODULE_RESPONSE.ResponseDto, description: 'The result returned is the ResponseDto class', schema: {} })
+    @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+    @HttpCode(HttpStatus.OK)
+    async confirmExecuteMessage(
+        @Body() request: MODULE_REQUEST.ConfirmTransactionRequest
+    ) {
+        this._logger.log('========== Execute message smart contract ==========');
+        return this.smartContractService.confirmExecuteMessage(request);
+    }
+
+    @Post(URL_CONSTANTS.REJECT_EXECUTE_MESSAGE)
+    @ApiOperation({ summary: 'API to call write function of smart contract',
+                  description: `It is used to call a write function of a smart contract and return the result.`})
+    @ApiOkResponse({ status: 200, type: MODULE_RESPONSE.ResponseDto, description: 'The result returned is the ResponseDto class', schema: {} })
+    @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+    @HttpCode(HttpStatus.OK)
+    async rejectExecuteMessage(
+        @Body() request: MODULE_REQUEST.RejectTransactionParam
+    ) {
+        this._logger.log('========== Execute message smart contract ==========');
+        return this.smartContractService.rejectExecuteMessage(request);
+    }
+
+    @Post(URL_CONSTANTS.SEND_EXECUTE_MESSAGE)
+    @ApiOperation({ summary: 'API to call write function of smart contract',
+                  description: `It is used to call a write function of a smart contract and return the result.`})
+    @ApiOkResponse({ status: 200, type: MODULE_RESPONSE.ResponseDto, description: 'The result returned is the ResponseDto class', schema: {} })
+    @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+    @HttpCode(HttpStatus.OK)
+    async sendExecuteMessage(
+        @Body() request: MODULE_REQUEST.SendTransactionRequest
+    ) {
+        this._logger.log('========== Execute message smart contract ==========');
+        return this.smartContractService.sendExecuteMessage(request);
     }
 }

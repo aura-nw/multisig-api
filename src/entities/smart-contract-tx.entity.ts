@@ -30,6 +30,9 @@ export class SmartContractTx extends BaseEntityAutoId {
     @Column({name: 'InternalChainId'})
     internalChainId: number;
 
+    @Column({name: 'Denom'})
+    denom: string;
+
     @Column({name: 'AccountNumber'})
     accountNumber: number;
 

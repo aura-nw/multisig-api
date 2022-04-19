@@ -27,6 +27,18 @@ export class MultisigConfirmRepository
     );
   }
 
+  async insertIntoMultisigConfirmContractType(smartContractTxId: number, ownerAddress: string, signature: string, bodyBytes: string, internalChainId: number, status: string) {
+    let multisigConfirm = new MultisigConfirm();
+    multisigConfirm.smartContractTxId = smartContractTxId;
+    multisigConfirm.ownerAddress = ownerAddress;
+    multisigConfirm.signature = signature;
+    multisigConfirm.bodyBytes = bodyBytes;
+    multisigConfirm.internalChainId = internalChainId;
+    multisigConfirm.status = status;
+
+    await this.create(multisigConfirm);
+  }
+
   async insertIntoMultisigConfirm(
     multisigTransactionId: number,
     ownerAddress: string,
