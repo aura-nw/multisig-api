@@ -73,5 +73,5 @@ export class ExecuteMessageRequest {
     description: 'Parameters of function',
     example: { id: 'f1' }
   })
-  param: any;
+  param: string;
 }
