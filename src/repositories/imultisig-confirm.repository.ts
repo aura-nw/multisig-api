@@ -22,6 +22,11 @@ export interface IMultisigConfirmRepository extends IBaseRepository {
     insertIntoMultisigConfirm(multisigTransactionId: number, ownerAddress: string, signature: string, bodyBytes: string, internalChainId: number, status: string);
 
     /**
+     * Insert into table a signature to execute smart contract
+     */
+    insertIntoMultisigConfirmContractType(smartContractTxId: number, ownerAddress: string, signature: string, bodyBytes: string, internalChainId: number, status: string);
+
+    /**
      * Get list of confirmation with owner's pubkey
      * @param multisigTransactionId 
      */
