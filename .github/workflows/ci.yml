@@ -2,7 +2,7 @@ name: Continuous integration
 
 on:
   push:
-    branches: [main, dev, staging]
+    branches: [main, dev, staging, serenity, halo, euphoria]
 
 jobs:
   build:
