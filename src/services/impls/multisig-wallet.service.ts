@@ -268,20 +268,16 @@ export class MultisigWalletService
   checkAddressPubkeyMismatch(address: string, pubkey: string, chain: Chain) {
     let generatedAddress;
 
-    if(chain.name !== 'Terra Testnet') {
+    if (chain.name !== 'Terra Testnet') {
       // get address from pubkey
       const pubkeyFormated = encodeSecp256k1Pubkey(fromBase64(pubkey));
-      generatedAddress = pubkeyToAddress(
-        pubkeyFormated,
-        chain.prefix,
-      );
+      generatedAddress = pubkeyToAddress(pubkeyFormated, chain.prefix);
     } else {
       const simplePubkey = new SimplePublicKey(pubkey);
       generatedAddress = simplePubkey.address();
-      console.log(generatedAddress)
     }
 
-    if(generatedAddress !== address)
+    if (generatedAddress !== address)
       throw new CustomError(ErrorMap.ADDRESS_PUBKEY_MISMATCH);
   }
 }
