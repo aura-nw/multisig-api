@@ -27,10 +27,17 @@ export const mockCreateRequest: MODULE_REQUEST.CreateMultisigWalletRequest[] = [
   },
   {
     creatorAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
-    creatorPubkey: '1',
+    creatorPubkey: 'A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8kk',
+    otherOwnersAddress: [],
+    threshold: 2,
+    internalChainId: 3,
+  },
+  {
+    creatorAddress: 'aura1kmd8r5pr0phasvm879fcymv35zw6r5jjtsqs26',
+    creatorPubkey: 'AqpOzQNpjQR6lf8kkZpPuqUDO76Lr3K7I2of3jOrxFUL',
     otherOwnersAddress: [],
     threshold: 1,
-    internalChainId: 3,
+    internalChainId: 21,
   },
 ];
 export const mockSafe: any[] = [
