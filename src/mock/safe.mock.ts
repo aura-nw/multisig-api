@@ -130,4 +130,8 @@ export const mockChain: any[] = [
     rpc: 'http://0.0.0.0:26657',
     prefix: 'aura',
   },
+  {
+    rpc: 'https://rpc.dev.aura.network',
+    prefix: 'aura',
+  },
 ];
