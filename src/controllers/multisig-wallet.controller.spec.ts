@@ -256,6 +256,7 @@ describe(MultisigWalletController.name, () => {
         };
         // find safe
         mockFindSafeByCondition.mockResolvedValue([]);
+        mockFindOneChain.mockResolvedValue(mockChain[1]);
 
         const result = await safeController.getMultisigWallet(param, query);
         expect(result.Message).toEqual(ErrorMap.NO_SAFES_FOUND.Message);
@@ -352,6 +353,7 @@ describe(MultisigWalletController.name, () => {
 
         // find safe
         mockFindSafeByCondition.mockResolvedValue([]);
+        mockFindOneChain.mockResolvedValue(mockChain[1]);
 
         const result = await safeController.getMultisigWallet(param, query);
         expect(result.Message).toEqual(ErrorMap.NO_SAFES_FOUND.Message);
@@ -366,7 +368,7 @@ describe(MultisigWalletController.name, () => {
         };
 
         // find safe
-        mockFindSafeByCondition.mockResolvedValue([mockSafe[0]]);
+        mockFindSafeByCondition.mockResolvedValue([mockSafe[1]]);
         // find safe owner
         mockFindSafeOwnerByCondition.mockResolvedValue([]);
 
@@ -447,6 +449,7 @@ describe(MultisigWalletController.name, () => {
       };
       // find safe
       mockFindSafeByCondition.mockResolvedValue([]);
+      mockFindOneChain.mockResolvedValue(mockChain[1]);
 
       const result = await safeController.getBalance(param, query);
       expect(result.Message).toEqual(ErrorMap.NO_SAFES_FOUND.Message);
@@ -540,6 +543,7 @@ describe(MultisigWalletController.name, () => {
 
       // find safe
       mockFindSafeByCondition.mockResolvedValue([]);
+      mockFindOneChain.mockResolvedValue(mockChain[1]);
 
       const result = await safeController.confirmMultisigWallet(param, request);
       expect(result.Message).toEqual(ErrorMap.NO_SAFES_FOUND.Message);
@@ -572,6 +576,7 @@ describe(MultisigWalletController.name, () => {
 
       // find safe
       mockFindSafeByCondition.mockResolvedValue([mockSafe[2]]);
+      mockFindOneChain.mockResolvedValue([mockChain[1]]);
       // find safe owners
       mockFindSafeOwnerByCondition.mockResolvedValue([
         mockSafeOwner[0],
@@ -595,6 +600,7 @@ describe(MultisigWalletController.name, () => {
 
       // find safe
       mockFindSafeByCondition.mockResolvedValue([mockSafe[2]]);
+      mockFindOneChain.mockResolvedValue([mockChain[1]]);
       // find safe owners
       mockFindSafeOwnerByCondition.mockResolvedValue([
         mockSafeOwner[1],

@@ -25,6 +25,8 @@ import { Chain } from 'src/entities';
 import { encodeSecp256k1Pubkey, pubkeyToAddress } from '@cosmjs/amino';
 import { fromBase64 } from '@cosmjs/encoding';
 import { SimplePublicKey } from '@terra-money/terra.js';
+import { pubkeyToAddressEvmos } from 'src/chains/evmos';
+
 @Injectable()
 export class MultisigWalletService
   extends BaseService
@@ -265,16 +267,22 @@ export class MultisigWalletService
     }
   }
 
-  checkAddressPubkeyMismatch(address: string, pubkey: string, chain: Chain) {
+  async checkAddressPubkeyMismatch(
+    address: string,
+    pubkey: string,
+    chain: Chain,
+  ) {
     let generatedAddress;
 
-    if (chain.name !== 'Terra Testnet') {
+    if (chain.name === 'Terra Testnet') {
+      const simplePubkey = new SimplePublicKey(pubkey);
+      generatedAddress = simplePubkey.address();
+    } else if (chain.name === 'Evmos Testnet') {
+      generatedAddress = pubkeyToAddressEvmos(pubkey);
+    } else {
       // get address from pubkey
       const pubkeyFormated = encodeSecp256k1Pubkey(fromBase64(pubkey));
       generatedAddress = pubkeyToAddress(pubkeyFormated, chain.prefix);
-    } else {
-      const simplePubkey = new SimplePublicKey(pubkey);
-      generatedAddress = simplePubkey.address();
     }
 
     if (generatedAddress !== address)

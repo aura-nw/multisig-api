@@ -241,7 +241,7 @@ export class MultisigWalletRepository
     const safes = await this.findByCondition(condition);
     if (!safes || safes.length === 0) {
       //Found on network
-       await this.checkAccountOnNetwork(safeId, internalChainId);
+      await this.checkAccountOnNetwork(safeId, internalChainId);
     }
     const newSafe = await this.findByCondition(condition);
     if (!newSafe || newSafe.length === 0) {
@@ -369,7 +369,7 @@ export class MultisigWalletRepository
         );
       }
     } catch (error) {
-      throw new CustomError(ErrorMap.NO_SAFES_FOUND)
+      throw new CustomError(ErrorMap.NO_SAFES_FOUND);
     }
   }
 }
