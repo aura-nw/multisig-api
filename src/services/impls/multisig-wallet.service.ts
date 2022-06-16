@@ -135,6 +135,10 @@ export class MultisigWalletService
             safeInfo.address,
             chainInfo.denom,
           );
+          if (balance.denom === 'atevmos') {
+            const amount = Number(balance.amount) * 10 ** -18;
+            balance.amount = String(amount);
+          }
           safeInfo.balance = [balance];
         } catch (error) {
           msgError = error.message;
