@@ -7,9 +7,10 @@ RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
 COPY . .
-RUN npm install && npm cache clean --force
-RUN npm run build
+RUN npm install --global yarn
+RUN yarn install 
+# RUN npm run build
 
 EXPOSE $PORT
 
-CMD [ "npm", "run", "start" ]
+CMD [ "yarn", "start" ]
