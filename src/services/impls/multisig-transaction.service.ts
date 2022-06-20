@@ -333,6 +333,8 @@ export class MultisigTransactionService
       where: { id: multisigTransaction.safeId },
     });
 
+    const chain = await this.chainRepos.findChain(safeInfo.internalChainId);
+
     //Get all signature of transaction
     let multisigConfirmArr = await this.multisigConfirmRepos.findByCondition({
       multisigTransactionId: transactionId,
@@ -357,13 +359,24 @@ export class MultisigTransactionService
     //Pubkey
     const safePubkey = JSON.parse(safeInfo.safePubkey);
 
-    let executeTransaction = makeMultisignedTxEvmos(
-      safePubkey,
-      Number(multisigTransaction.sequence),
-      sendFee,
-      encodedBodyBytes,
-      addressSignarureMap,
-    );
+    let executeTransaction;
+    if (chain.denom === 'atevmos') {
+      executeTransaction = makeMultisignedTxEvmos(
+        safePubkey,
+        Number(multisigTransaction.sequence),
+        sendFee,
+        encodedBodyBytes,
+        addressSignarureMap,
+      );
+    } else {
+      executeTransaction = makeMultisignedTx(
+        safePubkey,
+        Number(multisigTransaction.sequence),
+        sendFee,
+        encodedBodyBytes,
+        addressSignarureMap,
+      );
+    }
 
     let encodeTransaction = Uint8Array.from(
       TxRaw.encode(executeTransaction).finish(),
