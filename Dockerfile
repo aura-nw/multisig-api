@@ -7,7 +7,6 @@ RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
 COPY . .
-RUN npm install --global yarn
 RUN yarn install 
 # RUN npm run build
 
