@@ -131,7 +131,7 @@ export class MultisigWalletService
         try {
           const network = new Network(chainInfo.rpc);
           await network.init();
-          const balance = await network.getBalance(
+          const balance = await network.client.getBalance(
             safeInfo.address,
             chainInfo.denom,
           );
@@ -171,7 +171,7 @@ export class MultisigWalletService
       try {
         const network = new Network(chainInfo.rpc);
         await network.init();
-        const balance = await network.getBalance(
+        const balance = await network.client.getBalance(
           safe.safeAddress,
           chainInfo.denom,
         );

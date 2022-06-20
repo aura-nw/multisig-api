@@ -38,7 +38,7 @@
     "@nestjs/typeorm": "^7.1.5",
     "@terra-money/terra.js": "^3.0.7",
     "@tharsis/address-converter": "^0.1.8",
-    "axios": "^0.21.2",
+    "axios": "^0.21.4",
     "cache-manager": "^3.6.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.13.2",

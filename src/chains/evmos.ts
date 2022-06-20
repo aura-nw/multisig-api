@@ -1,3 +1,14 @@
+import { LegacyAminoPubKey } from 'cosmjs-types/cosmos/crypto/multisig/keys';
+import {
+  CompactBitArray,
+  MultiSignature,
+} from 'cosmjs-types/cosmos/crypto/multisig/v1beta1/multisig';
+import { SignMode } from 'cosmjs-types/cosmos/tx/signing/v1beta1/signing';
+import { Any } from 'cosmjs-types/google/protobuf/any';
+import { PubKey } from 'cosmjs-types/cosmos/crypto/secp256k1/keys';
+import { encodePubkey } from '@cosmjs/proto-signing';
+import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
+import { AuthInfo, SignerInfo } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { Uint53 } from '@cosmjs/math';
 import {
   isEd25519Pubkey,
@@ -6,15 +17,20 @@ import {
   MultisigThresholdPubkey,
   Pubkey,
   SinglePubkey,
+  StdFee,
 } from '@cosmjs/amino';
+import * as axios from 'axios';
 import { Keccak256, Secp256k1 } from '@cosmjs/crypto';
 import {
   fromBase64,
+  fromBech32,
   fromHex,
   toAscii,
   toBech32,
   toHex,
 } from '@cosmjs/encoding';
+import { makeCompactBitArray } from '@cosmjs/stargate/build/multisignature';
+import * as Long from 'long';
 
 // As discussed in https://github.com/binance-chain/javascript-sdk/issues/163
 // Prefixes listed here: https://github.com/tendermint/tendermint/blob/d419fffe18531317c28c29a292ad7d253f6cafdf/docs/spec/blockchain/encoding.md#public-key-cryptography
@@ -56,7 +72,7 @@ export function pubkeyToRawAddress(pubkey: Pubkey): Uint8Array {
   return lastTwentyBytes;
 }
 
-export function pubkeyToAddressEvmos(pubkey: string): string {
+export function pubkeyToAddressEvmos(pubkey: string, prefix = 'evmos'): string {
   const pubKeyDecoded = Buffer.from(pubkey, 'base64');
   let pubKeyUncompressed: Uint8Array;
   switch (pubKeyDecoded.length) {
@@ -78,7 +94,7 @@ export function pubkeyToAddressEvmos(pubkey: string): string {
   console.log(`ETH address: ${ethAddress}`);
 
   // generate bech32 address
-  const bech32Address = toBech32('evmos', lastTwentyBytes);
+  const bech32Address = toBech32(prefix, lastTwentyBytes);
   // const bech32Address = bech32.encode(
   //   'evmos',
   //   bech32.toWords(lastTwentyBytes),
@@ -206,4 +222,131 @@ export function compareArrays(a: Uint8Array, b: Uint8Array): number {
   const aHex = toHex(a);
   const bHex = toHex(b);
   return aHex === bHex ? 0 : aHex < bHex ? -1 : 1;
+}
+
+export async function getEvmosAccount(
+  rest: string,
+  address: string,
+): Promise<{
+  sequence: number;
+  accountNumber: number;
+}> {
+  // Query the node
+  const result = await axios.default.get(
+    `${rest}cosmos/auth/v1beta1/accounts/${address}`,
+  );
+  // NOTE: the node returns status code 400 if the wallet doesn't exist, catch that error
+
+  const addrData = await result.data.account;
+  // Response format at @tharsis/provider/rest/account/AccountResponse
+  /*
+  account: {
+    '@type': string
+    base_account: {
+      address: string
+      pub_key?: {
+        '@type': string
+        key: string
+      }
+      account_number: string
+      sequence: string
+    }
+    code_hash: string
+  }
+*/
+  return {
+    sequence: Number(addrData.base_account.sequence),
+    accountNumber: Number(addrData.base_account.account_number),
+  };
+}
+
+export function makeMultisignedTxEvmos(
+  multisigPubkey: MultisigThresholdPubkey,
+  sequence: number,
+  fee: StdFee,
+  bodyBytes: Uint8Array,
+  signatures: Map<string, Uint8Array>,
+): TxRaw {
+  const addresses = Array.from(signatures.keys());
+  const prefix = fromBech32(addresses[0]).prefix;
+
+  const signers: boolean[] = Array(multisigPubkey.value.pubkeys.length).fill(
+    false,
+  );
+  const signaturesList = new Array<Uint8Array>();
+  for (let i = 0; i < multisigPubkey.value.pubkeys.length; i++) {
+    const signerAddress = pubkeyToAddressEvmos(
+      multisigPubkey.value.pubkeys[i].value,
+      prefix,
+    );
+    const signature = signatures.get(signerAddress);
+    if (signature) {
+      signers[i] = true;
+      signaturesList.push(signature);
+    }
+  }
+
+  const signerInfo: SignerInfo = {
+    publicKey: encodePubkeyEvmos(multisigPubkey),
+    modeInfo: {
+      multi: {
+        bitarray: makeCompactBitArray(signers),
+        modeInfos: signaturesList.map((_) => ({
+          single: { mode: SignMode.SIGN_MODE_LEGACY_AMINO_JSON },
+        })),
+      },
+    },
+    sequence: Long.fromNumber(sequence),
+  };
+
+  const authInfo = AuthInfo.fromPartial({
+    signerInfos: [signerInfo],
+    fee: {
+      amount: [...fee.amount],
+      gasLimit: Long.fromString(fee.gas),
+    },
+  });
+
+  const authInfoBytes = AuthInfo.encode(authInfo).finish();
+  const signedTx = TxRaw.fromPartial({
+    bodyBytes: bodyBytes,
+    authInfoBytes: authInfoBytes,
+    signatures: [
+      MultiSignature.encode(
+        MultiSignature.fromPartial({ signatures: signaturesList }),
+      ).finish(),
+    ],
+  });
+  return signedTx;
+}
+
+export function encodePubkeyEvmos(pubkey: Pubkey): Any {
+  if (isSecp256k1Pubkey(pubkey)) {
+    const pubkeyProto = PubKey.fromPartial({
+      key: fromBase64(pubkey.value),
+    });
+    return Any.fromPartial({
+      typeUrl: '/cosmos.crypto.secp256k1.PubKey',
+      value: Uint8Array.from(PubKey.encode(pubkeyProto).finish()),
+    });
+  } else if (isEthSecp256k1Pubkey(pubkey)) {
+    const pubkeyProto = PubKey.fromPartial({
+      key: fromBase64(pubkey.value),
+    });
+    return Any.fromPartial({
+      typeUrl: '/ethermint.crypto.v1.ethsecp256k1.PubKey',
+      value: Uint8Array.from(PubKey.encode(pubkeyProto).finish()),
+    });
+  } else if (isMultisigThresholdPubkey(pubkey)) {
+    const pubkeyProto = LegacyAminoPubKey.fromPartial({
+      threshold: Uint53.fromString(pubkey.value.threshold).toNumber(),
+      publicKeys: pubkey.value.pubkeys.map(encodePubkeyEvmos),
+    });
+    return Any.fromPartial({
+      typeUrl: '/cosmos.crypto.multisig.LegacyAminoPubKey',
+      value: Uint8Array.from(LegacyAminoPubKey.encode(pubkeyProto).finish()),
+    });
+  } else {
+    throw new Error(`Pubkey type ${pubkey.type} not recognized`);
+  }
 }
