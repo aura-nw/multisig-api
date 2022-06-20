@@ -9,6 +9,7 @@ import { IGeneralRepository } from 'src/repositories/igeneral.repository';
 import { ErrorMap } from 'src/common/error.map';
 import { IMultisigWalletRepository } from 'src/repositories';
 import { LCDClient } from '@terra-money/terra.js';
+import { getEvmosAccount } from 'src/chains/evmos';
 
 export class GeneralService extends BaseService implements IGeneralService {
   private readonly _logger = new Logger(GeneralService.name);
@@ -46,15 +47,30 @@ export class GeneralService extends BaseService implements IGeneralService {
       if (chain.length === 0) return res.return(ErrorMap.CHAIN_ID_NOT_EXIST);
 
       let client, accountOnChain;
-      if(chain[0].name !== 'Terra Testnet') {
-        client = await StargateClient.connect(chain[0].rpc);
-        accountOnChain = await client.getAccount(param.safeAddress);
-      } else {
-        client = new LCDClient({
-          chainID: chain[0].chainId,
-          URL: chain[0].rest,
-        });
-        accountOnChain = await client.auth.accountInfo(param.safeAddress);
+      switch (chain[0].chainId) {
+        case 'evmos_9000-4':
+          const { sequence, accountNumber } = await getEvmosAccount(
+            chain[0].rest,
+            param.safeAddress,
+          );
+          accountOnChain = {
+            accountNumber,
+            sequence,
+            address: param.safeAddress,
+            pubkey: safe[0].safePubkey ? JSON.parse(safe[0].safePubkey) : null,
+          };
+          break;
+        case 'terra':
+          client = new LCDClient({
+            chainID: chain[0].chainId,
+            URL: chain[0].rest,
+          });
+          accountOnChain = await client.auth.accountInfo(param.safeAddress);
+          break;
+        default:
+          client = await StargateClient.connect(chain[0].rpc);
+          accountOnChain = await client.getAccount(param.safeAddress);
+          break;
       }
       // const balance = await client.getBalance(param.safeAddress, chain[0].denom);
       // return res.return(ErrorMap.SUCCESSFUL, { accountOnChain, balance });
