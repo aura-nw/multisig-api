@@ -25,23 +25,4 @@ export class Network {
       return resolve({});
     });
   }
-
-  public static async initNetworkAndGetBalance(
-    tendermintUrl: string,
-    safeAddress: string,
-    denom: string,
-  ) {
-    try {
-      const network = new Network(tendermintUrl);
-      await network.init();
-      const balance = await network.getBalance(safeAddress, denom);
-      return [balance];
-    } catch (error) {
-      throw new CustomError(ErrorMap.GET_BALANCE_FAILED, error.message);
-    }
-  }
-
-  getBalance(address: string, denom = 'uaura') {
-    return this.client.getBalance(address, denom);
-  }
 }
