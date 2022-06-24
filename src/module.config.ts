@@ -22,6 +22,7 @@ import {
   QueryMessageRequest,
   ExecuteMessageRequest,
 } from './dtos/requests';
+import { AuthRequest } from './dtos/requests/auth/signin.request';
 import {
   GetMultisigWalletResponse,
   MultisigSignatureResponse,
@@ -78,6 +79,7 @@ export const REQUEST_CONFIG = {
   GET_ACCOUNT_ONCHAIN_PARAM: GetAccountOnchainParam,
   QUERY_MESSAGE_REQUEST: QueryMessageRequest,
   EXECUTE_MESSAGE_REQUEST: ExecuteMessageRequest,
+  SIGN_IN_REQUEST: AuthRequest,
 };
 
 export const RESPONSE_CONFIG = {
@@ -116,6 +118,7 @@ export module MODULE_REQUEST {
   export abstract class GetAccountOnchainParam extends REQUEST_CONFIG.GET_ACCOUNT_ONCHAIN_PARAM {}
   export abstract class QueryMessageRequest extends REQUEST_CONFIG.QUERY_MESSAGE_REQUEST {}
   export abstract class ExecuteMessageRequest extends REQUEST_CONFIG.EXECUTE_MESSAGE_REQUEST {}
+  export abstract class AuthRequest extends REQUEST_CONFIG.SIGN_IN_REQUEST {}
 }
 
 export module MODULE_RESPONSE {
@@ -137,6 +140,7 @@ export const SERVICE_INTERFACE = {
   IGENERAL_SERVICE: 'IGeneralService',
   IMULTISIG_TRANSACTION_SERVICE: 'IMultisigTransactionService',
   ISMART_CONTRACT_SERVICE: 'ISmartContractService',
+  IAUTH_SERVICE: 'IAuthService',
 };
 
 export const REPOSITORY_INTERFACE = {

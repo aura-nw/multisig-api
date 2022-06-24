@@ -22,6 +22,10 @@ import { TransactionService } from './services/impls/transaction.service';
 import { SmartContractController } from './controllers/smart-contract.controller';
 import { SmartContractService } from './services/impls/smart-contract.service';
 import { SmartContractRepository } from './repositories/impls/smart-contract.repository';
+import { AuthController } from './controllers/auth.controller';
+import { AuthService } from './services/impls/auth.service';
+import { JwtModule } from '@nestjs/jwt';
+import { JwtStrategy } from './jwt.strategy';
 
 const controllers = [
   MultisigWalletController,
@@ -29,6 +33,7 @@ const controllers = [
   OwnerController,
   GeneralController,
   SmartContractController,
+  AuthController,
   // AppController,
 ];
 const entities = [
@@ -56,9 +61,16 @@ const entities = [
       useFactory: (configService: ConfigService) => configService.typeOrmConfig,
       inject: [ConfigService],
     }),
+    JwtModule.registerAsync({
+      imports: [SharedModule],
+      useFactory: (configService: ConfigService) => configService.jwtConfig,
+      inject: [ConfigService],
+    }),
   ],
   controllers: [...controllers],
   providers: [
+    //jwt
+    JwtStrategy,
     //repository
     {
       provide: REPOSITORY_INTERFACE.IMULTISIG_WALLET_REPOSITORY,
@@ -112,6 +124,10 @@ const entities = [
     {
       provide: SERVICE_INTERFACE.ISMART_CONTRACT_SERVICE,
       useClass: SmartContractService,
+    },
+    {
+      provide: SERVICE_INTERFACE.IAUTH_SERVICE,
+      useClass: AuthService,
     }
   ],
 })

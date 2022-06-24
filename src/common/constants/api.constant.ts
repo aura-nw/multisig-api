@@ -6,6 +6,7 @@ export const CONTROLLER_CONSTANTS = {
   NOTIFICATION: 'notification',
   GENERAL: 'general',
   SMART_CONTRACT: 'smartcontract',
+  AUTH: 'auth',
 };
 export const URL_CONSTANTS = {
   broadcasting: 'broadcasting',
@@ -31,5 +32,6 @@ export const URL_CONSTANTS = {
   CONFIRM_EXECUTE_MESSAGE: 'confirm-execute-message',
   REJECT_EXECUTE_MESSAGE: 'reject-execute-message',
   SEND_EXECUTE_MESSAGE: 'send-execute-message',
+  AUTH: 'auth',
 };
 
