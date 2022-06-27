@@ -143,6 +143,10 @@ export const ErrorMap = {
     Code: 'E034',
     Message: `Invalid Timestamp!`,
   },
+  CHAIN_NOT_FOUND: {
+    Code: 'E035',
+    Message: `Chain not found!`,
+  },
   C001: {
     Code: 'C001',
     Message: `Missing result from Chaincode`,
