@@ -21,7 +21,10 @@ import {
   encodeAminoPubkeySupportEvmos,
 } from 'src/chains/evmos';
 import { PUBKEY_TYPES } from 'src/common/constants/app.constant';
+import { CustomError } from 'src/common/customError';
+import { ErrorMap } from 'src/common/error.map';
 import { MultisigTransaction, Safe } from 'src/entities';
+import { AuthService } from 'src/services/impls/auth.service';
 import { ConfigService } from '../shared/services/config.service';
 
 export class CommonUtil {
@@ -197,5 +200,11 @@ export class CommonUtil {
     ]);
 
     return tx;
+  }
+
+  async getAuthInfo(): Promise<any> {
+    const currentUser = await AuthService.getAuthUser();
+    if (!currentUser) throw new CustomError(ErrorMap.UNAUTHRORIZED);
+    return currentUser;
   }
 }

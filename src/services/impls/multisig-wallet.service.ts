@@ -53,9 +53,13 @@ export class MultisigWalletService
     request: MODULE_REQUEST.CreateMultisigWalletRequest,
   ): Promise<ResponseDto> {
     try {
-      const { creatorAddress, creatorPubkey, threshold, internalChainId } =
+      const { threshold, internalChainId } =
         request;
       let { otherOwnersAddress } = request;
+
+      const authInfo = await this._commonUtil.getAuthInfo();
+      const creatorAddress = authInfo.address;
+      const creatorPubkey = authInfo.pubkey;
 
       // Check input
       if (otherOwnersAddress.indexOf(creatorAddress) > -1)
@@ -66,7 +70,7 @@ export class MultisigWalletService
       // Find chain
       const chainInfo = await this.generalRepo.findChain(internalChainId);
 
-      this.checkAddressPubkeyMismatch(creatorAddress, creatorPubkey, chainInfo);
+      await this.checkAddressPubkeyMismatch(creatorAddress, creatorPubkey, chainInfo);
 
       // Filter empty string in otherOwnersAddress
       otherOwnersAddress =
@@ -135,10 +139,6 @@ export class MultisigWalletService
             safeInfo.address,
             chainInfo.denom,
           );
-          if (balance.denom === 'atevmos') {
-            const amount = Number(balance.amount) * 10 ** -12;
-            balance.amount = String(amount);
-          }
           safeInfo.balance = [balance];
         } catch (error) {
           msgError = error.message;
@@ -188,18 +188,19 @@ export class MultisigWalletService
 
   async confirm(
     param: MODULE_REQUEST.ConfirmSafePathParams,
-    request: MODULE_REQUEST.ConfirmMultisigWalletRequest,
   ): Promise<ResponseDto> {
     try {
       const { safeId } = param;
-      const { myAddress, myPubkey } = request;
+      const authInfo = await this._commonUtil.getAuthInfo();
+      const myAddress = authInfo.address;
+      const myPubkey = authInfo.pubkey;
 
       // find safe
       const safe = await this.safeRepo.getPendingSafe(safeId);
       // get chainInfo
       const chainInfo = await this.generalRepo.findChain(safe.internalChainId);
 
-      this.checkAddressPubkeyMismatch(myAddress, myPubkey, chainInfo);
+      await this.checkAddressPubkeyMismatch(myAddress, myPubkey, chainInfo);
       // get confirm status
       const { safeOwner, fullConfirmed, pubkeys } =
         await this.safeOwnerRepo.getConfirmSafeStatus(
@@ -225,11 +226,11 @@ export class MultisigWalletService
 
   async deletePending(
     param: MODULE_REQUEST.DeleteSafePathParams,
-    request: MODULE_REQUEST.DeleteMultisigWalletRequest,
   ): Promise<ResponseDto> {
     try {
       const { safeId } = param;
-      const { myAddress } = request;
+      const authInfo = await this._commonUtil.getAuthInfo();
+      const myAddress = authInfo.address;
 
       const deletedSafe = await this.safeRepo.deletePendingSafe(
         safeId,
