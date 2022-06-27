@@ -37,7 +37,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       if (currentTimestamp > timestampExpire) {
         throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
       }
-      return true;
+      return payload;
     } catch (error) {
       this._logger.error(error);
       throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);

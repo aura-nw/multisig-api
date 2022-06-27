@@ -1,11 +1,9 @@
 import {
-  ConfirmMultisigWalletRequest,
   ConfirmSafePathParams,
   ConfirmTransactionRequest,
   ConnectMultisigWalletRequest,
   CreateMultisigWalletRequest,
   CreateTransactionRequest,
-  DeleteMultisigWalletRequest,
   DeleteSafePathParams,
   GetAllTransactionsRequest,
   GetMultisigSignaturesParam,
@@ -58,8 +56,6 @@ export const ENTITIES_CONFIG = {
 
 export const REQUEST_CONFIG = {
   CREATE_MULTISIG_WALLET_REQUEST: CreateMultisigWalletRequest,
-  CONFIRM_MULTISIG_WALLET_REQUEST: ConfirmMultisigWalletRequest,
-  DELETE_MULTISIG_WALLET_REQUEST: DeleteMultisigWalletRequest,
   CREATE_TRANSACTION_REQUEST: CreateTransactionRequest,
   SEND_TRANSACTION_REQUEST: SendTransactionRequest,
   CONFIRM_TRANSACTION_REQUEST: ConfirmTransactionRequest,
@@ -97,8 +93,6 @@ export const RESPONSE_CONFIG = {
 
 export module MODULE_REQUEST {
   export abstract class CreateMultisigWalletRequest extends REQUEST_CONFIG.CREATE_MULTISIG_WALLET_REQUEST {}
-  export abstract class ConfirmMultisigWalletRequest extends REQUEST_CONFIG.CONFIRM_MULTISIG_WALLET_REQUEST {}
-  export abstract class DeleteMultisigWalletRequest extends REQUEST_CONFIG.DELETE_MULTISIG_WALLET_REQUEST {}
   export abstract class CreateTransactionRequest extends REQUEST_CONFIG.CREATE_TRANSACTION_REQUEST {}
   export abstract class SendTransactionRequest extends REQUEST_CONFIG.SEND_TRANSACTION_REQUEST {}
   export abstract class ConfirmTransactionRequest extends REQUEST_CONFIG.CONFIRM_TRANSACTION_REQUEST {}

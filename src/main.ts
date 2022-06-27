@@ -18,6 +18,7 @@ async function bootstrap() {
     .setVersion('0.1')
     .addServer('/')
     .addServer(configService.get('SWAGGER_PATH'))
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('documentation', app, document);

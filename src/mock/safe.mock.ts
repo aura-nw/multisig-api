@@ -2,15 +2,15 @@ import { MODULE_REQUEST } from 'src/module.config';
 
 export const mockCreateRequest: MODULE_REQUEST.CreateMultisigWalletRequest[] = [
   {
-    creatorAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
-    creatorPubkey: 'A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8k',
+    // creatorAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
+    // creatorPubkey: 'A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8k',
     otherOwnersAddress: ['aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz'],
     threshold: 1,
     internalChainId: 3,
   },
   {
-    creatorAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
-    creatorPubkey: 'A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8k',
+    // creatorAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
+    // creatorPubkey: 'A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8k',
     otherOwnersAddress: [
       'aura1m92zhmujw5ndche9avqt5cj59cfrta96gmqs9a',
       'aura1m92zhmujw5ndche9avqt5cj59cfrta96gmqs9a',
@@ -19,22 +19,22 @@ export const mockCreateRequest: MODULE_REQUEST.CreateMultisigWalletRequest[] = [
     internalChainId: 3,
   },
   {
-    creatorAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
-    creatorPubkey: 'A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8kk',
+    // creatorAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
+    // creatorPubkey: 'A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8kk',
     otherOwnersAddress: [],
     threshold: 1,
     internalChainId: 3,
   },
   {
-    creatorAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
-    creatorPubkey: 'A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8kk',
+    // creatorAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
+    // creatorPubkey: 'A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8kk',
     otherOwnersAddress: [],
     threshold: 2,
     internalChainId: 3,
   },
   {
-    creatorAddress: 'aura1kmd8r5pr0phasvm879fcymv35zw6r5jjtsqs26',
-    creatorPubkey: 'AqpOzQNpjQR6lf8kkZpPuqUDO76Lr3K7I2of3jOrxFUL',
+    // creatorAddress: 'aura1kmd8r5pr0phasvm879fcymv35zw6r5jjtsqs26',
+    // creatorPubkey: 'AqpOzQNpjQR6lf8kkZpPuqUDO76Lr3K7I2of3jOrxFUL',
     otherOwnersAddress: [],
     threshold: 1,
     internalChainId: 21,

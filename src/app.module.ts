@@ -1,4 +1,4 @@
-import { CacheModule, Module } from '@nestjs/common';
+import { CacheModule, MiddlewareConsumer, Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MultisigWalletController } from './controllers/multisig-wallet.controller';
@@ -26,6 +26,7 @@ import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/impls/auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
+import { contextMiddleware } from './middlewares';
 
 const controllers = [
   MultisigWalletController,
@@ -131,4 +132,8 @@ const entities = [
     }
   ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer): MiddlewareConsumer | void {
+    consumer.apply(contextMiddleware).forRoutes('*');
+  }
+}
