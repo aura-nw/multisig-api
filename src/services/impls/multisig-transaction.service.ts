@@ -3,13 +3,7 @@ import { ResponseDto } from 'src/dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
 import { IMultisigTransactionService } from '../multisig-transaction.service';
-import {
-  calculateFee,
-  coins,
-  GasPrice,
-  makeMultisignedTx,
-  StargateClient,
-} from '@cosmjs/stargate';
+import { coins, makeMultisignedTx, StargateClient } from '@cosmjs/stargate';
 import { fromBase64 } from '@cosmjs/encoding';
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { BaseService } from './base.service';
@@ -30,6 +24,7 @@ import {
 import { ConfirmTransactionRequest } from 'src/dtos/requests';
 import { ISmartContractRepository } from 'src/repositories/ismart-contract.repository';
 import { getEvmosAccount, makeMultisignedTxEvmos } from 'src/chains/evmos';
+import { CommonUtil } from 'src/utils/common.util';
 
 @Injectable()
 export class MultisigTransactionService
@@ -37,6 +32,7 @@ export class MultisigTransactionService
   implements IMultisigTransactionService
 {
   private readonly _logger = new Logger(MultisigTransactionService.name);
+  private readonly _commonUtil: CommonUtil = new CommonUtil();
 
   constructor(
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_TRANSACTION_REPOSITORY)
@@ -63,8 +59,13 @@ export class MultisigTransactionService
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
+      const authInfo = await this._commonUtil.getAuthInfo();
+      const creatorAddress = authInfo.address;
+      // if (!(await this.safeOwnerRepo.isSafeOwner(creatorAddress, request.from)))
+      //   throw new CustomError(ErrorMap.ADDRESS_NOT_CREATOR);
+
       //Validate safe
-      let signResult = await this.signingInstruction(
+      const signResult = await this.signingInstruction(
         request.internalChainId,
         request.from,
         request.amount,
@@ -72,7 +73,7 @@ export class MultisigTransactionService
 
       //Validate transaction creator
       await this.multisigConfirmRepos.validateOwner(
-        request.creatorAddress,
+        creatorAddress,
         request.from,
         request.internalChainId,
       );
@@ -81,7 +82,7 @@ export class MultisigTransactionService
       await this.multisigTransactionRepos.validateCreateTx(request.from);
       await this.smartContractRepos.validateCreateTx(request.from);
 
-      let safe = await this.safeRepos.findOne({
+      const safe = await this.safeRepos.findOne({
         where: { safeAddress: request.from },
       });
 
@@ -102,8 +103,7 @@ export class MultisigTransactionService
           safe.id,
         );
 
-      let requestSign = new ConfirmTransactionRequest();
-      requestSign.fromAddress = request.creatorAddress;
+      const requestSign = new ConfirmTransactionRequest();
       requestSign.transactionId = transactionResult.id;
       requestSign.bodyBytes = request.bodyBytes;
       requestSign.signature = request.signature;
@@ -125,21 +125,23 @@ export class MultisigTransactionService
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      let chain = await this.chainRepos.findOne({
+      const authInfo = await this._commonUtil.getAuthInfo();
+      const creatorAddress = authInfo.address;
+      const chain = await this.chainRepos.findOne({
         where: { id: request.internalChainId },
       });
 
       const client = await StargateClient.connect(chain.rpc);
 
       //get information multisig transaction Id
-      let multisigTransaction =
+      const multisigTransaction =
         await this.multisigTransactionRepos.validateTxBroadcast(
           request.transactionId,
         );
 
       //Validate owner
       await this.multisigConfirmRepos.validateOwner(
-        request.owner,
+        creatorAddress,
         multisigTransaction.fromAddress,
         request.internalChainId,
       );
@@ -154,7 +156,7 @@ export class MultisigTransactionService
         //Record owner send transaction
         await this.multisigConfirmRepos.insertIntoMultisigConfirm(
           request.transactionId,
-          request.owner,
+          creatorAddress,
           '',
           '',
           request.internalChainId,
@@ -191,6 +193,8 @@ export class MultisigTransactionService
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
+      const authInfo = await this._commonUtil.getAuthInfo();
+      const creatorAddress = authInfo.address;
       let transaction =
         await this.multisigTransactionRepos.checkExistMultisigTransaction(
           request.transactionId,
@@ -198,7 +202,7 @@ export class MultisigTransactionService
         );
 
       await this.multisigConfirmRepos.validateOwner(
-        request.fromAddress,
+        creatorAddress,
         transaction.fromAddress,
         request.internalChainId,
       );
@@ -206,12 +210,12 @@ export class MultisigTransactionService
       //User has confirmed transaction before
       await this.multisigConfirmRepos.checkUserHasSigned(
         request.transactionId,
-        request.fromAddress,
+        creatorAddress,
       );
 
       await this.multisigConfirmRepos.insertIntoMultisigConfirm(
         request.transactionId,
-        request.fromAddress,
+        creatorAddress,
         request.signature,
         request.bodyBytes,
         request.internalChainId,
@@ -234,6 +238,8 @@ export class MultisigTransactionService
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
+      const authInfo = await this._commonUtil.getAuthInfo();
+      const creatorAddress = authInfo.address;
       //Check status of multisig transaction when reject transaction
       let transaction =
         await this.multisigTransactionRepos.checkExistMultisigTransaction(
@@ -243,7 +249,7 @@ export class MultisigTransactionService
 
       //Validate owner
       await this.multisigConfirmRepos.validateOwner(
-        request.fromAddress,
+        creatorAddress,
         transaction.fromAddress,
         request.internalChainId,
       );
@@ -251,12 +257,12 @@ export class MultisigTransactionService
       //Check user has rejected transaction before
       await this.multisigConfirmRepos.checkUserHasSigned(
         request.transactionId,
-        request.fromAddress,
+        creatorAddress,
       );
 
       await this.multisigConfirmRepos.insertIntoMultisigConfirm(
         request.transactionId,
-        request.fromAddress,
+        creatorAddress,
         '',
         '',
         request.internalChainId,
