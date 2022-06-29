@@ -1,12 +1,8 @@
 import { LegacyAminoPubKey } from 'cosmjs-types/cosmos/crypto/multisig/keys';
-import {
-  CompactBitArray,
-  MultiSignature,
-} from 'cosmjs-types/cosmos/crypto/multisig/v1beta1/multisig';
+import { MultiSignature } from 'cosmjs-types/cosmos/crypto/multisig/v1beta1/multisig';
 import { SignMode } from 'cosmjs-types/cosmos/tx/signing/v1beta1/signing';
 import { Any } from 'cosmjs-types/google/protobuf/any';
 import { PubKey } from 'cosmjs-types/cosmos/crypto/secp256k1/keys';
-import { encodePubkey } from '@cosmjs/proto-signing';
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { AuthInfo, SignerInfo } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { Uint53 } from '@cosmjs/math';
@@ -50,10 +46,6 @@ export interface EthSecp256k1Pubkey extends SinglePubkey {
   readonly value: string;
 }
 
-const stripHexPrefix = (str) => {
-  return str.slice(0, 2) === '0x' ? str.slice(2) : str;
-};
-
 export function pubkeyToRawAddress(pubkey: Pubkey): Uint8Array {
   const pubKeyDecoded = Buffer.from(pubkey.value, 'base64');
   let pubKeyUncompressed: Uint8Array;
@@ -73,82 +65,17 @@ export function pubkeyToRawAddress(pubkey: Pubkey): Uint8Array {
 }
 
 export function pubkeyToAddressEvmos(pubkey: string, prefix = 'evmos'): string {
-  const pubKeyDecoded = Buffer.from(pubkey, 'base64');
-  let pubKeyUncompressed: Uint8Array;
-  switch (pubKeyDecoded.length) {
-    case 33:
-      pubKeyUncompressed = Secp256k1.uncompressPubkey(pubKeyDecoded);
-      break;
-    case 65:
-      pubKeyUncompressed = pubKeyUncompressed;
-      break;
-    default:
-      throw new Error('Invalid pubkey length');
-  }
-
-  const hash = new Keccak256(pubKeyUncompressed.slice(1)).digest();
-  const lastTwentyBytes = hash.slice(-20);
+  const ethermintPubkey = createEvmosPubkey(pubkey);
+  const rawAddress = pubkeyToRawAddress(ethermintPubkey);
 
   // generate eth address
-  const ethAddress = toChecksummedAddress(lastTwentyBytes);
+  const ethAddress = toChecksummedAddress(rawAddress);
   console.log(`ETH address: ${ethAddress}`);
 
   // generate bech32 address
-  const bech32Address = toBech32(prefix, lastTwentyBytes);
-  // const bech32Address = bech32.encode(
-  //   'evmos',
-  //   bech32.toWords(lastTwentyBytes),
-  // );
+  const bech32Address = toBech32(prefix, rawAddress);
 
-  // return ethToEvmos(ethAddress);
   return bech32Address;
-}
-
-function isValidAddress(address: string): boolean {
-  if (!address.match(/^0x[a-fA-F0-9]{40}$/)) {
-    return false;
-  }
-  return true;
-}
-
-export function toChecksummedAddress(address: string | Uint8Array): string {
-  // 40 low hex characters
-  let addressLower;
-  if (typeof address === 'string') {
-    if (!isValidAddress(address)) {
-      throw new Error('Input is not a valid Ethereum address');
-    }
-    addressLower = address.toLowerCase().replace('0x', '');
-  } else {
-    if (address.length !== 20) {
-      throw new Error('Invalid Ethereum address length. Must be 20 bytes.');
-    }
-    addressLower = toHex(address);
-  }
-
-  const addressHash = toHex(new Keccak256(toAscii(addressLower)).digest());
-  let checksumAddress = '0x';
-  for (let i = 0; i < 40; i++) {
-    checksumAddress +=
-      parseInt(addressHash[i], 16) > 7
-        ? addressLower[i].toUpperCase()
-        : addressLower[i];
-  }
-  return checksumAddress;
-}
-
-function encodeUvarint(value: number | string): number[] {
-  const checked = Uint53.fromString(value.toString()).toNumber();
-  if (checked > 127) {
-    throw new Error(
-      'Encoding numbers > 127 is not supported here. Please tell those lazy CosmJS maintainers to port the binary.PutUvarint implementation from the Go standard library and write some tests.',
-    );
-  }
-  return [checked];
-}
-
-function isEthSecp256k1Pubkey(pubkey: Pubkey): pubkey is EthSecp256k1Pubkey {
-  return (pubkey as EthSecp256k1Pubkey).type === 'ethermint/PubKeyEthSecp256k1';
 }
 
 /**
@@ -216,12 +143,6 @@ export function createMultisigThresholdPubkeyEvmos(
       pubkeys: outPubkeys,
     },
   };
-}
-
-export function compareArrays(a: Uint8Array, b: Uint8Array): number {
-  const aHex = toHex(a);
-  const bHex = toHex(b);
-  return aHex === bHex ? 0 : aHex < bHex ? -1 : 1;
 }
 
 export async function getEvmosAccount(
@@ -349,4 +270,65 @@ export function encodePubkeyEvmos(pubkey: Pubkey): Any {
   } else {
     throw new Error(`Pubkey type ${pubkey.type} not recognized`);
   }
+}
+
+function encodeUvarint(value: number | string): number[] {
+  const checked = Uint53.fromString(value.toString()).toNumber();
+  if (checked > 127) {
+    throw new Error(
+      'Encoding numbers > 127 is not supported here. Please tell those lazy CosmJS maintainers to port the binary.PutUvarint implementation from the Go standard library and write some tests.',
+    );
+  }
+  return [checked];
+}
+
+function isEthSecp256k1Pubkey(pubkey: Pubkey): pubkey is EthSecp256k1Pubkey {
+  return (pubkey as EthSecp256k1Pubkey).type === 'ethermint/PubKeyEthSecp256k1';
+}
+
+function createEvmosPubkey(value: string): SinglePubkey {
+  const result: SinglePubkey = {
+    type: 'ethermint/PubKeyEthSecp256k1',
+    value,
+  };
+  return result;
+}
+
+function isValidAddress(address: string): boolean {
+  if (!address.match(/^0x[a-fA-F0-9]{40}$/)) {
+    return false;
+  }
+  return true;
+}
+
+function toChecksummedAddress(address: string | Uint8Array): string {
+  // 40 low hex characters
+  let addressLower;
+  if (typeof address === 'string') {
+    if (!isValidAddress(address)) {
+      throw new Error('Input is not a valid Ethereum address');
+    }
+    addressLower = address.toLowerCase().replace('0x', '');
+  } else {
+    if (address.length !== 20) {
+      throw new Error('Invalid Ethereum address length. Must be 20 bytes.');
+    }
+    addressLower = toHex(address);
+  }
+
+  const addressHash = toHex(new Keccak256(toAscii(addressLower)).digest());
+  let checksumAddress = '0x';
+  for (let i = 0; i < 40; i++) {
+    checksumAddress +=
+      parseInt(addressHash[i], 16) > 7
+        ? addressLower[i].toUpperCase()
+        : addressLower[i];
+  }
+  return checksumAddress;
+}
+
+function compareArrays(a: Uint8Array, b: Uint8Array): number {
+  const aHex = toHex(a);
+  const bHex = toHex(b);
+  return aHex === bHex ? 0 : aHex < bHex ? -1 : 1;
 }
