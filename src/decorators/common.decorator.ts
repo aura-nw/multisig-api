@@ -29,10 +29,11 @@ interface Options {
 }
 
 export function CommonAuthPost(options: Options) {
-  return applyDecorators(
-    Common(options.summary, options.description, options.apiOkResponseOptions),
-    AuthPost(options),
-  );
+  return applyDecorators(CommonPost(options), Auth());
+}
+
+export function CommonAuthDelete(options: Options) {
+  return applyDecorators(CommonDelete(options), Auth());
 }
 
 export function CommonPost(options: Options) {
@@ -49,29 +50,17 @@ export function CommonGet(options: Options) {
   );
 }
 
-export function CommonAuthDelete(options: Options) {
+export function CommonDelete(options: Options) {
   return applyDecorators(
     Common(options.summary, options.description, options.apiOkResponseOptions),
     Delete(options.url),
-    UseGuards(AuthGuard('jwt'), GroupsGuard),
-    ApiBearerAuth(),
-    UseInterceptors(AuthUserInterceptor)
-  );
-}
-
-export function AuthPost(options: Options) {
-  return applyDecorators(
-    UseGuards(AuthGuard('jwt'), GroupsGuard),
-    ApiBearerAuth(),
-    Post(options.url),
-    UseInterceptors(AuthUserInterceptor)
   );
 }
 
 export function Common(
   summary: string,
   description?: string,
-  apiOkResponseOptions: ApiResponseOptions =  {
+  apiOkResponseOptions: ApiResponseOptions = {
     status: 200,
     type: SwaggerBaseApiResponse(MODULE_RESPONSE.ResponseDto),
     description: 'The result returned is the ResponseDto class',
@@ -83,6 +72,13 @@ export function Common(
     HttpCode(HttpStatus.OK),
     ApiOperation({ summary, description }),
     ApiOkResponse(apiOkResponseOptions),
-    
+  );
+}
+
+export function Auth() {
+  return applyDecorators(
+    UseGuards(AuthGuard('jwt'), GroupsGuard),
+    ApiBearerAuth(),
+    UseInterceptors(AuthUserInterceptor),
   );
 }
