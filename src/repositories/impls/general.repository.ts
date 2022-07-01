@@ -37,8 +37,10 @@ export class GeneralRepository
         'chain.symbol as symbol',
         'chain.denom as denom',
         'chain.prefix as prefix',
+        'chain.coinDecimals as coinDecimals',
       ]);
-    return sqlQuerry.getRawMany();
+    const result = await sqlQuerry.getRawMany();
+    return result;
   }
 
   async findChain(internalChainId: number): Promise<Chain> {
