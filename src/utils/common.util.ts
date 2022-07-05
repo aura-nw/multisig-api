@@ -29,7 +29,6 @@ import { ConfigService } from '../shared/services/config.service';
 
 export class CommonUtil {
   private configService: ConfigService = new ConfigService();
-  constructor() {}
 
   /**
    * Calculate address from public key
@@ -176,7 +175,7 @@ export class CommonUtil {
       },
     );
 
-    let addressSignarureMap = [];
+    const addressSignarureMap = [];
     multisigConfirmArr.forEach((x) => {
       const pubkeyAmino: SimplePublicKey.Amino = {
         type: PUBKEY_TYPES.SECP256K1,

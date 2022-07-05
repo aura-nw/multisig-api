@@ -59,18 +59,18 @@ export class SmartContractService
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      let chain = await this.chainRepos.findOne({
+      const chain = await this.chainRepos.findOne({
         where: { id: request.internalChainId },
       });
       if (!chain) return res.return(ErrorMap.CHAIN_ID_NOT_EXIST);
 
       const client = await SigningCosmWasmClient.connect(chain.rpc);
-      let contractOnchain = await client.getContract(request.contractAddress);
+      const contractOnchain = await client.getContract(request.contractAddress);
       console.log('Contract onchain: ', contractOnchain);
 
-      var queryMsg = {};
+      const queryMsg = {};
       queryMsg[request.functionName] = request.param;
-      let resultQuery = await client.queryContractSmart(
+      const resultQuery = await client.queryContractSmart(
         request.contractAddress,
         queryMsg,
       );
@@ -90,7 +90,7 @@ export class SmartContractService
       const authInfo = await this._commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
       // Validate safe
-      let signResult = await this.signingInstruction(
+      const signResult = await this.signingInstruction(
         request.internalChainId,
         request.senderAddress,
       );
@@ -108,7 +108,7 @@ export class SmartContractService
       );
       await this.repos.validateCreateTx(request.senderAddress);
 
-      let safe = await this.safeRepos.findOne({
+      const safe = await this.safeRepos.findOne({
         where: {
           safeAddress: request.senderAddress,
           internalChainId: request.internalChainId,
@@ -116,7 +116,7 @@ export class SmartContractService
       });
 
       // Safe data into DB
-      let transactionResult = await this.repos.insertExecuteContract(
+      const transactionResult = await this.repos.insertExecuteContract(
         request.senderAddress,
         request.contractAddress,
         request.functionName,
@@ -132,7 +132,7 @@ export class SmartContractService
         safe.id,
       );
 
-      let requestSign = new ConfirmTransactionRequest();
+      const requestSign = new ConfirmTransactionRequest();
       requestSign.transactionId = transactionResult.id;
       requestSign.bodyBytes = request.bodyBytes;
       requestSign.signature = request.signature;
@@ -157,7 +157,7 @@ export class SmartContractService
     try {
       const authInfo = await this._commonUtil.getAuthInfo();
       const ownerAddress = authInfo.address;
-      let transaction = await this.repos.checkExistSmartContractTx(
+      const transaction = await this.repos.checkExistSmartContractTx(
         request.transactionId,
         request.internalChainId,
       );
@@ -204,7 +204,7 @@ export class SmartContractService
       const authInfo = await this._commonUtil.getAuthInfo();
       const ownerAddress = authInfo.address;
       //Check status of multisig transaction when reject transaction
-      let transaction = await this.repos.checkExistSmartContractTx(
+      const transaction = await this.repos.checkExistSmartContractTx(
         request.transactionId,
         request.internalChainId,
       );
@@ -231,16 +231,16 @@ export class SmartContractService
         MULTISIG_CONFIRM_STATUS.REJECT,
       );
 
-      let rejectConfirms = await this.multisigConfirmRepos.findByCondition({
+      const rejectConfirms = await this.multisigConfirmRepos.findByCondition({
         smartContractTxId: request.transactionId,
         status: MULTISIG_CONFIRM_STATUS.REJECT,
       });
 
-      let safeOwner = await this.safeOwnerRepo.findByCondition({
+      const safeOwner = await this.safeOwnerRepo.findByCondition({
         safeId: transaction.safeId,
       });
 
-      let safe = await this.safeRepos.findOne({
+      const safe = await this.safeRepos.findOne({
         where: { id: transaction.safeId },
       });
 
@@ -262,14 +262,14 @@ export class SmartContractService
     try {
       const authInfo = await this._commonUtil.getAuthInfo();
       const ownerAddress = authInfo.address;
-      let chain = await this.chainRepos.findOne({
+      const chain = await this.chainRepos.findOne({
         where: { id: request.internalChainId },
       });
 
       const client = await StargateClient.connect(chain.rpc);
 
       // Get information of smart contract tx
-      let smartContractTx = await this.repos.validateTxBroadcast(
+      const smartContractTx = await this.repos.validateTxBroadcast(
         request.transactionId,
       );
 
@@ -281,7 +281,7 @@ export class SmartContractService
       );
 
       //Make tx
-      let txBroadcast = await this.makeTx(
+      const txBroadcast = await this.makeTx(
         request.transactionId,
         smartContractTx,
       );
@@ -345,19 +345,19 @@ export class SmartContractService
     smartContractTx: SmartContractTx,
   ): Promise<any> {
     //Get safe info
-    let safeInfo = await this.safeRepos.findOne({
+    const safeInfo = await this.safeRepos.findOne({
       where: { id: smartContractTx.safeId },
     });
     //Get all signature of transaction
-    let multisigConfirmArr = await this.multisigConfirmRepos.findByCondition({
+    const multisigConfirmArr = await this.multisigConfirmRepos.findByCondition({
       smartContractTxId: transactionId,
       status: MULTISIG_CONFIRM_STATUS.CONFIRM,
     });
 
-    let addressSignarureMap = new Map<string, Uint8Array>();
+    const addressSignarureMap = new Map<string, Uint8Array>();
 
     multisigConfirmArr.forEach((x) => {
-      let encodeSignature = fromBase64(x.signature);
+      const encodeSignature = fromBase64(x.signature);
       addressSignarureMap.set(x.ownerAddress, encodeSignature);
     });
 
@@ -367,12 +367,12 @@ export class SmartContractService
       gas: smartContractTx.gas.toString(),
     };
 
-    let encodedBodyBytes = fromBase64(multisigConfirmArr[0].bodyBytes);
+    const encodedBodyBytes = fromBase64(multisigConfirmArr[0].bodyBytes);
 
     //Pubkey
     const safePubkey = JSON.parse(safeInfo.safePubkey);
 
-    let executeTransaction = makeMultisignedTx(
+    const executeTransaction = makeMultisignedTx(
       safePubkey,
       Number(smartContractTx.sequence),
       sendFee,
@@ -380,7 +380,7 @@ export class SmartContractService
       addressSignarureMap,
     );
 
-    let encodeTransaction = Uint8Array.from(
+    const encodeTransaction = Uint8Array.from(
       TxRaw.encode(executeTransaction).finish(),
     );
     return encodeTransaction;

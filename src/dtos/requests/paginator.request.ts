@@ -1,20 +1,20 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsNumber, IsString } from "class-validator";
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNumber } from 'class-validator';
 
-export class PaginatorRequest{
-    //@IsString()
-    @ApiPropertyOptional()
-    condition: any;
+export class PaginatorRequest {
+  //@IsString()
+  @ApiPropertyOptional()
+  condition: any;
 
-   // @IsString()
-    @ApiPropertyOptional()
-    order: any;
+  // @IsString()
+  @ApiPropertyOptional()
+  order: any;
 
-    @IsNumber()
-    @ApiPropertyOptional()
-    pageIndex: number = 0;
+  @IsNumber()
+  @ApiPropertyOptional()
+  pageIndex = 0;
 
-    @IsNumber()
-    @ApiPropertyOptional()
-    pageSize: number = 10;
+  @IsNumber()
+  @ApiPropertyOptional()
+  pageSize = 10;
 }

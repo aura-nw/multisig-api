@@ -3,9 +3,8 @@ import { MODULE_REQUEST } from 'src/module.config';
 
 export interface IAuthService {
   /**
-   * 
+   *
    * @param request
    */
-   auth(request: MODULE_REQUEST.AuthRequest): Promise<ResponseDto>;
-
+  auth(request: MODULE_REQUEST.AuthRequest): Promise<ResponseDto>;
 }

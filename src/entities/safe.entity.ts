@@ -3,7 +3,6 @@ import { Column, Entity } from 'typeorm';
 
 @Entity({ name: 'Safe' })
 export class Safe extends BaseEntityAutoId {
-
   @Column({ name: 'SafeAddress', unique: true, nullable: true })
   safeAddress: string;
 

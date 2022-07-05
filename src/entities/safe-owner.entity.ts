@@ -3,7 +3,6 @@ import { BaseEntityAutoId } from './base/base.entity';
 
 @Entity({ name: 'SafeOwner' })
 export class SafeOwner extends BaseEntityAutoId {
-
   @Column({ name: 'SafeId' })
   safeId: string;
 

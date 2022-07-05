@@ -235,7 +235,7 @@ export class MultisigWalletRepository
   }
 
   async getSafe(safeId: string, internalChainId?: number): Promise<any> {
-    let condition = this.calculateCondition(safeId, internalChainId);
+    const condition = this.calculateCondition(safeId, internalChainId);
 
     // find safes on offchain
     const safes = await this.findByCondition(condition);
@@ -321,7 +321,7 @@ export class MultisigWalletRepository
         throw new CustomError(ErrorMap.NO_SAFES_FOUND);
       const otherOwnersAddress = [];
       for (let i = 1; i < accountOnChain.pubkey.value.pubkeys.length; i++) {
-        let ownerAddress = pubkeyToAddress(
+        const ownerAddress = pubkeyToAddress(
           accountOnChain.pubkey.value.pubkeys[i],
           chainInfo.prefix,
         );

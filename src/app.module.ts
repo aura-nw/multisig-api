@@ -128,7 +128,7 @@ const entities = [
     {
       provide: SERVICE_INTERFACE.IAUTH_SERVICE,
       useClass: AuthService,
-    }
+    },
   ],
 })
 export class AppModule {

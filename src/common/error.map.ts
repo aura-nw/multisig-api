@@ -125,11 +125,11 @@ export const ErrorMap = {
   },
   BROADCAST_TX_FAILED: {
     Code: 'E030',
-    Message: 'Broadcast transaction failed!'
+    Message: 'Broadcast transaction failed!',
   },
   ADDRESS_PUBKEY_MISMATCH: {
     Code: 'E031',
-    Message: 'The provided public key does not match the address'
+    Message: 'The provided public key does not match the address',
   },
   PUBKEY_NOT_BASE64: {
     Code: 'E032',

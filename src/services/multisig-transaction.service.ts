@@ -28,7 +28,7 @@ export interface IMultisigTransactionService {
 
   /**
    * reject transaction
-   * @param request 
+   * @param request
    */
   rejectTransaction(
     request: MODULE_REQUEST.RejectTransactionParam,
