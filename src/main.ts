@@ -9,9 +9,9 @@ async function bootstrap() {
 
   // enable cors
   app.enableCors();
-  
+
   const configService = app.select(SharedModule).get(ConfigService);
-  
+
   //setup swagger
   const config = new DocumentBuilder()
     .setTitle('Multisig Wallet API for Aura Network')

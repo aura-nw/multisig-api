@@ -1,8 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { off } from 'process';
 import { TRANSACTION_STATUS } from 'src/common/constants/app.constant';
-import { Chain, Safe } from 'src/entities';
+import { Chain } from 'src/entities';
 import { ENTITIES_CONFIG, MODULE_REQUEST } from 'src/module.config';
 import { ObjectLiteral, Repository } from 'typeorm';
 import { ITransactionRepository } from '../itransaction.repository';
@@ -58,7 +57,7 @@ export class TransactionRepository
 
   async getTransactionDetailsAuraTx(condition: any) {
     const txHash = condition.txHash;
-    let sqlQuerry = this.repos
+    const sqlQuerry = this.repos
       .createQueryBuilder('auraTx')
       .innerJoin(Chain, 'chain', 'auraTx.internalChainId = chain.id')
       .where('auraTx.txHash = :txHash', { txHash })

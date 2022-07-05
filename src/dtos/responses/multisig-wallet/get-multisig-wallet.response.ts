@@ -51,7 +51,7 @@ export class GetMultisigWalletResponse {
 
   @Expose()
   @ApiProperty({
-    example: 1
+    example: 1,
   })
   internalChainId: number;
 
@@ -59,10 +59,10 @@ export class GetMultisigWalletResponse {
   @ApiProperty({
     example: [
       {
-        "denom": "uaura",
-        "amount": "0"
-      }
-    ]
+        denom: 'uaura',
+        amount: '0',
+      },
+    ],
   })
   balance: Coin[];
 }

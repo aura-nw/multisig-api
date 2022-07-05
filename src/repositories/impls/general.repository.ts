@@ -25,7 +25,7 @@ export class GeneralRepository
   }
 
   async showNetworkList() {
-    let sqlQuerry = this.repos
+    const sqlQuerry = this.repos
       .createQueryBuilder('chain')
       .select([
         'chain.id as id',

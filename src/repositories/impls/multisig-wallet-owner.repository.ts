@@ -45,7 +45,7 @@ export class MultisigWalletOwnerRepository
   }
 
   async getOwners(safeAddress: string) {
-    let sqlQuerry = this.repos
+    const sqlQuerry = this.repos
       .createQueryBuilder('safeOwner')
       .innerJoin(Safe, 'safe', 'safe.id = safeOwner.safeId')
       .where('safe.safeAddress = :safeAddress', { safeAddress })
@@ -129,12 +129,16 @@ export class MultisigWalletOwnerRepository
     if (!updateResult) throw new CustomError(ErrorMap.UPDATE_SAFE_OWNER_FAILED);
   }
 
-  async isSafeOwner(walletAddress: string, safeAddress: string): Promise<boolean> {
-    const result = this.repos.createQueryBuilder('safeOwner')
-    .innerJoin(Safe, 'safe', 'safe.id = safeOwner.safeId')
-    .where('safe.safeAddress = :safeAddress', { safeAddress })
-    .andWhere('safeOwner.ownerAddress = :walletAddress', { walletAddress })
-    .select(['safeOwner.id']);
+  async isSafeOwner(
+    walletAddress: string,
+    safeAddress: string,
+  ): Promise<boolean> {
+    const result = this.repos
+      .createQueryBuilder('safeOwner')
+      .innerJoin(Safe, 'safe', 'safe.id = safeOwner.safeId')
+      .where('safe.safeAddress = :safeAddress', { safeAddress })
+      .andWhere('safeOwner.ownerAddress = :walletAddress', { walletAddress })
+      .select(['safeOwner.id']);
     const count = await result.getCount();
     return count > 0;
   }

@@ -1,15 +1,18 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateSafeResponse {
   @ApiProperty({
-    example: 1
+    example: 1,
   })
   id: number;
 
   @ApiProperty({ example: 'aura1mkkuvgwj4efuzy6rxa8n74yjttjaw7udt6hj9u' })
   safeAddress: string;
 
-  @ApiProperty({ example: '{ "type": "tendermint/PubKeyMultisigThreshold", "value": { "threshold": "0", "pubkeys": [{ "type": "tendermint/PubKeySecp256k1", "value": "ApIuFLdzGYiCIojuktt+3Y2CwED6TfNmE05wxDHu9vsl" }] } } ' })
+  @ApiProperty({
+    example:
+      '{ "type": "tendermint/PubKeyMultisigThreshold", "value": { "threshold": "0", "pubkeys": [{ "type": "tendermint/PubKeySecp256k1", "value": "ApIuFLdzGYiCIojuktt+3Y2CwED6TfNmE05wxDHu9vsl" }] } } ',
+  })
   safePubkey: string;
 
   @ApiProperty({ example: 'aura1528pnlzdhqhqr835p597f60gjgf6etnutv2eh9' })

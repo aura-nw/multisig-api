@@ -1,4 +1,4 @@
-import { Controller, Query, Inject, Body, Logger, Param, UseInterceptors } from '@nestjs/common';
+import { Controller, Query, Inject, Body, Logger, Param } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import {
   CONTROLLER_CONSTANTS,
@@ -10,7 +10,11 @@ import {
   CommonGet,
 } from 'src/decorators/common.decorator';
 import { SwaggerBaseApiResponse } from 'src/dtos/responses';
-import { MODULE_REQUEST, MODULE_RESPONSE, SERVICE_INTERFACE } from 'src/module.config';
+import {
+  MODULE_REQUEST,
+  MODULE_RESPONSE,
+  SERVICE_INTERFACE,
+} from 'src/module.config';
 import { IMultisigWalletService } from 'src/services/imultisig-wallet.service';
 @Controller(CONTROLLER_CONSTANTS.MULTISIG_WALLET)
 @ApiTags(CONTROLLER_CONSTANTS.MULTISIG_WALLET)
@@ -99,5 +103,4 @@ export class MultisigWalletController {
     this._logger.log('========== Delete pending multisig wallet ==========');
     return this.multisigWalletService.deletePending(param);
   }
-
 }

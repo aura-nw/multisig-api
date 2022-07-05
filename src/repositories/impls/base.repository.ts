@@ -45,6 +45,9 @@ export class BaseRepository implements IBaseRepository {
     if (orderBy) {
       opt['order'] = orderBy;
     }
+    if (select) {
+      opt['select'] = select;
+    }
     return this._repos.find(opt);
   }
 

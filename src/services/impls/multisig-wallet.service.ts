@@ -53,8 +53,7 @@ export class MultisigWalletService
     request: MODULE_REQUEST.CreateMultisigWalletRequest,
   ): Promise<ResponseDto> {
     try {
-      const { threshold, internalChainId } =
-        request;
+      const { threshold, internalChainId } = request;
       let { otherOwnersAddress } = request;
 
       const authInfo = await this._commonUtil.getAuthInfo();
@@ -70,7 +69,11 @@ export class MultisigWalletService
       // Find chain
       const chainInfo = await this.generalRepo.findChain(internalChainId);
 
-      await this.checkAddressPubkeyMismatch(creatorAddress, creatorPubkey, chainInfo);
+      await this.checkAddressPubkeyMismatch(
+        creatorAddress,
+        creatorPubkey,
+        chainInfo,
+      );
 
       // Filter empty string in otherOwnersAddress
       otherOwnersAddress =

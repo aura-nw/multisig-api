@@ -91,7 +91,7 @@ export const RESPONSE_CONFIG = {
   GET_ACCOUNT_ONCHAIN_RESPONSE: GetAccountOnchainResponse,
 };
 
-export module MODULE_REQUEST {
+export namespace MODULE_REQUEST {
   export abstract class CreateMultisigWalletRequest extends REQUEST_CONFIG.CREATE_MULTISIG_WALLET_REQUEST {}
   export abstract class CreateTransactionRequest extends REQUEST_CONFIG.CREATE_TRANSACTION_REQUEST {}
   export abstract class SendTransactionRequest extends REQUEST_CONFIG.SEND_TRANSACTION_REQUEST {}
@@ -115,7 +115,7 @@ export module MODULE_REQUEST {
   export abstract class AuthRequest extends REQUEST_CONFIG.SIGN_IN_REQUEST {}
 }
 
-export module MODULE_RESPONSE {
+export namespace MODULE_RESPONSE {
   export abstract class ResponseDto extends RESPONSE_CONFIG.RESPONSE_DTO {}
   export abstract class CreateSafeResponse extends RESPONSE_CONFIG.CREATE_SAFE_RESPONSE {}
   export abstract class GetSafeBalanceResponse extends RESPONSE_CONFIG.GET_SAFE_BALANCE {}

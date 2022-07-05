@@ -212,7 +212,7 @@ export function makeMultisignedTxEvmos(
     modeInfo: {
       multi: {
         bitarray: makeCompactBitArray(signers),
-        modeInfos: signaturesList.map((_) => ({
+        modeInfos: signaturesList.map(() => ({
           single: { mode: SignMode.SIGN_MODE_LEGACY_AMINO_JSON },
         })),
       },

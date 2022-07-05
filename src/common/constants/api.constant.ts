@@ -34,4 +34,3 @@ export const URL_CONSTANTS = {
   SEND_EXECUTE_MESSAGE: 'send-execute-message',
   AUTH: 'auth',
 };
-

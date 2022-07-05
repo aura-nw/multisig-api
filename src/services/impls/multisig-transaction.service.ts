@@ -87,7 +87,7 @@ export class MultisigTransactionService
       });
 
       //Safe data into DB
-      let transactionResult =
+      const transactionResult =
         await this.multisigTransactionRepos.insertMultisigTransaction(
           request.from,
           request.to,
@@ -147,7 +147,7 @@ export class MultisigTransactionService
       );
 
       //Make tx
-      let txBroadcast = await this.makeTx(
+      const txBroadcast = await this.makeTx(
         request.transactionId,
         multisigTransaction,
       );
@@ -195,7 +195,7 @@ export class MultisigTransactionService
     try {
       const authInfo = await this._commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
-      let transaction =
+      const transaction =
         await this.multisigTransactionRepos.checkExistMultisigTransaction(
           request.transactionId,
           request.internalChainId,
@@ -241,7 +241,7 @@ export class MultisigTransactionService
       const authInfo = await this._commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
       //Check status of multisig transaction when reject transaction
-      let transaction =
+      const transaction =
         await this.multisigTransactionRepos.checkExistMultisigTransaction(
           request.transactionId,
           request.internalChainId,
@@ -269,16 +269,16 @@ export class MultisigTransactionService
         MULTISIG_CONFIRM_STATUS.REJECT,
       );
 
-      let rejectConfirms = await this.multisigConfirmRepos.findByCondition({
+      const rejectConfirms = await this.multisigConfirmRepos.findByCondition({
         multisigTransactionId: request.transactionId,
         status: MULTISIG_CONFIRM_STATUS.REJECT,
       });
 
-      let safeOwner = await this.safeOwnerRepo.findByCondition({
+      const safeOwner = await this.safeOwnerRepo.findByCondition({
         safeId: transaction.safeId,
       });
 
-      let safe = await this.safeRepos.findOne({
+      const safe = await this.safeRepos.findOne({
         where: { id: transaction.safeId },
       });
 
@@ -335,22 +335,22 @@ export class MultisigTransactionService
     multisigTransaction: MultisigTransaction,
   ): Promise<any> {
     //Get safe info
-    let safeInfo = await this.safeRepos.findOne({
+    const safeInfo = await this.safeRepos.findOne({
       where: { id: multisigTransaction.safeId },
     });
 
     const chain = await this.chainRepos.findChain(safeInfo.internalChainId);
 
     //Get all signature of transaction
-    let multisigConfirmArr = await this.multisigConfirmRepos.findByCondition({
+    const multisigConfirmArr = await this.multisigConfirmRepos.findByCondition({
       multisigTransactionId: transactionId,
       status: MULTISIG_CONFIRM_STATUS.CONFIRM,
     });
 
-    let addressSignarureMap = new Map<string, Uint8Array>();
+    const addressSignarureMap = new Map<string, Uint8Array>();
 
     multisigConfirmArr.forEach((x) => {
-      let encodeSignature = fromBase64(x.signature);
+      const encodeSignature = fromBase64(x.signature);
       addressSignarureMap.set(x.ownerAddress, encodeSignature);
     });
 
@@ -360,7 +360,7 @@ export class MultisigTransactionService
       gas: multisigTransaction.gas.toString(),
     };
 
-    let encodedBodyBytes = fromBase64(multisigConfirmArr[0].bodyBytes);
+    const encodedBodyBytes = fromBase64(multisigConfirmArr[0].bodyBytes);
 
     //Pubkey
     const safePubkey = JSON.parse(safeInfo.safePubkey);
@@ -384,7 +384,7 @@ export class MultisigTransactionService
       );
     }
 
-    let encodeTransaction = Uint8Array.from(
+    const encodeTransaction = Uint8Array.from(
       TxRaw.encode(executeTransaction).finish(),
     );
     return encodeTransaction;

@@ -1,6 +1,4 @@
 import { StargateClient } from '@cosmjs/stargate';
-import { CustomError } from 'src/common/customError';
-import { ErrorMap } from 'src/common/error.map';
 import { ConfigService } from 'src/shared/services/config.service';
 
 export class Network {
