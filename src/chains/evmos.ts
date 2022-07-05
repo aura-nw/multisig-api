@@ -1,12 +1,8 @@
 import { LegacyAminoPubKey } from 'cosmjs-types/cosmos/crypto/multisig/keys';
-import {
-  CompactBitArray,
-  MultiSignature,
-} from 'cosmjs-types/cosmos/crypto/multisig/v1beta1/multisig';
+import { MultiSignature } from 'cosmjs-types/cosmos/crypto/multisig/v1beta1/multisig';
 import { SignMode } from 'cosmjs-types/cosmos/tx/signing/v1beta1/signing';
 import { Any } from 'cosmjs-types/google/protobuf/any';
 import { PubKey } from 'cosmjs-types/cosmos/crypto/secp256k1/keys';
-import { encodePubkey } from '@cosmjs/proto-signing';
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { AuthInfo, SignerInfo } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { Uint53 } from '@cosmjs/math';
