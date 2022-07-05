@@ -42,12 +42,14 @@ export class MultisigTransactionRepository
     let sqlQuerry = this.repos
       .createQueryBuilder('multisigTransaction')
       .where('multisigTransaction.fromAddress = :from', { from })
-      .andWhere(`multisigTransaction.status in ('${TRANSACTION_STATUS.AWAITING_CONFIRMATIONS}', '${TRANSACTION_STATUS.AWAITING_EXECUTION}')`)
+      .andWhere(
+        `multisigTransaction.status in ('${TRANSACTION_STATUS.AWAITING_CONFIRMATIONS}', '${TRANSACTION_STATUS.AWAITING_EXECUTION}')`,
+      )
       .select(['multisigTransaction.id as id']);
 
     let multisigTransaction = await sqlQuerry.getCount();
 
-    if(multisigTransaction > 1)
+    if (multisigTransaction > 1)
       throw new CustomError(ErrorMap.SAFE_HAS_PENDING_TX);
   }
 
@@ -200,7 +202,7 @@ export class MultisigTransactionRepository
     const offset = limit * (request.pageIndex - 1);
     return this.repos.query(
       `
-      SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, Status
+      SELECT CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, Status
       FROM MultisigTransaction
       WHERE FromAddress = ?
       AND (Status = ? OR Status = ? OR Status = ?)
