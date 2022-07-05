@@ -1,11 +1,9 @@
 import {
-  ConfirmMultisigWalletRequest,
   ConfirmSafePathParams,
   ConfirmTransactionRequest,
   ConnectMultisigWalletRequest,
   CreateMultisigWalletRequest,
   CreateTransactionRequest,
-  DeleteMultisigWalletRequest,
   DeleteSafePathParams,
   GetAllTransactionsRequest,
   GetMultisigSignaturesParam,
@@ -22,6 +20,7 @@ import {
   QueryMessageRequest,
   ExecuteMessageRequest,
 } from './dtos/requests';
+import { AuthRequest } from './dtos/requests/auth/signin.request';
 import {
   GetMultisigWalletResponse,
   MultisigSignatureResponse,
@@ -55,8 +54,6 @@ export const ENTITIES_CONFIG = {
 
 export const REQUEST_CONFIG = {
   CREATE_MULTISIG_WALLET_REQUEST: CreateMultisigWalletRequest,
-  CONFIRM_MULTISIG_WALLET_REQUEST: ConfirmMultisigWalletRequest,
-  DELETE_MULTISIG_WALLET_REQUEST: DeleteMultisigWalletRequest,
   CREATE_TRANSACTION_REQUEST: CreateTransactionRequest,
   SEND_TRANSACTION_REQUEST: SendTransactionRequest,
   CONFIRM_TRANSACTION_REQUEST: ConfirmTransactionRequest,
@@ -76,6 +73,7 @@ export const REQUEST_CONFIG = {
   GET_ACCOUNT_ONCHAIN_PARAM: GetAccountOnchainParam,
   QUERY_MESSAGE_REQUEST: QueryMessageRequest,
   EXECUTE_MESSAGE_REQUEST: ExecuteMessageRequest,
+  SIGN_IN_REQUEST: AuthRequest,
 };
 
 export const RESPONSE_CONFIG = {
@@ -92,8 +90,6 @@ export const RESPONSE_CONFIG = {
 
 export module MODULE_REQUEST {
   export abstract class CreateMultisigWalletRequest extends REQUEST_CONFIG.CREATE_MULTISIG_WALLET_REQUEST {}
-  export abstract class ConfirmMultisigWalletRequest extends REQUEST_CONFIG.CONFIRM_MULTISIG_WALLET_REQUEST {}
-  export abstract class DeleteMultisigWalletRequest extends REQUEST_CONFIG.DELETE_MULTISIG_WALLET_REQUEST {}
   export abstract class CreateTransactionRequest extends REQUEST_CONFIG.CREATE_TRANSACTION_REQUEST {}
   export abstract class SendTransactionRequest extends REQUEST_CONFIG.SEND_TRANSACTION_REQUEST {}
   export abstract class ConfirmTransactionRequest extends REQUEST_CONFIG.CONFIRM_TRANSACTION_REQUEST {}
@@ -113,6 +109,7 @@ export module MODULE_REQUEST {
   export abstract class GetAccountOnchainParam extends REQUEST_CONFIG.GET_ACCOUNT_ONCHAIN_PARAM {}
   export abstract class QueryMessageRequest extends REQUEST_CONFIG.QUERY_MESSAGE_REQUEST {}
   export abstract class ExecuteMessageRequest extends REQUEST_CONFIG.EXECUTE_MESSAGE_REQUEST {}
+  export abstract class AuthRequest extends REQUEST_CONFIG.SIGN_IN_REQUEST {}
 }
 
 export module MODULE_RESPONSE {
@@ -134,6 +131,7 @@ export const SERVICE_INTERFACE = {
   IGENERAL_SERVICE: 'IGeneralService',
   IMULTISIG_TRANSACTION_SERVICE: 'IMultisigTransactionService',
   ISMART_CONTRACT_SERVICE: 'ISmartContractService',
+  IAUTH_SERVICE: 'IAuthService',
 };
 
 export const REPOSITORY_INTERFACE = {
