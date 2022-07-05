@@ -13,4 +13,8 @@ export class AuthRequest {
   @ApiProperty()
   @IsNotEmpty()
   signature: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  internalChainId: number;
 }

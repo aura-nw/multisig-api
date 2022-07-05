@@ -1,7 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ResponseDto } from 'src/dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
-import { MODULE_REQUEST } from 'src/module.config';
+import { MODULE_REQUEST, REPOSITORY_INTERFACE } from 'src/module.config';
 import { ConfigService } from 'src/shared/services/config.service';
 import { IAuthService } from '../iauth.service';
 import { sha256, Secp256k1, Secp256k1Signature } from '@cosmjs/crypto';
@@ -11,23 +11,28 @@ import { JwtService } from '@nestjs/jwt';
 import { CustomError } from 'src/common/customError';
 import { encodeSecp256k1Pubkey, pubkeyToAddress } from '@cosmjs/amino';
 import { isNumberString } from 'class-validator';
-import { AppConstants, COMMON_CONSTANTS } from 'src/common/constants/app.constant';
+import {
+  AppConstants,
+  COMMON_CONSTANTS,
+} from 'src/common/constants/app.constant';
 import { ContextService } from 'providers/context.service';
+import { IGeneralRepository } from 'src/repositories';
 @Injectable()
 export class AuthService implements IAuthService {
   private readonly _logger = new Logger(AuthService.name);
   private static _authUserKey = AppConstants.USER_KEY;
-  private _prefix_network = this.configService.get('PREFIX_NETWORK');
 
   constructor(
     private configService: ConfigService = new ConfigService(),
     private jwtService: JwtService,
+    @Inject(REPOSITORY_INTERFACE.IGENERAL_REPOSITORY)
+    private chainRepo: IGeneralRepository,
   ) {
     this._logger.log('============== Constructor Auth Service ==============');
   }
   async auth(request: MODULE_REQUEST.AuthRequest): Promise<ResponseDto> {
     try {
-      const { pubkey, data, signature } = request;
+      const { pubkey, data, signature, internalChainId } = request;
 
       // validate input
       if (!COMMON_CONSTANTS.REGEX_BASE64.test(pubkey)) {
@@ -40,9 +45,13 @@ export class AuthService implements IAuthService {
         throw new CustomError(ErrorMap.INVALID_TIMESTAMP);
       }
 
+      // Find chain
+      const chainInfo = await this.chainRepo.findChain(internalChainId);
+      const prefix = chainInfo.prefix;
+
       // get address from pubkey
       const pubkeyFormated = encodeSecp256k1Pubkey(fromBase64(pubkey));
-      const address = pubkeyToAddress(pubkeyFormated, this._prefix_network);
+      const address = pubkeyToAddress(pubkeyFormated, prefix);
 
       // create message hash from data
       const msg = this.createSignMessageByData(address, data);
@@ -75,7 +84,6 @@ export class AuthService implements IAuthService {
       return ResponseDto.responseError(AuthService.name, error);
     }
   }
-
 
   createSignMessageByData(address: string, data: string) {
     const signDoc = {
