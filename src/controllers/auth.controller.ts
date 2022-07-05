@@ -7,11 +7,7 @@ import {
   Post,
   Body,
 } from '@nestjs/common';
-import {
-  ApiBadRequestResponse,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   CONTROLLER_CONSTANTS,
   URL_CONSTANTS,
@@ -28,7 +24,7 @@ export class AuthController {
     private authService: IAuthService,
   ) {}
 
-  @Post(URL_CONSTANTS.AUTH)
+  @Post()
   @ApiOperation({
     summary: 'Send signature to create access token',
   })
