@@ -38,6 +38,7 @@ export class GeneralRepository
         'chain.denom as denom',
         'chain.prefix as prefix',
         'chain.coinDecimals as coinDecimals',
+        'chain.gasPrice as gasPrice',
       ]);
     const result = await sqlQuerry.getRawMany();
     return result;

@@ -17,6 +17,7 @@ import {
 } from 'src/common/constants/app.constant';
 import { ContextService } from 'providers/context.service';
 import { IGeneralRepository } from 'src/repositories';
+import { pubkeyToAddressEvmos } from 'src/chains/evmos';
 @Injectable()
 export class AuthService implements IAuthService {
   private readonly _logger = new Logger(AuthService.name);
@@ -50,8 +51,16 @@ export class AuthService implements IAuthService {
       const prefix = chainInfo.prefix;
 
       // get address from pubkey
-      const pubkeyFormated = encodeSecp256k1Pubkey(fromBase64(pubkey));
-      const address = pubkeyToAddress(pubkeyFormated, prefix);
+      let address = '';
+      switch (prefix) {
+        case 'evmos':
+          address = pubkeyToAddressEvmos(pubkey);
+          break;
+        default:
+          const pubkeyFormated = encodeSecp256k1Pubkey(fromBase64(pubkey));
+          address = pubkeyToAddress(pubkeyFormated, prefix);
+          break;
+      }
 
       // create message hash from data
       const msg = this.createSignMessageByData(address, data);
