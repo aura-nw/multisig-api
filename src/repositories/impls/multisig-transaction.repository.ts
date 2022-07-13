@@ -203,7 +203,7 @@ export class MultisigTransactionRepository
     const offset = limit * (request.pageIndex - 1);
     return this.repos.query(
       `
-      SELECT CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, Status
+      SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, Status
       FROM MultisigTransaction
       WHERE FromAddress = ?
       AND (Status = ? OR Status = ? OR Status = ?)
