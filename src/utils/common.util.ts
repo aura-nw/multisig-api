@@ -16,6 +16,7 @@ import {
   SignatureV2,
   SimplePublicKey,
 } from '@terra-money/terra.js';
+import { readFile } from 'graceful-fs';
 import {
   createMultisigThresholdPubkeyEvmos,
   encodeAminoPubkeySupportEvmos,
@@ -205,5 +206,19 @@ export class CommonUtil {
     const currentUser = await AuthService.getAuthUser();
     if (!currentUser) throw new CustomError(ErrorMap.UNAUTHRORIZED);
     return currentUser;
+  }
+
+  jsonReader(filePath, cb) {
+    readFile(filePath, 'utf-8', (error, fileData) => {
+      if (error) {
+        return cb && cb(error);
+      }
+      try {
+        const object = JSON.parse(fileData);
+        return cb && cb(null, object);
+      } catch (error) {
+        return cb && cb(error);
+      }
+    });
   }
 }

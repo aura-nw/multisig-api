@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Chain } from 'src/entities';
+import { ChainInfo } from 'src/utils/validations/chain.validation';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -10,18 +11,25 @@ export class ChainSeederService {
     private chainRepos: Repository<Chain>,
   ) {}
 
-  async createOrUpdate(chainInfos: any[]) {
-    const result = [];
+  async createOrUpdate(chainInfos: ChainInfo[]) {
+    const chainIds = chainInfos.map((chainInfo) => {
+      return chainInfo.chainId;
+    });
+    const chains = await this.chainRepos
+      .createQueryBuilder()
+      .where('chain.chainId IN (:...chainIds)', { chainIds })
+      .getMany();
+
+    const chainsToCreateOrUpdate = [];
+
     for (const chainInfo of chainInfos) {
-      let chain = await this.chainRepos.findOne({ chainId: chainInfo.chainId });
-      if (!chain) continue;
-      chain = {
-        ...chain,
-        ...chainInfo,
-      };
-      const res = await this.chainRepos.save(chain);
-      result.push(res);
+      let chainToUpdate = chains.find((chain) => {
+        return chain.chainId === chainInfo.chainId;
+      });
+      chainToUpdate = { ...chainToUpdate, ...chainInfo };
+      chainsToCreateOrUpdate.push(chainToUpdate);
     }
-    return result;
+    const res = await this.chainRepos.save(chainsToCreateOrUpdate);
+    return res;
   }
 }
