@@ -33,4 +33,5 @@ export const URL_CONSTANTS = {
   REJECT_EXECUTE_MESSAGE: 'reject-execute-message',
   SEND_EXECUTE_MESSAGE: 'send-execute-message',
   AUTH: 'auth',
+  LIST_VALIDATORS: '/network/:internalChainId/validators',
 };

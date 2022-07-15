@@ -21,6 +21,7 @@ import {
   ExecuteMessageRequest,
 } from './dtos/requests';
 import { AuthRequest } from './dtos/requests/auth/signin.request';
+import { GetValidatorsParam } from './dtos/requests/general/get-validators.request';
 import {
   GetMultisigWalletResponse,
   MultisigSignatureResponse,
@@ -76,6 +77,7 @@ export const REQUEST_CONFIG = {
   QUERY_MESSAGE_REQUEST: QueryMessageRequest,
   EXECUTE_MESSAGE_REQUEST: ExecuteMessageRequest,
   SIGN_IN_REQUEST: AuthRequest,
+  GET_VALIDATORS_PARAM: GetValidatorsParam,
 };
 
 export const RESPONSE_CONFIG = {
@@ -110,6 +112,7 @@ export namespace MODULE_REQUEST {
   export abstract class GetSafeBalanceQuery extends REQUEST_CONFIG.GET_SAFE_BALANCE_QUERY {}
   export abstract class GetSafeBalancePathParams extends REQUEST_CONFIG.GET_SAFE_BALANCE_PATH_PARAMS {}
   export abstract class GetAccountOnchainParam extends REQUEST_CONFIG.GET_ACCOUNT_ONCHAIN_PARAM {}
+  export abstract class GetValidatorsParam extends REQUEST_CONFIG.GET_VALIDATORS_PARAM {}
   export abstract class QueryMessageRequest extends REQUEST_CONFIG.QUERY_MESSAGE_REQUEST {}
   export abstract class ExecuteMessageRequest extends REQUEST_CONFIG.EXECUTE_MESSAGE_REQUEST {}
   export abstract class AuthRequest extends REQUEST_CONFIG.SIGN_IN_REQUEST {}

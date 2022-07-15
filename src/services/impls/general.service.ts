@@ -10,6 +10,7 @@ import { ErrorMap } from 'src/common/error.map';
 import { IMultisigWalletRepository } from 'src/repositories';
 import { LCDClient } from '@terra-money/terra.js';
 import { getEvmosAccount } from 'src/chains/evmos';
+import * as axios from 'axios';
 
 export class GeneralService extends BaseService implements IGeneralService {
   private readonly _logger = new Logger(GeneralService.name);
@@ -25,6 +26,18 @@ export class GeneralService extends BaseService implements IGeneralService {
     this._logger.log(
       '============== Constructor General Service ==============',
     );
+  }
+
+  async getValidators(param: MODULE_REQUEST.GetValidatorsParam) {
+    const { internalChainId } = param;
+    const chain = await this.chainRepo.findChain(internalChainId);
+    const result = await axios.default.get(
+      new URL(
+        '/cosmos/staking/v1beta1/validators?status=BOND_STATUS_BONDED',
+        chain.rest,
+      ).href,
+    );
+    return ResponseDto.response(ErrorMap.SUCCESSFUL, result.data);
   }
 
   async showNetworkList(): Promise<ResponseDto> {
