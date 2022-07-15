@@ -39,12 +39,13 @@
     "gasPrice": 0.0025
   },
   {
+    "name": "Serenity Testnet",
     "rest": "https://lcd.serenity.aura.network",
     "rpc": "https://rpc.serenity.aura.network",
     "webSocket": "wss://rpc.serenity.aura.network/websocket",
     "explorer": "https://serenity.aurascan.io",
     "symbol": "AURA",
-    "denom": "nemo",
+    "denom": "uaura",
     "chainId": "serenity-testnet-001",
     "prefix": "aura",
     "coinDecimals": 6,
@@ -70,23 +71,10 @@
     "webSocket": "wss://tendermint.bd.evmos.dev:26657/websocket",
     "explorer": "https://testnet.mintscan.io/evmos-testnet",
     "symbol": "TEVMOS",
-    "denom": "boc",
+    "denom": "atevmos",
     "chainId": "evmos_9000-4",
     "prefix": "evmos",
     "coinDecimals": 18,
     "gasPrice": 25000000000
-  },
-  {
-    "name": "testing",
-    "rest": "https://rest-atom-testnet.aura.network/",
-    "rpc": "https://rpc-atom-testnet.aura.network/",
-    "webSocket": "wss://rpc-atom-testnet.aura.network/websocket",
-    "explorer": "https://explorer.theta-testnet.polypore.xyz/",
-    "symbol": "ATOM",
-    "denom": "uatom",
-    "chainId": "abc",
-    "prefix": "cosmos",
-    "coinDecimals": 6,
-    "gasPrice": 0.0025
   }
 ]

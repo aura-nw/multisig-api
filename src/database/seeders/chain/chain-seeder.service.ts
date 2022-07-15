@@ -17,7 +17,7 @@ export class ChainSeederService {
     });
     const chains = await this.chainRepos
       .createQueryBuilder()
-      .where('chain.chainId IN (:...chainIds)', { chainIds })
+      .where('Chain.ChainId IN (:...chainIds)', { chainIds })
       .getMany();
 
     const chainsToCreateOrUpdate = [];
