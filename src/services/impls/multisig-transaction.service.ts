@@ -1,9 +1,16 @@
+import { Registry } from '@cosmjs/proto-signing';
+import { AuthInfo, TxBody } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ResponseDto } from 'src/dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
 import { IMultisigTransactionService } from '../multisig-transaction.service';
-import { coins, makeMultisignedTx, StargateClient } from '@cosmjs/stargate';
+import {
+  AminoTypes,
+  coins,
+  makeMultisignedTx,
+  StargateClient,
+} from '@cosmjs/stargate';
 import { fromBase64 } from '@cosmjs/encoding';
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { BaseService } from './base.service';
@@ -25,6 +32,9 @@ import { ConfirmTransactionRequest } from 'src/dtos/requests';
 import { ISmartContractRepository } from 'src/repositories/ismart-contract.repository';
 import { getEvmosAccount, makeMultisignedTxEvmos } from 'src/chains/evmos';
 import { CommonUtil } from 'src/utils/common.util';
+import { Secp256k1, Secp256k1Signature, sha256 } from '@cosmjs/crypto';
+import { makeSignDoc, serializeSignDoc, StdSignDoc } from '@cosmjs/amino';
+import { createWasmAminoConverters } from '@cosmjs/cosmwasm-stargate';
 
 @Injectable()
 export class MultisigTransactionService
@@ -64,6 +74,50 @@ export class MultisigTransactionService
       // if (!(await this.safeOwnerRepo.isSafeOwner(creatorAddress, request.from)))
       //   throw new CustomError(ErrorMap.ADDRESS_NOT_CREATOR);
 
+      // decode data
+      const authInfoBytes = fromBase64(request.authInfoBytes);
+      const decodedAuthInfo = AuthInfo.decode(authInfoBytes);
+      const bodyBytes = fromBase64(request.bodyBytes);
+      const { memo, messages } = TxBody.decode(bodyBytes);
+
+      // get accountNumber, sequence from chain
+      const chain = await this.chainRepos.findChain(request.internalChainId);
+      const client = await StargateClient.connect(chain.rpc);
+      const { accountNumber, sequence } = await client.getSequence(
+        request.from,
+      );
+      const chainId = await client.getChainId();
+
+      // build signDoc
+      const registry = new Registry();
+      const aminoTypes = new AminoTypes({ ...createWasmAminoConverters() });
+      const msgs = messages.map((msg: any) => {
+        const decoder = registry.lookupType(msg.typeUrl);
+        msg.value = decoder.decode(msg.value);
+        return aminoTypes.toAmino(msg);
+      });
+      const stdFee = {
+        amount: decodedAuthInfo.fee.amount,
+        gas: decodedAuthInfo.fee.gasLimit.toString(),
+      };
+      const signDoc = makeSignDoc(
+        msgs,
+        stdFee,
+        chainId,
+        memo,
+        accountNumber,
+        sequence,
+      );
+      const pubKeyDecoded = Buffer.from(authInfo.pubkey, 'base64');
+
+      // validate signature of fromAddress
+      const valid = await Secp256k1.verifySignature(
+        Secp256k1Signature.fromFixedLength(fromBase64(request.signature)),
+        sha256(serializeSignDoc(signDoc)),
+        pubKeyDecoded,
+      );
+      if (!valid) throw new CustomError(ErrorMap.VERIFY_SIGNATURE_FAIL);
+
       //Validate safe
       const signResult = await this.signingInstruction(
         request.internalChainId,
@@ -95,7 +149,7 @@ export class MultisigTransactionService
           request.gasLimit,
           request.fee,
           signResult.accountNumber,
-          NETWORK_URL_TYPE.COSMOS,
+          messages[0].typeUrl,
           signResult.denom,
           TRANSACTION_STATUS.AWAITING_CONFIRMATIONS,
           request.internalChainId,
