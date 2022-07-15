@@ -30,6 +30,7 @@ import { AuthService } from './services/impls/auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { contextMiddleware } from './middlewares';
+import { SeederModule } from './database/seeders/seeder.module';
 
 const controllers = [
   MultisigWalletController,
@@ -59,6 +60,7 @@ const entities = [
     }),
     CacheModule.register({ ttl: 10000 }),
     SharedModule,
+    SeederModule,
     TypeOrmModule.forFeature([...entities]),
     TypeOrmModule.forRootAsync({
       imports: [SharedModule],
