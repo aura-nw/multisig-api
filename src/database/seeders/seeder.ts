@@ -1,27 +1,28 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from 'src/shared/services/config.service';
+import { CommonUtil } from 'src/utils/common.util';
+import { validateChainInfo } from 'src/utils/validations/chain.validation';
 import { ChainSeederService } from './chain/chain-seeder.service';
 
 @Injectable()
 export class SeederService {
   private readonly _logger = new Logger(SeederService.name);
-  constructor(
-    private chainSeederService: ChainSeederService,
-    private configService: ConfigService,
-  ) {}
+  private _commonUtil: CommonUtil = new CommonUtil();
+  constructor(private chainSeederService: ChainSeederService) {}
 
   async seed() {
-    const result = await this.seedChain();
+    await this.seedChain();
   }
 
   async seedChain() {
     try {
-      const chainInfoJson = this.configService.get(`CHAIN_INFOS`);
-      const helloworld = this.configService.get(`PREFIX_NETWORK`);
-      const chainInfos = JSON.parse(chainInfoJson);
-      const result = await this.chainSeederService.createOrUpdate(chainInfos);
-      this._logger.debug(JSON.stringify(result));
-      return result;
+      this._commonUtil.jsonReader('./chains.json', async (error, objects) => {
+        if (error) {
+          throw new Error(error);
+        }
+        const chainInfos = await validateChainInfo(objects);
+        await this.chainSeederService.createOrUpdate(chainInfos);
+      });
     } catch (error) {
       throw new Error('seeding chain failed');
     }
