@@ -52,20 +52,37 @@ export class AuthService implements IAuthService {
 
       // get address from pubkey
       let address = '';
+      let pubKeyUint8: Uint8Array;
+
       switch (prefix) {
         case 'evmos':
           address = pubkeyToAddressEvmos(pubkey);
+          const pubKeyDecoded = fromBase64(pubkey);
+          pubKeyUint8 = Secp256k1.uncompressPubkey(pubKeyDecoded);
+          const payload = {
+            address: address,
+            pubkey: pubkey,
+            data: data,
+            signature: signature,
+          };
+          const accessToken = this.jwtService.sign(payload);
+
+          return ResponseDto.response(ErrorMap.SUCCESSFUL, {
+            AccessToken: `${accessToken}`,
+          });
           break;
         default:
           const pubkeyFormated = encodeSecp256k1Pubkey(fromBase64(pubkey));
           address = pubkeyToAddress(pubkeyFormated, prefix);
+          pubKeyUint8 = fromBase64(pubkey);
           break;
       }
 
       // create message hash from data
       const msg = this.createSignMessageByData(address, data);
       const msgHash = sha256(serializeSignDoc(msg));
-      const pubKeyUint8 = fromBase64(pubkey);
+      // const pubKeyUint8 = fromBase64(pubkey);
+      // pubKeyUint8 = fromBase64(pubkey);
 
       // verify signature
       const resultVerify = await Secp256k1.verifySignature(
