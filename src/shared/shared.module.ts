@@ -9,4 +9,4 @@ const providers = [ConfigService];
   providers: [...providers],
   exports: [...providers],
 })
-export class SharedModule { }
+export class SharedModule {}

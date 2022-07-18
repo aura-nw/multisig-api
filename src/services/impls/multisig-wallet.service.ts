@@ -25,6 +25,8 @@ import { Chain } from 'src/entities';
 import { encodeSecp256k1Pubkey, pubkeyToAddress } from '@cosmjs/amino';
 import { fromBase64 } from '@cosmjs/encoding';
 import { SimplePublicKey } from '@terra-money/terra.js';
+import { pubkeyToAddressEvmos } from 'src/chains/evmos';
+
 @Injectable()
 export class MultisigWalletService
   extends BaseService
@@ -51,9 +53,12 @@ export class MultisigWalletService
     request: MODULE_REQUEST.CreateMultisigWalletRequest,
   ): Promise<ResponseDto> {
     try {
-      const { creatorAddress, creatorPubkey, threshold, internalChainId } =
-        request;
+      const { threshold, internalChainId } = request;
       let { otherOwnersAddress } = request;
+
+      const authInfo = await this._commonUtil.getAuthInfo();
+      const creatorAddress = authInfo.address;
+      const creatorPubkey = authInfo.pubkey;
 
       // Check input
       if (otherOwnersAddress.indexOf(creatorAddress) > -1)
@@ -64,7 +69,11 @@ export class MultisigWalletService
       // Find chain
       const chainInfo = await this.generalRepo.findChain(internalChainId);
 
-      this.checkAddressPubkeyMismatch(creatorAddress, creatorPubkey, chainInfo);
+      await this.checkAddressPubkeyMismatch(
+        creatorAddress,
+        creatorPubkey,
+        chainInfo,
+      );
 
       // Filter empty string in otherOwnersAddress
       otherOwnersAddress =
@@ -122,6 +131,7 @@ export class MultisigWalletService
       safeInfo.threshold = safe.threshold;
       safeInfo.status = safe.status;
       safeInfo.internalChainId = safe.internalChainId;
+      safeInfo.createdAddress = safe.creatorAddress;
       // get chainInfo
       const chainInfo = await this.generalRepo.findChain(safe.internalChainId);
       // if safe created => Get balance
@@ -129,7 +139,7 @@ export class MultisigWalletService
         try {
           const network = new Network(chainInfo.rpc);
           await network.init();
-          const balance = await network.getBalance(
+          const balance = await network.client.getBalance(
             safeInfo.address,
             chainInfo.denom,
           );
@@ -165,7 +175,7 @@ export class MultisigWalletService
       try {
         const network = new Network(chainInfo.rpc);
         await network.init();
-        const balance = await network.getBalance(
+        const balance = await network.client.getBalance(
           safe.safeAddress,
           chainInfo.denom,
         );
@@ -182,18 +192,19 @@ export class MultisigWalletService
 
   async confirm(
     param: MODULE_REQUEST.ConfirmSafePathParams,
-    request: MODULE_REQUEST.ConfirmMultisigWalletRequest,
   ): Promise<ResponseDto> {
     try {
       const { safeId } = param;
-      const { myAddress, myPubkey } = request;
+      const authInfo = await this._commonUtil.getAuthInfo();
+      const myAddress = authInfo.address;
+      const myPubkey = authInfo.pubkey;
 
       // find safe
       const safe = await this.safeRepo.getPendingSafe(safeId);
       // get chainInfo
       const chainInfo = await this.generalRepo.findChain(safe.internalChainId);
 
-      this.checkAddressPubkeyMismatch(myAddress, myPubkey, chainInfo);
+      await this.checkAddressPubkeyMismatch(myAddress, myPubkey, chainInfo);
       // get confirm status
       const { safeOwner, fullConfirmed, pubkeys } =
         await this.safeOwnerRepo.getConfirmSafeStatus(
@@ -219,11 +230,11 @@ export class MultisigWalletService
 
   async deletePending(
     param: MODULE_REQUEST.DeleteSafePathParams,
-    request: MODULE_REQUEST.DeleteMultisigWalletRequest,
   ): Promise<ResponseDto> {
     try {
       const { safeId } = param;
-      const { myAddress } = request;
+      const authInfo = await this._commonUtil.getAuthInfo();
+      const myAddress = authInfo.address;
 
       const deletedSafe = await this.safeRepo.deletePendingSafe(
         safeId,
@@ -265,23 +276,25 @@ export class MultisigWalletService
     }
   }
 
-  checkAddressPubkeyMismatch(address: string, pubkey: string, chain: Chain) {
+  async checkAddressPubkeyMismatch(
+    address: string,
+    pubkey: string,
+    chain: Chain,
+  ) {
     let generatedAddress;
 
-    if(chain.name !== 'Terra Testnet') {
-      // get address from pubkey
-      const pubkeyFormated = encodeSecp256k1Pubkey(fromBase64(pubkey));
-      generatedAddress = pubkeyToAddress(
-        pubkeyFormated,
-        chain.prefix,
-      );
-    } else {
+    if (chain.name === 'Terra Testnet') {
       const simplePubkey = new SimplePublicKey(pubkey);
       generatedAddress = simplePubkey.address();
-      console.log(generatedAddress)
+    } else if (chain.name === 'Evmos Testnet') {
+      generatedAddress = pubkeyToAddressEvmos(pubkey);
+    } else {
+      // get address from pubkey
+      const pubkeyFormated = encodeSecp256k1Pubkey(fromBase64(pubkey));
+      generatedAddress = pubkeyToAddress(pubkeyFormated, chain.prefix);
     }
 
-    if(generatedAddress !== address)
+    if (generatedAddress !== address)
       throw new CustomError(ErrorMap.ADDRESS_PUBKEY_MISMATCH);
   }
 }

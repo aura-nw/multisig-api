@@ -25,7 +25,7 @@ export class GeneralRepository
   }
 
   async showNetworkList() {
-    let sqlQuerry = this.repos
+    const sqlQuerry = this.repos
       .createQueryBuilder('chain')
       .select([
         'chain.id as id',
@@ -37,8 +37,11 @@ export class GeneralRepository
         'chain.symbol as symbol',
         'chain.denom as denom',
         'chain.prefix as prefix',
+        'chain.coinDecimals as coinDecimals',
+        'chain.gasPrice as gasPrice',
       ]);
-    return sqlQuerry.getRawMany();
+    const result = await sqlQuerry.getRawMany();
+    return result;
   }
 
   async findChain(internalChainId: number): Promise<Chain> {

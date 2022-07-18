@@ -235,13 +235,13 @@ export class MultisigWalletRepository
   }
 
   async getSafe(safeId: string, internalChainId?: number): Promise<any> {
-    let condition = this.calculateCondition(safeId, internalChainId);
+    const condition = this.calculateCondition(safeId, internalChainId);
 
     // find safes on offchain
     const safes = await this.findByCondition(condition);
-    if (!safes || safes.length === 0) {
-      //Found on network
-       await this.checkAccountOnNetwork(safeId, internalChainId);
+    //Found on network
+    if (safes.length === 0 && internalChainId && condition.safeAddress) {
+      await this.checkAccountOnNetwork(condition.safeAddress, internalChainId);
     }
     const newSafe = await this.findByCondition(condition);
     if (!newSafe || newSafe.length === 0) {
@@ -308,20 +308,20 @@ export class MultisigWalletRepository
     accountAddress: string,
     internalChainId: number,
   ): Promise<any> {
-    let chainInfo = await this.generalRepo.findOne({
+    const chainInfo = await this.generalRepo.findOne({
       where: { id: internalChainId },
     });
+    if (!chainInfo) throw new CustomError(ErrorMap.CHAIN_NOT_FOUND);
 
-    let client = await StargateClient.connect(chainInfo.rpc);
+    const client = await StargateClient.connect(chainInfo.rpc);
 
     try {
-      let accountOnChain = await client.getAccount(accountAddress);
+      const accountOnChain = await client.getAccount(accountAddress);
       if (accountOnChain.pubkey == null)
         throw new CustomError(ErrorMap.NO_SAFES_FOUND);
-      console.log(accountOnChain);
-      let otherOwnersAddress = [];
+      const otherOwnersAddress = [];
       for (let i = 1; i < accountOnChain.pubkey.value.pubkeys.length; i++) {
-        let ownerAddress = pubkeyToAddress(
+        const ownerAddress = pubkeyToAddress(
           accountOnChain.pubkey.value.pubkeys[i],
           chainInfo.prefix,
         );
@@ -369,7 +369,7 @@ export class MultisigWalletRepository
         );
       }
     } catch (error) {
-      throw new CustomError(ErrorMap.NO_SAFES_FOUND)
+      throw new CustomError(ErrorMap.NO_SAFES_FOUND);
     }
   }
 }

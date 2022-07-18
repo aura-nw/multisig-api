@@ -1,4 +1,12 @@
-export enum AppConstants {}
+export const COMMON_CONSTANTS = {
+  REGEX_BASE64: new RegExp(
+    /^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$/,
+  ),
+};
+
+export enum AppConstants {
+  USER_KEY = 'user_key',
+}
 
 export enum ORDER_BY {
   DESC = 'DESC',

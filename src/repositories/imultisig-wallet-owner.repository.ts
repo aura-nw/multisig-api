@@ -39,4 +39,11 @@ export interface IMultisigWalletOwnerRepository extends IBaseRepository {
     ownerPubkey: string,
     internalChainId: number,
   ): Promise<any>;
+
+  /**
+   * isSafeOwner
+   * @param walletAddress
+   * @param safeAddress
+   */
+  isSafeOwner(walletAddress: string, safeAddress: string): Promise<boolean>;
 }

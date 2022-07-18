@@ -49,18 +49,13 @@ export interface IMultisigWalletService {
    * @param safeId string - id/address of safe
    * @param request
    */
-  confirm(
-    param: MODULE_REQUEST.ConfirmSafePathParams,
-    request: MODULE_REQUEST.ConfirmMultisigWalletRequest,
-  ): Promise<ResponseDto>;
+  confirm(param: MODULE_REQUEST.ConfirmSafePathParams): Promise<ResponseDto>;
 
   /**
    * Delete pending multisig wallet
    * @param safeId string - id/address of safe
-   * @param request
    */
   deletePending(
     param: MODULE_REQUEST.DeleteSafePathParams,
-    request: MODULE_REQUEST.DeleteMultisigWalletRequest,
   ): Promise<ResponseDto>;
 }

@@ -27,8 +27,15 @@ export class MultisigConfirmRepository
     );
   }
 
-  async insertIntoMultisigConfirmContractType(smartContractTxId: number, ownerAddress: string, signature: string, bodyBytes: string, internalChainId: number, status: string) {
-    let multisigConfirm = new MultisigConfirm();
+  async insertIntoMultisigConfirmContractType(
+    smartContractTxId: number,
+    ownerAddress: string,
+    signature: string,
+    bodyBytes: string,
+    internalChainId: number,
+    status: string,
+  ) {
+    const multisigConfirm = new MultisigConfirm();
     multisigConfirm.smartContractTxId = smartContractTxId;
     multisigConfirm.ownerAddress = ownerAddress;
     multisigConfirm.signature = signature;
@@ -47,7 +54,7 @@ export class MultisigConfirmRepository
     internalChainId: number,
     status: string,
   ) {
-    let multisigConfirm = new MultisigConfirm();
+    const multisigConfirm = new MultisigConfirm();
     multisigConfirm.multisigTransactionId = multisigTransactionId;
     multisigConfirm.ownerAddress = ownerAddress;
     multisigConfirm.signature = signature;
@@ -58,12 +65,15 @@ export class MultisigConfirmRepository
     await this.create(multisigConfirm);
   }
 
-  async checkUserHasSigned(transactionId: number, ownerAddress: string): Promise<any> {
-    let listConfirm = await this.findByCondition({
+  async checkUserHasSigned(
+    transactionId: number,
+    ownerAddress: string,
+  ): Promise<any> {
+    const listConfirm = await this.findByCondition({
       multisigTransactionId: transactionId,
       ownerAddress: ownerAddress,
     });
-    
+
     if (listConfirm.length > 0) {
       throw new CustomError(ErrorMap.USER_HAS_COMFIRMED);
     }
@@ -75,12 +85,12 @@ export class MultisigConfirmRepository
     internalChainId: number,
   ): Promise<any> {
     //Validate owner
-    let listSafe = await this.safeRepos.getMultisigWalletsByOwner(
+    const listSafe = await this.safeRepos.getMultisigWalletsByOwner(
       ownerAddres,
       internalChainId,
     );
 
-    let result = listSafe.find((elelement) => {
+    const result = listSafe.find((elelement) => {
       if (elelement.safeAddress === transactionAddress) {
         return true;
       }
@@ -95,7 +105,7 @@ export class MultisigConfirmRepository
     multisigTransactionId: number,
     status?: string,
   ) {
-    let sqlQuerry = this.repos
+    const sqlQuerry = this.repos
       .createQueryBuilder('multisigConfirm')
       .where('multisigConfirm.multisigTransactionId = :multisigTransactionId', {
         multisigTransactionId,
@@ -114,10 +124,18 @@ export class MultisigConfirmRepository
     return sqlQuerry.getRawMany();
   }
 
-  async getListConfirmWithPubkey(multisigTransactionId: number, status: string, safeId: number) {
-    let sqlQuerry = this.repos
+  async getListConfirmWithPubkey(
+    multisigTransactionId: number,
+    status: string,
+    safeId: number,
+  ) {
+    const sqlQuerry = this.repos
       .createQueryBuilder('multisigConfirm')
-      .innerJoin(SafeOwner, 'safeOwner', 'multisigConfirm.ownerAddress = safeOwner.ownerAddress')
+      .innerJoin(
+        SafeOwner,
+        'safeOwner',
+        'multisigConfirm.ownerAddress = safeOwner.ownerAddress',
+      )
       .innerJoin(Safe, 'safe', 'safe.id = safeOwner.safeId')
       .where('multisigConfirm.multisigTransactionId = :multisigTransactionId', {
         multisigTransactionId,
@@ -126,8 +144,8 @@ export class MultisigConfirmRepository
       .andWhere('safeOwner.safeId = :safeId', { safeId })
       .select([
         'multisigConfirm.signature as signature',
-        'safeOwner.ownerPubkey as pubkey'
-      ])
+        'safeOwner.ownerPubkey as pubkey',
+      ]);
     return sqlQuerry.getRawMany();
   }
 }

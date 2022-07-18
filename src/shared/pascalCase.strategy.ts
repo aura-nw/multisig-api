@@ -3,7 +3,8 @@ import { camelCase } from 'typeorm/util/StringUtils';
 
 export class PascalCaseStrategy
   extends DefaultNamingStrategy
-  implements NamingStrategyInterface {
+  implements NamingStrategyInterface
+{
   tableName(className: string, customName: string): string {
     return customName ? customName : camelCase(className, true);
   }
@@ -31,12 +32,9 @@ export class PascalCaseStrategy
     firstTableName: string,
     secondTableName: string,
     firstPropertyName: string,
-    _secondPropertyName: string,
   ): string {
     return camelCase(
-      firstTableName +
-        firstPropertyName.replace(/\./gi, '_') +
-        secondTableName,
+      firstTableName + firstPropertyName.replace(/\./gi, '_') + secondTableName,
       true,
     );
   }

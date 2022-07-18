@@ -39,15 +39,17 @@ export class MultisigTransactionRepository
   }
 
   async validateCreateTx(from: string): Promise<any> {
-    let sqlQuerry = this.repos
+    const sqlQuerry = this.repos
       .createQueryBuilder('multisigTransaction')
       .where('multisigTransaction.fromAddress = :from', { from })
-      .andWhere(`multisigTransaction.status in ('${TRANSACTION_STATUS.AWAITING_CONFIRMATIONS}', '${TRANSACTION_STATUS.AWAITING_EXECUTION}')`)
+      .andWhere(
+        `multisigTransaction.status in ('${TRANSACTION_STATUS.AWAITING_CONFIRMATIONS}', '${TRANSACTION_STATUS.AWAITING_EXECUTION}')`,
+      )
       .select(['multisigTransaction.id as id']);
 
-    let multisigTransaction = await sqlQuerry.getCount();
+    const multisigTransaction = await sqlQuerry.getCount();
 
-    if(multisigTransaction > 1)
+    if (multisigTransaction > 1)
       throw new CustomError(ErrorMap.SAFE_HAS_PENDING_TX);
   }
 
@@ -55,7 +57,7 @@ export class MultisigTransactionRepository
     transactionId: number,
     txHash: string,
   ): Promise<any> {
-    let multisigTransaction = await this.findOne({
+    const multisigTransaction = await this.findOne({
       where: {
         id: transactionId,
       },
@@ -67,7 +69,7 @@ export class MultisigTransactionRepository
   }
 
   async validateTxBroadcast(transactionId: number): Promise<any> {
-    let multisigTransaction = await this.findOne({
+    const multisigTransaction = await this.findOne({
       where: { id: transactionId },
     });
 
@@ -85,7 +87,7 @@ export class MultisigTransactionRepository
     transactionId: number,
     internalChainId: number,
   ): Promise<any> {
-    let transaction = await this.findOne({
+    const transaction = await this.findOne({
       where: { id: transactionId, internalChainId: internalChainId },
     });
 
@@ -110,7 +112,7 @@ export class MultisigTransactionRepository
     sequence: string,
     safeId: number,
   ): Promise<any> {
-    let transaction = new MultisigTransaction();
+    const transaction = new MultisigTransaction();
 
     transaction.fromAddress = from;
     transaction.toAddress = to;
@@ -130,17 +132,18 @@ export class MultisigTransactionRepository
 
   async validateTransaction(transactionId: number, internalChainId: number) {
     //Check transaction available
-    let listConfirmAfterSign = await this.multisigConfirmRepos.findByCondition({
-      multisigTransactionId: transactionId,
-      status: MULTISIG_CONFIRM_STATUS.CONFIRM,
-      internalChainId: internalChainId,
-    });
+    const listConfirmAfterSign =
+      await this.multisigConfirmRepos.findByCondition({
+        multisigTransactionId: transactionId,
+        status: MULTISIG_CONFIRM_STATUS.CONFIRM,
+        internalChainId: internalChainId,
+      });
 
-    let transaction = await this.findOne({
+    const transaction = await this.findOne({
       where: { id: transactionId, internalChainId: internalChainId },
     });
 
-    let safe = await this.safeRepos.findOne({
+    const safe = await this.safeRepos.findOne({
       where: { id: transaction.safeId },
     });
 
@@ -152,7 +155,7 @@ export class MultisigTransactionRepository
   }
 
   async getMultisigTxId(internalTxHash: string) {
-    let sqlQuerry = this.repos
+    const sqlQuerry = this.repos
       .createQueryBuilder('multisigTransaction')
       .where('multisigTransaction.txHash = :internalTxHash', { internalTxHash })
       .select(['multisigTransaction.id as id']);
@@ -161,7 +164,7 @@ export class MultisigTransactionRepository
 
   async getTransactionDetailsMultisigTransaction(condition: any) {
     const param = condition.txHash ? condition.txHash : condition.id;
-    let sqlQuerry = this.repos
+    const sqlQuerry = this.repos
       .createQueryBuilder('multisigTransaction')
       .innerJoin(
         Chain,
