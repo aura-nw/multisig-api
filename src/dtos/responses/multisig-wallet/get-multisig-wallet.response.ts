@@ -65,4 +65,11 @@ export class GetMultisigWalletResponse {
     ],
   })
   balance: Coin[];
+
+  
+  @Expose()
+  @ApiProperty({
+    example: 'aura1528pnlzdhqhqr835p597f60gjgf6etnutv2eh9',
+  })
+  createdAddress: string;
 }
