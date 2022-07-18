@@ -131,6 +131,7 @@ export class MultisigWalletService
       safeInfo.threshold = safe.threshold;
       safeInfo.status = safe.status;
       safeInfo.internalChainId = safe.internalChainId;
+      safeInfo.createdAddress = safe.creatorAddress;
       // get chainInfo
       const chainInfo = await this.generalRepo.findChain(safe.internalChainId);
       // if safe created => Get balance
