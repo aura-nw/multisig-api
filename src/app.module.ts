@@ -28,6 +28,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { contextMiddleware } from './middlewares';
 import { SeederModule } from './database/seeders/seeder.module';
+import { GasRepository } from './repositories/impls/gas.repository';
 
 const controllers = [
   MultisigWalletController,
@@ -46,6 +47,7 @@ const entities = [
   ENTITIES_CONFIG.MULTISIG_TRANSACTION,
   ENTITIES_CONFIG.AURA_TX,
   ENTITIES_CONFIG.SMART_CONTRACT_TX,
+  ENTITIES_CONFIG.GAS,
 ];
 @Module({
   imports: [
@@ -106,6 +108,10 @@ const entities = [
     {
       provide: REPOSITORY_INTERFACE.ISMART_CONTRACT_REPOSITORY,
       useClass: SmartContractRepository,
+    },
+    {
+      provide: REPOSITORY_INTERFACE.IGAS_REPOSITORY,
+      useClass: GasRepository,
     },
     //service
     {
