@@ -11,6 +11,7 @@ import { IMultisigWalletRepository } from 'src/repositories';
 import { LCDClient } from '@terra-money/terra.js';
 import { getEvmosAccount } from 'src/chains/evmos';
 import * as axios from 'axios';
+import { IGasRepository } from 'src/repositories/igas.repository';
 
 export class GeneralService extends BaseService implements IGeneralService {
   private readonly _logger = new Logger(GeneralService.name);
@@ -21,6 +22,8 @@ export class GeneralService extends BaseService implements IGeneralService {
     private chainRepo: IGeneralRepository,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_REPOSITORY)
     private safeRepo: IMultisigWalletRepository,
+    @Inject(REPOSITORY_INTERFACE.IGAS_REPOSITORY)
+    private gasRepo: IGasRepository,
   ) {
     super(chainRepo);
     this._logger.log(
@@ -42,8 +45,18 @@ export class GeneralService extends BaseService implements IGeneralService {
 
   async showNetworkList(): Promise<ResponseDto> {
     const res = new ResponseDto();
-    const result = await this.chainRepo.showNetworkList();
-    return res.return(ErrorMap.SUCCESSFUL, result);
+    const chains = await this.chainRepo.showNetworkList();
+    for (const chain of chains) {
+      const gas = await this.gasRepo.findByCondition(
+        {
+          chainId: chain.chainId,
+        },
+        undefined,
+        ['typeUrl', 'gasAmount'],
+      );
+      chain.defaultGas = gas;
+    }
+    return res.return(ErrorMap.SUCCESSFUL, chains);
   }
 
   async getAccountOnchain(
