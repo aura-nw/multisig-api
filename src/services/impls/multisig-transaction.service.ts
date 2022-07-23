@@ -82,43 +82,53 @@ export class MultisigTransactionService
 
       // get accountNumber, sequence from chain
       const chain = await this.chainRepos.findChain(request.internalChainId);
-      const client = await StargateClient.connect(chain.rpc);
-      const { accountNumber, sequence } = await client.getSequence(
-        request.from,
-      );
-      const chainId = await client.getChainId();
+      let sequence: number, accountNumber: number;
+      if (chain.chainId.startsWith('evmos_')) {
+        const accountInfo = await getEvmosAccount(chain.rest, request.from);
+        sequence = accountInfo.sequence;
+        accountNumber = accountInfo.accountNumber;
+      } else {
+        const client = await StargateClient.connect(chain.rpc);
+        const accountInfo = await client.getAccount(request.from);
+        sequence = accountInfo.sequence;
+        accountNumber = accountInfo.accountNumber;
+      }
+      // const { accountNumber, sequence } = await client.getSequence(
+      //   request.from,
+      // );
+      // const chainId = await client.getChainId();
 
       // build signDoc
-      const registry = new Registry(REGISTRY_GENERATED_TYPES);
+      if (!chain.chainId.startsWith('evmos_')) {
+        const registry = new Registry();
+        const aminoTypes = new AminoTypes({ ...createWasmAminoConverters() });
+        const msgs = messages.map((msg: any) => {
+          const decoder = registry.lookupType(msg.typeUrl);
+          msg.value = decoder.decode(msg.value);
+          return aminoTypes.toAmino(msg);
+        });
+        const stdFee = {
+          amount: decodedAuthInfo.fee.amount,
+          gas: decodedAuthInfo.fee.gasLimit.toString(),
+        };
+        const signDoc = makeSignDoc(
+          msgs,
+          stdFee,
+          chain.chainId,
+          memo,
+          accountNumber,
+          sequence,
+        );
+        const pubKeyDecoded = Buffer.from(authInfo.pubkey, 'base64');
 
-      const aminoTypes = new AminoTypes({ ...createWasmAminoConverters() });
-      const msgs = messages.map((msg: any) => {
-        const decoder = registry.lookupType(msg.typeUrl);
-        msg.value = decoder.decode(msg.value);
-        return aminoTypes.toAmino(msg);
-      });
-
-      const stdFee = {
-        amount: decodedAuthInfo.fee.amount,
-        gas: decodedAuthInfo.fee.gasLimit.toString(),
-      };
-      const signDoc = makeSignDoc(
-        msgs,
-        stdFee,
-        chainId,
-        memo,
-        accountNumber,
-        sequence,
-      );
-      const pubKeyDecoded = Buffer.from(authInfo.pubkey, 'base64');
-
-      // validate signature of fromAddress
-      const valid = await Secp256k1.verifySignature(
-        Secp256k1Signature.fromFixedLength(fromBase64(request.signature)),
-        sha256(serializeSignDoc(signDoc)),
-        pubKeyDecoded,
-      );
-      if (!valid) throw new CustomError(ErrorMap.VERIFY_SIGNATURE_FAIL);
+        // validate signature of fromAddress
+        const valid = await Secp256k1.verifySignature(
+          Secp256k1Signature.fromFixedLength(fromBase64(request.signature)),
+          sha256(serializeSignDoc(signDoc)),
+          pubKeyDecoded,
+        );
+        if (!valid) throw new CustomError(ErrorMap.VERIFY_SIGNATURE_FAIL);
+      }
 
       //Validate safe
       const signResult = await this.signingInstruction(
