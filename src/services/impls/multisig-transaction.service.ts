@@ -17,7 +17,7 @@ import { BaseService } from './base.service';
 import { MultisigTransaction } from 'src/entities';
 import {
   MULTISIG_CONFIRM_STATUS,
-  NETWORK_URL_TYPE,
+  REGISTRY_GENERATED_TYPES,
   TRANSACTION_STATUS,
 } from 'src/common/constants/app.constant';
 import { CustomError } from 'src/common/customError';
@@ -33,7 +33,7 @@ import { ISmartContractRepository } from 'src/repositories/ismart-contract.repos
 import { getEvmosAccount, makeMultisignedTxEvmos } from 'src/chains/evmos';
 import { CommonUtil } from 'src/utils/common.util';
 import { Secp256k1, Secp256k1Signature, sha256 } from '@cosmjs/crypto';
-import { makeSignDoc, serializeSignDoc, StdSignDoc } from '@cosmjs/amino';
+import { makeSignDoc, serializeSignDoc } from '@cosmjs/amino';
 import { createWasmAminoConverters } from '@cosmjs/cosmwasm-stargate';
 
 @Injectable()
@@ -89,13 +89,15 @@ export class MultisigTransactionService
       const chainId = await client.getChainId();
 
       // build signDoc
-      const registry = new Registry();
+      const registry = new Registry(REGISTRY_GENERATED_TYPES);
+
       const aminoTypes = new AminoTypes({ ...createWasmAminoConverters() });
       const msgs = messages.map((msg: any) => {
         const decoder = registry.lookupType(msg.typeUrl);
         msg.value = decoder.decode(msg.value);
         return aminoTypes.toAmino(msg);
       });
+
       const stdFee = {
         amount: decodedAuthInfo.fee.amount,
         gas: decodedAuthInfo.fee.gasLimit.toString(),

@@ -1,3 +1,12 @@
+import { GeneratedType } from '@cosmjs/proto-signing';
+import { MsgSend } from 'cosmjs-types/cosmos/bank/v1beta1/tx';
+import { MsgWithdrawDelegatorReward } from 'cosmjs-types/cosmos/distribution/v1beta1/tx';
+import {
+  MsgBeginRedelegate,
+  MsgDelegate,
+  MsgUndelegate,
+} from 'cosmjs-types/cosmos/staking/v1beta1/tx';
+
 export const COMMON_CONSTANTS = {
   REGEX_BASE64: new RegExp(
     /^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$/,
@@ -51,3 +60,14 @@ export enum NETWORK_URL_TYPE {
   COSMOS = '/cosmos.bank.v1beta1.MsgSend',
   EXECUTE_CONTRACT = '/cosmwasm.wasm.v1.MsgExecuteContract',
 }
+
+export const REGISTRY_GENERATED_TYPES: Iterable<[string, GeneratedType]> = [
+  ['/cosmos.bank.v1beta1.MsgSend', MsgSend],
+  ['/cosmos.staking.v1beta1.MsgDelegate', MsgDelegate],
+  ['/cosmos.staking.v1beta1.MsgBeginRedelegate', MsgBeginRedelegate],
+  ['/cosmos.staking.v1beta1.MsgUndelegate', MsgUndelegate],
+  [
+    '/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward',
+    MsgWithdrawDelegatorReward,
+  ],
+];
