@@ -67,6 +67,15 @@ export class MultisigTransactionService
   async createTransaction(
     request: MODULE_REQUEST.CreateTransactionRequest,
   ): Promise<ResponseDto> {
+    const {
+      from,
+      to,
+      authInfoBytes,
+      bodyBytes,
+      signature,
+      amount,
+      internalChainId,
+    } = request;
     const res = new ResponseDto();
     try {
       const authInfo = await this._commonUtil.getAuthInfo();
@@ -75,21 +84,21 @@ export class MultisigTransactionService
       //   throw new CustomError(ErrorMap.ADDRESS_NOT_CREATOR);
 
       // decode data
-      const authInfoBytes = fromBase64(request.authInfoBytes);
-      const decodedAuthInfo = AuthInfo.decode(authInfoBytes);
-      const bodyBytes = fromBase64(request.bodyBytes);
-      const { memo, messages } = TxBody.decode(bodyBytes);
+      const authInfoEncode = fromBase64(authInfoBytes);
+      const decodedAuthInfo = AuthInfo.decode(authInfoEncode);
+      const bodyBytesEncode = fromBase64(bodyBytes);
+      const { memo, messages } = TxBody.decode(bodyBytesEncode);
 
       // get accountNumber, sequence from chain
-      const chain = await this.chainRepos.findChain(request.internalChainId);
+      const chain = await this.chainRepos.findChain(internalChainId);
       let sequence: number, accountNumber: number;
       if (chain.chainId.startsWith('evmos_')) {
-        const accountInfo = await getEvmosAccount(chain.rest, request.from);
+        const accountInfo = await getEvmosAccount(chain.rest, from);
         sequence = accountInfo.sequence;
         accountNumber = accountInfo.accountNumber;
       } else {
         const client = await StargateClient.connect(chain.rpc);
-        const accountInfo = await client.getAccount(request.from);
+        const accountInfo = await client.getAccount(from);
         sequence = accountInfo.sequence;
         accountNumber = accountInfo.accountNumber;
       }
@@ -123,7 +132,7 @@ export class MultisigTransactionService
 
         // validate signature of fromAddress
         const valid = await Secp256k1.verifySignature(
-          Secp256k1Signature.fromFixedLength(fromBase64(request.signature)),
+          Secp256k1Signature.fromFixedLength(fromBase64(signature)),
           sha256(serializeSignDoc(signDoc)),
           pubKeyDecoded,
         );
@@ -132,48 +141,48 @@ export class MultisigTransactionService
 
       //Validate safe
       const signResult = await this.signingInstruction(
-        request.internalChainId,
-        request.from,
-        request.amount,
+        internalChainId,
+        from,
+        amount,
       );
 
       //Validate transaction creator
       await this.multisigConfirmRepos.validateOwner(
         creatorAddress,
-        request.from,
-        request.internalChainId,
+        from,
+        internalChainId,
       );
 
       //Validate safe don't have tx pending
-      await this.multisigTransactionRepos.validateCreateTx(request.from);
-      await this.smartContractRepos.validateCreateTx(request.from);
+      await this.multisigTransactionRepos.validateCreateTx(from);
+      await this.smartContractRepos.validateCreateTx(from);
 
       const safe = await this.safeRepos.findOne({
-        where: { safeAddress: request.from },
+        where: { safeAddress: from },
       });
 
       //Safe data into DB
       const transactionResult =
         await this.multisigTransactionRepos.insertMultisigTransaction(
-          request.from,
-          request.to,
-          request.amount,
-          request.gasLimit,
-          request.fee,
+          from,
+          to,
+          amount,
+          decodedAuthInfo.fee.gasLimit.toNumber(),
+          Number(decodedAuthInfo.fee.amount[0].amount),
           signResult.accountNumber,
           messages[0].typeUrl,
           signResult.denom,
           TRANSACTION_STATUS.AWAITING_CONFIRMATIONS,
-          request.internalChainId,
+          internalChainId,
           signResult.sequence.toString(),
           safe.id,
         );
 
       const requestSign = new ConfirmTransactionRequest();
       requestSign.transactionId = transactionResult.id;
-      requestSign.bodyBytes = request.bodyBytes;
-      requestSign.signature = request.signature;
-      requestSign.internalChainId = request.internalChainId;
+      requestSign.bodyBytes = bodyBytes;
+      requestSign.signature = signature;
+      requestSign.internalChainId = internalChainId;
 
       //Sign to transaction
       await this.confirmTransaction(requestSign);
