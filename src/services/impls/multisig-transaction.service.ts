@@ -67,6 +67,15 @@ export class MultisigTransactionService
   async createTransaction(
     request: MODULE_REQUEST.CreateTransactionRequest,
   ): Promise<ResponseDto> {
+    const {
+      from,
+      to,
+      authInfoBytes,
+      bodyBytes,
+      signature,
+      amount,
+      internalChainId,
+    } = request;
     const res = new ResponseDto();
     try {
       const authInfo = await this._commonUtil.getAuthInfo();
@@ -75,93 +84,104 @@ export class MultisigTransactionService
       //   throw new CustomError(ErrorMap.ADDRESS_NOT_CREATOR);
 
       // decode data
-      const authInfoBytes = fromBase64(request.authInfoBytes);
-      const decodedAuthInfo = AuthInfo.decode(authInfoBytes);
-      const bodyBytes = fromBase64(request.bodyBytes);
-      const { memo, messages } = TxBody.decode(bodyBytes);
+      const authInfoEncode = fromBase64(authInfoBytes);
+      const decodedAuthInfo = AuthInfo.decode(authInfoEncode);
+      const bodyBytesEncode = fromBase64(bodyBytes);
+      const { memo, messages } = TxBody.decode(bodyBytesEncode);
 
       // get accountNumber, sequence from chain
-      const chain = await this.chainRepos.findChain(request.internalChainId);
-      const client = await StargateClient.connect(chain.rpc);
-      const { accountNumber, sequence } = await client.getSequence(
-        request.from,
-      );
-      const chainId = await client.getChainId();
+      const chain = await this.chainRepos.findChain(internalChainId);
+      let sequence: number, accountNumber: number;
+      if (chain.chainId.startsWith('evmos_')) {
+        const accountInfo = await getEvmosAccount(chain.rest, from);
+        sequence = accountInfo.sequence;
+        accountNumber = accountInfo.accountNumber;
+      } else {
+        const client = await StargateClient.connect(chain.rpc);
+        const accountInfo = await client.getAccount(from);
+        sequence = accountInfo.sequence;
+        accountNumber = accountInfo.accountNumber;
+      }
 
       // build signDoc
-      const registry = new Registry();
-      const aminoTypes = new AminoTypes({ ...createWasmAminoConverters() });
-      const msgs = messages.map((msg: any) => {
-        const decoder = registry.lookupType(msg.typeUrl);
-        msg.value = decoder.decode(msg.value);
-        return aminoTypes.toAmino(msg);
-      });
-      const stdFee = {
-        amount: decodedAuthInfo.fee.amount,
-        gas: decodedAuthInfo.fee.gasLimit.toString(),
-      };
-      const signDoc = makeSignDoc(
-        msgs,
-        stdFee,
-        chainId,
-        memo,
-        accountNumber,
-        sequence,
-      );
-      const pubKeyDecoded = Buffer.from(authInfo.pubkey, 'base64');
+      if (!chain.chainId.startsWith('evmos_')) {
+        const registry = new Registry();
+        const aminoTypes = new AminoTypes({ ...createWasmAminoConverters() });
+        const msgs = messages.map((msg: any) => {
+          const decoder = registry.lookupType(msg.typeUrl);
+          msg.value = decoder.decode(msg.value);
+          return aminoTypes.toAmino(msg);
+        });
+        const stdFee = {
+          amount: decodedAuthInfo.fee.amount,
+          gas: decodedAuthInfo.fee.gasLimit.toString(),
+        };
+        const signDoc = makeSignDoc(
+          msgs,
+          stdFee,
+          chain.chainId,
+          memo,
+          accountNumber,
+          sequence,
+        );
+        const pubKeyDecoded = Buffer.from(authInfo.pubkey, 'base64');
 
-      // validate signature of fromAddress
-      const valid = await Secp256k1.verifySignature(
-        Secp256k1Signature.fromFixedLength(fromBase64(request.signature)),
-        sha256(serializeSignDoc(signDoc)),
-        pubKeyDecoded,
-      );
-      if (!valid) throw new CustomError(ErrorMap.VERIFY_SIGNATURE_FAIL);
+        // validate signature of fromAddress
+        const valid = await Secp256k1.verifySignature(
+          Secp256k1Signature.fromFixedLength(fromBase64(signature)),
+          sha256(serializeSignDoc(signDoc)),
+          pubKeyDecoded,
+        );
+        if (!valid) throw new CustomError(ErrorMap.VERIFY_SIGNATURE_FAIL);
+      }
 
       //Validate safe
       const signResult = await this.signingInstruction(
-        request.internalChainId,
-        request.from,
-        request.amount,
+        internalChainId,
+        from,
+        amount,
       );
 
       //Validate transaction creator
       await this.multisigConfirmRepos.validateOwner(
         creatorAddress,
-        request.from,
-        request.internalChainId,
+        from,
+        internalChainId,
       );
 
       //Validate safe don't have tx pending
-      await this.multisigTransactionRepos.validateCreateTx(request.from);
-      await this.smartContractRepos.validateCreateTx(request.from);
+      await this.multisigTransactionRepos.validateCreateTx(
+        from,
+        internalChainId,
+      );
+      await this.smartContractRepos.validateCreateTx(from, internalChainId);
 
       const safe = await this.safeRepos.findOne({
-        where: { safeAddress: request.from },
+        where: { safeAddress: from },
       });
 
       //Safe data into DB
       const transactionResult =
         await this.multisigTransactionRepos.insertMultisigTransaction(
-          request.from,
-          request.to,
-          request.amount,
-          request.gasLimit,
-          request.fee,
+          from,
+          to,
+          amount,
+          decodedAuthInfo.fee.gasLimit.toNumber(),
+          Number(decodedAuthInfo.fee.amount[0].amount),
           signResult.accountNumber,
           messages[0].typeUrl,
           signResult.denom,
           TRANSACTION_STATUS.AWAITING_CONFIRMATIONS,
-          request.internalChainId,
+          internalChainId,
           signResult.sequence.toString(),
           safe.id,
         );
 
       const requestSign = new ConfirmTransactionRequest();
       requestSign.transactionId = transactionResult.id;
-      requestSign.bodyBytes = request.bodyBytes;
-      requestSign.signature = request.signature;
-      requestSign.internalChainId = request.internalChainId;
+      requestSign.bodyBytes = bodyBytes;
+      requestSign.signature = signature;
+      requestSign.internalChainId = internalChainId;
 
       //Sign to transaction
       await this.confirmTransaction(requestSign);

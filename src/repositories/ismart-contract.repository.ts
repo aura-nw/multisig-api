@@ -4,7 +4,7 @@ export interface ISmartContractRepository extends IBaseRepository {
   /**
    * Validate safe don't have pending tx
    */
-  validateCreateTx(from: string): Promise<any>;
+  validateCreateTx(from: string, internalChainId: number): Promise<any>;
 
   /**
    * Insert data into smart contract tx table

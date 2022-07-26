@@ -5,3 +5,4 @@ export * from './multisig-transaction.entity';
 export * from './safe-owner.entity';
 export * from './safe.entity';
 export * from './smart-contract-tx.entity';
+export * from './gas.entity';
