@@ -102,10 +102,6 @@ export class MultisigTransactionService
         sequence = accountInfo.sequence;
         accountNumber = accountInfo.accountNumber;
       }
-      // const { accountNumber, sequence } = await client.getSequence(
-      //   request.from,
-      // );
-      // const chainId = await client.getChainId();
 
       // build signDoc
       if (!chain.chainId.startsWith('evmos_')) {
@@ -154,8 +150,11 @@ export class MultisigTransactionService
       );
 
       //Validate safe don't have tx pending
-      await this.multisigTransactionRepos.validateCreateTx(from);
-      await this.smartContractRepos.validateCreateTx(from);
+      await this.multisigTransactionRepos.validateCreateTx(
+        from,
+        internalChainId,
+      );
+      await this.smartContractRepos.validateCreateTx(from, internalChainId);
 
       const safe = await this.safeRepos.findOne({
         where: { safeAddress: from },
