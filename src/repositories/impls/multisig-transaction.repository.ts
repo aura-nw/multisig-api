@@ -38,10 +38,13 @@ export class MultisigTransactionRepository
     );
   }
 
-  async validateCreateTx(from: string): Promise<any> {
+  async validateCreateTx(from: string, internalChainId: number): Promise<any> {
     const sqlQuerry = this.repos
       .createQueryBuilder('multisigTransaction')
-      .where('multisigTransaction.fromAddress = :from', { from })
+      .where('multisigTransaction.internalChainId = :internalChainId', {
+        internalChainId,
+      })
+      .andWhere('multisigTransaction.fromAddress = :from', { from })
       .andWhere(
         `multisigTransaction.status in ('${TRANSACTION_STATUS.AWAITING_CONFIRMATIONS}', '${TRANSACTION_STATUS.AWAITING_EXECUTION}')`,
       )
