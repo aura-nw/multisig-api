@@ -34,4 +34,6 @@ export const URL_CONSTANTS = {
   SEND_EXECUTE_MESSAGE: 'send-execute-message',
   AUTH: 'auth',
   LIST_VALIDATORS: '/network/:internalChainId/validators',
+  DELEGATOR_REWARDS: 'delegator/:delegatorAddress/:internalChainId/rewards',
+  DELEGATION_INFORMATION: 'delegations/:delegatorAddress/:internalChainId',
 };

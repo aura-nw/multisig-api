@@ -6,6 +6,7 @@ import {
   Inject,
   Param,
   Post,
+  Query,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -74,5 +75,44 @@ export class GeneralController {
   @HttpCode(HttpStatus.OK)
   async getValidators(@Param() param: MODULE_REQUEST.GetValidatorsParam) {
     return this.generalService.getValidators(param);
+  }
+
+  @Get(URL_CONSTANTS.DELEGATOR_REWARDS)
+  @ApiOperation({
+    summary:
+      'Get Total Rewards from each delegated validator for the delegator address',
+  })
+  @ApiOkResponse({
+    status: 200,
+    type: MODULE_RESPONSE.GetDelegatorRewardsResponse,
+    description: 'Get Delegator Rewards',
+    schema: {},
+  })
+  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  @HttpCode(HttpStatus.OK)
+  async getDelegatorRewards(
+    @Param() param: MODULE_REQUEST.GetDelegatorRewardsParam,
+  ) {
+    return this.generalService.getDelegatorRewards(param);
+  }
+
+  @Get(URL_CONSTANTS.DELEGATION_INFORMATION)
+  @ApiOperation({
+    summary:
+      'DelegatorDelegations queries all delegations of a given delegator address.',
+  })
+  @ApiOkResponse({
+    status: 200,
+    type: MODULE_RESPONSE.GetDelegationInformationResponse,
+    description: 'Get Delegation Information',
+    schema: {},
+  })
+  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  @HttpCode(HttpStatus.OK)
+  async getDelegationInformation(
+    @Param() param: MODULE_REQUEST.GetDelegationInformationParam,
+    @Query() query: MODULE_REQUEST.GetDelegationInformationQuery,
+  ) {
+    return this.generalService.getDelegationInformation(param, query);
   }
 }
