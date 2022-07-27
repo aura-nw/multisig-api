@@ -92,4 +92,41 @@ export class GeneralService extends BaseService implements IGeneralService {
       console.log(error);
     }
   }
+
+  async getDelegatorRewards(param: MODULE_REQUEST.GetDelegatorRewardsParam) {
+    const { delegatorAddress, internalChainId } = param;
+    const chain = await this.chainRepo.findChain(internalChainId);
+    const result = await axios.default.get(
+      new URL(
+        `/cosmos/distribution/v1beta1/delegators/${delegatorAddress}/rewards`,
+        chain.rest,
+      ).href,
+    );
+    return ResponseDto.response(ErrorMap.SUCCESSFUL, result.data);
+  }
+
+  async getDelegationInformation(
+    param: MODULE_REQUEST.GetDelegationInformationParam,
+    query: MODULE_REQUEST.GetDelegationInformationQuery,
+  ) {
+    const { delegatorAddress, internalChainId } = param;
+    const { countTotal, key, limit, offset, reverse } = query;
+    const chain = await this.chainRepo.findChain(internalChainId);
+    const result = await axios.default.get(
+      new URL(
+        `/cosmos/staking/v1beta1/delegations/${delegatorAddress}`,
+        chain.rest,
+      ).href,
+      {
+        params: {
+          'pagination.key': key,
+          'pagination.offset': offset,
+          'pagination.limit': limit,
+          'pagination.countTotal': countTotal,
+          'pagination.reverse': reverse,
+        },
+      },
+    );
+    return ResponseDto.response(ErrorMap.SUCCESSFUL, result.data);
+  }
 }

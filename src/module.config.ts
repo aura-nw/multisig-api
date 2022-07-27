@@ -21,6 +21,11 @@ import {
   ExecuteMessageRequest,
 } from './dtos/requests';
 import { AuthRequest } from './dtos/requests/auth/signin.request';
+import {
+  GetDelegationInformationParam,
+  GetDelegationInformationQuery,
+} from './dtos/requests/general/get-delegation-information.request';
+import { GetDelegatorRewardsParam } from './dtos/requests/general/get-delegator-rewards.request';
 import { GetValidatorsParam } from './dtos/requests/general/get-validators.request';
 import {
   GetMultisigWalletResponse,
@@ -33,6 +38,8 @@ import {
   CreateSafeResponse,
   GetBalanceResponse,
 } from './dtos/responses';
+import { GetDelegationInformationResponse } from './dtos/responses/general/get-delegation-information.response';
+import { GetDelegatorRewardsResponse } from './dtos/responses/general/get-delegator-rewards.response';
 import {
   AuraTx,
   Chain,
@@ -78,6 +85,9 @@ export const REQUEST_CONFIG = {
   EXECUTE_MESSAGE_REQUEST: ExecuteMessageRequest,
   SIGN_IN_REQUEST: AuthRequest,
   GET_VALIDATORS_PARAM: GetValidatorsParam,
+  GET_DELEGATOR_REWARDS_PARAM: GetDelegatorRewardsParam,
+  GET_DELEGATION_INFORMATION_PARAM: GetDelegationInformationParam,
+  GET_DELEGATION_INFORMATION_QUERY: GetDelegationInformationQuery,
 };
 
 export const RESPONSE_CONFIG = {
@@ -91,6 +101,8 @@ export const RESPONSE_CONFIG = {
   NETWORK_LIST_RESPONSE: NetworkListResponse,
   MULTISIG_SIGNATURE_RESPONE: MultisigSignatureResponse,
   GET_ACCOUNT_ONCHAIN_RESPONSE: GetAccountOnchainResponse,
+  GET_DELEGATOR_REWARDS_RESPONSE: GetDelegatorRewardsResponse,
+  GET_DELEGATION_INFORMATION_RESPONSE: GetDelegationInformationResponse,
 };
 
 export namespace MODULE_REQUEST {
@@ -113,6 +125,9 @@ export namespace MODULE_REQUEST {
   export abstract class GetSafeBalancePathParams extends REQUEST_CONFIG.GET_SAFE_BALANCE_PATH_PARAMS {}
   export abstract class GetAccountOnchainParam extends REQUEST_CONFIG.GET_ACCOUNT_ONCHAIN_PARAM {}
   export abstract class GetValidatorsParam extends REQUEST_CONFIG.GET_VALIDATORS_PARAM {}
+  export abstract class GetDelegatorRewardsParam extends REQUEST_CONFIG.GET_DELEGATOR_REWARDS_PARAM {}
+  export abstract class GetDelegationInformationParam extends REQUEST_CONFIG.GET_DELEGATOR_REWARDS_PARAM {}
+  export abstract class GetDelegationInformationQuery extends REQUEST_CONFIG.GET_DELEGATION_INFORMATION_QUERY {}
   export abstract class QueryMessageRequest extends REQUEST_CONFIG.QUERY_MESSAGE_REQUEST {}
   export abstract class ExecuteMessageRequest extends REQUEST_CONFIG.EXECUTE_MESSAGE_REQUEST {}
   export abstract class AuthRequest extends REQUEST_CONFIG.SIGN_IN_REQUEST {}
@@ -128,6 +143,8 @@ export namespace MODULE_RESPONSE {
   export abstract class TransactionDetailsResponse extends RESPONSE_CONFIG.TRANSACTION_DETAILS_RESPONSE {}
   export abstract class NetworkListResponse extends RESPONSE_CONFIG.NETWORK_LIST_RESPONSE {}
   export abstract class GetAccountOnchainResponse extends RESPONSE_CONFIG.GET_ACCOUNT_ONCHAIN_RESPONSE {}
+  export abstract class GetDelegatorRewardsResponse extends RESPONSE_CONFIG.GET_DELEGATOR_REWARDS_RESPONSE {}
+  export abstract class GetDelegationInformationResponse extends RESPONSE_CONFIG.GET_DELEGATION_INFORMATION_RESPONSE {}
 }
 
 export const SERVICE_INTERFACE = {

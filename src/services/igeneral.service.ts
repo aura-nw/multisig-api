@@ -19,4 +19,19 @@ export interface IGeneralService {
    * @param param
    */
   getValidators(param: MODULE_REQUEST.GetValidatorsParam);
+
+  /**
+   * getDelegatorRewards
+   * @param param
+   */
+  getDelegatorRewards(param: MODULE_REQUEST.GetDelegatorRewardsParam);
+
+  /**
+   * getDelegationInformation
+   * @param param
+   */
+  getDelegationInformation(
+    param: MODULE_REQUEST.GetDelegationInformationParam,
+    query: MODULE_REQUEST.GetDelegationInformationQuery,
+  );
 }
