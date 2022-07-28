@@ -5,7 +5,8 @@ export interface IMultisigConfirmRepository extends IBaseRepository {
    * Get list of confirmation of Multisig Transaction
    */
   getListConfirmMultisigTransaction(
-    multisigTransactionId: number,
+    txId?: number,
+    txHash?: string,
     status?: string,
   ): any;
 

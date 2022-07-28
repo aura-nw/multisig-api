@@ -2,14 +2,14 @@ import { ResponseDto } from 'src/dtos/responses';
 import { MODULE_REQUEST } from 'src/module.config';
 
 export interface ITransactionService {
-  /**
-   * Get list of confirmation of Multisig Transaction
-   * @param request
-   */
-  getListMultisigConfirm(
-    internalTxHash: string,
-    status?: string,
-  ): Promise<ResponseDto>;
+  // /**
+  //  * Get list of confirmation of Multisig Transaction
+  //  * @param request
+  //  */
+  // getListMultisigConfirm(
+  //   internalTxHash: string,
+  //   status?: string,
+  // ): Promise<ResponseDto>;
 
   /**
    * Get list of confirmation of Multisig Transaction by Id

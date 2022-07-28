@@ -34,10 +34,13 @@ export class SmartContractRepository
     );
   }
 
-  async validateCreateTx(from: string): Promise<any> {
+  async validateCreateTx(from: string, internalChainId: number): Promise<any> {
     const sqlQuerry = this.repos
       .createQueryBuilder('smartContractTx')
-      .where('smartContractTx.fromAddress = :from', { from })
+      .where('smartContractTx.internalChainId = :internalChainId', {
+        internalChainId,
+      })
+      .andWhere('smartContractTx.fromAddress = :from', { from })
       .andWhere(
         `smartContractTx.status in ('${TRANSACTION_STATUS.AWAITING_CONFIRMATIONS}', '${TRANSACTION_STATUS.AWAITING_EXECUTION}')`,
       )

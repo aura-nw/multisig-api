@@ -2,21 +2,20 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BaseRepository } from './base.repository';
 import { ObjectLiteral, Repository } from 'typeorm';
-import {
-  ENTITIES_CONFIG,
-  MODULE_REQUEST,
-  REPOSITORY_INTERFACE,
-} from 'src/module.config';
+import { ENTITIES_CONFIG, REPOSITORY_INTERFACE } from 'src/module.config';
 import { IMultisigTransactionsRepository } from '../imultisig-transaction.repository';
 import { Chain, MultisigTransaction, Safe } from 'src/entities';
 import {
   MULTISIG_CONFIRM_STATUS,
   TRANSACTION_STATUS,
+  TRANSFER_DIRECTION,
 } from 'src/common/constants/app.constant';
 import { IMultisigConfirmRepository } from '../imultisig-confirm.repository';
 import { IMultisigWalletRepository } from '../imultisig-wallet.repository';
 import { CustomError } from 'src/common/customError';
 import { ErrorMap } from 'src/common/error.map';
+import { plainToClass, plainToInstance } from 'class-transformer';
+import { MultisigTransactionHistoryResponse } from 'src/dtos/responses';
 
 @Injectable()
 export class MultisigTransactionRepository
@@ -38,10 +37,13 @@ export class MultisigTransactionRepository
     );
   }
 
-  async validateCreateTx(from: string): Promise<any> {
+  async validateCreateTx(from: string, internalChainId: number): Promise<any> {
     const sqlQuerry = this.repos
       .createQueryBuilder('multisigTransaction')
-      .where('multisigTransaction.fromAddress = :from', { from })
+      .where('multisigTransaction.internalChainId = :internalChainId', {
+        internalChainId,
+      })
+      .andWhere('multisigTransaction.fromAddress = :from', { from })
       .andWhere(
         `multisigTransaction.status in ('${TRANSACTION_STATUS.AWAITING_CONFIRMATIONS}', '${TRANSACTION_STATUS.AWAITING_EXECUTION}')`,
       )
@@ -198,10 +200,14 @@ export class MultisigTransactionRepository
     return sqlQuerry.getRawOne();
   }
 
-  async getQueueTransaction(request: MODULE_REQUEST.GetAllTransactionsRequest) {
-    const limit = request.pageSize;
-    const offset = limit * (request.pageIndex - 1);
-    return this.repos.query(
+  async getQueueTransaction(
+    safeAddress: string,
+    internalChainId: number,
+    pageIndex: number,
+    limit: number,
+  ): Promise<MultisigTransactionHistoryResponse[]> {
+    const offset = limit * (pageIndex - 1);
+    const result: any[] = await this.repos.query(
       `
       SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, Status
       FROM MultisigTransaction
@@ -212,14 +218,19 @@ export class MultisigTransactionRepository
       LIMIT ? OFFSET ?
     `,
       [
-        request.safeAddress,
+        safeAddress,
         TRANSACTION_STATUS.AWAITING_CONFIRMATIONS,
         TRANSACTION_STATUS.AWAITING_EXECUTION,
         TRANSACTION_STATUS.PENDING,
-        request.internalChainId,
+        internalChainId,
         limit,
         offset,
       ],
     );
+    const txs = plainToInstance(MultisigTransactionHistoryResponse, result);
+    return txs.map((tx) => {
+      tx.Direction = TRANSFER_DIRECTION.OUTGOING;
+      return tx;
+    });
   }
 }

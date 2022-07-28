@@ -43,6 +43,7 @@ import { GetDelegatorRewardsResponse } from './dtos/responses/general/get-delega
 import {
   AuraTx,
   Chain,
+  Gas,
   MultisigConfirm,
   MultisigTransaction,
   Safe,
@@ -58,6 +59,7 @@ export const ENTITIES_CONFIG = {
   MULTISIG_TRANSACTION: MultisigTransaction,
   AURA_TX: AuraTx,
   SMART_CONTRACT_TX: SmartContractTx,
+  GAS: Gas,
 };
 
 export const REQUEST_CONFIG = {
@@ -162,6 +164,7 @@ export const REPOSITORY_INTERFACE = {
   IMULTISIG_TRANSACTION_REPOSITORY: 'IMultisigTransactionsRepository',
   IMULTISIG_CONFIRM_REPOSITORY: 'IMultisigConfirmRepository',
   ISMART_CONTRACT_REPOSITORY: 'ISmartContractRepository',
+  IGAS_REPOSITORY: 'IGasRepository',
 };
 
 export const PROVIDER_INTERFACE = {};

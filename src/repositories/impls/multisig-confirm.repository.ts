@@ -1,8 +1,15 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import e from 'express';
+import { MULTISIG_CONFIRM_STATUS } from 'src/common/constants/app.constant';
 import { CustomError } from 'src/common/customError';
 import { ErrorMap } from 'src/common/error.map';
-import { MultisigConfirm, Safe, SafeOwner } from 'src/entities';
+import {
+  MultisigConfirm,
+  MultisigTransaction,
+  Safe,
+  SafeOwner,
+} from 'src/entities';
 import { ENTITIES_CONFIG, REPOSITORY_INTERFACE } from 'src/module.config';
 import { ObjectLiteral, Repository } from 'typeorm';
 import { IMultisigConfirmRepository } from '../imultisig-confirm.repository';
@@ -102,14 +109,15 @@ export class MultisigConfirmRepository
   }
 
   async getListConfirmMultisigTransaction(
-    multisigTransactionId: number,
+    txId?: number,
+    txHash?: string,
     status?: string,
   ) {
     const sqlQuerry = this.repos
       .createQueryBuilder('multisigConfirm')
-      .where('multisigConfirm.multisigTransactionId = :multisigTransactionId', {
-        multisigTransactionId,
-      })
+      // .where('multisigConfirm.multisigTransactionId = :multisigTransactionId', {
+      //   multisigTransactionId,
+      // })
       .select([
         'multisigConfirm.id as id',
         'multisigConfirm.createdAt as createdAt',
@@ -119,8 +127,33 @@ export class MultisigConfirmRepository
         'multisigConfirm.status as status',
       ])
       .orderBy('multisigConfirm.createdAt', 'ASC');
+    if (txId) {
+      sqlQuerry.where(
+        'multisigConfirm.multisigTransactionId = :multisigTransactionId',
+        {
+          multisigTransactionId: txId,
+        },
+      );
+    } else {
+      sqlQuerry
+        .innerJoin(
+          MultisigTransaction,
+          'multisigTransaction',
+          'multisigConfirm.multisigTransactionId = multisigTransaction.id',
+        )
+        .where('multisigTransaction.txHash = :txHash', {
+          txHash,
+        });
+    }
     if (status)
       sqlQuerry.andWhere('multisigConfirm.status = :status', { status });
+    else
+      sqlQuerry.andWhere('multisigConfirm.status IN (:...status)', {
+        status: [
+          MULTISIG_CONFIRM_STATUS.CONFIRM,
+          MULTISIG_CONFIRM_STATUS.REJECT,
+        ],
+      });
     return sqlQuerry.getRawMany();
   }
 

@@ -105,8 +105,12 @@ export class SmartContractService
       //Validate safe don't have tx pending
       await this.multisigTransactionRepos.validateCreateTx(
         request.senderAddress,
+        request.internalChainId,
       );
-      await this.repos.validateCreateTx(request.senderAddress);
+      await this.repos.validateCreateTx(
+        request.senderAddress,
+        request.internalChainId,
+      );
 
       const safe = await this.safeRepos.findOne({
         where: {
