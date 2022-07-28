@@ -217,27 +217,24 @@ export class TransactionService
           const param: MODULE_REQUEST.GetMultisigSignaturesParam = {
             id: result.Id,
           };
-          result.Confirmations = await (
-            await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+          result.Confirmations =
+            await await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
               result.Id,
               undefined,
               MULTISIG_CONFIRM_STATUS.CONFIRM,
-            )
-          ).Data;
-          result.Rejectors = await (
-            await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+            );
+          result.Rejectors =
+            await await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
               result.Id,
               undefined,
               MULTISIG_CONFIRM_STATUS.REJECT,
-            )
-          ).Data;
-          result.Executor = await (
-            await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+            );
+          result.Executor =
+            await await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
               result.Id,
               undefined,
               MULTISIG_CONFIRM_STATUS.SEND,
-            )
-          ).Data;
+            );
         }
       } else if (result.ToAddress == param.safeAddress)
         result.Direction = TRANSFER_DIRECTION.INCOMING;
