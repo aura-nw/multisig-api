@@ -63,16 +63,18 @@ export class TransactionRepository
       ],
     );
     const txs = plainToInstance(MultisigTransactionHistoryResponse, result);
-    txs.map((tx) => {
+    for (const tx of txs) {
       // Set status of transaction
-      if (Number(tx.Status) === 0) tx.Status = TRANSACTION_STATUS.SUCCESS;
-      else tx.Status = TRANSACTION_STATUS.FAILED;
+      if (typeof tx.Status === 'number') {
+        if (Number(tx.Status) === 0) tx.Status = TRANSACTION_STATUS.SUCCESS;
+        else tx.Status = TRANSACTION_STATUS.FAILED;
+      }
 
       // Set direction of transaction
       if (tx.FromAddress === safeAddress)
         tx.Direction = TRANSFER_DIRECTION.OUTGOING;
       else tx.Direction = TRANSFER_DIRECTION.INCOMING;
-    });
+    }
     return txs;
   }
 
