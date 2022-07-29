@@ -1,6 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { TRANSACTION_STATUS } from 'src/common/constants/app.constant';
+import { plainToInstance } from 'class-transformer';
+import {
+  TRANSACTION_STATUS,
+  TRANSFER_DIRECTION,
+} from 'src/common/constants/app.constant';
+import { MultisigTransactionHistoryResponse } from 'src/dtos/responses';
 import { Chain } from 'src/entities';
 import { ENTITIES_CONFIG, MODULE_REQUEST } from 'src/module.config';
 import { ObjectLiteral, Repository } from 'typeorm';
@@ -23,10 +28,14 @@ export class TransactionRepository
     );
   }
 
-  async getAuraTx(request: MODULE_REQUEST.GetAllTransactionsRequest) {
-    const limit = request.pageSize;
-    const offset = limit * (request.pageIndex - 1);
-    return this.repos.query(
+  async getAuraTx(
+    safeAddress: string,
+    internalChainId: number,
+    pageIndex: number,
+    limit: number,
+  ) {
+    const offset = limit * (pageIndex - 1);
+    const result: any[] = await this.repos.query(
       `
                 SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, Code as Status
                 FROM AuraTx
@@ -42,17 +51,31 @@ export class TransactionRepository
                 LIMIT ? OFFSET ?;
             `,
       [
-        request.safeAddress,
-        request.internalChainId,
-        request.safeAddress,
+        safeAddress,
+        internalChainId,
+        safeAddress,
         TRANSACTION_STATUS.SUCCESS,
         TRANSACTION_STATUS.CANCELLED,
         TRANSACTION_STATUS.FAILED,
-        request.internalChainId,
+        internalChainId,
         limit,
         offset,
       ],
     );
+    const txs = plainToInstance(MultisigTransactionHistoryResponse, result);
+    for (const tx of txs) {
+      // Set status of transaction
+      if (typeof tx.Status === 'number') {
+        if (Number(tx.Status) === 0) tx.Status = TRANSACTION_STATUS.SUCCESS;
+        else tx.Status = TRANSACTION_STATUS.FAILED;
+      }
+
+      // Set direction of transaction
+      if (tx.FromAddress === safeAddress)
+        tx.Direction = TRANSFER_DIRECTION.OUTGOING;
+      else tx.Direction = TRANSFER_DIRECTION.INCOMING;
+    }
+    return txs;
   }
 
   async getTransactionDetailsAuraTx(condition: any) {

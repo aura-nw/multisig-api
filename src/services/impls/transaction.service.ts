@@ -40,21 +40,6 @@ export class TransactionService
     );
   }
 
-  async getListMultisigConfirm(
-    internalTxHash: string,
-    status?: string,
-  ): Promise<any> {
-    // Get Id of multisig transaction
-    const resId = await this.multisigTransactionRepos.getMultisigTxId(
-      internalTxHash,
-    );
-    // Check if transaction exists
-    if (resId) {
-      const result = await this.getListMultisigConfirmById(resId, status);
-      return result.Data;
-    } else return [];
-  }
-
   async getListMultisigConfirmById(
     param: MODULE_REQUEST.GetMultisigSignaturesParam,
     status?: string,
@@ -67,6 +52,7 @@ export class TransactionService
     const result =
       await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
         param.id,
+        undefined,
         status,
       );
     return res.return(ErrorMap.SUCCESSFUL, result);
@@ -75,58 +61,42 @@ export class TransactionService
   async getTransactionHistory(
     request: MODULE_REQUEST.GetAllTransactionsRequest,
   ): Promise<ResponseDto> {
+    const { safeAddress, isHistory, pageSize, pageIndex, internalChainId } =
+      request;
     const res = new ResponseDto();
 
-    const safeAddress = { safeAddress: request.safeAddress };
-
-    const safe = await this.safeRepos.findByCondition(safeAddress);
+    const safe = await this.safeRepos.findByCondition({ safeAddress });
     if (safe.length === 0) return res.return(ErrorMap.NO_SAFES_FOUND);
 
     let result;
-    if (request.isHistory) result = await this.transRepos.getAuraTx(request);
+    if (isHistory)
+      result = await this.transRepos.getAuraTx(
+        safeAddress,
+        internalChainId,
+        pageIndex,
+        pageSize,
+      );
     else
-      result = await this.multisigTransactionRepos.getQueueTransaction(request);
+      result = await this.multisigTransactionRepos.getQueueTransaction(
+        safeAddress,
+        internalChainId,
+        pageIndex,
+        pageSize,
+      );
     // Loop to get Status based on Code and get Multisig Confirm of Multisig Tx
-    for (let i = 0; i < result.length; i++) {
-      if (result[i].Status == '0')
-        result[i].Status = TRANSACTION_STATUS.SUCCESS;
-      else {
-        const code = parseInt(result[i].Status);
-        if (!isNaN(code)) result[i].Status = TRANSACTION_STATUS.FAILED;
-      }
-      // Check if get queue or history transactions
-      if (!request.isHistory) {
-        result[i].Direction = TRANSFER_DIRECTION.OUTGOING;
-      } else {
-        // Get direction of transaction
-        if (request.safeAddress === result[i].FromAddress)
-          result[i].Direction = TRANSFER_DIRECTION.OUTGOING;
-        else result[i].Direction = TRANSFER_DIRECTION.INCOMING;
-      }
-      if (result[i].Direction === TRANSFER_DIRECTION.OUTGOING) {
-        // Get the number of owners that had signed
-        if (result[i].TxHash) {
-          result[i].Confirmations = await (
-            await this.getListMultisigConfirm(
-              result[i].TxHash,
-              MULTISIG_CONFIRM_STATUS.CONFIRM,
-            )
-          ).length;
-        } else {
-          const param: MODULE_REQUEST.GetMultisigSignaturesParam = {
-            id: result[i].Id,
-          };
-          result[i].Confirmations = await (
-            await this.getListMultisigConfirmById(
-              param,
-              MULTISIG_CONFIRM_STATUS.CONFIRM,
-            )
-          ).Data.length;
-        }
-        result[i].ConfirmationsRequired = await (
-          await this.safeRepos.getThreshold(safeAddress.safeAddress)
-        ).ConfirmationsRequired;
-      }
+    for (const tx of result) {
+      if (tx.Direction !== TRANSFER_DIRECTION.OUTGOING) continue;
+      const confirmations: any[] =
+        await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+          tx.Id,
+          tx.TxHash,
+        );
+      tx.Confirmations = confirmations.filter(
+        (x) => x.status === MULTISIG_CONFIRM_STATUS.CONFIRM,
+      ).length;
+      tx.Rejections = confirmations.length - tx.Confirmations;
+
+      tx.ConfirmationsRequired = safe[0].threshold;
     }
     return res.return(ErrorMap.SUCCESSFUL, result);
   }
@@ -225,40 +195,46 @@ export class TransactionService
         result.Direction = TRANSFER_DIRECTION.OUTGOING;
         // Check if data return contains TxHash to query with it
         if (result.TxHash) {
-          result.Confirmations = await this.getListMultisigConfirm(
-            result.TxHash,
-            MULTISIG_CONFIRM_STATUS.CONFIRM,
-          );
-          result.Rejectors = await this.getListMultisigConfirm(
-            result.TxHash,
-            MULTISIG_CONFIRM_STATUS.REJECT,
-          );
-          result.Executor = await this.getListMultisigConfirm(
-            result.TxHash,
-            MULTISIG_CONFIRM_STATUS.SEND,
-          );
+          result.Confirmations =
+            await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+              undefined,
+              result.TxHash,
+              MULTISIG_CONFIRM_STATUS.CONFIRM,
+            );
+          result.Rejectors =
+            await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+              undefined,
+              result.TxHash,
+              MULTISIG_CONFIRM_STATUS.REJECT,
+            );
+          result.Executor =
+            await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+              undefined,
+              result.TxHash,
+              MULTISIG_CONFIRM_STATUS.SEND,
+            );
         } else {
           const param: MODULE_REQUEST.GetMultisigSignaturesParam = {
             id: result.Id,
           };
-          result.Confirmations = await (
-            await this.getListMultisigConfirmById(
-              param,
+          result.Confirmations =
+            await await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+              result.Id,
+              undefined,
               MULTISIG_CONFIRM_STATUS.CONFIRM,
-            )
-          ).Data;
-          result.Rejectors = await (
-            await this.getListMultisigConfirmById(
-              param,
+            );
+          result.Rejectors =
+            await await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+              result.Id,
+              undefined,
               MULTISIG_CONFIRM_STATUS.REJECT,
-            )
-          ).Data;
-          result.Executor = await (
-            await this.getListMultisigConfirmById(
-              param,
+            );
+          result.Executor =
+            await await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+              result.Id,
+              undefined,
               MULTISIG_CONFIRM_STATUS.SEND,
-            )
-          ).Data;
+            );
         }
       } else if (result.ToAddress == param.safeAddress)
         result.Direction = TRANSFER_DIRECTION.INCOMING;

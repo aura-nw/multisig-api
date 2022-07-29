@@ -1,3 +1,4 @@
+import { MultisigTransactionHistoryResponse } from 'src/dtos/responses';
 import { MODULE_REQUEST } from 'src/module.config';
 import { IBaseRepository } from './ibase.repository';
 
@@ -17,7 +18,12 @@ export interface IMultisigTransactionsRepository extends IBaseRepository {
    * Get queue transaction of a Safe
    * @param request
    */
-  getQueueTransaction(request: MODULE_REQUEST.GetAllTransactionsRequest): any;
+  getQueueTransaction(
+    safeAddress: string,
+    internalChainId: number,
+    pageIndex: number,
+    pageSize: number,
+  ): Promise<MultisigTransactionHistoryResponse[]>;
 
   /**
    * Validate transaction
