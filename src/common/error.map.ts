@@ -151,6 +151,10 @@ export const ErrorMap = {
     Code: 'E036',
     Message: `Verify signature fail!`,
   },
+  SIGNATURE_VERIFICATION_FAILED: {
+    Code: 'E037',
+    Message: 'Signature verification failed!',
+  },
   C001: {
     Code: 'C001',
     Message: `Missing result from Chaincode`,

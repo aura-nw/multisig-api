@@ -12,11 +12,18 @@ import {
   isSecp256k1Pubkey,
   MultisigThresholdPubkey,
   Pubkey,
+  serializeSignDoc,
   SinglePubkey,
   StdFee,
+  StdSignDoc,
 } from '@cosmjs/amino';
 import * as axios from 'axios';
-import { Keccak256, Secp256k1 } from '@cosmjs/crypto';
+import {
+  keccak256,
+  Keccak256,
+  Secp256k1,
+  Secp256k1Signature,
+} from '@cosmjs/crypto';
 import {
   fromBase64,
   fromBech32,
@@ -27,6 +34,8 @@ import {
 } from '@cosmjs/encoding';
 import { makeCompactBitArray } from '@cosmjs/stargate/build/multisignature';
 import * as Long from 'long';
+import { ethToEvmos } from '@tharsis/address-converter';
+import * as ethUtils from 'ethereumjs-util';
 
 // As discussed in https://github.com/binance-chain/javascript-sdk/issues/163
 // Prefixes listed here: https://github.com/tendermint/tendermint/blob/d419fffe18531317c28c29a292ad7d253f6cafdf/docs/spec/blockchain/encoding.md#public-key-cryptography
@@ -44,6 +53,31 @@ const pubkeyAminoPrefixMultisigThreshold = fromHex(
 export interface EthSecp256k1Pubkey extends SinglePubkey {
   readonly type: 'ethermint/PubKeyEthSecp256k1';
   readonly value: string;
+}
+
+export async function verifyEvmosSig(
+  signature: string,
+  msg: StdSignDoc,
+  expectEvmosAddr: string,
+) {
+  const sig = Secp256k1Signature.fromFixedLength(fromBase64(signature));
+  let valid = false;
+  for (let i = 0; i < 2; i++) {
+    const pub = ethUtils.ecrecover(
+      ethUtils.toBuffer(keccak256(serializeSignDoc(msg))),
+      27 + i,
+      Buffer.from(sig.r()),
+      Buffer.from(sig.s()),
+    );
+    const addrBuf = ethUtils.pubToAddress(pub);
+    const addr = ethUtils.bufferToHex(addrBuf);
+    const evmosAddr = ethToEvmos(addr);
+
+    if (evmosAddr === expectEvmosAddr) {
+      valid = true;
+    }
+  }
+  return valid;
 }
 
 export function pubkeyToRawAddress(pubkey: Pubkey): Uint8Array {

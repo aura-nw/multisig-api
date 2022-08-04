@@ -1,3 +1,4 @@
+import * as axios from 'axios';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ResponseDto } from 'src/dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
@@ -137,13 +138,18 @@ export class MultisigWalletService
       // if safe created => Get balance
       if (safeInfo.address !== null) {
         try {
-          const network = new Network(chainInfo.rpc);
-          await network.init();
-          const balance = await network.client.getBalance(
-            safeInfo.address,
-            chainInfo.denom,
-          );
-          safeInfo.balance = [balance];
+          // const network = new Network(chainInfo.rpc);
+          // await network.init();
+          // const balance = await network.client.getBalance(
+          //   safeInfo.address,
+          //   chainInfo.denom,
+          // );
+          const url = new URL(
+            'cosmos/bank/v1beta1/balances/' + safeInfo.address,
+            chainInfo.rest,
+          ).href;
+          const balance = await axios.default.get(url);
+          safeInfo.balance = balance.data?.balances;
         } catch (error) {
           msgError = error.message;
           this._logger.error(error.message);
