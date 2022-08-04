@@ -30,11 +30,16 @@ import {
 } from 'src/repositories';
 import { ConfirmTransactionRequest } from 'src/dtos/requests';
 import { ISmartContractRepository } from 'src/repositories/ismart-contract.repository';
-import { getEvmosAccount, makeMultisignedTxEvmos } from 'src/chains/evmos';
+import {
+  getEvmosAccount,
+  makeMultisignedTxEvmos,
+  verifyEvmosSig,
+} from 'src/chains/evmos';
 import { CommonUtil } from 'src/utils/common.util';
 import { Secp256k1, Secp256k1Signature, sha256 } from '@cosmjs/crypto';
 import { makeSignDoc, serializeSignDoc } from '@cosmjs/amino';
 import { createWasmAminoConverters } from '@cosmjs/cosmwasm-stargate';
+import { verifyCosmosSig } from 'src/chains';
 
 @Injectable()
 export class MultisigTransactionService
@@ -80,8 +85,6 @@ export class MultisigTransactionService
     try {
       const authInfo = await this._commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
-      // if (!(await this.safeOwnerRepo.isSafeOwner(creatorAddress, request.from)))
-      //   throw new CustomError(ErrorMap.ADDRESS_NOT_CREATOR);
 
       // decode data
       const authInfoEncode = fromBase64(authInfoBytes);
@@ -104,35 +107,39 @@ export class MultisigTransactionService
       }
 
       // build signDoc
-      if (!chain.chainId.startsWith('evmos_')) {
-        const registry = new Registry();
-        const aminoTypes = new AminoTypes({ ...createWasmAminoConverters() });
-        const msgs = messages.map((msg: any) => {
-          const decoder = registry.lookupType(msg.typeUrl);
-          msg.value = decoder.decode(msg.value);
-          return aminoTypes.toAmino(msg);
-        });
-        const stdFee = {
-          amount: decodedAuthInfo.fee.amount,
-          gas: decodedAuthInfo.fee.gasLimit.toString(),
-        };
-        const signDoc = makeSignDoc(
-          msgs,
-          stdFee,
-          chain.chainId,
-          memo,
-          accountNumber,
-          sequence,
-        );
-        const pubKeyDecoded = Buffer.from(authInfo.pubkey, 'base64');
+      const registry = new Registry();
+      const aminoTypes = new AminoTypes({ ...createWasmAminoConverters() });
+      const msgs = messages.map((msg: any) => {
+        const decoder = registry.lookupType(msg.typeUrl);
+        msg.value = decoder.decode(msg.value);
+        return aminoTypes.toAmino(msg);
+      });
+      const stdFee = {
+        amount: decodedAuthInfo.fee.amount,
+        gas: decodedAuthInfo.fee.gasLimit.toString(),
+      };
+      const signDoc = makeSignDoc(
+        msgs,
+        stdFee,
+        chain.chainId,
+        memo,
+        accountNumber,
+        sequence,
+      );
 
-        // validate signature of fromAddress
-        const valid = await Secp256k1.verifySignature(
-          Secp256k1Signature.fromFixedLength(fromBase64(signature)),
-          sha256(serializeSignDoc(signDoc)),
-          pubKeyDecoded,
+      // verify signature
+      let resultVerify = false;
+      if (chain.chainId.startsWith('evmos_')) {
+        resultVerify = await verifyEvmosSig(signature, signDoc, creatorAddress);
+      } else {
+        resultVerify = await verifyCosmosSig(
+          signature,
+          signDoc,
+          fromBase64(authInfo.pubkey),
         );
-        if (!valid) throw new CustomError(ErrorMap.VERIFY_SIGNATURE_FAIL);
+      }
+      if (!resultVerify) {
+        throw new CustomError(ErrorMap.SIGNATURE_VERIFICATION_FAILED);
       }
 
       //Validate safe
