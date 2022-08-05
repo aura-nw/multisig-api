@@ -11,11 +11,11 @@ export interface IMultisigConfirmRepository extends IBaseRepository {
   ): any;
 
   /**
-   * Validate owner
+   * Validate safe owner
    */
-  validateOwner(
+  validateSafeOwner(
     ownerAddres: string,
-    transactionAddress: string,
+    safeAddress: string,
     internalChainId: number,
   ): Promise<any>;
 

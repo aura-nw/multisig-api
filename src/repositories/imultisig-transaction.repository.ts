@@ -69,5 +69,8 @@ export interface IMultisigTransactionsRepository extends IBaseRepository {
   /**
    * Validate safe don't have pending tx
    */
-  validateCreateTx(from: string, internalChainId: number): Promise<any>;
+  validateCreateTx(
+    safeAddress: string,
+    internalChainId: number,
+  ): Promise<boolean>;
 }

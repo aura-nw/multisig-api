@@ -86,9 +86,9 @@ export class MultisigConfirmRepository
     }
   }
 
-  async validateOwner(
+  async validateSafeOwner(
     ownerAddres: string,
-    transactionAddress: string,
+    safeAddress: string,
     internalChainId: number,
   ): Promise<any> {
     //Validate owner
@@ -98,7 +98,7 @@ export class MultisigConfirmRepository
     );
 
     const result = listSafe.find((elelement) => {
-      if (elelement.safeAddress === transactionAddress) {
+      if (elelement.safeAddress === safeAddress) {
         return true;
       }
     });

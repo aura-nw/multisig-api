@@ -96,7 +96,7 @@ export class SmartContractService
       );
 
       // Validate execute transaction creator
-      await this.multisigConfirmRepos.validateOwner(
+      await this.multisigConfirmRepos.validateSafeOwner(
         creatorAddress,
         request.senderAddress,
         request.internalChainId,
@@ -166,7 +166,7 @@ export class SmartContractService
         request.internalChainId,
       );
 
-      const validateOwner = await this.multisigConfirmRepos.validateOwner(
+      const validateOwner = await this.multisigConfirmRepos.validateSafeOwner(
         ownerAddress,
         transaction.fromAddress,
         request.internalChainId,
@@ -214,7 +214,7 @@ export class SmartContractService
       );
 
       //Validate owner
-      await this.multisigConfirmRepos.validateOwner(
+      await this.multisigConfirmRepos.validateSafeOwner(
         ownerAddress,
         transaction.fromAddress,
         request.internalChainId,
@@ -278,7 +278,7 @@ export class SmartContractService
       );
 
       //Validate owner
-      await this.multisigConfirmRepos.validateOwner(
+      await this.multisigConfirmRepos.validateSafeOwner(
         ownerAddress,
         smartContractTx.fromAddress,
         request.internalChainId,

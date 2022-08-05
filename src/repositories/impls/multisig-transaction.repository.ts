@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BaseRepository } from './base.repository';
-import { ObjectLiteral, Repository } from 'typeorm';
+import { In, ObjectLiteral, Repository } from 'typeorm';
 import { ENTITIES_CONFIG, REPOSITORY_INTERFACE } from 'src/module.config';
 import { IMultisigTransactionsRepository } from '../imultisig-transaction.repository';
 import { Chain, MultisigTransaction, Safe } from 'src/entities';
@@ -37,22 +37,24 @@ export class MultisigTransactionRepository
     );
   }
 
-  async validateCreateTx(from: string, internalChainId: number): Promise<any> {
-    const sqlQuerry = this.repos
-      .createQueryBuilder('multisigTransaction')
-      .where('multisigTransaction.internalChainId = :internalChainId', {
+  async validateCreateTx(
+    safeAddress: string,
+    internalChainId: number,
+  ): Promise<boolean> {
+    const [_, count] = await this.repos.findAndCount({
+      where: {
         internalChainId,
-      })
-      .andWhere('multisigTransaction.fromAddress = :from', { from })
-      .andWhere(
-        `multisigTransaction.status in ('${TRANSACTION_STATUS.AWAITING_CONFIRMATIONS}', '${TRANSACTION_STATUS.AWAITING_EXECUTION}')`,
-      )
-      .select(['multisigTransaction.id as id']);
+        fromAddress: safeAddress,
+        status: In([
+          TRANSACTION_STATUS.AWAITING_CONFIRMATIONS,
+          TRANSACTION_STATUS.AWAITING_EXECUTION,
+        ]),
+      },
+      select: ['id'],
+    });
 
-    const multisigTransaction = await sqlQuerry.getCount();
-
-    if (multisigTransaction > 1)
-      throw new CustomError(ErrorMap.SAFE_HAS_PENDING_TX);
+    if (count > 0) throw new CustomError(ErrorMap.SAFE_HAS_PENDING_TX);
+    return true;
   }
 
   async updateTxBroadcastSucces(
