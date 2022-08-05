@@ -50,6 +50,7 @@ export class SmartContractRepository
 
     if (smartContractTx > 1)
       throw new CustomError(ErrorMap.SAFE_HAS_PENDING_TX);
+    return true;
   }
 
   async insertExecuteContract(

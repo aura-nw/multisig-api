@@ -234,21 +234,21 @@ export class MultisigWalletRepository
     }
   }
 
-  async getSafe(safeId: string, internalChainId?: number): Promise<any> {
+  async getSafe(safeId: string, internalChainId?: number): Promise<Safe> {
     const condition = this.calculateCondition(safeId, internalChainId);
 
     // find safes on offchain
-    const safes = await this.findByCondition(condition);
+    const safe = await this.findOne(condition);
     //Found on network
-    if (safes.length === 0 && internalChainId && condition.safeAddress) {
+    if (!safe && internalChainId && condition.safeAddress) {
       await this.checkAccountOnNetwork(condition.safeAddress, internalChainId);
     }
-    const newSafe = await this.findByCondition(condition);
-    if (!newSafe || newSafe.length === 0) {
+    const newSafe = await this.findOne(condition);
+    if (!newSafe) {
       //Found on network
       throw new CustomError(ErrorMap.NO_SAFES_FOUND);
     }
-    return newSafe[0];
+    return newSafe;
   }
 
   async getPendingSafe(safeId: string, internalChainId?: number): Promise<any> {
