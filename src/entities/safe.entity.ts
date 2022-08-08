@@ -27,5 +27,11 @@ export class Safe extends BaseEntityAutoId {
   @Column({ name: 'InternalChainId' })
   internalChainId: number;
 
+  @Column({ name: 'TxHistoryTag' })
+  txHistoryTag: string;
+
+  @Column({ name: 'TxQueuedTag' })
+  txQueuedTag: string;
+
   // index: [SafeAddress]
 }

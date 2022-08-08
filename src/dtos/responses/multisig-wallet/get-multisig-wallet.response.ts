@@ -18,6 +18,18 @@ export class GetMultisigWalletResponse {
 
   @Expose()
   @ApiProperty({
+    example: '1659946207',
+  })
+  txHistoryTag: string;
+
+  @Expose()
+  @ApiProperty({
+    example: '1659946087383',
+  })
+  txQueuedTag: string;
+
+  @Expose()
+  @ApiProperty({
     example:
       '{"type":"tendermint/PubKeyMultisigThreshold","value":{"threshold":"1","pubkeys":[{"type":"tendermint/PubKeySecp256k1","value":"ApIuFLdzGYiCIojuktt+3Y2CwED6TfNmE05wxDHu9vsl"}]}}',
   })

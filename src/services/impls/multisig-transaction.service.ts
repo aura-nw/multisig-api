@@ -272,7 +272,6 @@ export class MultisigTransactionService
       const transaction =
         await this.multisigTransactionRepos.checkExistMultisigTransaction(
           request.transactionId,
-          request.internalChainId,
         );
 
       await this.multisigConfirmRepos.validateSafeOwner(
@@ -301,6 +300,8 @@ export class MultisigTransactionService
         request.internalChainId,
       );
 
+      await this.safeRepos.updateQueuedTag(transaction.safeId);
+
       return res.return(ErrorMap.SUCCESSFUL);
     } catch (error) {
       return ResponseDto.responseError(MultisigTransactionService.name, error);
@@ -318,7 +319,6 @@ export class MultisigTransactionService
       const transaction =
         await this.multisigTransactionRepos.checkExistMultisigTransaction(
           request.transactionId,
-          request.internalChainId,
         );
 
       //Validate owner
@@ -360,6 +360,8 @@ export class MultisigTransactionService
         transaction.status = TRANSACTION_STATUS.CANCELLED;
         await this.multisigTransactionRepos.update(transaction);
       }
+
+      await this.safeRepos.updateQueuedTag(transaction.safeId);
 
       return res.return(ErrorMap.SUCCESSFUL);
     } catch (error) {
