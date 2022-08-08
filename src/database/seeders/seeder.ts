@@ -18,7 +18,8 @@ export class SeederService {
     try {
       this._commonUtil.jsonReader('./chains.json', async (error, objects) => {
         if (error) {
-          throw new Error(error);
+          this._logger.warn(`can not read chains.json`);
+          return;
         }
         const chainInfos = await validateChainInfo(objects);
         await this.chainSeederService.createOrUpdate(chainInfos);

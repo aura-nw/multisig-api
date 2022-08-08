@@ -115,4 +115,32 @@ export class GeneralController {
   ) {
     return this.generalService.getDelegationInformation(param, query);
   }
+
+  @Get(URL_CONSTANTS.GET_PROPOSALS)
+  @ApiOkResponse({
+    status: 200,
+    type: MODULE_RESPONSE.GetProposalsResponse,
+    description: 'Get Proposals',
+    schema: {},
+  })
+  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  @HttpCode(HttpStatus.OK)
+  async getProposals(@Query() query: MODULE_REQUEST.GetProposalsQuery) {
+    return this.generalService.getProposals(query);
+  }
+
+  @Get(URL_CONSTANTS.GET_PROPOSAL_DETAILS)
+  @ApiOkResponse({
+    status: 200,
+    type: MODULE_RESPONSE.GetProposalDetailsResponse,
+    description: 'Get Proposals',
+    schema: {},
+  })
+  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  @HttpCode(HttpStatus.OK)
+  async getProposalDetails(
+    @Param() param: MODULE_REQUEST.GetProposalDetailsParam,
+  ) {
+    return this.generalService.getProposalDetails(param);
+  }
 }

@@ -26,6 +26,8 @@ import {
   GetDelegationInformationQuery,
 } from './dtos/requests/general/get-delegation-information.request';
 import { GetDelegatorRewardsParam } from './dtos/requests/general/get-delegator-rewards.request';
+import { GetProposalDetailsParam } from './dtos/requests/general/get-proposal-details.request';
+import { GetProposalsQuery } from './dtos/requests/general/get-proposals.request';
 import { GetValidatorsParam } from './dtos/requests/general/get-validators.request';
 import {
   GetMultisigWalletResponse,
@@ -40,6 +42,8 @@ import {
 } from './dtos/responses';
 import { GetDelegationInformationResponse } from './dtos/responses/general/get-delegation-information.response';
 import { GetDelegatorRewardsResponse } from './dtos/responses/general/get-delegator-rewards.response';
+import { GetProposalDetailsResponse } from './dtos/responses/general/get-proposal-details.response';
+import { GetProposalsResponse } from './dtos/responses/general/get-proposals.response';
 import {
   AuraTx,
   Chain,
@@ -90,6 +94,8 @@ export const REQUEST_CONFIG = {
   GET_DELEGATOR_REWARDS_PARAM: GetDelegatorRewardsParam,
   GET_DELEGATION_INFORMATION_PARAM: GetDelegationInformationParam,
   GET_DELEGATION_INFORMATION_QUERY: GetDelegationInformationQuery,
+  GET_PROPOSALS_QUERY: GetProposalsQuery,
+  GET_PROPOSAL_DETAILS_PARAM: GetProposalDetailsParam,
 };
 
 export const RESPONSE_CONFIG = {
@@ -105,6 +111,8 @@ export const RESPONSE_CONFIG = {
   GET_ACCOUNT_ONCHAIN_RESPONSE: GetAccountOnchainResponse,
   GET_DELEGATOR_REWARDS_RESPONSE: GetDelegatorRewardsResponse,
   GET_DELEGATION_INFORMATION_RESPONSE: GetDelegationInformationResponse,
+  GET_PROPOSALS_RESPONSE: GetProposalsResponse,
+  GET_PROPOSAL_DETAILS_RESPONSE: GetProposalDetailsResponse,
 };
 
 export namespace MODULE_REQUEST {
@@ -133,6 +141,8 @@ export namespace MODULE_REQUEST {
   export abstract class QueryMessageRequest extends REQUEST_CONFIG.QUERY_MESSAGE_REQUEST {}
   export abstract class ExecuteMessageRequest extends REQUEST_CONFIG.EXECUTE_MESSAGE_REQUEST {}
   export abstract class AuthRequest extends REQUEST_CONFIG.SIGN_IN_REQUEST {}
+  export abstract class GetProposalsQuery extends REQUEST_CONFIG.GET_PROPOSALS_QUERY {}
+  export abstract class GetProposalDetailsParam extends REQUEST_CONFIG.GET_PROPOSAL_DETAILS_PARAM {}
 }
 
 export namespace MODULE_RESPONSE {
@@ -147,6 +157,8 @@ export namespace MODULE_RESPONSE {
   export abstract class GetAccountOnchainResponse extends RESPONSE_CONFIG.GET_ACCOUNT_ONCHAIN_RESPONSE {}
   export abstract class GetDelegatorRewardsResponse extends RESPONSE_CONFIG.GET_DELEGATOR_REWARDS_RESPONSE {}
   export abstract class GetDelegationInformationResponse extends RESPONSE_CONFIG.GET_DELEGATION_INFORMATION_RESPONSE {}
+  export abstract class GetProposalsResponse extends RESPONSE_CONFIG.GET_PROPOSALS_RESPONSE {}
+  export abstract class GetProposalDetailsResponse extends RESPONSE_CONFIG.GET_PROPOSAL_DETAILS_RESPONSE {}
 }
 
 export const SERVICE_INTERFACE = {
