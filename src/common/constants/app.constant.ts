@@ -1,6 +1,7 @@
 import { GeneratedType } from '@cosmjs/proto-signing';
 import { MsgSend } from 'cosmjs-types/cosmos/bank/v1beta1/tx';
 import { MsgWithdrawDelegatorReward } from 'cosmjs-types/cosmos/distribution/v1beta1/tx';
+import { MsgVote } from 'cosmjs-types/cosmos/gov/v1beta1/tx';
 import {
   MsgBeginRedelegate,
   MsgDelegate,
@@ -73,4 +74,5 @@ export const REGISTRY_GENERATED_TYPES: Iterable<[string, GeneratedType]> = [
     '/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward',
     MsgWithdrawDelegatorReward,
   ],
+  ['/cosmos.gov.v1beta1.MsgVote', MsgVote],
 ];

@@ -34,4 +34,16 @@ export interface IGeneralService {
     param: MODULE_REQUEST.GetDelegationInformationParam,
     query: MODULE_REQUEST.GetDelegationInformationQuery,
   );
+
+  /**
+   * getProposals
+   * @param param
+   */
+  getProposals(query: MODULE_REQUEST.GetProposalsQuery);
+
+  /**
+   * getProposalDetails
+   * @param param
+   */
+  getProposalDetails(param: MODULE_REQUEST.GetProposalDetailsParam);
 }
