@@ -35,14 +35,16 @@ export class TransactionRepository
     limit: number,
   ) {
     const offset = limit * (pageIndex - 1);
+    // query transactions from aura_tx
+    // set direction of transaction
     const result: any[] = await this.repos.query(
       `
-                SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, Code as Status
+                SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, Code as Status, ? AS Direction
                 FROM AuraTx
                 WHERE ToAddress = ?
                 AND InternalChainId = ?
                 UNION
-                SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, Status
+                SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, Status, ? AS Direction
                 FROM MultisigTransaction
                 WHERE FromAddress = ?
                 AND (Status = ? OR Status = ? OR Status = ?)
@@ -51,8 +53,10 @@ export class TransactionRepository
                 LIMIT ? OFFSET ?;
             `,
       [
+        TRANSFER_DIRECTION.INCOMING,
         safeAddress,
         internalChainId,
+        TRANSFER_DIRECTION.OUTGOING,
         safeAddress,
         TRANSACTION_STATUS.SUCCESS,
         TRANSACTION_STATUS.CANCELLED,
@@ -69,11 +73,6 @@ export class TransactionRepository
         if (Number(tx.Status) === 0) tx.Status = TRANSACTION_STATUS.SUCCESS;
         else tx.Status = TRANSACTION_STATUS.FAILED;
       }
-
-      // Set direction of transaction
-      if (tx.FromAddress === safeAddress)
-        tx.Direction = TRANSFER_DIRECTION.OUTGOING;
-      else tx.Direction = TRANSFER_DIRECTION.INCOMING;
     }
     return txs;
   }
