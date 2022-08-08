@@ -236,6 +236,7 @@ export class MultisigTransactionService
           request.internalChainId,
           MULTISIG_CONFIRM_STATUS.SEND,
         );
+        await this.safeRepos.updateQueuedTag(multisigTransaction.safeId);
 
         await client.broadcastTx(txBroadcast, 10);
       } catch (error) {
