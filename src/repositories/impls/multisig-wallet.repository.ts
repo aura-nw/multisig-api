@@ -34,6 +34,18 @@ export class MultisigWalletRepository
     );
   }
 
+  /**
+   *
+   * @param safeId
+   * @returns
+   */
+  async updateQueuedTag(safeId: number): Promise<any> {
+    return this.repos.update(
+      { id: safeId },
+      { txQueuedTag: () => Date.now().toString() },
+    );
+  }
+
   async recoverSafe(
     safeAddress: string,
     safePubkey: string,

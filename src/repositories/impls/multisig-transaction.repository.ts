@@ -87,12 +87,9 @@ export class MultisigTransactionRepository
     return multisigTransaction;
   }
 
-  async checkExistMultisigTransaction(
-    transactionId: number,
-    internalChainId: number,
-  ): Promise<any> {
+  async checkExistMultisigTransaction(transactionId: number): Promise<any> {
     const transaction = await this.findOne({
-      where: { id: transactionId, internalChainId: internalChainId },
+      where: { id: transactionId },
     });
 
     if (!transaction) {
