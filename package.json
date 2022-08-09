@@ -1,8 +1,8 @@
 {
   "name": "multisig-api",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "Multisignature backend api",
+  "author": "aura.network",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
