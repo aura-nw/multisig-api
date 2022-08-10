@@ -39,6 +39,7 @@ export class GeneralRepository
         'chain.prefix as prefix',
         'chain.coinDecimals as coinDecimals',
         'chain.gasPrice as gasPrice',
+        'chain.tokenImg as tokenImg',
       ]);
     const result = await sqlQuerry.getRawMany();
     return result;
