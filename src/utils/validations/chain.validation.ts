@@ -24,6 +24,8 @@ export class ChainInfo {
   coinDecimals: number;
   @IsNumber()
   gasPrice: number;
+  @IsString()
+  tokenImg: string;
 }
 
 export const validateChainInfo = async (
