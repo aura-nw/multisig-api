@@ -1,8 +1,11 @@
 {
-  "name": "multisig-api",
+  "name": "pyxis-safe-api",
   "version": "0.0.1",
   "description": "Multisignature backend api",
-  "author": "aura.network",
+  "author": {
+    "name": "Aura Network",
+    "email": "admin@aura.network"
+  },
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
