@@ -52,7 +52,7 @@ export class GeneralService extends BaseService implements IGeneralService {
           chainId: chain.chainId,
         },
         undefined,
-        ['typeUrl', 'gasAmount'],
+        ['typeUrl', 'gasAmount', 'multiplier'],
       );
       chain.defaultGas = gas;
     }
