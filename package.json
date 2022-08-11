@@ -1,7 +1,7 @@
 {
   "name": "pyxis-safe-api",
   "version": "0.0.1",
-  "description": "Multisignature backend api",
+  "description": "Pyxis Safe Backend API",
   "author": {
     "name": "Aura Network",
     "email": "admin@aura.network"
