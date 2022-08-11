@@ -11,4 +11,7 @@ export class Gas extends BaseEntityAutoId {
 
   @Column({ name: 'ChainId' })
   chainId: string;
+
+  @Column({ name: 'Multiplier' })
+  multiplier: number;
 }
