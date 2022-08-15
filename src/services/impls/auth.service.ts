@@ -21,6 +21,7 @@ import {
   verifyCosmosSig,
   verifyEvmosSig,
 } from 'src/chains';
+import { UserInfo } from 'src/dtos/userInfo';
 @Injectable()
 export class AuthService implements IAuthService {
   private readonly _logger = new Logger(AuthService.name);
@@ -99,7 +100,7 @@ export class AuthService implements IAuthService {
     return ContextService.get(AuthService._authUserKey);
   }
 
-  static setAuthUser(user) {
+  static setAuthUser(user: UserInfo) {
     ContextService.set(AuthService._authUserKey, user);
   }
 }

@@ -87,7 +87,7 @@ export class SmartContractService
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      const authInfo = await this._commonUtil.getAuthInfo();
+      const authInfo = this._commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
       // Validate safe
       const signResult = await this.signingInstruction(
@@ -159,7 +159,7 @@ export class SmartContractService
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      const authInfo = await this._commonUtil.getAuthInfo();
+      const authInfo = this._commonUtil.getAuthInfo();
       const ownerAddress = authInfo.address;
       const transaction = await this.repos.checkExistSmartContractTx(
         request.transactionId,
@@ -205,7 +205,7 @@ export class SmartContractService
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      const authInfo = await this._commonUtil.getAuthInfo();
+      const authInfo = this._commonUtil.getAuthInfo();
       const ownerAddress = authInfo.address;
       //Check status of multisig transaction when reject transaction
       const transaction = await this.repos.checkExistSmartContractTx(
@@ -264,7 +264,7 @@ export class SmartContractService
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      const authInfo = await this._commonUtil.getAuthInfo();
+      const authInfo = this._commonUtil.getAuthInfo();
       const ownerAddress = authInfo.address;
       const chain = await this.chainRepos.findOne({
         where: { id: request.internalChainId },

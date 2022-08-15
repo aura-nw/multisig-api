@@ -82,7 +82,7 @@ export class MultisigTransactionService
     } = request;
     const res = new ResponseDto();
     try {
-      const authInfo = await this._commonUtil.getAuthInfo();
+      const authInfo = this._commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
 
       // Connect to chain
@@ -198,7 +198,7 @@ export class MultisigTransactionService
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      const authInfo = await this._commonUtil.getAuthInfo();
+      const authInfo = this._commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
       const chain = await this.chainRepos.findOne({
         where: { id: request.internalChainId },
@@ -267,7 +267,7 @@ export class MultisigTransactionService
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      const authInfo = await this._commonUtil.getAuthInfo();
+      const authInfo = this._commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
       const transaction =
         await this.multisigTransactionRepos.checkExistMultisigTransaction(
@@ -313,7 +313,7 @@ export class MultisigTransactionService
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      const authInfo = await this._commonUtil.getAuthInfo();
+      const authInfo = this._commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
       //Check status of multisig transaction when reject transaction
       const transaction =

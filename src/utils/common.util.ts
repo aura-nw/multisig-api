@@ -16,6 +16,7 @@ import {
   SignatureV2,
   SimplePublicKey,
 } from '@terra-money/terra.js';
+import { plainToInstance } from 'class-transformer';
 import { readFile } from 'graceful-fs';
 import {
   createMultisigThresholdPubkeyEvmos,
@@ -24,6 +25,7 @@ import {
 import { PUBKEY_TYPES } from 'src/common/constants/app.constant';
 import { CustomError } from 'src/common/customError';
 import { ErrorMap } from 'src/common/error.map';
+import { UserInfo } from 'src/dtos/userInfo';
 import { MultisigTransaction, Safe } from 'src/entities';
 import { AuthService } from 'src/services/impls/auth.service';
 import { ConfigService } from '../shared/services/config.service';
@@ -201,10 +203,10 @@ export class CommonUtil {
     return tx;
   }
 
-  async getAuthInfo(): Promise<any> {
-    const currentUser = await AuthService.getAuthUser();
+  getAuthInfo(): UserInfo {
+    const currentUser = AuthService.getAuthUser();
     if (!currentUser) throw new CustomError(ErrorMap.UNAUTHRORIZED);
-    return currentUser;
+    return plainToInstance(UserInfo, currentUser);
   }
 
   jsonReader(filePath, cb) {
