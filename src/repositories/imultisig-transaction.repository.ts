@@ -1,4 +1,5 @@
 import { MultisigTransactionHistoryResponse } from 'src/dtos/responses';
+import { TxDetailResponse } from 'src/dtos/responses/multisig-transaction/tx-detail.response';
 import { IBaseRepository } from './ibase.repository';
 
 export interface IMultisigTransactionsRepository extends IBaseRepository {
@@ -11,7 +12,9 @@ export interface IMultisigTransactionsRepository extends IBaseRepository {
   /**
    * Get details of a transaction from MultisigTransaction table
    */
-  getTransactionDetailsMultisigTransaction(condition: any): any;
+  getTransactionDetailsMultisigTransaction(
+    condition: any,
+  ): Promise<TxDetailResponse>;
 
   /**
    * Get queue transaction of a Safe

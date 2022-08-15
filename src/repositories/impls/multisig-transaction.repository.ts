@@ -16,6 +16,7 @@ import { CustomError } from 'src/common/customError';
 import { ErrorMap } from 'src/common/error.map';
 import { plainToInstance } from 'class-transformer';
 import { MultisigTransactionHistoryResponse } from 'src/dtos/responses';
+import { TxDetailResponse } from 'src/dtos/responses/multisig-transaction/tx-detail.response';
 
 @Injectable()
 export class MultisigTransactionRepository
@@ -165,7 +166,9 @@ export class MultisigTransactionRepository
     return sqlQuerry.getRawOne();
   }
 
-  async getTransactionDetailsMultisigTransaction(condition: any) {
+  async getTransactionDetailsMultisigTransaction(
+    condition: any,
+  ): Promise<TxDetailResponse> {
     const param = condition.txHash ? condition.txHash : condition.id;
     const sqlQuerry = this.repos
       .createQueryBuilder('multisigTransaction')
@@ -174,11 +177,11 @@ export class MultisigTransactionRepository
         'chain',
         'multisigTransaction.internalChainId = chain.id',
       )
-      .innerJoin(
-        Safe,
-        'safe',
-        'multisigTransaction.fromAddress = safe.safeAddress',
-      )
+      // .innerJoin(
+      //   Safe,
+      //   'safe',
+      //   'multisigTransaction.fromAddress = safe.safeAddress',
+      // )
       .select([
         'multisigTransaction.id as Id',
         'multisigTransaction.createdAt as CreatedAt',
@@ -191,14 +194,19 @@ export class MultisigTransactionRepository
         'multisigTransaction.status as Status',
         'multisigTransaction.gas as GasWanted',
         'multisigTransaction.fee as GasPrice',
-        'safe.threshold as ConfirmationsRequired',
-        'safe.creatorAddress as Signer',
+        // 'safe.threshold as ConfirmationsRequired',
+        // 'safe.creatorAddress as Signer',
         'chain.chainId as ChainId',
       ]);
     if (condition.txHash)
       sqlQuerry.where('multisigTransaction.txHash = :param', { param });
     else sqlQuerry.where('multisigTransaction.id = :param', { param });
-    return sqlQuerry.getRawOne();
+    const result = await sqlQuerry.getRawOne();
+    const txDetail = plainToInstance(TxDetailResponse, result);
+    if (txDetail) {
+      txDetail.Direction = TRANSFER_DIRECTION.OUTGOING;
+    }
+    return txDetail;
   }
 
   async getQueueTransaction(
