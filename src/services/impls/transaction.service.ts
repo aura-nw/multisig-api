@@ -7,6 +7,7 @@ import {
 import { ErrorMap } from 'src/common/error.map';
 import { ResponseDto } from 'src/dtos/responses';
 import { MODULE_REQUEST, REPOSITORY_INTERFACE } from 'src/module.config';
+import { IGeneralRepository } from 'src/repositories';
 import { IMultisigConfirmRepository } from 'src/repositories/imultisig-confirm.repository';
 import { IMultisigTransactionsRepository } from 'src/repositories/imultisig-transaction.repository';
 import { IMultisigWalletOwnerRepository } from 'src/repositories/imultisig-wallet-owner.repository';
@@ -106,136 +107,60 @@ export class TransactionService
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      const safeAddress = { safeAddress: param.safeAddress };
-
-      const safe = await this.safeRepos.findByCondition(safeAddress);
-      if (!safe) return res.return(ErrorMap.NO_SAFES_FOUND);
-
-      const internalTxHash = param.internalTxHash;
+      const { internalTxHash, safeAddress } = param;
 
       // Check if param entered is Id or TxHash
       const condition = this.calculateCondition(internalTxHash);
-      let result;
-      let rawResult = await this.transRepos.getTransactionDetailsAuraTx(
-        condition,
-      );
-      // Query based on condition
-      if (!rawResult || rawResult.Code !== '0') {
-        rawResult =
-          await this.multisigTransactionRepos.getTransactionDetailsMultisigTransaction(
-            condition,
-          );
-      }
-      if (!rawResult) return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
 
-      // Check if From and ToAddress is null
-      if (rawResult.FromAddress === '') {
-        const tx =
-          await this.multisigTransactionRepos.getTransactionDetailsMultisigTransaction(
-            condition,
-          );
-        if (tx.FromAddress !== '') {
-          rawResult.FromAddress = tx.FromAddress;
-          rawResult.ToAddress = tx.ToAddress;
-        }
+      // Get transaction by Id or TxHash from Multisig Transaction
+      let txDetail =
+        await this.multisigTransactionRepos.getTransactionDetailsMultisigTransaction(
+          condition,
+        );
+
+      // If multisigTx is not null, it means that the transaction is a multisig transaction
+      if (!txDetail) {
+        txDetail = await this.transRepos.getTransactionDetailsAuraTx(
+          internalTxHash,
+        );
       }
 
-      // Create data form to return to client
-      if (rawResult.Code) {
-        result = {
-          Id: rawResult.Id,
-          CreatedAt: rawResult.CreatedAt,
-          UpdatedAt: rawResult.UpdatedAt,
-          FromAddress: rawResult.FromAddress,
-          ToAddress: rawResult.ToAddress,
-          TxHash: rawResult.TxHash,
-          Amount: rawResult.Amount,
-          Denom: rawResult.Denom,
-          GasUsed: rawResult.GasUsed,
-          GasWanted: rawResult.GasWanted,
-          GasPrice: rawResult.GasPrice,
-          ChainId: rawResult.ChainId,
-        };
-        // Get Status based on Code
-        if (rawResult.Code == 0) {
-          result.Status = TRANSACTION_STATUS.SUCCESS;
-        } else result.Status = TRANSACTION_STATUS.FAILED;
-      } else {
-        result = {
-          Id: rawResult.Id,
-          CreatedAt: rawResult.CreatedAt,
-          UpdatedAt: rawResult.UpdatedAt,
-          FromAddress: rawResult.FromAddress,
-          ToAddress: rawResult.ToAddress,
-          TxHash: rawResult.TxHash,
-          Amount: rawResult.Amount,
-          Denom: rawResult.Denom,
-          GasUsed: '',
-          GasWanted: rawResult.GasWanted,
-          GasPrice: rawResult.GasPrice,
-          ChainId: rawResult.ChainId,
-          Status: rawResult.Status,
-          ConfirmationsRequired: rawResult.ConfirmationsRequired,
-        };
+      // If txDetail is null, it means that the transaction is not found
+      if (!txDetail) return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
+
+      if (txDetail.Direction === TRANSFER_DIRECTION.OUTGOING) {
+        const threshold = await this.safeRepos.getThreshold(safeAddress);
+        const owner = await this.safeOwnerRepos.getOwners(safeAddress);
+        txDetail.ConfirmationsRequired = threshold.ConfirmationsRequired;
+        txDetail.Signers = owner;
+        // if txHash is null => it means that the transaction is not executed yet, query by Id
+        const multisigTxId = txDetail.TxHash ? undefined : txDetail.Id;
+
+        // Get confirmations of multisig transaction
+        txDetail.Confirmations =
+          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+            multisigTxId,
+            txDetail.TxHash,
+            MULTISIG_CONFIRM_STATUS.CONFIRM,
+          );
+
+        // Get rejections of multisig transaction
+        txDetail.Rejectors =
+          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+            multisigTxId,
+            txDetail.TxHash,
+            MULTISIG_CONFIRM_STATUS.REJECT,
+          );
+
+        // Get execution of multisig transaction
+        txDetail.Executor =
+          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+            multisigTxId,
+            txDetail.TxHash,
+            MULTISIG_CONFIRM_STATUS.SEND,
+          );
       }
-      // Check is multisig transaction
-      if (result.FromAddress == param.safeAddress) {
-        const threshold = await this.safeRepos.getThreshold(param.safeAddress);
-        const owner = await this.safeOwnerRepos.getOwners(param.safeAddress);
-        // Check if data return contain threshold
-        if (!result.ConfirmationsRequired) {
-          if (threshold) {
-            result.ConfirmationsRequired = threshold.ConfirmationsRequired;
-          } else {
-            result.ConfirmationsRequired = '';
-            result.Signers = [];
-          }
-        }
-        result.Signers = owner;
-        result.Direction = TRANSFER_DIRECTION.OUTGOING;
-        // Check if data return contains TxHash to query with it
-        if (result.TxHash) {
-          result.Confirmations =
-            await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-              undefined,
-              result.TxHash,
-              MULTISIG_CONFIRM_STATUS.CONFIRM,
-            );
-          result.Rejectors =
-            await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-              undefined,
-              result.TxHash,
-              MULTISIG_CONFIRM_STATUS.REJECT,
-            );
-          result.Executor =
-            await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-              undefined,
-              result.TxHash,
-              MULTISIG_CONFIRM_STATUS.SEND,
-            );
-        } else {
-          result.Confirmations =
-            await await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-              result.Id,
-              undefined,
-              MULTISIG_CONFIRM_STATUS.CONFIRM,
-            );
-          result.Rejectors =
-            await await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-              result.Id,
-              undefined,
-              MULTISIG_CONFIRM_STATUS.REJECT,
-            );
-          result.Executor =
-            await await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-              result.Id,
-              undefined,
-              MULTISIG_CONFIRM_STATUS.SEND,
-            );
-        }
-      } else if (result.ToAddress == param.safeAddress)
-        result.Direction = TRANSFER_DIRECTION.INCOMING;
-      return res.return(ErrorMap.SUCCESSFUL, result);
+      return res.return(ErrorMap.SUCCESSFUL, txDetail);
     } catch (error) {
       this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
       this._logger.error(`${error.name}: ${error.message}`);

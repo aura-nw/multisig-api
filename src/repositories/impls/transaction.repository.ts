@@ -6,6 +6,7 @@ import {
   TRANSFER_DIRECTION,
 } from 'src/common/constants/app.constant';
 import { MultisigTransactionHistoryResponse } from 'src/dtos/responses';
+import { TxDetailResponse } from 'src/dtos/responses/multisig-transaction/tx-detail.response';
 import { Chain } from 'src/entities';
 import { ENTITIES_CONFIG } from 'src/module.config';
 import { ObjectLiteral, Repository } from 'typeorm';
@@ -77,9 +78,8 @@ export class TransactionRepository
     return txs;
   }
 
-  async getTransactionDetailsAuraTx(condition: any) {
-    const txHash = condition.txHash;
-    const sqlQuerry = this.repos
+  async getTransactionDetailsAuraTx(txHash: string): Promise<TxDetailResponse> {
+    const result = await this.repos
       .createQueryBuilder('auraTx')
       .innerJoin(Chain, 'chain', 'auraTx.internalChainId = chain.id')
       .where('auraTx.txHash = :txHash', { txHash })
@@ -97,7 +97,15 @@ export class TransactionRepository
         'auraTx.gasWanted as GasWanted',
         'auraTx.fee as GasPrice',
         'chain.chainId as ChainId',
-      ]);
-    return sqlQuerry.getRawOne();
+      ])
+      .getRawOne();
+    const txDetail = plainToInstance(TxDetailResponse, result);
+    if (result) {
+      if (String(result.Code) === '0')
+        txDetail.Status = TRANSACTION_STATUS.SUCCESS;
+      else txDetail.Status = TRANSACTION_STATUS.FAILED;
+      txDetail.Direction = TRANSFER_DIRECTION.INCOMING;
+    }
+    return txDetail;
   }
 }
