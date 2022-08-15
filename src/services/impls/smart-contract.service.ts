@@ -389,42 +389,4 @@ export class SmartContractService
     );
     return encodeTransaction;
   }
-
-  // async testCreateExecuteContract(request: MODULE_REQUEST.ExecuteMessageRequest) {
-  //     const res = new ResponseDto();
-  //     try {
-  //         let chain = await this.chainRepos.findOne({ where: { id: request.internalChainId } });
-  //         if (!chain) return res.return(ErrorMap.CHAIN_ID_NOT_EXIST);
-
-  //         const client = await StargateClient.connect(chain.rpc);
-
-  //         let signatures1 = 'qEFJVEFcHQAThmyOwlh9qgX0nn96WNNSNSPAmZZmVpU77z9q6VD9M8JTK/kgHrh8Zkehg9yYc2sT9hNiziQgfA=='
-  //         let encodeSignature1 = fromBase64(signatures1)
-  //         // let signatures2 = 'Bg7boP9N3ioQEFr6cu0Fq4Yq1IQqsSOUfSSSN0zFc056qYJ76w3mulnqoKLz4zdN9DkJB3m8vVAAyUpi82HXDw=='
-  //         // let encodeSignature2 = fromBase64(signatures2)
-  //         let addressSignarureMap = new Map<string, Uint8Array>();
-  //         addressSignarureMap.set('aura1t0l7tjhqvspw7lnsdr9l5t8fyqpuu3jm57ezqa', encodeSignature1);
-  //         // addressSignarureMap.set('aura136v0nmlv0saryev8wqz89w80edzdu3quzm0ve9', encodeSignature2)
-  //         const sendFee = {
-  //             amount: coins(140, 'uaura'),
-  //             gas: '140000',
-  //         };
-  //         let encodedBodyBytes = fromBase64('CtoBCiQvY29zbXdhc20ud2FzbS52MS5Nc2dFeGVjdXRlQ29udHJhY3QSsQEKK2F1cmExdG04eWZzN25meTlrN243bXo3eTZxcW5keThwcjB0dTRqNDh1eTMSP2F1cmExbmE5aDh5MGhwd3RzNXhoa2Vjem1xYWptM2V5eTJuNWxzc25hdnAwaDAyenN4cGVjejRrczhoNTl0eBpBeyJhZGRfbmV3Ijp7ImlkIjoiZjExIiwibmFtZSI6InZpb2xldCIsImFtb3VudCI6MTUwLCJwcmljZSI6MTAwfX0SEUludGVyYWN0IGNvbnRyYWN0')
-  //         const safePubkey = JSON.parse('{"type":"tendermint/PubKeyMultisigThreshold","value":{"threshold":"1","pubkeys":[{"type":"tendermint/PubKeySecp256k1","value":"A4veR43Br9oaixYMZXYaPfnUaVmdXAaBqGqb7Ujgqep2"}]}}')
-  //         let executeTransaction = makeMultisignedTx(
-  //             safePubkey,
-  //             1,
-  //             sendFee,
-  //             encodedBodyBytes,
-  //             addressSignarureMap
-  //         )
-  //         console.log(executeTransaction)
-  //         let encodeTransaction = Uint8Array.from(TxRaw.encode(executeTransaction).finish())
-  //         const result = await client.broadcastTx(encodeTransaction)
-  //         console.log(result)
-  //         return res.return(ErrorMap.SUCCESSFUL, result)
-  //     } catch (error) {
-  //         return ResponseDto.responseError(SmartContractService.name, error);
-  //     }
-  // }
 }
