@@ -1,7 +1,6 @@
 import { Coin } from '@cosmjs/amino';
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
-import { SAFE_STATUS } from 'src/common/constants/app.constant';
 
 export class GetMultisigWalletResponse {
   @Expose()

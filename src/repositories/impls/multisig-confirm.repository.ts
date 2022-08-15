@@ -1,6 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import e from 'express';
 import { MULTISIG_CONFIRM_STATUS } from 'src/common/constants/app.constant';
 import { CustomError } from 'src/common/customError';
 import { ErrorMap } from 'src/common/error.map';

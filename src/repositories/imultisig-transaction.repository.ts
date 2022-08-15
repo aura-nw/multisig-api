@@ -1,5 +1,4 @@
 import { MultisigTransactionHistoryResponse } from 'src/dtos/responses';
-import { MODULE_REQUEST } from 'src/module.config';
 import { IBaseRepository } from './ibase.repository';
 
 export interface IMultisigTransactionsRepository extends IBaseRepository {

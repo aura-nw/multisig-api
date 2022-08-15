@@ -14,7 +14,7 @@ import { IMultisigConfirmRepository } from '../imultisig-confirm.repository';
 import { IMultisigWalletRepository } from '../imultisig-wallet.repository';
 import { CustomError } from 'src/common/customError';
 import { ErrorMap } from 'src/common/error.map';
-import { plainToClass, plainToInstance } from 'class-transformer';
+import { plainToInstance } from 'class-transformer';
 import { MultisigTransactionHistoryResponse } from 'src/dtos/responses';
 
 @Injectable()
@@ -41,17 +41,19 @@ export class MultisigTransactionRepository
     safeAddress: string,
     internalChainId: number,
   ): Promise<boolean> {
-    const [_, count] = await this.repos.findAndCount({
-      where: {
-        internalChainId,
-        fromAddress: safeAddress,
-        status: In([
-          TRANSACTION_STATUS.AWAITING_CONFIRMATIONS,
-          TRANSACTION_STATUS.AWAITING_EXECUTION,
-        ]),
-      },
-      select: ['id'],
-    });
+    const count = (
+      await this.repos.findAndCount({
+        where: {
+          internalChainId,
+          fromAddress: safeAddress,
+          status: In([
+            TRANSACTION_STATUS.AWAITING_CONFIRMATIONS,
+            TRANSACTION_STATUS.AWAITING_EXECUTION,
+          ]),
+        },
+        select: ['id'],
+      })
+    )[1];
 
     if (count > 0) throw new CustomError(ErrorMap.SAFE_HAS_PENDING_TX);
     return true;
