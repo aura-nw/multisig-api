@@ -53,38 +53,8 @@ export class SmartContractRepository
     return true;
   }
 
-  async insertExecuteContract(
-    from: string,
-    contract: string,
-    functionName: string,
-    parameters: string,
-    gas: number,
-    fee: number,
-    status: string,
-    typeUrl: string,
-    internalChainId: number,
-    denom: string,
-    accountNumber: number,
-    sequence: string,
-    safeId: number,
-  ): Promise<any> {
-    const contractTx = new SmartContractTx();
-
-    contractTx.fromAddress = from;
-    contractTx.contractAddress = contract;
-    contractTx.function = functionName;
-    contractTx.parameters = parameters;
-    contractTx.gas = gas;
-    contractTx.fee = fee;
-    contractTx.status = status;
-    contractTx.typeUrl = typeUrl;
-    contractTx.internalChainId = internalChainId;
-    contractTx.denom = denom;
-    contractTx.accountNumber = accountNumber;
-    contractTx.sequence = sequence;
-    contractTx.safeId = safeId;
-
-    return await this.create(contractTx);
+  async insertExecuteContract(contractTx: SmartContractTx): Promise<any> {
+    return this.create(contractTx);
   }
 
   async checkExistSmartContractTx(

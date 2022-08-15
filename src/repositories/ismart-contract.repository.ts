@@ -1,3 +1,4 @@
+import { SmartContractTx } from 'src/entities';
 import { IBaseRepository } from './ibase.repository';
 
 export interface ISmartContractRepository extends IBaseRepository {
@@ -9,21 +10,7 @@ export interface ISmartContractRepository extends IBaseRepository {
   /**
    * Insert data into smart contract tx table
    */
-  insertExecuteContract(
-    from: string,
-    contract: string,
-    functionName: string,
-    parameters: string,
-    gas: number,
-    fee: number,
-    status: string,
-    typeUrl: string,
-    internalChainId: number,
-    denom: string,
-    accountNumber: number,
-    sequence: string,
-    safeId: number,
-  ): Promise<any>;
+  insertExecuteContract(contractTx: SmartContractTx): Promise<any>;
 
   /**
    * Check exist smart contract tx
