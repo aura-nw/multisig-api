@@ -46,7 +46,7 @@ export class AuthService implements IAuthService {
       if (!COMMON_CONSTANTS.REGEX_BASE64.test(signature)) {
         throw new CustomError(ErrorMap.SIGNATURE_NOT_BASE64);
       }
-      if (!isNumberString(data) || !(new Date(Number(data)).getTime() > 0)) {
+      if (!isNumberString(data) || new Date(Number(data)).getTime() <= 0) {
         throw new CustomError(ErrorMap.INVALID_TIMESTAMP);
       }
 

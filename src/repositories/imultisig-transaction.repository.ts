@@ -1,5 +1,6 @@
 import { MultisigTransactionHistoryResponse } from 'src/dtos/responses';
 import { TxDetailResponse } from 'src/dtos/responses/multisig-transaction/tx-detail.response';
+import { MultisigTransaction } from 'src/entities';
 import { IBaseRepository } from './ibase.repository';
 
 export interface IMultisigTransactionsRepository extends IBaseRepository {
@@ -35,20 +36,7 @@ export interface IMultisigTransactionsRepository extends IBaseRepository {
   /**
    * Insert data into table multisig transaction
    */
-  insertMultisigTransaction(
-    from: string,
-    to: string,
-    amount: number,
-    gasLimit: number,
-    fee: number,
-    accountNumber: number,
-    typeUrl: string,
-    denom: string,
-    status: string,
-    internalChainId: number,
-    sequence: string,
-    safeId: number,
-  ): Promise<any>;
+  insertMultisigTransaction(transaction: MultisigTransaction);
 
   /**
    * Check exist multisig transaction
