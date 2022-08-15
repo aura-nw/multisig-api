@@ -4,7 +4,7 @@ import { BaseRepository } from './base.repository';
 import { In, ObjectLiteral, Repository } from 'typeorm';
 import { ENTITIES_CONFIG, REPOSITORY_INTERFACE } from 'src/module.config';
 import { IMultisigTransactionsRepository } from '../imultisig-transaction.repository';
-import { Chain, MultisigTransaction, Safe } from 'src/entities';
+import { Chain, MultisigTransaction } from 'src/entities';
 import {
   MULTISIG_CONFIRM_STATUS,
   TRANSACTION_STATUS,

@@ -1,13 +1,11 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import {
   MULTISIG_CONFIRM_STATUS,
-  TRANSACTION_STATUS,
   TRANSFER_DIRECTION,
 } from 'src/common/constants/app.constant';
 import { ErrorMap } from 'src/common/error.map';
 import { ResponseDto } from 'src/dtos/responses';
 import { MODULE_REQUEST, REPOSITORY_INTERFACE } from 'src/module.config';
-import { IGeneralRepository } from 'src/repositories';
 import { IMultisigConfirmRepository } from 'src/repositories/imultisig-confirm.repository';
 import { IMultisigTransactionsRepository } from 'src/repositories/imultisig-transaction.repository';
 import { IMultisigWalletOwnerRepository } from 'src/repositories/imultisig-wallet-owner.repository';
