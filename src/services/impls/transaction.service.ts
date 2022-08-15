@@ -214,9 +214,6 @@ export class TransactionService
               MULTISIG_CONFIRM_STATUS.SEND,
             );
         } else {
-          const param: MODULE_REQUEST.GetMultisigSignaturesParam = {
-            id: result.Id,
-          };
           result.Confirmations =
             await await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
               result.Id,

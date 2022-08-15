@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from 'src/shared/services/config.service';
 import { CommonUtil } from 'src/utils/common.util';
 import { validateChainInfo } from 'src/utils/validations/chain.validation';
 import { ChainSeederService } from './chain/chain-seeder.service';

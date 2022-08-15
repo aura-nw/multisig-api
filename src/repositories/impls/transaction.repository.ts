@@ -7,7 +7,7 @@ import {
 } from 'src/common/constants/app.constant';
 import { MultisigTransactionHistoryResponse } from 'src/dtos/responses';
 import { Chain } from 'src/entities';
-import { ENTITIES_CONFIG, MODULE_REQUEST } from 'src/module.config';
+import { ENTITIES_CONFIG } from 'src/module.config';
 import { ObjectLiteral, Repository } from 'typeorm';
 import { ITransactionRepository } from '../itransaction.repository';
 import { BaseRepository } from './base.repository';
