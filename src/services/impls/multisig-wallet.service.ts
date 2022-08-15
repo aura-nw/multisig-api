@@ -57,7 +57,7 @@ export class MultisigWalletService
       const { threshold, internalChainId } = request;
       let { otherOwnersAddress } = request;
 
-      const authInfo = await this._commonUtil.getAuthInfo();
+      const authInfo = this._commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
       const creatorPubkey = authInfo.pubkey;
 
@@ -203,7 +203,7 @@ export class MultisigWalletService
   ): Promise<ResponseDto> {
     try {
       const { safeId } = param;
-      const authInfo = await this._commonUtil.getAuthInfo();
+      const authInfo = this._commonUtil.getAuthInfo();
       const myAddress = authInfo.address;
       const myPubkey = authInfo.pubkey;
 
@@ -241,7 +241,7 @@ export class MultisigWalletService
   ): Promise<ResponseDto> {
     try {
       const { safeId } = param;
-      const authInfo = await this._commonUtil.getAuthInfo();
+      const authInfo = this._commonUtil.getAuthInfo();
       const myAddress = authInfo.address;
 
       const deletedSafe = await this.safeRepo.deletePendingSafe(
