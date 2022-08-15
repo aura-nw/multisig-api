@@ -100,7 +100,6 @@ export class CommonUtil {
   } {
     let arrPubkeys;
     if (prefix === 'evmos') {
-      // arrPubkeys = pubKeyArrString.map(this.createPubkeyEvmos);
       arrPubkeys = pubKeyArrString.map(this.createPubkeyEvmos);
     } else arrPubkeys = pubKeyArrString.map(this.createPubkeys);
 

@@ -98,8 +98,6 @@ export class GeneralService extends BaseService implements IGeneralService {
           accountOnChain = await client.getAccount(param.safeAddress);
           break;
       }
-      // const balance = await client.getBalance(param.safeAddress, chain[0].denom);
-      // return res.return(ErrorMap.SUCCESSFUL, { accountOnChain, balance });
       return res.return(ErrorMap.SUCCESSFUL, accountOnChain);
     } catch (error) {
       console.log(error);
