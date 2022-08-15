@@ -60,19 +60,6 @@ export class CommonUtil {
   }
 
   /**
-   * https://stackoverflow.com/a/34890276
-   * @param xs
-   * @param key
-   * @returns
-   */
-  public groupBy<TItem>(xs: TItem[], key: string): { [key: string]: TItem[] } {
-    return xs.reduce(function (rv, x) {
-      (rv[x[key]] = rv[x[key]] || []).push(x);
-      return rv;
-    }, {});
-  }
-
-  /**
    * https://stackoverflow.com/a/54974076/8461456
    * @param arr
    * @returns boolean
@@ -106,16 +93,13 @@ export class CommonUtil {
     } else arrPubkeys = pubKeyArrString.map(this.createPubkeys);
 
     let multisigPubkey;
-    switch (prefix) {
-      case 'evmos':
-        multisigPubkey = createMultisigThresholdPubkeyEvmos(
-          arrPubkeys,
-          threshold,
-        );
-        break;
-      default:
-        multisigPubkey = createMultisigThresholdPubkey(arrPubkeys, threshold);
-        break;
+    if (prefix === 'evmos') {
+      multisigPubkey = createMultisigThresholdPubkeyEvmos(
+        arrPubkeys,
+        threshold,
+      );
+    } else {
+      multisigPubkey = createMultisigThresholdPubkey(arrPubkeys, threshold);
     }
     const multiSigWalletAddress = this.pubkeyToAddress(multisigPubkey, prefix);
     return {

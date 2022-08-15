@@ -171,7 +171,7 @@ export class MultisigWalletRepository
     threshold: number,
   ): Promise<string> {
     const safeAddress = {
-      addresses: addresses.sort(),
+      addresses: [...addresses].sort(),
       threshold,
       internalChainId,
     };
