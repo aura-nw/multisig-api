@@ -103,35 +103,9 @@ export class MultisigTransactionRepository
   }
 
   async insertMultisigTransaction(
-    from: string,
-    to: string,
-    amount: number,
-    gasLimit: number,
-    fee: number,
-    accountNumber: number,
-    typeUrl: string,
-    denom: string,
-    status: string,
-    internalChainId: number,
-    sequence: string,
-    safeId: number,
+    transaction: MultisigTransaction,
   ): Promise<any> {
-    const transaction = new MultisigTransaction();
-
-    transaction.fromAddress = from;
-    transaction.toAddress = to;
-    transaction.amount = amount;
-    transaction.gas = gasLimit;
-    transaction.fee = fee;
-    transaction.accountNumber = accountNumber;
-    transaction.typeUrl = typeUrl;
-    transaction.denom = denom;
-    transaction.status = status;
-    transaction.internalChainId = internalChainId;
-    transaction.sequence = sequence;
-    transaction.safeId = safeId;
-
-    return await this.create(transaction);
+    return this.create(transaction);
   }
 
   async validateTransaction(transactionId: number, internalChainId: number) {

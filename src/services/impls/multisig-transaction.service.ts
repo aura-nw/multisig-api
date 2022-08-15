@@ -159,20 +159,22 @@ export class MultisigTransactionService
       await this.smartContractRepos.validateCreateTx(from, internalChainId);
 
       //Safe data into DB
+      const transaction = new MultisigTransaction();
+      transaction.fromAddress = from;
+      transaction.toAddress = to;
+      transaction.amount = amount;
+      transaction.gas = decodedAuthInfo.fee.gasLimit.toNumber();
+      transaction.fee = Number(decodedAuthInfo.fee.amount[0].amount);
+      transaction.accountNumber = accountNumber;
+      transaction.typeUrl = messages[0].typeUrl;
+      transaction.denom = chain.denom;
+      transaction.status = TRANSACTION_STATUS.AWAITING_CONFIRMATIONS;
+      transaction.internalChainId = internalChainId;
+      transaction.sequence = sequence.toString();
+      transaction.safeId = safe.id;
       const transactionResult =
         await this.multisigTransactionRepos.insertMultisigTransaction(
-          from,
-          to,
-          amount,
-          decodedAuthInfo.fee.gasLimit.toNumber(),
-          Number(decodedAuthInfo.fee.amount[0].amount),
-          accountNumber,
-          messages[0].typeUrl,
-          chain.denom,
-          TRANSACTION_STATUS.AWAITING_CONFIRMATIONS,
-          internalChainId,
-          sequence.toString(),
-          safe.id,
+          transaction,
         );
 
       const requestSign = new ConfirmTransactionRequest();
@@ -383,19 +385,17 @@ export class MultisigTransactionService
 
     //Check account
     let sequence: number, accountNumber: number;
-    switch (chain.denom) {
-      case 'atevmos':
-        const accountInfo = await getEvmosAccount(chain.rest, sendAddress);
-        sequence = accountInfo.sequence;
-        accountNumber = accountInfo.accountNumber;
-        break;
-      default:
-        const accountOnChain = await client.getAccount(sendAddress);
-        if (!accountOnChain) {
-          throw new CustomError(ErrorMap.E001);
-        }
-        sequence = accountOnChain.sequence;
-        accountNumber = accountOnChain.accountNumber;
+    if (chain.chainId.startsWith('evmos_')) {
+      const accountInfo = await getEvmosAccount(chain.rest, sendAddress);
+      sequence = accountInfo.sequence;
+      accountNumber = accountInfo.accountNumber;
+    } else {
+      const accountOnChain = await client.getAccount(sendAddress);
+      if (!accountOnChain) {
+        throw new CustomError(ErrorMap.E001);
+      }
+      sequence = accountOnChain.sequence;
+      accountNumber = accountOnChain.accountNumber;
     }
     return {
       accountNumber,
