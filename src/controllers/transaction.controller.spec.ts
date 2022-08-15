@@ -1,11 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ErrorMap } from 'src/common/error.map';
-import { mockSafe } from 'src/mock/safe.mock';
 import {
   mockChain,
   mockCreateTransactionRequest,
-  mockTransaction,
 } from 'src/mock/transaction.mock';
 import {
   ENTITIES_CONFIG,
@@ -27,7 +25,6 @@ import { MultisigTransactionService } from 'src/services/impls/multisig-transact
 import { MultisigWalletService } from 'src/services/impls/multisig-wallet.service';
 import { TransactionService } from 'src/services/impls/transaction.service';
 import { SharedModule } from 'src/shared/shared.module';
-import { OwnerController } from './owner.controller';
 import { TransactionController } from './transaction.controller';
 
 describe(TransactionController.name, () => {
@@ -240,18 +237,5 @@ describe(TransactionController.name, () => {
       const result = await transactionController.getAllTxs(request);
       expect(result.Message).toEqual(ErrorMap.NO_SAFES_FOUND.Message);
     });
-
-    // it(`should return: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
-    //   const request: MODULE_REQUEST.GetAllTransactionsRequest = {
-    //     safeAddress: 'aura1hnr59hsqchckgtd49nsejmy5mj400nv6cpmm9v',
-    //     isHistory: true,
-    //     pageIndex: 1,
-    //     pageSize: 10
-    //   };
-    //   mockFindSafeByCondition.mockResolvedValue(mockSafe);
-    //   // mockGetTransactions.mockResolvedValue(mockTransaction);
-    //   const result = await transactionController.getAllTxs(request);
-    //   expect(result.Message).toEqual(ErrorMap.SUCCESSFUL.Message);
-    // })
   });
 });
