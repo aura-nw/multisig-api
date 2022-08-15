@@ -120,20 +120,24 @@ export class SmartContractService
       });
 
       // Safe data into DB
+      const contractTx = new SmartContractTx();
+
+      contractTx.fromAddress = request.senderAddress;
+      contractTx.contractAddress = request.contractAddress;
+      contractTx.function = request.functionName;
+      contractTx.parameters = JSON.stringify(request.param);
+      contractTx.gas = request.gasLimit;
+      contractTx.fee = request.fee;
+      contractTx.status = TRANSACTION_STATUS.AWAITING_CONFIRMATIONS;
+      contractTx.typeUrl = NETWORK_URL_TYPE.EXECUTE_CONTRACT;
+      contractTx.internalChainId = request.internalChainId;
+      contractTx.denom = signResult.denom;
+      contractTx.accountNumber = signResult.accountNumber;
+      contractTx.sequence = signResult.sequence.toString();
+      contractTx.safeId = safe.id;
+
       const transactionResult = await this.repos.insertExecuteContract(
-        request.senderAddress,
-        request.contractAddress,
-        request.functionName,
-        JSON.stringify(request.param),
-        request.gasLimit,
-        request.fee,
-        TRANSACTION_STATUS.AWAITING_CONFIRMATIONS,
-        NETWORK_URL_TYPE.EXECUTE_CONTRACT,
-        request.internalChainId,
-        signResult.denom,
-        signResult.accountNumber,
-        signResult.sequence.toString(),
-        safe.id,
+        contractTx,
       );
 
       const requestSign = new ConfirmTransactionRequest();
