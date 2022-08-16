@@ -38,7 +38,6 @@ import {
 } from 'src/chains/evmos';
 import { CommonUtil } from 'src/utils/common.util';
 import { makeSignDoc } from '@cosmjs/amino';
-// import { createWasmAminoConverters } from '@cosmjs/cosmwasm-stargate';
 import { checkAccountBalance, verifyCosmosSig } from 'src/chains';
 
 @Injectable()
@@ -110,8 +109,6 @@ export class MultisigTransactionService
 
       // build stdSignDoc for verify signature
       const registry = new Registry(REGISTRY_GENERATED_TYPES);
-      // stargate@0.26.5
-      // const aminoTypes = new AminoTypes({ ...createWasmAminoConverters() });
 
       // stargate@0.28.11
       const aminoTypes = new AminoTypes({
@@ -440,7 +437,10 @@ export class MultisigTransactionService
 
     //Fee
     const sendFee = {
-      amount: coins(multisigTransaction.fee, multisigTransaction.denom),
+      amount: coins(
+        multisigTransaction.fee.toString(),
+        multisigTransaction.denom,
+      ),
       gas: multisigTransaction.gas.toString(),
     };
 
