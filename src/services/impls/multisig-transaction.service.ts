@@ -9,6 +9,7 @@ import {
   AminoTypes,
   coins,
   createBankAminoConverters,
+  createStakingAminoConverters,
   makeMultisignedTx,
   StargateClient,
 } from '@cosmjs/stargate';
@@ -113,7 +114,10 @@ export class MultisigTransactionService
       // const aminoTypes = new AminoTypes({ ...createWasmAminoConverters() });
 
       // stargate@0.28.11
-      const aminoTypes = new AminoTypes(createBankAminoConverters());
+      const aminoTypes = new AminoTypes({
+        ...createBankAminoConverters(),
+        ...createStakingAminoConverters(chain.prefix),
+      });
       const msgs = messages.map((msg: any) => {
         const decoder = registry.lookupType(msg.typeUrl);
         msg.value = decoder.decode(msg.value);
