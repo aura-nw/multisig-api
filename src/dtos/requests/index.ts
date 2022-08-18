@@ -5,7 +5,7 @@ export * from './multisig-wallet/delete-multisig-wallet.request';
 export * from './multisig-wallet/get-multisig-signatures.request';
 export * from './multisig-wallet/get-safe-by-owner.request';
 export * from './multisig-wallet/get-safe.request';
-export * from './multisig-wallet/get-transaction-details.request';
+export * from './transaction/get-transaction-details.request';
 export * from './transaction/confirm-transaction.request';
 export * from './transaction/create-transaction.request';
 export * from './transaction/get-all-transactions.request';

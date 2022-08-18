@@ -16,3 +16,12 @@ export class GetTransactionDetailsParam {
   @IsString()
   safeAddress: string;
 }
+
+export class GetTxDetailQuery {
+  @ApiProperty({
+    description: 'Direction of Transaction',
+    type: String,
+  })
+  @IsString()
+  direction: string;
+}

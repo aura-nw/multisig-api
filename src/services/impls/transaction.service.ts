@@ -5,6 +5,7 @@ import {
 } from 'src/common/constants/app.constant';
 import { ErrorMap } from 'src/common/error.map';
 import { ResponseDto } from 'src/dtos/responses';
+import { TxDetailResponse } from 'src/dtos/responses/multisig-transaction/tx-detail.response';
 import { MODULE_REQUEST, REPOSITORY_INTERFACE } from 'src/module.config';
 import { IMultisigConfirmRepository } from 'src/repositories/imultisig-confirm.repository';
 import { IMultisigTransactionsRepository } from 'src/repositories/imultisig-transaction.repository';
@@ -102,31 +103,27 @@ export class TransactionService
 
   async getTransactionDetails(
     param: MODULE_REQUEST.GetTransactionDetailsParam,
+    query: MODULE_REQUEST.GetTxDetailQuery,
   ): Promise<ResponseDto> {
-    const res = new ResponseDto();
+    const { direction } = query;
     try {
       const { internalTxHash, safeAddress } = param;
 
       // Check if param entered is Id or TxHash
       const condition = this.calculateCondition(internalTxHash);
+      let txDetail: TxDetailResponse;
 
-      // Get transaction by Id or TxHash from Multisig Transaction
-      let txDetail =
-        await this.multisigTransactionRepos.getTransactionDetailsMultisigTransaction(
-          condition,
-        );
-
-      // If multisigTx is not null, it means that the transaction is a multisig transaction
-      if (!txDetail) {
+      if (direction.toUpperCase() === TRANSFER_DIRECTION.INCOMING) {
+        // Get AuraTx
         txDetail = await this.transRepos.getTransactionDetailsAuraTx(
           internalTxHash,
         );
-      }
-
-      // If txDetail is null, it means that the transaction is not found
-      if (!txDetail) return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
-
-      if (txDetail.Direction === TRANSFER_DIRECTION.OUTGOING) {
+      } else {
+        // Get MultisigTx
+        txDetail =
+          await this.multisigTransactionRepos.getTransactionDetailsMultisigTransaction(
+            condition,
+          );
         const threshold = await this.safeRepos.getThreshold(safeAddress);
         const owner = await this.safeOwnerRepos.getOwners(safeAddress);
         txDetail.ConfirmationsRequired = threshold.ConfirmationsRequired;
@@ -158,12 +155,9 @@ export class TransactionService
             MULTISIG_CONFIRM_STATUS.SEND,
           );
       }
-      return res.return(ErrorMap.SUCCESSFUL, txDetail);
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, txDetail);
     } catch (error) {
-      this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
-      this._logger.error(`${error.name}: ${error.message}`);
-      this._logger.error(`${error.stack}`);
-      return res.return(ErrorMap.E500, error.message);
+      return ResponseDto.responseError(TransactionService.name, error);
     }
   }
 
