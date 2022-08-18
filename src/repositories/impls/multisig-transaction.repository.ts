@@ -176,10 +176,12 @@ export class MultisigTransactionRepository
       sqlQuerry.where('multisigTransaction.txHash = :param', { param });
     else sqlQuerry.where('multisigTransaction.id = :param', { param });
     const result = await sqlQuerry.getRawOne();
+
+    if (!result) throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
+
     const txDetail = plainToInstance(TxDetailResponse, result);
-    if (txDetail) {
-      txDetail.Direction = TRANSFER_DIRECTION.OUTGOING;
-    }
+    txDetail.Direction = TRANSFER_DIRECTION.OUTGOING;
+
     return txDetail;
   }
 

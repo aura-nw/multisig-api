@@ -8,6 +8,7 @@ import {
   HttpStatus,
   HttpCode,
   Logger,
+  Query,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -141,8 +142,9 @@ export class TransactionController {
   @HttpCode(HttpStatus.OK)
   async getTransactionDetails(
     @Param() param: MODULE_REQUEST.GetTransactionDetailsParam,
+    @Query() query: MODULE_REQUEST.GetTxDetailQuery,
   ) {
     this._logger.log('========== Get details of a Transaction ==========');
-    return this.transactionService.getTransactionDetails(param);
+    return this.transactionService.getTransactionDetails(param, query);
   }
 }

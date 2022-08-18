@@ -19,6 +19,7 @@ import {
   GetAccountOnchainParam,
   QueryMessageRequest,
   ExecuteMessageRequest,
+  GetTxDetailQuery,
 } from './dtos/requests';
 import { AuthRequest } from './dtos/requests/auth/signin.request';
 import {
@@ -88,6 +89,7 @@ export const REQUEST_CONFIG = {
   GET_DELEGATOR_REWARDS_PARAM: GetDelegatorRewardsParam,
   GET_DELEGATION_INFORMATION_PARAM: GetDelegationInformationParam,
   GET_DELEGATION_INFORMATION_QUERY: GetDelegationInformationQuery,
+  GET_TX_DETAIL_QUERY: GetTxDetailQuery,
 };
 
 export const RESPONSE_CONFIG = {
@@ -127,6 +129,7 @@ export namespace MODULE_REQUEST {
   export abstract class GetDelegatorRewardsParam extends REQUEST_CONFIG.GET_DELEGATOR_REWARDS_PARAM {}
   export abstract class GetDelegationInformationParam extends REQUEST_CONFIG.GET_DELEGATOR_REWARDS_PARAM {}
   export abstract class GetDelegationInformationQuery extends REQUEST_CONFIG.GET_DELEGATION_INFORMATION_QUERY {}
+  export abstract class GetTxDetailQuery extends REQUEST_CONFIG.GET_TX_DETAIL_QUERY {}
   export abstract class QueryMessageRequest extends REQUEST_CONFIG.QUERY_MESSAGE_REQUEST {}
   export abstract class ExecuteMessageRequest extends REQUEST_CONFIG.EXECUTE_MESSAGE_REQUEST {}
   export abstract class AuthRequest extends REQUEST_CONFIG.SIGN_IN_REQUEST {}

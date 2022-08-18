@@ -5,6 +5,8 @@ import {
   TRANSACTION_STATUS,
   TRANSFER_DIRECTION,
 } from 'src/common/constants/app.constant';
+import { CustomError } from 'src/common/customError';
+import { ErrorMap } from 'src/common/error.map';
 import { MultisigTransactionHistoryResponse } from 'src/dtos/responses';
 import { TxDetailResponse } from 'src/dtos/responses/multisig-transaction/tx-detail.response';
 import { Chain } from 'src/entities';
@@ -99,13 +101,14 @@ export class TransactionRepository
         'chain.chainId as ChainId',
       ])
       .getRawOne();
+    if (!result) throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
     const txDetail = plainToInstance(TxDetailResponse, result);
-    if (result) {
-      if (String(result.Code) === '0')
-        txDetail.Status = TRANSACTION_STATUS.SUCCESS;
-      else txDetail.Status = TRANSACTION_STATUS.FAILED;
-      txDetail.Direction = TRANSFER_DIRECTION.INCOMING;
-    }
+
+    if (String(result.Code) === '0')
+      txDetail.Status = TRANSACTION_STATUS.SUCCESS;
+    else txDetail.Status = TRANSACTION_STATUS.FAILED;
+    txDetail.Direction = TRANSFER_DIRECTION.INCOMING;
+
     return txDetail;
   }
 }

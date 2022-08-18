@@ -31,5 +31,6 @@ export interface ITransactionService {
    */
   getTransactionDetails(
     param: MODULE_REQUEST.GetTransactionDetailsParam,
+    query: MODULE_REQUEST.GetTxDetailQuery,
   ): Promise<ResponseDto>;
 }
