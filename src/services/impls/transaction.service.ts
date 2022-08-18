@@ -3,6 +3,7 @@ import {
   MULTISIG_CONFIRM_STATUS,
   TRANSFER_DIRECTION,
 } from 'src/common/constants/app.constant';
+import { CustomError } from 'src/common/customError';
 import { ErrorMap } from 'src/common/error.map';
 import { ResponseDto } from 'src/dtos/responses';
 import { TxDetailResponse } from 'src/dtos/responses/multisig-transaction/tx-detail.response';
@@ -44,18 +45,21 @@ export class TransactionService
     param: MODULE_REQUEST.GetMultisigSignaturesParam,
     status?: string,
   ): Promise<ResponseDto> {
-    const res = new ResponseDto();
+    const { id } = param;
+    try {
+      const multisig = await this.multisigTransactionRepos.findOne(id);
+      if (!multisig) throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
 
-    const multisig = await this.multisigTransactionRepos.findOne(param.id);
-    if (!multisig) return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
-
-    const result =
-      await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-        param.id,
-        undefined,
-        status,
-      );
-    return res.return(ErrorMap.SUCCESSFUL, result);
+      const result =
+        await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+          id,
+          undefined,
+          status,
+        );
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
+    } catch (error) {
+      return ResponseDto.responseError(TransactionService.name, error);
+    }
   }
 
   async getTransactionHistory(
@@ -63,42 +67,45 @@ export class TransactionService
   ): Promise<ResponseDto> {
     const { safeAddress, isHistory, pageSize, pageIndex, internalChainId } =
       request;
-    const res = new ResponseDto();
 
-    const safe = await this.safeRepos.findByCondition({ safeAddress });
-    if (safe.length === 0) return res.return(ErrorMap.NO_SAFES_FOUND);
+    try {
+      const safe = await this.safeRepos.findByCondition({ safeAddress });
+      if (safe.length === 0) throw new CustomError(ErrorMap.NO_SAFES_FOUND);
 
-    let result;
-    if (isHistory)
-      result = await this.transRepos.getAuraTx(
-        safeAddress,
-        internalChainId,
-        pageIndex,
-        pageSize,
-      );
-    else
-      result = await this.multisigTransactionRepos.getQueueTransaction(
-        safeAddress,
-        internalChainId,
-        pageIndex,
-        pageSize,
-      );
-    // Loop to get Status based on Code and get Multisig Confirm of Multisig Tx
-    for (const tx of result) {
-      if (tx.Direction !== TRANSFER_DIRECTION.OUTGOING) continue;
-      const confirmations: any[] =
-        await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-          tx.Id,
-          tx.TxHash,
+      let result;
+      if (isHistory)
+        result = await this.transRepos.getAuraTx(
+          safeAddress,
+          internalChainId,
+          pageIndex,
+          pageSize,
         );
-      tx.Confirmations = confirmations.filter(
-        (x) => x.status === MULTISIG_CONFIRM_STATUS.CONFIRM,
-      ).length;
-      tx.Rejections = confirmations.length - tx.Confirmations;
+      else
+        result = await this.multisigTransactionRepos.getQueueTransaction(
+          safeAddress,
+          internalChainId,
+          pageIndex,
+          pageSize,
+        );
+      // Loop to get Status based on Code and get Multisig Confirm of Multisig Tx
+      for (const tx of result) {
+        if (tx.Direction !== TRANSFER_DIRECTION.OUTGOING) continue;
+        const confirmations: any[] =
+          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+            tx.Id,
+            tx.TxHash,
+          );
+        tx.Confirmations = confirmations.filter(
+          (x) => x.status === MULTISIG_CONFIRM_STATUS.CONFIRM,
+        ).length;
+        tx.Rejections = confirmations.length - tx.Confirmations;
 
-      tx.ConfirmationsRequired = safe[0].threshold;
+        tx.ConfirmationsRequired = safe[0].threshold;
+      }
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
+    } catch (error) {
+      return ResponseDto.responseError(TransactionService.name, error);
     }
-    return res.return(ErrorMap.SUCCESSFUL, result);
   }
 
   async getTransactionDetails(
@@ -113,7 +120,10 @@ export class TransactionService
       const condition = this.calculateCondition(internalTxHash);
       let txDetail: TxDetailResponse;
 
-      if (direction.toUpperCase() === TRANSFER_DIRECTION.INCOMING) {
+      if (
+        direction &&
+        direction.toUpperCase() === TRANSFER_DIRECTION.INCOMING
+      ) {
         // Get AuraTx
         txDetail = await this.transRepos.getTransactionDetailsAuraTx(
           internalTxHash,

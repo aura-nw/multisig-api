@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
 
 export class GetTransactionDetailsParam {
@@ -18,7 +18,7 @@ export class GetTransactionDetailsParam {
 }
 
 export class GetTxDetailQuery {
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Direction of Transaction',
     type: String,
   })
