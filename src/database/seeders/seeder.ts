@@ -16,7 +16,7 @@ export class SeederService {
 
   async seedChain() {
     try {
-      this._commonUtil.jsonReader(path.resolve('./chains.json'), async (error, objects) => {
+      this._commonUtil.jsonReader(path.resolve('/usr/src/app/chains.json'), async (error, objects) => {
         if (error) {
           this._logger.warn(`can not read chains.json`);
           return;
