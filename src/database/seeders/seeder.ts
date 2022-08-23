@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { CommonUtil } from 'src/utils/common.util';
 import { validateChainInfo } from 'src/utils/validations/chain.validation';
 import { ChainSeederService } from './chain/chain-seeder.service';
+import * as path from 'path';
 
 @Injectable()
 export class SeederService {
@@ -15,7 +16,7 @@ export class SeederService {
 
   async seedChain() {
     try {
-      this._commonUtil.jsonReader('./chains.json', async (error, objects) => {
+      this._commonUtil.jsonReader(path.resolve('./chains.json'), async (error, objects) => {
         if (error) {
           throw new Error(error);
         }
