@@ -22,7 +22,7 @@ export class BaseRepository implements IBaseRepository {
     this._log.log(
       `============== Call method findOne width parameters:${id} ==============`,
     );
-    return this._repos.findOne(id);
+    return this._repos.findOneBy(id);
   }
 
   /**
