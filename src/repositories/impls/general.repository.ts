@@ -46,7 +46,7 @@ export class GeneralRepository
   }
 
   async findChain(internalChainId: number): Promise<Chain> {
-    const chainInfo = (await this.findOne(internalChainId)) as Chain;
+    const chainInfo = (await this.findOne({id: internalChainId})) as Chain;
     if (!chainInfo) throw new CustomError(ErrorMap.CHAIN_ID_NOT_EXIST);
     return chainInfo;
   }

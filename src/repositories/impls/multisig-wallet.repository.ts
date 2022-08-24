@@ -237,17 +237,18 @@ export class MultisigWalletRepository
     const condition = this.calculateCondition(safeId, internalChainId);
 
     // find safes on offchain
-    const safe = await this.findOne(condition);
+    let safe = await this.findOne(condition);
     //Found on network
     if (!safe && internalChainId && condition.safeAddress) {
       await this.checkAccountOnNetwork(condition.safeAddress, internalChainId);
+      safe = await this.findOne(condition);
     }
-    const newSafe = await this.findOne(condition);
-    if (!newSafe) {
+    
+    if (!safe) {
       //Found on network
       throw new CustomError(ErrorMap.NO_SAFES_FOUND);
     }
-    return newSafe;
+    return safe;
   }
 
   async getPendingSafe(safeId: string, internalChainId?: number): Promise<any> {
