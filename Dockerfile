@@ -13,7 +13,7 @@ USER node
 
 ARG PORT=3000
 EXPOSE $PORT
-WORKDIR /app
+WORKDIR /usr/src/app/
 
 COPY --chown=node:node --from=build-stage node_modules ./node_modules
 COPY --chown=node:node --from=build-stage dist package*.json ./
