@@ -5,7 +5,6 @@ export const CONTROLLER_CONSTANTS = {
   OWNER: 'owner',
   NOTIFICATION: 'notification',
   GENERAL: 'general',
-  SMART_CONTRACT: 'smartcontract',
   AUTH: 'auth',
 };
 export const URL_CONSTANTS = {
