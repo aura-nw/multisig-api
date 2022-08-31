@@ -19,7 +19,6 @@ import {
 import { GeneralRepository } from 'src/repositories/impls/general.repository';
 import { MultisigWalletOwnerRepository } from 'src/repositories/impls/multisig-wallet-owner.repository';
 import { MultisigWalletRepository } from 'src/repositories/impls/multisig-wallet.repository';
-import { SmartContractRepository } from 'src/repositories/impls/smart-contract.repository';
 import { GeneralService } from 'src/services/impls/general.service';
 import { MultisigTransactionService } from 'src/services/impls/multisig-transaction.service';
 import { MultisigWalletService } from 'src/services/impls/multisig-wallet.service';
@@ -98,13 +97,6 @@ describe(TransactionController.name, () => {
             find: mockFindSafeByCondition,
           },
         },
-        {
-          provide: getRepositoryToken(ENTITIES_CONFIG.SMART_CONTRACT_TX),
-          useValue: {
-            createQueryBuilder: mockCreateQueryBuilder,
-            find: mockFindSafeByCondition,
-          },
-        },
         // //mock
         // {
         //   provide: getRepositoryToken(ENTITIES_CONFIG.SAFE),
@@ -140,10 +132,6 @@ describe(TransactionController.name, () => {
         {
           provide: REPOSITORY_INTERFACE.IMULTISIG_WALLET_REPOSITORY,
           useClass: MultisigWalletRepository,
-        },
-        {
-          provide: REPOSITORY_INTERFACE.ISMART_CONTRACT_REPOSITORY,
-          useClass: SmartContractRepository,
         },
         //service
         {

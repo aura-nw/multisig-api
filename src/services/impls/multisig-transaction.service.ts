@@ -30,7 +30,6 @@ import {
   IMultisigWalletRepository,
 } from 'src/repositories';
 import { ConfirmTransactionRequest } from 'src/dtos/requests';
-import { ISmartContractRepository } from 'src/repositories/ismart-contract.repository';
 import {
   getEvmosAccount,
   makeMultisignedTxEvmos,
@@ -59,8 +58,6 @@ export class MultisigTransactionService
     private safeRepos: IMultisigWalletRepository,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_OWNER_REPOSITORY)
     private safeOwnerRepo: IMultisigWalletOwnerRepository,
-    @Inject(REPOSITORY_INTERFACE.ISMART_CONTRACT_REPOSITORY)
-    private smartContractRepos: ISmartContractRepository,
   ) {
     super(multisigTransactionRepos);
     this._logger.log(
@@ -162,7 +159,6 @@ export class MultisigTransactionService
         from,
         internalChainId,
       );
-      await this.smartContractRepos.validateCreateTx(from, internalChainId);
 
       //Safe data into DB
       const transaction = new MultisigTransaction();
