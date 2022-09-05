@@ -12,7 +12,8 @@ import { LCDClient } from '@terra-money/terra.js';
 import { getEvmosAccount } from 'src/chains/evmos';
 import * as axios from 'axios';
 import { IGasRepository } from 'src/repositories/igas.repository';
-import { ProposalStatus } from 'cosmjs-types/cosmos/gov/v1beta1/gov';
+import { CustomError } from 'src/common/customError';
+
 export class GeneralService extends BaseService implements IGeneralService {
   private readonly _logger = new Logger(GeneralService.name);
   private _commonUtil: CommonUtil = new CommonUtil();
@@ -33,44 +34,51 @@ export class GeneralService extends BaseService implements IGeneralService {
 
   async getValidators(param: MODULE_REQUEST.GetValidatorsParam) {
     const { internalChainId } = param;
-    const chain = await this.chainRepo.findChain(internalChainId);
-    const result = await axios.default.get(
-      new URL(
-        '/cosmos/staking/v1beta1/validators?status=BOND_STATUS_BONDED',
-        chain.rest,
-      ).href,
-    );
-    return ResponseDto.response(ErrorMap.SUCCESSFUL, result.data);
+    try {
+      const chain = await this.chainRepo.findChain(internalChainId);
+      const result = await axios.default.get(
+        new URL(
+          '/cosmos/staking/v1beta1/validators?status=BOND_STATUS_BONDED',
+          chain.rest,
+        ).href,
+      );
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, result.data);
+    } catch (error) {
+      return ResponseDto.responseError(GeneralService.name, error);
+    }
   }
 
   async showNetworkList(): Promise<ResponseDto> {
-    const res = new ResponseDto();
-    const chains = await this.chainRepo.showNetworkList();
-    for (const chain of chains) {
-      const gas = await this.gasRepo.findByCondition(
-        {
-          chainId: chain.chainId,
-        },
-        undefined,
-        ['typeUrl', 'gasAmount', 'multiplier'],
-      );
-      chain.defaultGas = gas;
+    try {
+      const chains = await this.chainRepo.showNetworkList();
+      for (const chain of chains) {
+        const gas = await this.gasRepo.findByCondition(
+          {
+            chainId: chain.chainId,
+          },
+          undefined,
+          ['typeUrl', 'gasAmount', 'multiplier'],
+        );
+        chain.defaultGas = gas;
+      }
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, chains);
+    } catch (error) {
+      return ResponseDto.responseError(GeneralService.name, error);
     }
-    return res.return(ErrorMap.SUCCESSFUL, chains);
   }
 
   async getAccountOnchain(
     param: MODULE_REQUEST.GetAccountOnchainParam,
   ): Promise<ResponseDto> {
-    const res = new ResponseDto();
     try {
       const safeAddress = { safeAddress: param.safeAddress };
       const safe = await this.safeRepo.findByCondition(safeAddress);
-      if (safe.length === 0) return res.return(ErrorMap.NO_SAFES_FOUND);
+      if (safe.length === 0) throw new CustomError(ErrorMap.NO_SAFES_FOUND);
 
       const condition = { id: param.internalChainId };
       const chain = await this.chainRepo.findByCondition(condition);
-      if (chain.length === 0) return res.return(ErrorMap.CHAIN_ID_NOT_EXIST);
+      if (chain.length === 0)
+        throw new CustomError(ErrorMap.CHAIN_ID_NOT_EXIST);
 
       let client, accountOnChain;
       switch (chain[0].chainId) {
@@ -98,46 +106,54 @@ export class GeneralService extends BaseService implements IGeneralService {
           accountOnChain = await client.getAccount(param.safeAddress);
           break;
       }
-      return res.return(ErrorMap.SUCCESSFUL, accountOnChain);
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, accountOnChain);
     } catch (error) {
-      console.log(error);
+      return ResponseDto.responseError(GeneralService.name, error);
     }
   }
 
   async getDelegatorRewards(param: MODULE_REQUEST.GetDelegatorRewardsParam) {
-    const { delegatorAddress, internalChainId } = param;
-    const chain = await this.chainRepo.findChain(internalChainId);
-    const result = await axios.default.get(
-      new URL(
-        `/cosmos/distribution/v1beta1/delegators/${delegatorAddress}/rewards`,
-        chain.rest,
-      ).href,
-    );
-    return ResponseDto.response(ErrorMap.SUCCESSFUL, result.data);
+    try {
+      const { delegatorAddress, internalChainId } = param;
+      const chain = await this.chainRepo.findChain(internalChainId);
+      const result = await axios.default.get(
+        new URL(
+          `/cosmos/distribution/v1beta1/delegators/${delegatorAddress}/rewards`,
+          chain.rest,
+        ).href,
+      );
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, result.data);
+    } catch (error) {
+      return ResponseDto.responseError(GeneralService.name, error);
+    }
   }
 
   async getDelegationInformation(
     param: MODULE_REQUEST.GetDelegationInformationParam,
     query: MODULE_REQUEST.GetDelegationInformationQuery,
   ) {
-    const { delegatorAddress, internalChainId } = param;
-    const { countTotal, key, limit, offset, reverse } = query;
-    const chain = await this.chainRepo.findChain(internalChainId);
-    const result = await axios.default.get(
-      new URL(
-        `/cosmos/staking/v1beta1/delegations/${delegatorAddress}`,
-        chain.rest,
-      ).href,
-      {
-        params: {
-          'pagination.key': key,
-          'pagination.offset': offset,
-          'pagination.limit': limit,
-          'pagination.countTotal': countTotal,
-          'pagination.reverse': reverse,
+    try {
+      const { delegatorAddress, internalChainId } = param;
+      const { countTotal, key, limit, offset, reverse } = query;
+      const chain = await this.chainRepo.findChain(internalChainId);
+      const result = await axios.default.get(
+        new URL(
+          `/cosmos/staking/v1beta1/delegations/${delegatorAddress}`,
+          chain.rest,
+        ).href,
+        {
+          params: {
+            'pagination.key': key,
+            'pagination.offset': offset,
+            'pagination.limit': limit,
+            'pagination.countTotal': countTotal,
+            'pagination.reverse': reverse,
+          },
         },
-      },
-    );
-    return ResponseDto.response(ErrorMap.SUCCESSFUL, result.data);
+      );
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, result.data);
+    } catch (error) {
+      return ResponseDto.responseError(GeneralService.name, error);
+    }
   }
 }
