@@ -8,4 +8,5 @@ export interface IGeneralRepository extends IBaseRepository {
   showNetworkList(): any;
 
   findChain(internalChainId: number): Promise<Chain>;
+  findChainByChainId(chainId: string): Promise<Chain>;
 }

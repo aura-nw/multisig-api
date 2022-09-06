@@ -6,6 +6,7 @@ export const CONTROLLER_CONSTANTS = {
   NOTIFICATION: 'notification',
   GENERAL: 'general',
   AUTH: 'auth',
+  GOV: 'gov',
 };
 export const URL_CONSTANTS = {
   broadcasting: 'broadcasting',
@@ -35,4 +36,5 @@ export const URL_CONSTANTS = {
   LIST_VALIDATORS: '/network/:internalChainId/validators',
   DELEGATOR_REWARDS: 'delegator/:delegatorAddress/:internalChainId/rewards',
   DELEGATION_INFORMATION: 'delegations/:delegatorAddress/:internalChainId',
+  GET_PROPOSALS: ':internalChainId/proposals',
 };
