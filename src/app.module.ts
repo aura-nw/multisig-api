@@ -26,6 +26,8 @@ import { JwtStrategy } from './jwt.strategy';
 import { contextMiddleware } from './middlewares';
 import { SeederModule } from './database/seeders/seeder.module';
 import { GasRepository } from './repositories/impls/gas.repository';
+import { GovService } from './services/impls/gov.service';
+import { GovController } from './controllers/gov.controller';
 
 const controllers = [
   MultisigWalletController,
@@ -33,6 +35,7 @@ const controllers = [
   OwnerController,
   GeneralController,
   AuthController,
+  GovController,
   // AppController,
 ];
 const entities = [
@@ -124,6 +127,10 @@ const entities = [
     {
       provide: SERVICE_INTERFACE.IAUTH_SERVICE,
       useClass: AuthService,
+    },
+    {
+      provide: SERVICE_INTERFACE.IGOV_SERVICE,
+      useClass: GovService,
     },
   ],
 })
