@@ -22,9 +22,6 @@ import { MultisigTransactionRepository } from './repositories/impls/multisig-tra
 import { MultisigConfirmRepository } from './repositories/impls/multisig-confirm.repository';
 import { TransactionRepository } from './repositories/impls/transaction.repository';
 import { TransactionService } from './services/impls/transaction.service';
-import { SmartContractController } from './controllers/smart-contract.controller';
-import { SmartContractService } from './services/impls/smart-contract.service';
-import { SmartContractRepository } from './repositories/impls/smart-contract.repository';
 import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/impls/auth.service';
 import { JwtModule } from '@nestjs/jwt';
@@ -38,7 +35,6 @@ const controllers = [
   TransactionController,
   OwnerController,
   GeneralController,
-  SmartContractController,
   AuthController,
   // AppController,
 ];
@@ -49,7 +45,6 @@ const entities = [
   ENTITIES_CONFIG.MULTISIG_CONFIRM,
   ENTITIES_CONFIG.MULTISIG_TRANSACTION,
   ENTITIES_CONFIG.AURA_TX,
-  ENTITIES_CONFIG.SMART_CONTRACT_TX,
   ENTITIES_CONFIG.GAS,
 ];
 @Module({
@@ -105,10 +100,6 @@ const entities = [
       useClass: TransactionRepository,
     },
     {
-      provide: REPOSITORY_INTERFACE.ISMART_CONTRACT_REPOSITORY,
-      useClass: SmartContractRepository,
-    },
-    {
       provide: REPOSITORY_INTERFACE.IGAS_REPOSITORY,
       useClass: GasRepository,
     },
@@ -128,10 +119,6 @@ const entities = [
     {
       provide: SERVICE_INTERFACE.ITRANSACTION_SERVICE,
       useClass: TransactionService,
-    },
-    {
-      provide: SERVICE_INTERFACE.ISMART_CONTRACT_SERVICE,
-      useClass: SmartContractService,
     },
     {
       provide: SERVICE_INTERFACE.IAUTH_SERVICE,

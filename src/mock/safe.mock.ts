@@ -127,7 +127,7 @@ export const mockSafeOwner: any[] = [
 
 export const mockChain: any[] = [
   {
-    rpc: 'http://0.0.0.0:26657',
+    rpc: 'https://localhost:26657',
     prefix: 'aura',
   },
   {

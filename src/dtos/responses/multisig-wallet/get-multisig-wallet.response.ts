@@ -1,7 +1,6 @@
 import { Coin } from '@cosmjs/amino';
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
-import { SAFE_STATUS } from 'src/common/constants/app.constant';
 
 export class GetMultisigWalletResponse {
   @Expose()
@@ -15,6 +14,18 @@ export class GetMultisigWalletResponse {
     example: 'aura1hj9ugatusgn2fcyrhtryx56tshneqqzlwu6d0k',
   })
   address: string;
+
+  @Expose()
+  @ApiProperty({
+    example: '1659946207',
+  })
+  txHistoryTag: string;
+
+  @Expose()
+  @ApiProperty({
+    example: '1659946087383',
+  })
+  txQueuedTag: string;
 
   @Expose()
   @ApiProperty({
@@ -47,7 +58,7 @@ export class GetMultisigWalletResponse {
   @ApiProperty({
     example: 'created',
   })
-  status: SAFE_STATUS;
+  status: string;
 
   @Expose()
   @ApiProperty({
@@ -66,7 +77,6 @@ export class GetMultisigWalletResponse {
   })
   balance: Coin[];
 
-  
   @Expose()
   @ApiProperty({
     example: 'aura1528pnlzdhqhqr835p597f60gjgf6etnutv2eh9',

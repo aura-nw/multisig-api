@@ -1,11 +1,12 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import {
   MULTISIG_CONFIRM_STATUS,
-  TRANSACTION_STATUS,
   TRANSFER_DIRECTION,
 } from 'src/common/constants/app.constant';
+import { CustomError } from 'src/common/customError';
 import { ErrorMap } from 'src/common/error.map';
 import { ResponseDto } from 'src/dtos/responses';
+import { TxDetailResponse } from 'src/dtos/responses/multisig-transaction/tx-detail.response';
 import { MODULE_REQUEST, REPOSITORY_INTERFACE } from 'src/module.config';
 import { IMultisigConfirmRepository } from 'src/repositories/imultisig-confirm.repository';
 import { IMultisigTransactionsRepository } from 'src/repositories/imultisig-transaction.repository';
@@ -44,18 +45,21 @@ export class TransactionService
     param: MODULE_REQUEST.GetMultisigSignaturesParam,
     status?: string,
   ): Promise<ResponseDto> {
-    const res = new ResponseDto();
+    const { id } = param;
+    try {
+      const multisig = await this.multisigTransactionRepos.findOne(id);
+      if (!multisig) throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
 
-    const multisig = await this.multisigTransactionRepos.findOne(param.id);
-    if (!multisig) return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
-
-    const result =
-      await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-        param.id,
-        undefined,
-        status,
-      );
-    return res.return(ErrorMap.SUCCESSFUL, result);
+      const result =
+        await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+          id,
+          undefined,
+          status,
+        );
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
+    } catch (error) {
+      return ResponseDto.responseError(TransactionService.name, error);
+    }
   }
 
   async getTransactionHistory(
@@ -63,187 +67,107 @@ export class TransactionService
   ): Promise<ResponseDto> {
     const { safeAddress, isHistory, pageSize, pageIndex, internalChainId } =
       request;
-    const res = new ResponseDto();
 
-    const safe = await this.safeRepos.findByCondition({ safeAddress });
-    if (safe.length === 0) return res.return(ErrorMap.NO_SAFES_FOUND);
+    try {
+      const safe = await this.safeRepos.findByCondition({ safeAddress });
+      if (safe.length === 0) throw new CustomError(ErrorMap.NO_SAFES_FOUND);
 
-    let result;
-    if (isHistory)
-      result = await this.transRepos.getAuraTx(
-        safeAddress,
-        internalChainId,
-        pageIndex,
-        pageSize,
-      );
-    else
-      result = await this.multisigTransactionRepos.getQueueTransaction(
-        safeAddress,
-        internalChainId,
-        pageIndex,
-        pageSize,
-      );
-    // Loop to get Status based on Code and get Multisig Confirm of Multisig Tx
-    for (const tx of result) {
-      if (tx.Direction !== TRANSFER_DIRECTION.OUTGOING) continue;
-      const confirmations: any[] =
-        await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-          tx.Id,
-          tx.TxHash,
+      let result;
+      if (isHistory)
+        result = await this.transRepos.getAuraTx(
+          safeAddress,
+          internalChainId,
+          pageIndex,
+          pageSize,
         );
-      tx.Confirmations = confirmations.filter(
-        (x) => x.status === MULTISIG_CONFIRM_STATUS.CONFIRM,
-      ).length;
-      tx.Rejections = confirmations.length - tx.Confirmations;
+      else
+        result = await this.multisigTransactionRepos.getQueueTransaction(
+          safeAddress,
+          internalChainId,
+          pageIndex,
+          pageSize,
+        );
+      // Loop to get Status based on Code and get Multisig Confirm of Multisig Tx
+      for (const tx of result) {
+        if (tx.Direction !== TRANSFER_DIRECTION.OUTGOING) continue;
+        const confirmations: any[] =
+          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+            tx.Id,
+            tx.TxHash,
+          );
+        tx.Confirmations = confirmations.filter(
+          (x) => x.status === MULTISIG_CONFIRM_STATUS.CONFIRM,
+        ).length;
+        tx.Rejections = confirmations.length - tx.Confirmations;
 
-      tx.ConfirmationsRequired = safe[0].threshold;
+        tx.ConfirmationsRequired = safe[0].threshold;
+      }
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
+    } catch (error) {
+      return ResponseDto.responseError(TransactionService.name, error);
     }
-    return res.return(ErrorMap.SUCCESSFUL, result);
   }
 
   async getTransactionDetails(
     param: MODULE_REQUEST.GetTransactionDetailsParam,
+    query: MODULE_REQUEST.GetTxDetailQuery,
   ): Promise<ResponseDto> {
-    const res = new ResponseDto();
+    const { direction } = query;
     try {
-      const safeAddress = { safeAddress: param.safeAddress };
-
-      const safe = await this.safeRepos.findByCondition(safeAddress);
-      if (!safe) return res.return(ErrorMap.NO_SAFES_FOUND);
-
-      const internalTxHash = param.internalTxHash;
+      const { internalTxHash, safeAddress } = param;
 
       // Check if param entered is Id or TxHash
       const condition = this.calculateCondition(internalTxHash);
-      let result;
-      let rawResult = await this.transRepos.getTransactionDetailsAuraTx(
-        condition,
-      );
-      // Query based on condition
-      if (!rawResult || rawResult.Code !== '0') {
-        rawResult =
-          await this.multisigTransactionRepos.getTransactionDetailsMultisigTransaction(
-            condition,
-          );
-      }
-      if (!rawResult) return res.return(ErrorMap.TRANSACTION_NOT_EXIST);
+      let txDetail: TxDetailResponse;
 
-      // Check if From and ToAddress is null
-      if (rawResult.FromAddress === '') {
-        const tx =
-          await this.multisigTransactionRepos.getTransactionDetailsMultisigTransaction(
-            condition,
-          );
-        if (tx.FromAddress !== '') {
-          rawResult.FromAddress = tx.FromAddress;
-          rawResult.ToAddress = tx.ToAddress;
-        }
-      }
-
-      // Create data form to return to client
-      if (rawResult.Code) {
-        result = {
-          Id: rawResult.Id,
-          CreatedAt: rawResult.CreatedAt,
-          UpdatedAt: rawResult.UpdatedAt,
-          FromAddress: rawResult.FromAddress,
-          ToAddress: rawResult.ToAddress,
-          TxHash: rawResult.TxHash,
-          Amount: rawResult.Amount,
-          Denom: rawResult.Denom,
-          GasUsed: rawResult.GasUsed,
-          GasWanted: rawResult.GasWanted,
-          GasPrice: rawResult.GasPrice,
-          ChainId: rawResult.ChainId,
-        };
-        // Get Status based on Code
-        if (rawResult.Code == 0) {
-          result.Status = TRANSACTION_STATUS.SUCCESS;
-        } else result.Status = TRANSACTION_STATUS.FAILED;
+      if (
+        direction &&
+        direction.toUpperCase() === TRANSFER_DIRECTION.INCOMING
+      ) {
+        // Get AuraTx
+        txDetail = await this.transRepos.getTransactionDetailsAuraTx(
+          internalTxHash,
+        );
       } else {
-        result = {
-          Id: rawResult.Id,
-          CreatedAt: rawResult.CreatedAt,
-          UpdatedAt: rawResult.UpdatedAt,
-          FromAddress: rawResult.FromAddress,
-          ToAddress: rawResult.ToAddress,
-          TxHash: rawResult.TxHash,
-          Amount: rawResult.Amount,
-          Denom: rawResult.Denom,
-          GasUsed: '',
-          GasWanted: rawResult.GasWanted,
-          GasPrice: rawResult.GasPrice,
-          ChainId: rawResult.ChainId,
-          Status: rawResult.Status,
-          ConfirmationsRequired: rawResult.ConfirmationsRequired,
-        };
+        // Get MultisigTx
+        txDetail =
+          await this.multisigTransactionRepos.getTransactionDetailsMultisigTransaction(
+            condition,
+          );
+        const threshold = await this.safeRepos.getThreshold(safeAddress);
+        const owner = await this.safeOwnerRepos.getOwners(safeAddress);
+        txDetail.ConfirmationsRequired = threshold.ConfirmationsRequired;
+        txDetail.Signers = owner;
+        // if txHash is null => it means that the transaction is not executed yet, query by Id
+        const multisigTxId = txDetail.TxHash ? undefined : txDetail.Id;
+
+        // Get confirmations of multisig transaction
+        txDetail.Confirmations =
+          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+            multisigTxId,
+            txDetail.TxHash,
+            MULTISIG_CONFIRM_STATUS.CONFIRM,
+          );
+
+        // Get rejections of multisig transaction
+        txDetail.Rejectors =
+          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+            multisigTxId,
+            txDetail.TxHash,
+            MULTISIG_CONFIRM_STATUS.REJECT,
+          );
+
+        // Get execution of multisig transaction
+        txDetail.Executor =
+          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+            multisigTxId,
+            txDetail.TxHash,
+            MULTISIG_CONFIRM_STATUS.SEND,
+          );
       }
-      // Check is multisig transaction
-      if (result.FromAddress == param.safeAddress) {
-        const threshold = await this.safeRepos.getThreshold(param.safeAddress);
-        const owner = await this.safeOwnerRepos.getOwners(param.safeAddress);
-        // Check if data return contain threshold
-        if (!result.ConfirmationsRequired) {
-          if (threshold) {
-            result.ConfirmationsRequired = threshold.ConfirmationsRequired;
-          } else {
-            result.ConfirmationsRequired = '';
-            result.Signers = [];
-          }
-        }
-        result.Signers = owner;
-        result.Direction = TRANSFER_DIRECTION.OUTGOING;
-        // Check if data return contains TxHash to query with it
-        if (result.TxHash) {
-          result.Confirmations =
-            await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-              undefined,
-              result.TxHash,
-              MULTISIG_CONFIRM_STATUS.CONFIRM,
-            );
-          result.Rejectors =
-            await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-              undefined,
-              result.TxHash,
-              MULTISIG_CONFIRM_STATUS.REJECT,
-            );
-          result.Executor =
-            await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-              undefined,
-              result.TxHash,
-              MULTISIG_CONFIRM_STATUS.SEND,
-            );
-        } else {
-          const param: MODULE_REQUEST.GetMultisigSignaturesParam = {
-            id: result.Id,
-          };
-          result.Confirmations =
-            await await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-              result.Id,
-              undefined,
-              MULTISIG_CONFIRM_STATUS.CONFIRM,
-            );
-          result.Rejectors =
-            await await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-              result.Id,
-              undefined,
-              MULTISIG_CONFIRM_STATUS.REJECT,
-            );
-          result.Executor =
-            await await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-              result.Id,
-              undefined,
-              MULTISIG_CONFIRM_STATUS.SEND,
-            );
-        }
-      } else if (result.ToAddress == param.safeAddress)
-        result.Direction = TRANSFER_DIRECTION.INCOMING;
-      return res.return(ErrorMap.SUCCESSFUL, result);
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, txDetail);
     } catch (error) {
-      this._logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
-      this._logger.error(`${error.name}: ${error.message}`);
-      this._logger.error(`${error.stack}`);
-      return res.return(ErrorMap.E500, error.message);
+      return ResponseDto.responseError(TransactionService.name, error);
     }
   }
 

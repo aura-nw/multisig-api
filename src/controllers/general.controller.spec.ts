@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ErrorMap } from 'src/common/error.map';
-import { mockChain, mockSafe } from 'src/mock/safe.mock';
+import { mockSafe } from 'src/mock/safe.mock';
 import {
   ENTITIES_CONFIG,
   MODULE_REQUEST,
@@ -27,8 +27,8 @@ describe(GeneralController.name, () => {
   beforeAll(async () => {
     mockFindChainByCondition = jest.fn();
     mockCreateQueryBuilder = jest.fn(() => ({
-        select: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue([]),
+      select: jest.fn().mockReturnThis(),
+      getRawMany: jest.fn().mockResolvedValue([]),
     }));
     mockFindSafeByCondition = jest.fn();
 
@@ -64,9 +64,9 @@ describe(GeneralController.name, () => {
           useClass: MultisigWalletRepository,
         },
         {
-            provide: REPOSITORY_INTERFACE.IMULTISIG_WALLET_OWNER_REPOSITORY,
-            useClass: MultisigWalletOwnerRepository,
-          },
+          provide: REPOSITORY_INTERFACE.IMULTISIG_WALLET_OWNER_REPOSITORY,
+          useClass: MultisigWalletOwnerRepository,
+        },
         //service
         {
           provide: SERVICE_INTERFACE.IMULTISIG_WALLET_SERVICE,
@@ -77,9 +77,7 @@ describe(GeneralController.name, () => {
           useClass: GeneralService,
         },
       ],
-      imports: [
-        SharedModule,
-      ],
+      imports: [SharedModule],
     }).compile();
     generalController = testModule.get<GeneralController>(GeneralController);
   });
@@ -95,8 +93,6 @@ describe(GeneralController.name, () => {
   describe('When get list of chains', () => {
     it(`should return: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
       const result = await generalController.showNetworkList();
-
-    //   mockFindAllChain.mockResolvedValue(mockChain);
 
       expect(result.Message).toEqual(ErrorMap.SUCCESSFUL.Message);
     });

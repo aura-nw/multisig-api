@@ -4,8 +4,6 @@ import { ErrorMap } from '../../common/error.map';
 import { MODULE_REQUEST, REPOSITORY_INTERFACE } from 'src/module.config';
 import { ConfigService } from 'src/shared/services/config.service';
 import { IAuthService } from '../iauth.service';
-import { sha256, Secp256k1, Secp256k1Signature } from '@cosmjs/crypto';
-import { serializeSignDoc } from '@cosmjs/amino';
 import { fromBase64 } from '@cosmjs/encoding';
 import { JwtService } from '@nestjs/jwt';
 import { CustomError } from 'src/common/customError';
@@ -17,7 +15,13 @@ import {
 } from 'src/common/constants/app.constant';
 import { ContextService } from 'providers/context.service';
 import { IGeneralRepository } from 'src/repositories';
-import { pubkeyToAddressEvmos } from 'src/chains/evmos';
+import {
+  createSignMessageByData,
+  pubkeyToAddressEvmos,
+  verifyCosmosSig,
+  verifyEvmosSig,
+} from 'src/chains';
+import { UserInfo } from 'src/dtos/userInfo';
 @Injectable()
 export class AuthService implements IAuthService {
   private readonly _logger = new Logger(AuthService.name);
@@ -42,7 +46,7 @@ export class AuthService implements IAuthService {
       if (!COMMON_CONSTANTS.REGEX_BASE64.test(signature)) {
         throw new CustomError(ErrorMap.SIGNATURE_NOT_BASE64);
       }
-      if (!isNumberString(data) || !(new Date(Number(data)).getTime() > 0)) {
+      if (!isNumberString(data) || new Date(Number(data)).getTime() <= 0) {
         throw new CustomError(ErrorMap.INVALID_TIMESTAMP);
       }
 
@@ -50,49 +54,30 @@ export class AuthService implements IAuthService {
       const chainInfo = await this.chainRepo.findChain(internalChainId);
       const prefix = chainInfo.prefix;
 
-      // get address from pubkey
       let address = '';
-      let pubKeyUint8: Uint8Array;
-
-      switch (prefix) {
-        case 'evmos':
-          address = pubkeyToAddressEvmos(pubkey);
-          const pubKeyDecoded = fromBase64(pubkey);
-          pubKeyUint8 = Secp256k1.uncompressPubkey(pubKeyDecoded);
-          const payload = {
-            address: address,
-            pubkey: pubkey,
-            data: data,
-            signature: signature,
-          };
-          const accessToken = this.jwtService.sign(payload);
-
-          return ResponseDto.response(ErrorMap.SUCCESSFUL, {
-            AccessToken: `${accessToken}`,
-          });
-          break;
-        default:
-          const pubkeyFormated = encodeSecp256k1Pubkey(fromBase64(pubkey));
-          address = pubkeyToAddress(pubkeyFormated, prefix);
-          pubKeyUint8 = fromBase64(pubkey);
-          break;
+      let resultVerify = false;
+      if (chainInfo.chainId.startsWith('evmos_')) {
+        // get address from pubkey
+        address = pubkeyToAddressEvmos(pubkey);
+        // create message hash from data
+        const msg = createSignMessageByData(address, data);
+        // verify signature
+        resultVerify = await verifyEvmosSig(signature, msg, address);
+      } else {
+        // get address from pubkey
+        const pubkeyFormated = encodeSecp256k1Pubkey(fromBase64(pubkey));
+        address = pubkeyToAddress(pubkeyFormated, prefix);
+        // create message hash from data
+        const msg = createSignMessageByData(address, data);
+        // verify signature
+        resultVerify = await verifyCosmosSig(
+          signature,
+          msg,
+          fromBase64(pubkey),
+        );
       }
-
-      // create message hash from data
-      const msg = this.createSignMessageByData(address, data);
-      const msgHash = sha256(serializeSignDoc(msg));
-      // const pubKeyUint8 = fromBase64(pubkey);
-      // pubKeyUint8 = fromBase64(pubkey);
-
-      // verify signature
-      const resultVerify = await Secp256k1.verifySignature(
-        Secp256k1Signature.fromFixedLength(fromBase64(signature)),
-        msgHash,
-        pubKeyUint8,
-      );
-
       if (!resultVerify) {
-        throw new CustomError(ErrorMap.UNAUTHRORIZED);
+        throw new CustomError(ErrorMap.SIGNATURE_VERIFICATION_FAILED);
       }
 
       const payload = {
@@ -111,34 +96,11 @@ export class AuthService implements IAuthService {
     }
   }
 
-  createSignMessageByData(address: string, data: string) {
-    const signDoc = {
-      chain_id: '',
-      account_number: '0',
-      sequence: '0',
-      fee: {
-        gas: '0',
-        amount: [],
-      },
-      msgs: [
-        {
-          type: 'sign/MsgSignData',
-          value: {
-            signer: address,
-            data: Buffer.from(data, 'utf8').toString('base64'),
-          },
-        },
-      ],
-      memo: '',
-    };
-    return signDoc;
-  }
-
   static getAuthUser() {
     return ContextService.get(AuthService._authUserKey);
   }
 
-  static setAuthUser(user) {
+  static setAuthUser(user: UserInfo) {
     ContextService.set(AuthService._authUserKey, user);
   }
 }

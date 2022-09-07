@@ -34,29 +34,28 @@ export class MultisigWalletRepository
     );
   }
 
+  /**
+   *
+   * @param safeId
+   * @returns
+   */
+  async updateQueuedTag(safeId: number): Promise<any> {
+    return this.repos.update(
+      { id: safeId },
+      { txQueuedTag: () => Date.now().toString() },
+    );
+  }
+
   async recoverSafe(
-    safeAddress: string,
-    safePubkey: string,
-    creatorAddress: string,
-    creatorPubkey: string,
+    newSafe: Safe,
     otherOwnersAddress: string[],
-    threshold: number,
-    internalChainId: number,
     chainPrefix: string,
   ): Promise<any> {
-    const newSafe = new ENTITIES_CONFIG.SAFE();
-    newSafe.creatorAddress = creatorAddress;
-    newSafe.creatorPubkey = creatorPubkey;
-    newSafe.threshold = threshold;
-    newSafe.safeAddress = safeAddress;
-    newSafe.safePubkey = safePubkey;
-    newSafe.internalChainId = internalChainId;
-
     // check duplicate with safe address hash
     const safeAddressHash = await this.makeAddressHash(
       newSafe.internalChainId,
-      [creatorAddress, ...otherOwnersAddress],
-      threshold,
+      [newSafe.creatorAddress, ...otherOwnersAddress],
+      newSafe.threshold,
     );
     newSafe.addressHash = safeAddressHash;
     newSafe.status = SAFE_STATUS.CREATED;
@@ -65,8 +64,8 @@ export class MultisigWalletRepository
     if (otherOwnersAddress.length === 0) {
       try {
         const { address, pubkey } = this._commonUtil.createSafeAddressAndPubkey(
-          [creatorPubkey],
-          threshold,
+          [newSafe.creatorPubkey],
+          newSafe.threshold,
           chainPrefix,
         );
         newSafe.safeAddress = address;
@@ -172,7 +171,7 @@ export class MultisigWalletRepository
     threshold: number,
   ): Promise<string> {
     const safeAddress = {
-      addresses: addresses.sort(),
+      addresses: [...addresses].sort(),
       threshold,
       internalChainId,
     };
@@ -234,21 +233,22 @@ export class MultisigWalletRepository
     }
   }
 
-  async getSafe(safeId: string, internalChainId?: number): Promise<any> {
+  async getSafe(safeId: string, internalChainId?: number): Promise<Safe> {
     const condition = this.calculateCondition(safeId, internalChainId);
 
     // find safes on offchain
-    const safes = await this.findByCondition(condition);
+    let safe = await this.findOne(condition);
     //Found on network
-    if (safes.length === 0 && internalChainId && condition.safeAddress) {
+    if (!safe && internalChainId && condition.safeAddress) {
       await this.checkAccountOnNetwork(condition.safeAddress, internalChainId);
+      safe = await this.findOne(condition);
     }
-    const newSafe = await this.findByCondition(condition);
-    if (!newSafe || newSafe.length === 0) {
+    
+    if (!safe) {
       //Found on network
       throw new CustomError(ErrorMap.NO_SAFES_FOUND);
     }
-    return newSafe[0];
+    return safe;
   }
 
   async getPendingSafe(safeId: string, internalChainId?: number): Promise<any> {
@@ -329,17 +329,20 @@ export class MultisigWalletRepository
       }
 
       // insert safe
+      const newSafe = new Safe();
+      newSafe.creatorAddress = pubkeyToAddress(
+        accountOnChain.pubkey.value.pubkeys[0],
+        chainInfo.prefix,
+      );
+      newSafe.creatorPubkey = accountOnChain.pubkey.value.pubkeys[0].value;
+      newSafe.threshold = accountOnChain.pubkey.value.threshold;
+      newSafe.safeAddress = accountOnChain.address;
+      newSafe.safePubkey = JSON.stringify(accountOnChain.pubkey);
+      newSafe.internalChainId = internalChainId;
+
       const result = await this.recoverSafe(
-        accountOnChain.address,
-        JSON.stringify(accountOnChain.pubkey),
-        pubkeyToAddress(
-          accountOnChain.pubkey.value.pubkeys[0],
-          chainInfo.prefix,
-        ),
-        accountOnChain.pubkey.value.pubkeys[0].value,
+        newSafe,
         otherOwnersAddress,
-        accountOnChain.pubkey.value.threshold,
-        internalChainId,
         chainInfo.prefix,
       );
       const safeId = result.id;

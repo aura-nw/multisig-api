@@ -5,9 +5,12 @@ import {
   TRANSACTION_STATUS,
   TRANSFER_DIRECTION,
 } from 'src/common/constants/app.constant';
+import { CustomError } from 'src/common/customError';
+import { ErrorMap } from 'src/common/error.map';
 import { MultisigTransactionHistoryResponse } from 'src/dtos/responses';
+import { TxDetailResponse } from 'src/dtos/responses/multisig-transaction/tx-detail.response';
 import { Chain } from 'src/entities';
-import { ENTITIES_CONFIG, MODULE_REQUEST } from 'src/module.config';
+import { ENTITIES_CONFIG } from 'src/module.config';
 import { ObjectLiteral, Repository } from 'typeorm';
 import { ITransactionRepository } from '../itransaction.repository';
 import { BaseRepository } from './base.repository';
@@ -35,14 +38,16 @@ export class TransactionRepository
     limit: number,
   ) {
     const offset = limit * (pageIndex - 1);
+    // query transactions from aura_tx
+    // set direction of transaction
     const result: any[] = await this.repos.query(
       `
-                SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, Code as Status
+                SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, Code as Status, ? AS Direction
                 FROM AuraTx
                 WHERE ToAddress = ?
                 AND InternalChainId = ?
                 UNION
-                SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, Status
+                SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, Status, ? AS Direction
                 FROM MultisigTransaction
                 WHERE FromAddress = ?
                 AND (Status = ? OR Status = ? OR Status = ?)
@@ -51,8 +56,10 @@ export class TransactionRepository
                 LIMIT ? OFFSET ?;
             `,
       [
+        TRANSFER_DIRECTION.INCOMING,
         safeAddress,
         internalChainId,
+        TRANSFER_DIRECTION.OUTGOING,
         safeAddress,
         TRANSACTION_STATUS.SUCCESS,
         TRANSACTION_STATUS.CANCELLED,
@@ -69,18 +76,12 @@ export class TransactionRepository
         if (Number(tx.Status) === 0) tx.Status = TRANSACTION_STATUS.SUCCESS;
         else tx.Status = TRANSACTION_STATUS.FAILED;
       }
-
-      // Set direction of transaction
-      if (tx.FromAddress === safeAddress)
-        tx.Direction = TRANSFER_DIRECTION.OUTGOING;
-      else tx.Direction = TRANSFER_DIRECTION.INCOMING;
     }
     return txs;
   }
 
-  async getTransactionDetailsAuraTx(condition: any) {
-    const txHash = condition.txHash;
-    const sqlQuerry = this.repos
+  async getTransactionDetailsAuraTx(txHash: string): Promise<TxDetailResponse> {
+    const result = await this.repos
       .createQueryBuilder('auraTx')
       .innerJoin(Chain, 'chain', 'auraTx.internalChainId = chain.id')
       .where('auraTx.txHash = :txHash', { txHash })
@@ -98,7 +99,16 @@ export class TransactionRepository
         'auraTx.gasWanted as GasWanted',
         'auraTx.fee as GasPrice',
         'chain.chainId as ChainId',
-      ]);
-    return sqlQuerry.getRawOne();
+      ])
+      .getRawOne();
+    if (!result) throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
+    const txDetail = plainToInstance(TxDetailResponse, result);
+
+    if (String(result.Code) === '0')
+      txDetail.Status = TRANSACTION_STATUS.SUCCESS;
+    else txDetail.Status = TRANSACTION_STATUS.FAILED;
+    txDetail.Direction = TRANSFER_DIRECTION.INCOMING;
+
+    return txDetail;
   }
 }

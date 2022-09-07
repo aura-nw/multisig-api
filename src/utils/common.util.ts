@@ -16,6 +16,7 @@ import {
   SignatureV2,
   SimplePublicKey,
 } from '@terra-money/terra.js';
+import { plainToInstance } from 'class-transformer';
 import { readFile } from 'graceful-fs';
 import {
   createMultisigThresholdPubkeyEvmos,
@@ -24,6 +25,7 @@ import {
 import { PUBKEY_TYPES } from 'src/common/constants/app.constant';
 import { CustomError } from 'src/common/customError';
 import { ErrorMap } from 'src/common/error.map';
+import { UserInfo } from 'src/dtos/userInfo';
 import { MultisigTransaction, Safe } from 'src/entities';
 import { AuthService } from 'src/services/impls/auth.service';
 import { ConfigService } from '../shared/services/config.service';
@@ -58,19 +60,6 @@ export class CommonUtil {
   }
 
   /**
-   * https://stackoverflow.com/a/34890276
-   * @param xs
-   * @param key
-   * @returns
-   */
-  public groupBy<TItem>(xs: TItem[], key: string): { [key: string]: TItem[] } {
-    return xs.reduce(function (rv, x) {
-      (rv[x[key]] = rv[x[key]] || []).push(x);
-      return rv;
-    }, {});
-  }
-
-  /**
    * https://stackoverflow.com/a/54974076/8461456
    * @param arr
    * @returns boolean
@@ -100,21 +89,17 @@ export class CommonUtil {
   } {
     let arrPubkeys;
     if (prefix === 'evmos') {
-      // arrPubkeys = pubKeyArrString.map(this.createPubkeyEvmos);
       arrPubkeys = pubKeyArrString.map(this.createPubkeyEvmos);
     } else arrPubkeys = pubKeyArrString.map(this.createPubkeys);
 
     let multisigPubkey;
-    switch (prefix) {
-      case 'evmos':
-        multisigPubkey = createMultisigThresholdPubkeyEvmos(
-          arrPubkeys,
-          threshold,
-        );
-        break;
-      default:
-        multisigPubkey = createMultisigThresholdPubkey(arrPubkeys, threshold);
-        break;
+    if (prefix === 'evmos') {
+      multisigPubkey = createMultisigThresholdPubkeyEvmos(
+        arrPubkeys,
+        threshold,
+      );
+    } else {
+      multisigPubkey = createMultisigThresholdPubkey(arrPubkeys, threshold);
     }
     const multiSigWalletAddress = this.pubkeyToAddress(multisigPubkey, prefix);
     return {
@@ -202,10 +187,10 @@ export class CommonUtil {
     return tx;
   }
 
-  async getAuthInfo(): Promise<any> {
-    const currentUser = await AuthService.getAuthUser();
+  getAuthInfo(): UserInfo {
+    const currentUser = AuthService.getAuthUser();
     if (!currentUser) throw new CustomError(ErrorMap.UNAUTHRORIZED);
-    return currentUser;
+    return plainToInstance(UserInfo, currentUser);
   }
 
   jsonReader(filePath, cb) {

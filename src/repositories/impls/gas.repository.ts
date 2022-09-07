@@ -1,8 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CustomError } from 'src/common/customError';
-import { ErrorMap } from 'src/common/error.map';
-import { Chain, Gas } from 'src/entities';
 import { ENTITIES_CONFIG } from 'src/module.config';
 import { ObjectLiteral, Repository } from 'typeorm';
 import { IGasRepository } from '../igas.repository';

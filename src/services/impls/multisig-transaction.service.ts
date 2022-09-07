@@ -1,5 +1,5 @@
 import { Registry } from '@cosmjs/proto-signing';
-import { AuthInfo, TxBody } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
+import { AuthInfo, TxBody, TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ResponseDto } from 'src/dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
@@ -8,11 +8,12 @@ import { IMultisigTransactionService } from '../multisig-transaction.service';
 import {
   AminoTypes,
   coins,
+  createBankAminoConverters,
+  createStakingAminoConverters,
   makeMultisignedTx,
   StargateClient,
 } from '@cosmjs/stargate';
 import { fromBase64 } from '@cosmjs/encoding';
-import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { BaseService } from './base.service';
 import { MultisigTransaction } from 'src/entities';
 import {
@@ -29,12 +30,14 @@ import {
   IMultisigWalletRepository,
 } from 'src/repositories';
 import { ConfirmTransactionRequest } from 'src/dtos/requests';
-import { ISmartContractRepository } from 'src/repositories/ismart-contract.repository';
-import { getEvmosAccount, makeMultisignedTxEvmos } from 'src/chains/evmos';
+import {
+  getEvmosAccount,
+  makeMultisignedTxEvmos,
+  verifyEvmosSig,
+} from 'src/chains/evmos';
 import { CommonUtil } from 'src/utils/common.util';
-import { Secp256k1, Secp256k1Signature, sha256 } from '@cosmjs/crypto';
-import { makeSignDoc, serializeSignDoc } from '@cosmjs/amino';
-import { createWasmAminoConverters } from '@cosmjs/cosmwasm-stargate';
+import { makeSignDoc } from '@cosmjs/amino';
+import { checkAccountBalance, verifyCosmosSig } from 'src/chains';
 
 @Injectable()
 export class MultisigTransactionService
@@ -55,8 +58,6 @@ export class MultisigTransactionService
     private safeRepos: IMultisigWalletRepository,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_OWNER_REPOSITORY)
     private safeOwnerRepo: IMultisigWalletOwnerRepository,
-    @Inject(REPOSITORY_INTERFACE.ISMART_CONTRACT_REPOSITORY)
-    private smartContractRepos: ISmartContractRepository,
   ) {
     super(multisigTransactionRepos);
     this._logger.log(
@@ -78,10 +79,12 @@ export class MultisigTransactionService
     } = request;
     const res = new ResponseDto();
     try {
-      const authInfo = await this._commonUtil.getAuthInfo();
+      const authInfo = this._commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
-      // if (!(await this.safeOwnerRepo.isSafeOwner(creatorAddress, request.from)))
-      //   throw new CustomError(ErrorMap.ADDRESS_NOT_CREATOR);
+
+      // Connect to chain
+      const chain = await this.chainRepos.findChain(internalChainId);
+      const client = await StargateClient.connect(chain.rpc);
 
       // decode data
       const authInfoEncode = fromBase64(authInfoBytes);
@@ -90,91 +93,90 @@ export class MultisigTransactionService
       const { memo, messages } = TxBody.decode(bodyBytesEncode);
 
       // get accountNumber, sequence from chain
-      const chain = await this.chainRepos.findChain(internalChainId);
       let sequence: number, accountNumber: number;
       if (chain.chainId.startsWith('evmos_')) {
         const accountInfo = await getEvmosAccount(chain.rest, from);
         sequence = accountInfo.sequence;
         accountNumber = accountInfo.accountNumber;
       } else {
-        const client = await StargateClient.connect(chain.rpc);
         const accountInfo = await client.getAccount(from);
         sequence = accountInfo.sequence;
         accountNumber = accountInfo.accountNumber;
       }
 
-      // build signDoc
-      if (!chain.chainId.startsWith('evmos_')) {
-        const registry = new Registry(REGISTRY_GENERATED_TYPES);
-        const aminoTypes = new AminoTypes({ ...createWasmAminoConverters() });
-        const msgs = messages.map((msg: any) => {
-          const decoder = registry.lookupType(msg.typeUrl);
-          msg.value = decoder.decode(msg.value);
-          return aminoTypes.toAmino(msg);
-        });
-        const stdFee = {
-          amount: decodedAuthInfo.fee.amount,
-          gas: decodedAuthInfo.fee.gasLimit.toString(),
-        };
-        const signDoc = makeSignDoc(
-          msgs,
-          stdFee,
-          chain.chainId,
-          memo,
-          accountNumber,
-          sequence,
-        );
-        const pubKeyDecoded = Buffer.from(authInfo.pubkey, 'base64');
+      // build stdSignDoc for verify signature
+      const registry = new Registry(REGISTRY_GENERATED_TYPES);
 
-        // validate signature of fromAddress
-        const valid = await Secp256k1.verifySignature(
-          Secp256k1Signature.fromFixedLength(fromBase64(signature)),
-          sha256(serializeSignDoc(signDoc)),
-          pubKeyDecoded,
+      // stargate@0.28.11
+      const aminoTypes = new AminoTypes({
+        ...createBankAminoConverters(),
+        ...createStakingAminoConverters(chain.prefix),
+      });
+      const msgs = messages.map((msg: any) => {
+        const decoder = registry.lookupType(msg.typeUrl);
+        msg.value = decoder.decode(msg.value);
+        return aminoTypes.toAmino(msg);
+      });
+      const stdFee = {
+        amount: decodedAuthInfo.fee.amount,
+        gas: decodedAuthInfo.fee.gasLimit.toString(),
+      };
+      const signDoc = makeSignDoc(
+        msgs,
+        stdFee,
+        chain.chainId,
+        memo,
+        accountNumber,
+        sequence,
+      );
+
+      // verify signature; if verify fail, throw error
+      let resultVerify = false;
+      if (chain.chainId.startsWith('evmos_')) {
+        resultVerify = await verifyEvmosSig(signature, signDoc, creatorAddress);
+      } else {
+        resultVerify = await verifyCosmosSig(
+          signature,
+          signDoc,
+          fromBase64(authInfo.pubkey),
         );
-        if (!valid) throw new CustomError(ErrorMap.VERIFY_SIGNATURE_FAIL);
+      }
+      if (!resultVerify) {
+        throw new CustomError(ErrorMap.SIGNATURE_VERIFICATION_FAILED);
       }
 
-      //Validate safe
-      const signResult = await this.signingInstruction(
-        internalChainId,
-        from,
-        amount,
-      );
+      // check account balance; if balance is not enough, throw error
+      await checkAccountBalance(client, from, chain.denom, amount);
 
-      //Validate transaction creator
-      await this.multisigConfirmRepos.validateOwner(
-        creatorAddress,
-        from,
-        internalChainId,
-      );
+      // get Safe info
+      const safe = await this.safeRepos.getSafe(from, internalChainId);
+
+      // is owner of safe
+      await this.safeOwnerRepo.isSafeOwner(creatorAddress, safe.id);
 
       //Validate safe don't have tx pending
       await this.multisigTransactionRepos.validateCreateTx(
         from,
         internalChainId,
       );
-      await this.smartContractRepos.validateCreateTx(from, internalChainId);
-
-      const safe = await this.safeRepos.findOne({
-        where: { safeAddress: from },
-      });
 
       //Safe data into DB
+      const transaction = new MultisigTransaction();
+      transaction.fromAddress = from;
+      transaction.toAddress = to;
+      transaction.amount = amount;
+      transaction.gas = decodedAuthInfo.fee.gasLimit.toNumber();
+      transaction.fee = Number(decodedAuthInfo.fee.amount[0].amount);
+      transaction.accountNumber = accountNumber;
+      transaction.typeUrl = messages[0].typeUrl;
+      transaction.denom = chain.denom;
+      transaction.status = TRANSACTION_STATUS.AWAITING_CONFIRMATIONS;
+      transaction.internalChainId = internalChainId;
+      transaction.sequence = sequence.toString();
+      transaction.safeId = safe.id;
       const transactionResult =
         await this.multisigTransactionRepos.insertMultisigTransaction(
-          from,
-          to,
-          amount,
-          decodedAuthInfo.fee.gasLimit.toNumber(),
-          Number(decodedAuthInfo.fee.amount[0].amount),
-          signResult.accountNumber,
-          messages[0].typeUrl,
-          signResult.denom,
-          TRANSACTION_STATUS.AWAITING_CONFIRMATIONS,
-          internalChainId,
-          signResult.sequence.toString(),
-          safe.id,
+          transaction,
         );
 
       const requestSign = new ConfirmTransactionRequest();
@@ -199,7 +201,7 @@ export class MultisigTransactionService
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      const authInfo = await this._commonUtil.getAuthInfo();
+      const authInfo = this._commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
       const chain = await this.chainRepos.findOne({
         where: { id: request.internalChainId },
@@ -214,7 +216,7 @@ export class MultisigTransactionService
         );
 
       //Validate owner
-      await this.multisigConfirmRepos.validateOwner(
+      await this.multisigConfirmRepos.validateSafeOwner(
         creatorAddress,
         multisigTransaction.fromAddress,
         request.internalChainId,
@@ -236,6 +238,7 @@ export class MultisigTransactionService
           request.internalChainId,
           MULTISIG_CONFIRM_STATUS.SEND,
         );
+        await this.safeRepos.updateQueuedTag(multisigTransaction.safeId);
 
         await client.broadcastTx(txBroadcast, 10);
       } catch (error) {
@@ -267,15 +270,14 @@ export class MultisigTransactionService
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      const authInfo = await this._commonUtil.getAuthInfo();
+      const authInfo = this._commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
       const transaction =
         await this.multisigTransactionRepos.checkExistMultisigTransaction(
           request.transactionId,
-          request.internalChainId,
         );
 
-      await this.multisigConfirmRepos.validateOwner(
+      await this.multisigConfirmRepos.validateSafeOwner(
         creatorAddress,
         transaction.fromAddress,
         request.internalChainId,
@@ -301,6 +303,8 @@ export class MultisigTransactionService
         request.internalChainId,
       );
 
+      await this.safeRepos.updateQueuedTag(transaction.safeId);
+
       return res.return(ErrorMap.SUCCESSFUL);
     } catch (error) {
       return ResponseDto.responseError(MultisigTransactionService.name, error);
@@ -312,17 +316,16 @@ export class MultisigTransactionService
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
-      const authInfo = await this._commonUtil.getAuthInfo();
+      const authInfo = this._commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
       //Check status of multisig transaction when reject transaction
       const transaction =
         await this.multisigTransactionRepos.checkExistMultisigTransaction(
           request.transactionId,
-          request.internalChainId,
         );
 
       //Validate owner
-      await this.multisigConfirmRepos.validateOwner(
+      await this.multisigConfirmRepos.validateSafeOwner(
         creatorAddress,
         transaction.fromAddress,
         request.internalChainId,
@@ -361,6 +364,8 @@ export class MultisigTransactionService
         await this.multisigTransactionRepos.update(transaction);
       }
 
+      await this.safeRepos.updateQueuedTag(transaction.safeId);
+
       return res.return(ErrorMap.SUCCESSFUL);
     } catch (error) {
       return ResponseDto.responseError(MultisigTransactionService.name, error);
@@ -382,19 +387,17 @@ export class MultisigTransactionService
 
     //Check account
     let sequence: number, accountNumber: number;
-    switch (chain.denom) {
-      case 'atevmos':
-        const accountInfo = await getEvmosAccount(chain.rest, sendAddress);
-        sequence = accountInfo.sequence;
-        accountNumber = accountInfo.accountNumber;
-        break;
-      default:
-        const accountOnChain = await client.getAccount(sendAddress);
-        if (!accountOnChain) {
-          throw new CustomError(ErrorMap.E001);
-        }
-        sequence = accountOnChain.sequence;
-        accountNumber = accountOnChain.accountNumber;
+    if (chain.chainId.startsWith('evmos_')) {
+      const accountInfo = await getEvmosAccount(chain.rest, sendAddress);
+      sequence = accountInfo.sequence;
+      accountNumber = accountInfo.accountNumber;
+    } else {
+      const accountOnChain = await client.getAccount(sendAddress);
+      if (!accountOnChain) {
+        throw new CustomError(ErrorMap.E001);
+      }
+      sequence = accountOnChain.sequence;
+      accountNumber = accountOnChain.accountNumber;
     }
     return {
       accountNumber,
@@ -430,7 +433,10 @@ export class MultisigTransactionService
 
     //Fee
     const sendFee = {
-      amount: coins(multisigTransaction.fee, multisigTransaction.denom),
+      amount: coins(
+        multisigTransaction.fee.toString(),
+        multisigTransaction.denom,
+      ),
       gas: multisigTransaction.gas.toString(),
     };
 

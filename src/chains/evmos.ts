@@ -3,8 +3,7 @@ import { MultiSignature } from 'cosmjs-types/cosmos/crypto/multisig/v1beta1/mult
 import { SignMode } from 'cosmjs-types/cosmos/tx/signing/v1beta1/signing';
 import { Any } from 'cosmjs-types/google/protobuf/any';
 import { PubKey } from 'cosmjs-types/cosmos/crypto/secp256k1/keys';
-import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
-import { AuthInfo, SignerInfo } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
+import { AuthInfo, SignerInfo, TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { Uint53 } from '@cosmjs/math';
 import {
   isEd25519Pubkey,
@@ -12,11 +11,18 @@ import {
   isSecp256k1Pubkey,
   MultisigThresholdPubkey,
   Pubkey,
+  serializeSignDoc,
   SinglePubkey,
   StdFee,
+  StdSignDoc,
 } from '@cosmjs/amino';
 import * as axios from 'axios';
-import { Keccak256, Secp256k1 } from '@cosmjs/crypto';
+import {
+  keccak256,
+  Keccak256,
+  Secp256k1,
+  Secp256k1Signature,
+} from '@cosmjs/crypto';
 import {
   fromBase64,
   fromBech32,
@@ -27,6 +33,8 @@ import {
 } from '@cosmjs/encoding';
 import { makeCompactBitArray } from '@cosmjs/stargate/build/multisignature';
 import * as Long from 'long';
+import { ethToEvmos } from '@tharsis/address-converter';
+import * as ethUtils from 'ethereumjs-util';
 
 // As discussed in https://github.com/binance-chain/javascript-sdk/issues/163
 // Prefixes listed here: https://github.com/tendermint/tendermint/blob/d419fffe18531317c28c29a292ad7d253f6cafdf/docs/spec/blockchain/encoding.md#public-key-cryptography
@@ -46,19 +54,34 @@ export interface EthSecp256k1Pubkey extends SinglePubkey {
   readonly value: string;
 }
 
+export async function verifyEvmosSig(
+  signature: string,
+  msg: StdSignDoc,
+  expectEvmosAddr: string,
+) {
+  const sig = Secp256k1Signature.fromFixedLength(fromBase64(signature));
+  let valid = false;
+  for (let i = 0; i < 2; i++) {
+    const pub = ethUtils.ecrecover(
+      ethUtils.toBuffer(keccak256(serializeSignDoc(msg))),
+      27 + i,
+      Buffer.from(sig.r()),
+      Buffer.from(sig.s()),
+    );
+    const addrBuf = ethUtils.pubToAddress(pub);
+    const addr = ethUtils.bufferToHex(addrBuf);
+    const evmosAddr = ethToEvmos(addr);
+
+    if (evmosAddr === expectEvmosAddr) {
+      valid = true;
+    }
+  }
+  return valid;
+}
+
 export function pubkeyToRawAddress(pubkey: Pubkey): Uint8Array {
   const pubKeyDecoded = Buffer.from(pubkey.value, 'base64');
-  let pubKeyUncompressed: Uint8Array;
-  switch (pubKeyDecoded.length) {
-    case 33:
-      pubKeyUncompressed = Secp256k1.uncompressPubkey(pubKeyDecoded);
-      break;
-    case 65:
-      pubKeyUncompressed = pubKeyUncompressed;
-      break;
-    default:
-      throw new Error('Invalid pubkey length');
-  }
+  const pubKeyUncompressed = Secp256k1.uncompressPubkey(pubKeyDecoded);
   const hash = new Keccak256(pubKeyUncompressed.slice(1)).digest();
   const lastTwentyBytes = hash.slice(-20);
   return lastTwentyBytes;
@@ -84,12 +107,12 @@ export function pubkeyToAddressEvmos(pubkey: string, prefix = 'evmos'): string {
 export function encodeAminoPubkeySupportEvmos(pubkey: Pubkey): Uint8Array {
   if (isMultisigThresholdPubkey(pubkey)) {
     const out = Array.from(pubkeyAminoPrefixMultisigThreshold);
-    out.push(0x08); // TODO: What is this?
+    out.push(0x08);
     out.push(...encodeUvarint(pubkey.value.threshold));
     for (const pubkeyData of pubkey.value.pubkeys.map((p) =>
       encodeAminoPubkeySupportEvmos(p),
     )) {
-      out.push(0x12); // TODO: What is this?
+      out.push(0x12);
       out.push(...encodeUvarint(pubkeyData.length));
       out.push(...pubkeyData);
     }

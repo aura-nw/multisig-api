@@ -1,6 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import e from 'express';
 import { MULTISIG_CONFIRM_STATUS } from 'src/common/constants/app.constant';
 import { CustomError } from 'src/common/customError';
 import { ErrorMap } from 'src/common/error.map';
@@ -86,9 +85,9 @@ export class MultisigConfirmRepository
     }
   }
 
-  async validateOwner(
+  async validateSafeOwner(
     ownerAddres: string,
-    transactionAddress: string,
+    safeAddress: string,
     internalChainId: number,
   ): Promise<any> {
     //Validate owner
@@ -98,7 +97,7 @@ export class MultisigConfirmRepository
     );
 
     const result = listSafe.find((elelement) => {
-      if (elelement.safeAddress === transactionAddress) {
+      if (elelement.safeAddress === safeAddress) {
         return true;
       }
     });

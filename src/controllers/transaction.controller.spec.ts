@@ -1,11 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ErrorMap } from 'src/common/error.map';
-import { mockSafe } from 'src/mock/safe.mock';
 import {
   mockChain,
   mockCreateTransactionRequest,
-  mockTransaction,
 } from 'src/mock/transaction.mock';
 import {
   ENTITIES_CONFIG,
@@ -21,13 +19,11 @@ import {
 import { GeneralRepository } from 'src/repositories/impls/general.repository';
 import { MultisigWalletOwnerRepository } from 'src/repositories/impls/multisig-wallet-owner.repository';
 import { MultisigWalletRepository } from 'src/repositories/impls/multisig-wallet.repository';
-import { SmartContractRepository } from 'src/repositories/impls/smart-contract.repository';
 import { GeneralService } from 'src/services/impls/general.service';
 import { MultisigTransactionService } from 'src/services/impls/multisig-transaction.service';
 import { MultisigWalletService } from 'src/services/impls/multisig-wallet.service';
 import { TransactionService } from 'src/services/impls/transaction.service';
 import { SharedModule } from 'src/shared/shared.module';
-import { OwnerController } from './owner.controller';
 import { TransactionController } from './transaction.controller';
 
 describe(TransactionController.name, () => {
@@ -101,13 +97,6 @@ describe(TransactionController.name, () => {
             find: mockFindSafeByCondition,
           },
         },
-        {
-          provide: getRepositoryToken(ENTITIES_CONFIG.SMART_CONTRACT_TX),
-          useValue: {
-            createQueryBuilder: mockCreateQueryBuilder,
-            find: mockFindSafeByCondition,
-          },
-        },
         // //mock
         // {
         //   provide: getRepositoryToken(ENTITIES_CONFIG.SAFE),
@@ -143,10 +132,6 @@ describe(TransactionController.name, () => {
         {
           provide: REPOSITORY_INTERFACE.IMULTISIG_WALLET_REPOSITORY,
           useClass: MultisigWalletRepository,
-        },
-        {
-          provide: REPOSITORY_INTERFACE.ISMART_CONTRACT_REPOSITORY,
-          useClass: SmartContractRepository,
         },
         //service
         {
@@ -240,18 +225,5 @@ describe(TransactionController.name, () => {
       const result = await transactionController.getAllTxs(request);
       expect(result.Message).toEqual(ErrorMap.NO_SAFES_FOUND.Message);
     });
-
-    // it(`should return: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
-    //   const request: MODULE_REQUEST.GetAllTransactionsRequest = {
-    //     safeAddress: 'aura1hnr59hsqchckgtd49nsejmy5mj400nv6cpmm9v',
-    //     isHistory: true,
-    //     pageIndex: 1,
-    //     pageSize: 10
-    //   };
-    //   mockFindSafeByCondition.mockResolvedValue(mockSafe);
-    //   // mockGetTransactions.mockResolvedValue(mockTransaction);
-    //   const result = await transactionController.getAllTxs(request);
-    //   expect(result.Message).toEqual(ErrorMap.SUCCESSFUL.Message);
-    // })
   });
 });

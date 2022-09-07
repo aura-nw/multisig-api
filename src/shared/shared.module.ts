@@ -1,6 +1,5 @@
 import { Module, Global } from '@nestjs/common';
 import { ConfigService } from './services/config.service';
-// import { AuthModule } from '../modules/auth/auth.module';
 const providers = [ConfigService];
 
 @Global()

@@ -19,7 +19,7 @@ export const mockCreateTransactionRequest: MODULE_REQUEST.CreateTransactionReque
 
 export const mockChain: any[] = [
   {
-    rpc: 'http://0.0.0.0:26657',
+    rpc: 'https://localhost:26657',
     prefix: 'aura',
     denom: 'uaura',
   },
@@ -29,7 +29,7 @@ export const mockChain: any[] = [
     denom: 'uaura',
   },
   {
-    rpc: 'http://0.0.0.0:1111',
+    rpc: 'http://localhost:1111',
     prefix: 'aura',
     denom: 'uaura',
   },

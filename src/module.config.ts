@@ -17,8 +17,7 @@ import {
   RejectTransactionRequest,
   SendTransactionRequest,
   GetAccountOnchainParam,
-  QueryMessageRequest,
-  ExecuteMessageRequest,
+  GetTxDetailQuery,
 } from './dtos/requests';
 import { AuthRequest } from './dtos/requests/auth/signin.request';
 import {
@@ -52,7 +51,6 @@ import {
   MultisigTransaction,
   Safe,
   SafeOwner,
-  SmartContractTx,
 } from './entities';
 
 export const ENTITIES_CONFIG = {
@@ -62,7 +60,6 @@ export const ENTITIES_CONFIG = {
   MULTISIG_CONFIRM: MultisigConfirm,
   MULTISIG_TRANSACTION: MultisigTransaction,
   AURA_TX: AuraTx,
-  SMART_CONTRACT_TX: SmartContractTx,
   GAS: Gas,
 };
 
@@ -85,8 +82,6 @@ export const REQUEST_CONFIG = {
   REJECT_TRANSACTION_PARAM: RejectTransactionRequest,
   GET_MULTISIG_SIGNATURES_PARAM: GetMultisigSignaturesParam,
   GET_ACCOUNT_ONCHAIN_PARAM: GetAccountOnchainParam,
-  QUERY_MESSAGE_REQUEST: QueryMessageRequest,
-  EXECUTE_MESSAGE_REQUEST: ExecuteMessageRequest,
   SIGN_IN_REQUEST: AuthRequest,
   GET_VALIDATORS_PARAM: GetValidatorsParam,
   GET_DELEGATOR_REWARDS_PARAM: GetDelegatorRewardsParam,
@@ -94,6 +89,7 @@ export const REQUEST_CONFIG = {
   GET_DELEGATION_INFORMATION_QUERY: GetDelegationInformationQuery,
   GET_PROPOSALS_QUERY: GetProposalsQuery,
   GET_PROPOSAL_DETAILS_PARAM: GetProposalDetailsParam,
+  GET_TX_DETAIL_QUERY: GetTxDetailQuery,
 };
 
 export const RESPONSE_CONFIG = {
@@ -135,8 +131,7 @@ export namespace MODULE_REQUEST {
   export abstract class GetDelegatorRewardsParam extends REQUEST_CONFIG.GET_DELEGATOR_REWARDS_PARAM {}
   export abstract class GetDelegationInformationParam extends REQUEST_CONFIG.GET_DELEGATOR_REWARDS_PARAM {}
   export abstract class GetDelegationInformationQuery extends REQUEST_CONFIG.GET_DELEGATION_INFORMATION_QUERY {}
-  export abstract class QueryMessageRequest extends REQUEST_CONFIG.QUERY_MESSAGE_REQUEST {}
-  export abstract class ExecuteMessageRequest extends REQUEST_CONFIG.EXECUTE_MESSAGE_REQUEST {}
+  export abstract class GetTxDetailQuery extends REQUEST_CONFIG.GET_TX_DETAIL_QUERY {}
   export abstract class AuthRequest extends REQUEST_CONFIG.SIGN_IN_REQUEST {}
   export abstract class GetProposalsQuery extends REQUEST_CONFIG.GET_PROPOSALS_QUERY {}
   export abstract class GetProposalDetailsParam extends REQUEST_CONFIG.GET_PROPOSAL_DETAILS_PARAM {}
@@ -164,7 +159,6 @@ export const SERVICE_INTERFACE = {
   ITRANSACTION_SERVICE: 'ITransactionService',
   IGENERAL_SERVICE: 'IGeneralService',
   IMULTISIG_TRANSACTION_SERVICE: 'IMultisigTransactionService',
-  ISMART_CONTRACT_SERVICE: 'ISmartContractService',
   IAUTH_SERVICE: 'IAuthService',
 };
 
@@ -175,7 +169,6 @@ export const REPOSITORY_INTERFACE = {
   IGENERAL_REPOSITORY: 'IGeneralRepository',
   IMULTISIG_TRANSACTION_REPOSITORY: 'IMultisigTransactionsRepository',
   IMULTISIG_CONFIRM_REPOSITORY: 'IMultisigConfirmRepository',
-  ISMART_CONTRACT_REPOSITORY: 'ISmartContractRepository',
   IGAS_REPOSITORY: 'IGasRepository',
 };
 
