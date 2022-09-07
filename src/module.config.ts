@@ -19,6 +19,8 @@ import {
   GetAccountOnchainParam,
   GetTxDetailQuery,
   GetProposalsParam,
+  GetProposalValidatorVotesByIdPathParams,
+  GetProposalDepositsByIdPathParams,
 } from './dtos/requests';
 import { AuthRequest } from './dtos/requests/auth/signin.request';
 import {
@@ -86,6 +88,9 @@ export const REQUEST_CONFIG = {
   GET_DELEGATION_INFORMATION_QUERY: GetDelegationInformationQuery,
   GET_TX_DETAIL_QUERY: GetTxDetailQuery,
   GET_PROPOSALS_PARAM: GetProposalsParam,
+  GET_PROPOSAL_VALIDATOR_VOTES_BY_ID_PARAM:
+    GetProposalValidatorVotesByIdPathParams,
+  GET_PROPOSAL_DEPOSITS_BY_ID_PARAM: GetProposalDepositsByIdPathParams,
 };
 
 export const RESPONSE_CONFIG = {
@@ -128,6 +133,8 @@ export namespace MODULE_REQUEST {
   export abstract class GetTxDetailQuery extends REQUEST_CONFIG.GET_TX_DETAIL_QUERY {}
   export abstract class AuthRequest extends REQUEST_CONFIG.SIGN_IN_REQUEST {}
   export abstract class GetProposalsParam extends REQUEST_CONFIG.GET_PROPOSALS_PARAM {}
+  export abstract class GetProposalValidatorVotesByIdPathParams extends REQUEST_CONFIG.GET_PROPOSAL_VALIDATOR_VOTES_BY_ID_PARAM {}
+  export abstract class GetProposalDepositsByIdPathParams extends REQUEST_CONFIG.GET_PROPOSAL_DEPOSITS_BY_ID_PARAM {}
 }
 
 export namespace MODULE_RESPONSE {
