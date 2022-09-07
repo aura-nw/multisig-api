@@ -1,3 +1,4 @@
+import fetch from 'node-fetch';
 import {
   createMultisigThresholdPubkey,
   encodeAminoPubkey,
@@ -205,5 +206,19 @@ export class CommonUtil {
         return cb && cb(error);
       }
     });
+  }
+
+  public async request(url: string, method = 'GET', body?: any) {
+    const options = {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    };
+    if (body) {
+      options['body'] = JSON.stringify(body);
+    }
+    const result = await fetch(url, options);
+    return result.json();
   }
 }
