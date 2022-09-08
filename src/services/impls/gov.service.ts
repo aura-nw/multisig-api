@@ -43,7 +43,7 @@ export class GovService implements IGovService {
       const chain = await this.chainRepo.findChain(internalChainId);
       const response = await this._commonUtil.request(
         new URL(
-          `api/v1/proposals?chainid=${chain.chainId}&pageLimit=7&pageOffset=0`,
+          `api/v1/proposal?chainid=${chain.chainId}&pageLimit=7&pageOffset=0`,
           this.indexerUrl,
         ).href,
       );
@@ -71,43 +71,45 @@ export class GovService implements IGovService {
   }
 
   getProposalTally(proposal: any) {
+    //default to final result of tally property
+    let tally = proposal.final_tally_result;
     if (proposal.status === PROPOSAL_STATUS.VOTING_PERIOD) {
-      const tally = proposal.tally;
-      //default mostVoted to yes
-      let mostVotedOptionKey = tally.yes;
-      // calculate sum to determine percentage
-      let sum = 0;
-      for (const key in tally) {
-        if (+tally[key] > +tally[mostVotedOptionKey]) {
-          mostVotedOptionKey = key;
-        }
-        sum += +tally[key];
-      }
-
-      const result: GetProposalsTally = {
-        yes: {
-          number: tally.yes,
-          percent: (+tally.yes * 100) / sum,
-        },
-        abstain: {
-          number: tally.abstain,
-          percent: (+tally.abstain * 100) / sum,
-        },
-        no: {
-          number: tally.no,
-          percent: (+tally.no * 100) / sum,
-        },
-        noWithVeto: {
-          number: tally.no_with_veto,
-          percent: (+tally.no_with_veto * 100) / sum,
-        },
-        mostVotedOn: {
-          name: mostVotedOptionKey,
-          percent: (+tally[mostVotedOptionKey] * 100) / sum,
-        },
-      };
-      return result;
+      tally = proposal.tally;
     }
+    //default mostVoted to yes
+    let mostVotedOptionKey = Object.keys(tally)[0];
+    // calculate sum to determine percentage
+    let sum = 0;
+    for (const key in tally) {
+      if (+tally[key] > +tally[mostVotedOptionKey]) {
+        mostVotedOptionKey = key;
+      }
+      sum += +tally[key];
+    }
+
+    const result: GetProposalsTally = {
+      yes: {
+        number: tally.yes,
+        percent: ((+tally.yes * 100) / sum).toFixed(2) || '0',
+      },
+      abstain: {
+        number: tally.abstain,
+        percent: ((+tally.abstain * 100) / sum).toFixed(2) || '0',
+      },
+      no: {
+        number: tally.no,
+        percent: ((+tally.no * 100) / sum).toFixed(2) || '0',
+      },
+      noWithVeto: {
+        number: tally.no_with_veto,
+        percent: ((+tally.no_with_veto * 100) / sum).toFixed(2) || '0',
+      },
+      mostVotedOn: {
+        name: mostVotedOptionKey,
+        percent: ((+tally[mostVotedOptionKey] * 100) / sum).toFixed(2) || '0',
+      },
+    };
+    return result;
   }
 
   async getProposalDetails(param: MODULE_REQUEST.GetProposalDetailsParam) {
