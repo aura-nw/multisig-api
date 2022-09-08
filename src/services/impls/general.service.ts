@@ -140,37 +140,4 @@ export class GeneralService extends BaseService implements IGeneralService {
     );
     return ResponseDto.response(ErrorMap.SUCCESSFUL, result.data);
   }
-
-  async getProposals(query: MODULE_REQUEST.GetProposalsQuery) {
-    const {
-      internalChainId,
-      depositor,
-      pagination,
-      proposalStatus = ProposalStatus.PROPOSAL_STATUS_UNSPECIFIED,
-      voter,
-    } = query;
-    const chain = await this.chainRepo.findChain(internalChainId);
-    const hello = new URL(`/cosmos/gov/v1beta1/proposals`, chain.rest).href;
-    const result = await axios.default.get(
-      new URL(`/cosmos/gov/v1beta1/proposals`, chain.rest).href,
-      {
-        params: {
-          depositor,
-          pagination,
-          proposalStatus,
-          voter,
-        },
-      },
-    );
-    return ResponseDto.response(ErrorMap.SUCCESSFUL, result.data);
-  }
-
-  async getProposalDetails(param: MODULE_REQUEST.GetProposalDetailsParam) {
-    const { internalChainId, proposalId } = param;
-    const chain = await this.chainRepo.findChain(internalChainId);
-    const result = await axios.default.get(
-      new URL(`/cosmos/gov/v1beta1/proposals/${proposalId}`, chain.rest).href,
-    );
-    return ResponseDto.response(ErrorMap.SUCCESSFUL, result.data);
-  }
 }
