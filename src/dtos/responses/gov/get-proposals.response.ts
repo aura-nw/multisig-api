@@ -26,11 +26,11 @@ export class GetProposalsTally {
   noWithVeto: TallyOption;
   mostVotedOn: {
     name: string;
-    percent: number;
+    percent: string;
   };
 }
 
 class TallyOption {
   number: string;
-  percent: number;
+  percent: string;
 }
