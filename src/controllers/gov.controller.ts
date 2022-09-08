@@ -11,7 +11,7 @@ import {
   MODULE_RESPONSE,
   SERVICE_INTERFACE,
 } from 'src/module.config';
-import { IGovService } from 'src/services/gov.service';
+import { IGovService } from 'src/services/igov.service';
 @Controller(CONTROLLER_CONSTANTS.GOV)
 @ApiTags(CONTROLLER_CONSTANTS.GOV)
 export class GovController {
@@ -35,5 +35,24 @@ export class GovController {
   async getProposals(@Param() param: MODULE_REQUEST.GetProposalsParam) {
     this._logger.log('========== Queries all proposals ==========');
     return this.govService.getProposals(param);
+  }
+
+  @CommonGet({
+    url: URL_CONSTANTS.GET_PROPOSAL_DEPOSITS_BY_ID,
+    summary: 'Queries deposit txs of a given proposal.',
+    apiOkResponseOptions: {
+      status: 200,
+      type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetMultisigWalletResponse),
+      description: 'List proposal deposits',
+      schema: {},
+    },
+  })
+  async getProposalValidatorVotesById(
+    @Param() param: MODULE_REQUEST.GetProposalDepositsByIdPathParams,
+  ) {
+    this._logger.log(
+      '========== Queries deposit txs of a given proposal ==========',
+    );
+    return this.govService.getProposalDepositById(param);
   }
 }

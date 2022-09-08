@@ -36,6 +36,7 @@ export const URL_CONSTANTS = {
   LIST_VALIDATORS: '/network/:internalChainId/validators',
   DELEGATOR_REWARDS: 'delegator/:delegatorAddress/:internalChainId/rewards',
   DELEGATION_INFORMATION: 'delegations/:delegatorAddress/:internalChainId',
-  GET_PROPOSALS: 'gov/:internalChainId/proposals',
-  GET_PROPOSAL_DETAILS: 'gov/proposals/:internalChainId/:proposalId',
+  GET_PROPOSALS: ':internalChainId/proposals',
+  GET_PROPOSAL_DEPOSITS_BY_ID:
+    ':internalChainId/proposal/:proposalId/depositors',
 };
