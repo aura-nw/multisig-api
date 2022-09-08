@@ -12,7 +12,7 @@ import { LCDClient } from '@terra-money/terra.js';
 import { getEvmosAccount } from 'src/chains/evmos';
 import * as axios from 'axios';
 import { IGasRepository } from 'src/repositories/igas.repository';
-
+import { ProposalStatus } from 'cosmjs-types/cosmos/gov/v1beta1/gov';
 export class GeneralService extends BaseService implements IGeneralService {
   private readonly _logger = new Logger(GeneralService.name);
   private _commonUtil: CommonUtil = new CommonUtil();
