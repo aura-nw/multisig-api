@@ -76,3 +76,9 @@ export const REGISTRY_GENERATED_TYPES: Iterable<[string, GeneratedType]> = [
   ],
   ['/cosmos.gov.v1beta1.MsgVote', MsgVote],
 ];
+
+export enum PROPOSAL_STATUS {
+  VOTING_PERIOD = 'PROPOSAL_STATUS_VOTING_PERIOD',
+  PASSED = 'PROPOSAL_STATUS_PASSED',
+  REJECTED = 'PROPOSAL_STATUS_REJECTED',
+}
