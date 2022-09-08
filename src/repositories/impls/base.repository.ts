@@ -25,7 +25,7 @@ export class BaseRepository implements IBaseRepository {
     if (condition.where) {
       return this._repos.findOne(condition);
     }
-    return this._repos.findOne(condition);
+    return this._repos.findOneBy(condition);
   }
 
   /**
