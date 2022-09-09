@@ -27,7 +27,7 @@ export class GovController {
     summary: 'Queries all proposals.',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetMultisigWalletResponse),
+      type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetProposalsResponse),
       description: 'List proposals',
       schema: {},
     },
@@ -35,6 +35,22 @@ export class GovController {
   async getProposals(@Param() param: MODULE_REQUEST.GetProposalsParam) {
     this._logger.log('========== Queries all proposals ==========');
     return this.govService.getProposals(param);
+  }
+
+  @CommonGet({
+    url: URL_CONSTANTS.GET_PROPOSAL_BY_ID,
+    summary: 'Queries a single proposal.',
+    apiOkResponseOptions: {
+      status: 200,
+      type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetProposalDetailsResponse),
+      description: 'Proposal Details',
+      schema: {},
+    },
+  })
+  async getProposalById(
+    @Param() param: MODULE_REQUEST.GetProposalDetailsParam,
+  ) {
+    return this.govService.getProposalById(param);
   }
 
   @CommonGet({

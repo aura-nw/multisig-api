@@ -17,6 +17,7 @@ import {
   GetProposalsProposal,
   GetProposalsResponse,
   GetProposalsTally,
+  GetProposalsTurnout,
 } from 'src/dtos/responses/gov/get-proposals.response';
 
 @Injectable()
@@ -52,16 +53,7 @@ export class GovService implements IGovService {
         proposals: [],
       };
       for (const proposal of proposals) {
-        const result: GetProposalsProposal = {
-          id: proposal.proposal_id,
-          title: proposal.content.title,
-          status: proposal.status,
-          votingStart: proposal.voting_start_time,
-          votingEnd: proposal.voting_end_time,
-          submitTime: proposal.submit_time,
-          totalDeposit: proposal.total_deposit,
-          tally: this.getProposalTally(proposal),
-        };
+        const result = this.mapProposal(proposal);
         results.proposals.push(result);
       }
       return ResponseDto.response(ErrorMap.SUCCESSFUL, results);
@@ -70,7 +62,22 @@ export class GovService implements IGovService {
     }
   }
 
-  getProposalTally(proposal: any) {
+  mapProposal(proposal: any): GetProposalsProposal {
+    const result: GetProposalsProposal = {
+      id: proposal.proposal_id,
+      title: proposal.content.title,
+      proposer: proposal.proposer_address,
+      status: proposal.status,
+      votingStart: proposal.voting_start_time,
+      votingEnd: proposal.voting_end_time,
+      submitTime: proposal.submit_time,
+      totalDeposit: proposal.total_deposit,
+      tally: this.calculateProposalTally(proposal),
+    };
+    return result;
+  }
+
+  calculateProposalTally(proposal: any): GetProposalsTally {
     //default to final result of tally property
     let tally = proposal.final_tally_result;
     if (proposal.status === PROPOSAL_STATUS.VOTING_PERIOD) {
@@ -90,42 +97,82 @@ export class GovService implements IGovService {
     const result: GetProposalsTally = {
       yes: {
         number: tally.yes,
-        percent: ((+tally.yes * 100) / sum).toFixed(2) || '0',
+        percent: this.getPercentage(tally.yes, sum),
       },
       abstain: {
         number: tally.abstain,
-        percent: ((+tally.abstain * 100) / sum).toFixed(2) || '0',
+        percent: this.getPercentage(tally.abstain, sum),
       },
       no: {
         number: tally.no,
-        percent: ((+tally.no * 100) / sum).toFixed(2) || '0',
+        percent: this.getPercentage(tally.no, sum),
       },
       noWithVeto: {
         number: tally.no_with_veto,
-        percent: ((+tally.no_with_veto * 100) / sum).toFixed(2) || '0',
+        percent: this.getPercentage(tally.no_with_veto, sum),
       },
       mostVotedOn: {
         name: mostVotedOptionKey,
-        percent: ((+tally[mostVotedOptionKey] * 100) / sum).toFixed(2) || '0',
+        percent: this.getPercentage(tally[mostVotedOptionKey], sum),
       },
     };
     return result;
   }
 
-  async getProposalDetails(param: MODULE_REQUEST.GetProposalDetailsParam) {
+  getPercentage(number: any, sum: any): string {
+    if (number == 0) {
+      return '0';
+    }
+    return ((+number * 100) / sum).toFixed(2);
+  }
+
+  async getProposalById(param: MODULE_REQUEST.GetProposalDetailsParam) {
     const { internalChainId, proposalId } = param;
     const chain = await this.chainRepo.findChain(internalChainId);
-    const result = await this._commonUtil.request(
-      new URL(`api/v1/proposal`, this.indexerUrl).href,
-    );
-    const networkBond = await this._commonUtil.request(
+    const response = await this._commonUtil.request(
       new URL(
-        `api/v1/network/status?chainid=${chain.chainId}`,
-        this.configService.get('INDEXER'),
+        `api/v1/proposal?chainid=${chain.chainId}&proposalId=${proposalId}`,
+        this.indexerUrl,
       ).href,
     );
+    const proposal = response.data.proposals[0];
+    const result = this.mapProposal(proposal);
+    //add additional properties for proposal details page
+    const networkStatus = await this._commonUtil.request(
+      new URL(`api/v1/network/status?chainid=${chain.chainId}`, this.indexerUrl)
+        .href,
+    );
+    const bondedTokens = networkStatus.data.pool.bonded_tokens;
+    result.description = proposal.content.description;
+    result.type = proposal.content['@type'];
+    result.depositEndTime = proposal.deposit_end_time;
+    result.turnout = this.calculateProposalTunrout(proposal, bondedTokens);
+    return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
+  }
 
-    return ResponseDto.response(ErrorMap.SUCCESSFUL, result.data);
+  calculateProposalTunrout(proposal: any, bondedTokens: string) {
+    //default to final result of tally property
+    let tally = proposal.final_tally_result;
+    if (proposal.status === PROPOSAL_STATUS.VOTING_PERIOD) {
+      tally = proposal.tally;
+    }
+    const numberOfVoted = +tally.yes + +tally.no + +tally.no_with_veto;
+    const numberOfNotVoted = +bondedTokens - numberOfVoted - +tally.abstain;
+    const result: GetProposalsTurnout = {
+      voted: {
+        number: numberOfVoted.toString(),
+        percent: this.getPercentage(numberOfVoted, bondedTokens),
+      },
+      votedAbstain: {
+        number: tally.abstain,
+        percent: this.getPercentage(tally.abstain, bondedTokens),
+      },
+      didNotVote: {
+        number: numberOfNotVoted.toString(),
+        percent: this.getPercentage(numberOfNotVoted, bondedTokens),
+      },
+    };
+    return result;
   }
 
   async getProposalValidatorVotesById(

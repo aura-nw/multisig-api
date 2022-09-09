@@ -6,11 +6,27 @@ export class GetProposalsProposal {
   id: number;
   title: string;
   status: string;
+  proposer: string;
   votingStart: string;
   votingEnd: string;
   submitTime: string;
   totalDeposit: GetProposalsDeposit[];
   tally: GetProposalsTally;
+  depositEndTime?: string;
+  description?: string;
+  turnout?: GetProposalsTurnout;
+  type?: string;
+}
+
+export class GetProposalsTurnout {
+  voted: NumberPercentage;
+  votedAbstain: NumberPercentage;
+  didNotVote: NumberPercentage;
+}
+
+class NumberPercentage {
+  number: string;
+  percent: string;
 }
 
 export class GetProposalsDeposit {
@@ -20,17 +36,12 @@ export class GetProposalsDeposit {
 }
 
 export class GetProposalsTally {
-  yes: TallyOption;
-  abstain: TallyOption;
-  no: TallyOption;
-  noWithVeto: TallyOption;
+  yes: NumberPercentage;
+  abstain: NumberPercentage;
+  no: NumberPercentage;
+  noWithVeto: NumberPercentage;
   mostVotedOn: {
     name: string;
     percent: string;
   };
-}
-
-class TallyOption {
-  number: string;
-  percent: string;
 }
