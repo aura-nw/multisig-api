@@ -8,6 +8,13 @@ export interface IGovService {
   getProposals(param: MODULE_REQUEST.GetProposalsParam): Promise<ResponseDto>;
 
   /**
+   * get gov proposal
+   */
+  getProposalById(
+    param: MODULE_REQUEST.GetProposalDetailsParam,
+  ): Promise<ResponseDto>;
+
+  /**
    *
    * @param param
    */

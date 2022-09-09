@@ -37,6 +37,7 @@ export const URL_CONSTANTS = {
   DELEGATOR_REWARDS: 'delegator/:delegatorAddress/:internalChainId/rewards',
   DELEGATION_INFORMATION: 'delegations/:delegatorAddress/:internalChainId',
   GET_PROPOSALS: ':internalChainId/proposals',
+  GET_PROPOSAL_BY_ID: ':internalChainId/proposals/:proposalId',
   GET_PROPOSAL_DEPOSITS_BY_ID:
     ':internalChainId/proposal/:proposalId/depositors',
 };
