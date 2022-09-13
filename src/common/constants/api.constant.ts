@@ -7,6 +7,7 @@ export const CONTROLLER_CONSTANTS = {
   GENERAL: 'general',
   AUTH: 'auth',
   GOV: 'gov',
+  DISTRIBUTION: 'distribution',
 };
 export const URL_CONSTANTS = {
   broadcasting: 'broadcasting',
@@ -34,8 +35,11 @@ export const URL_CONSTANTS = {
   SEND_EXECUTE_MESSAGE: 'send-execute-message',
   AUTH: 'auth',
   LIST_VALIDATORS: '/network/:internalChainId/validators',
-  DELEGATOR_REWARDS: 'delegator/:delegatorAddress/:internalChainId/rewards',
-  DELEGATION_INFORMATION: 'delegations/:delegatorAddress/:internalChainId',
+  GET_VALIDATORS: '/:internalChainId/validators',
+  GET_DELEGATIONS: '/:internalChainId/:delegatorAddress/delegations',
+  GET_UNDELEGATIONS: '/:internalChainId/:delegatorAddress/undelegations',
+  DELEGATOR_REWARDS: '/:internalChainId/:delegatorAddress/rewards',
+  DELEGATION_INFORMATION: '/:internalChainId/:delegatorAddress',
   GET_PROPOSALS: ':internalChainId/proposals',
   GET_PROPOSAL_BY_ID: ':internalChainId/proposals/:proposalId',
   GET_PROPOSAL_DEPOSITS_BY_ID:
