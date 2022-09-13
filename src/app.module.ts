@@ -31,6 +31,8 @@ import { SeederModule } from './database/seeders/seeder.module';
 import { GasRepository } from './repositories/impls/gas.repository';
 import { GovService } from './services/impls/gov.service';
 import { GovController } from './controllers/gov.controller';
+import { DistributionController } from './controllers/distribution.controller';
+import { DistributionService } from './services/impls/distribution.service';
 
 const controllers = [
   MultisigWalletController,
@@ -39,6 +41,7 @@ const controllers = [
   GeneralController,
   AuthController,
   GovController,
+  DistributionController,
   // AppController,
 ];
 const entities = [
@@ -130,6 +133,10 @@ const entities = [
     {
       provide: SERVICE_INTERFACE.IGOV_SERVICE,
       useClass: GovService,
+    },
+    {
+      provide: SERVICE_INTERFACE.IDISTRIBUTION_SERVICE,
+      useClass: DistributionService,
     },
   ],
 })

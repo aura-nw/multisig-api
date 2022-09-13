@@ -97,33 +97,26 @@ export class GovService implements IGovService {
     const result: GetProposalsTally = {
       yes: {
         number: tally.yes,
-        percent: this.getPercentage(tally.yes, sum),
+        percent: this._commonUtil.getPercentage(tally.yes, sum),
       },
       abstain: {
         number: tally.abstain,
-        percent: this.getPercentage(tally.abstain, sum),
+        percent: this._commonUtil.getPercentage(tally.abstain, sum),
       },
       no: {
         number: tally.no,
-        percent: this.getPercentage(tally.no, sum),
+        percent: this._commonUtil.getPercentage(tally.no, sum),
       },
       noWithVeto: {
         number: tally.no_with_veto,
-        percent: this.getPercentage(tally.no_with_veto, sum),
+        percent: this._commonUtil.getPercentage(tally.no_with_veto, sum),
       },
       mostVotedOn: {
         name: mostVotedOptionKey,
-        percent: this.getPercentage(tally[mostVotedOptionKey], sum),
+        percent: this._commonUtil.getPercentage(tally[mostVotedOptionKey], sum),
       },
     };
     return result;
-  }
-
-  getPercentage(number: any, sum: any): string {
-    if (number == 0) {
-      return '0';
-    }
-    return ((+number * 100) / sum).toFixed(2);
   }
 
   async getProposalById(param: MODULE_REQUEST.GetProposalDetailsParam) {
@@ -161,15 +154,15 @@ export class GovService implements IGovService {
     const result: GetProposalsTurnout = {
       voted: {
         number: numberOfVoted.toString(),
-        percent: this.getPercentage(numberOfVoted, bondedTokens),
+        percent: this._commonUtil.getPercentage(numberOfVoted, bondedTokens),
       },
       votedAbstain: {
         number: tally.abstain,
-        percent: this.getPercentage(tally.abstain, bondedTokens),
+        percent: this._commonUtil.getPercentage(tally.abstain, bondedTokens),
       },
       didNotVote: {
         number: numberOfNotVoted.toString(),
-        percent: this.getPercentage(numberOfNotVoted, bondedTokens),
+        percent: this._commonUtil.getPercentage(numberOfNotVoted, bondedTokens),
       },
     };
     return result;

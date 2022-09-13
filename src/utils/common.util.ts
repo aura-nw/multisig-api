@@ -221,4 +221,11 @@ export class CommonUtil {
     const result = await fetch(url, options);
     return result.json();
   }
+
+  getPercentage(number: any, sum: any): string {
+    if (number == 0) {
+      return '0';
+    }
+    return ((+number * 100) / sum).toFixed(2);
+  }
 }
