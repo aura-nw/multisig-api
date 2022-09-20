@@ -1,5 +1,11 @@
+import { Coin } from '@cosmjs/stargate';
+
 export class GetDelegationsResponse {
   delegations: GetDelegationsDelegation[];
+  total: {
+    staked: number;
+    reward: Coin[];
+  };
 }
 
 export class GetDelegationsDelegation {
