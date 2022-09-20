@@ -26,7 +26,7 @@ import { AuthRequest } from './dtos/requests/auth/signin.request';
 import {
   GetDelegationInformationParam,
   GetDelegationInformationQuery,
-} from './dtos/requests/distribution/get-delegation-information.request';
+} from './dtos/requests/distribution/get-delegations.request';
 import { GetDelegatorRewardsParam } from './dtos/requests/distribution/get-delegator-rewards.request';
 import { GetUndelegationsParam } from './dtos/requests/distribution/get-undelegations.request';
 import { GetProposalDetailsParam } from './dtos/requests/general/get-proposal-details.request';

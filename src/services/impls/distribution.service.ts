@@ -96,6 +96,10 @@ export class DistributionService implements IDistributionService {
         delegationRes.data.account_delegate_rewards.rewards;
       const results: GetDelegationsResponse = {
         delegations: [],
+        total: {
+          staked: delegationRes,
+          reward: delegationRes.data.account_delegate_rewards.total,
+        },
       };
       for (const delegation of delegations) {
         const reward = rewards.find(
