@@ -21,17 +21,21 @@ import {
   GetProposalsParam,
   GetProposalValidatorVotesByIdPathParams,
   GetProposalDepositsByIdPathParams,
+  GetVotesByProposalIdParams,
+  GetVotesByProposalIdQuery,
 } from './dtos/requests';
 import { AuthRequest } from './dtos/requests/auth/signin.request';
 import {
   GetDelegationInformationParam,
   GetDelegationInformationQuery,
-} from './dtos/requests/distribution/get-delegations.request';
-import { GetDelegatorRewardsParam } from './dtos/requests/distribution/get-delegator-rewards.request';
-import { GetUndelegationsParam } from './dtos/requests/distribution/get-undelegations.request';
-import { GetProposalDetailsParam } from './dtos/requests/general/get-proposal-details.request';
-import { GetProposalsQuery } from './dtos/requests/general/get-proposals.request';
-import { GetValidatorsParam } from './dtos/requests/general/get-validators.request';
+  GetDelegatorRewardsParam,
+  GetUndelegationsParam,
+} from './dtos/requests/distribution';
+import {
+  GetProposalDetailsParam,
+  GetProposalsQuery,
+  GetValidatorsParam,
+} from './dtos/requests/general';
 import {
   GetMultisigWalletResponse,
   MultisigSignatureResponse,
@@ -50,6 +54,7 @@ import { GetDelegationInformationResponse } from './dtos/responses/general/get-d
 import { GetDelegatorRewardsResponse } from './dtos/responses/general/get-delegator-rewards.response';
 import { GetProposalDetailsResponse } from './dtos/responses/general/get-proposal-details.response';
 import { GetProposalsResponse } from './dtos/responses/general/get-proposals.response';
+import { GetVotesByProposalIdResponse } from './dtos/responses/gov/get-votes-by-proposal-id.response';
 import {
   AuraTx,
   Chain,
@@ -104,6 +109,8 @@ export const REQUEST_CONFIG = {
   GET_PROPOSAL_VALIDATOR_VOTES_BY_ID_PARAM:
     GetProposalValidatorVotesByIdPathParams,
   GET_PROPOSAL_DEPOSITS_BY_ID_PARAM: GetProposalDepositsByIdPathParams,
+  GET_VOTES_BY_PROPOSAL_ID_PARAM: GetVotesByProposalIdParams,
+  GET_VOTES_BY_PROPOSAL_ID_QUERY: GetVotesByProposalIdQuery,
 };
 
 export const RESPONSE_CONFIG = {
@@ -124,6 +131,7 @@ export const RESPONSE_CONFIG = {
   GET_DELEGATION_INFORMATION_RESPONSE: GetDelegationInformationResponse,
   GET_PROPOSALS_RESPONSE: GetProposalsResponse,
   GET_PROPOSAL_DETAILS_RESPONSE: GetProposalDetailsResponse,
+  GET_VOTES_BY_PROPOSAL_ID_RESPONSE: GetVotesByProposalIdResponse,
 };
 
 export namespace MODULE_REQUEST {
@@ -155,6 +163,8 @@ export namespace MODULE_REQUEST {
   export abstract class GetProposalsParam extends REQUEST_CONFIG.GET_PROPOSALS_PARAM {}
   export abstract class GetProposalValidatorVotesByIdPathParams extends REQUEST_CONFIG.GET_PROPOSAL_VALIDATOR_VOTES_BY_ID_PARAM {}
   export abstract class GetProposalDepositsByIdPathParams extends REQUEST_CONFIG.GET_PROPOSAL_DEPOSITS_BY_ID_PARAM {}
+  export abstract class GetVotesByProposalIdParams extends REQUEST_CONFIG.GET_VOTES_BY_PROPOSAL_ID_PARAM {}
+  export abstract class GetVotesByProposalIdQuery extends REQUEST_CONFIG.GET_VOTES_BY_PROPOSAL_ID_QUERY {}
 }
 
 export namespace MODULE_RESPONSE {
@@ -174,6 +184,7 @@ export namespace MODULE_RESPONSE {
   export abstract class GetDelegationInformationResponse extends RESPONSE_CONFIG.GET_DELEGATION_INFORMATION_RESPONSE {}
   export abstract class GetProposalsResponse extends RESPONSE_CONFIG.GET_PROPOSALS_RESPONSE {}
   export abstract class GetProposalDetailsResponse extends RESPONSE_CONFIG.GET_PROPOSAL_DETAILS_RESPONSE {}
+  export abstract class GetVotesByProposalIdResponse extends RESPONSE_CONFIG.GET_VOTES_BY_PROPOSAL_ID_RESPONSE {}
 }
 
 export const SERVICE_INTERFACE = {

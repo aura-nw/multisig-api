@@ -44,4 +44,5 @@ export const URL_CONSTANTS = {
   GET_PROPOSAL_BY_ID: ':internalChainId/proposals/:proposalId',
   GET_PROPOSAL_DEPOSITS_BY_ID:
     ':internalChainId/proposal/:proposalId/depositors',
+  GET_VOTES_BY_PROPOSAL_ID: ':internalChainId/proposal/:proposalId/votes',
 };
