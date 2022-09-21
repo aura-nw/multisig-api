@@ -14,3 +14,4 @@ export * from './transaction/send-transaction.request';
 export * from './paginator.request';
 export * from './general/get-account-onchain.request';
 export * from './gov';
+export * from './user';
