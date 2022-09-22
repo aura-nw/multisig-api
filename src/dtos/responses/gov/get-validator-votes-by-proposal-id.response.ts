@@ -8,4 +8,5 @@ export class GetValidatorVotesVote {
   txHash: string;
   answer: string;
   time: string;
+  percentVotingPower: number;
 }

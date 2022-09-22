@@ -243,13 +243,20 @@ export class GovService implements IGovService {
         votes: [],
         nextKey: response.data.nextKey,
       };
-      for (const vote of response.data.votes) {
+      for (const data of response.data.result) {
+        const vote = data.vote;
         const result: GetValidatorVotesVote = {
-          validator: vote.voter_address,
-          answer: vote.answer,
-          time: vote.timestamp,
-          txHash: vote.txhash,
+          validator: data.account_address,
+          answer: '',
+          time: '',
+          txHash: '',
+          percentVotingPower: data.percent_voting_power,
         };
+        if (vote) {
+          result.answer = vote.answer;
+          result.time = vote.timestamp;
+          result.txHash = vote.txhash;
+        }
         results.votes.push(result);
       }
       return ResponseDto.response(ErrorMap.SUCCESSFUL, results);
