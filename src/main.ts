@@ -15,19 +15,19 @@ async function bootstrap() {
 
   const configService = app.select(SharedModule).get(ConfigService);
 
-  //create or update chain info
-  // const seederService = app.select(SeederModule).get(SeederService);
-  // seederService
-  //   .seed()
-  //   .then(() => {
-  //     Logger.debug('Seed completed');
-  //   })
-  //   .catch((error) => {
-  //     Logger.error(error);
-  //     app.close().then(() => {
-  //       process.exit(1);
-  //     });
-  //   });
+  // create or update chain info
+  const seederService = app.select(SeederModule).get(SeederService);
+  seederService
+    .seed()
+    .then(() => {
+      Logger.debug('Seed completed');
+    })
+    .catch((error) => {
+      Logger.error(error);
+      app.close().then(() => {
+        process.exit(1);
+      });
+    });
 
   //setup swagger
   const config = new DocumentBuilder()
