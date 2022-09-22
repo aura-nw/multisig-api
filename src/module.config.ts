@@ -18,9 +18,6 @@ import {
   SendTransactionRequest,
   GetAccountOnchainParam,
   GetTxDetailQuery,
-  GetProposalsParam,
-  GetProposalValidatorVotesByIdPathParams,
-  GetProposalDepositsByIdPathParams,
   GetUserPathParam,
 } from './dtos/requests';
 import { AuthRequest } from './dtos/requests/auth/signin.request';
@@ -107,10 +104,6 @@ export const REQUEST_CONFIG = {
   GET_PROPOSALS_QUERY: GetProposalsQuery,
   GET_PROPOSAL_DETAILS_PARAM: GetProposalDetailsParam,
   GET_TX_DETAIL_QUERY: GetTxDetailQuery,
-  GET_PROPOSALS_PARAM: GetProposalsParam,
-  GET_PROPOSAL_VALIDATOR_VOTES_BY_ID_PARAM:
-    GetProposalValidatorVotesByIdPathParams,
-  GET_PROPOSAL_DEPOSITS_BY_ID_PARAM: GetProposalDepositsByIdPathParams,
   GET_USER_PATH_PARAMS: GetUserPathParam,
 };
 
@@ -163,10 +156,6 @@ export namespace MODULE_REQUEST {
   export abstract class GetUndelegationsParam extends REQUEST_CONFIG.GET_UNDELEGATIONS_PARAM {}
   export abstract class GetTxDetailQuery extends REQUEST_CONFIG.GET_TX_DETAIL_QUERY {}
   export abstract class AuthRequest extends REQUEST_CONFIG.SIGN_IN_REQUEST {}
-  export abstract class GetProposalsParam extends REQUEST_CONFIG.GET_PROPOSALS_PARAM {}
-  export abstract class GetProposalDetailsParam extends REQUEST_CONFIG.GET_PROPOSAL_DETAILS_PARAM {}
-  export abstract class GetProposalValidatorVotesByIdPathParams extends REQUEST_CONFIG.GET_PROPOSAL_VALIDATOR_VOTES_BY_ID_PARAM {}
-  export abstract class GetProposalDepositsByIdPathParams extends REQUEST_CONFIG.GET_PROPOSAL_DEPOSITS_BY_ID_PARAM {}
   export abstract class GetUserPathParams extends REQUEST_CONFIG.GET_USER_PATH_PARAMS {}
 }
 
