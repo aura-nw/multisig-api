@@ -19,7 +19,7 @@ import {
   GetAccountOnchainParam,
   GetTxDetailQuery,
   GetProposalsParam,
-  GetProposalValidatorVotesByIdPathParams,
+  GetValidatorVotesByProposalIdParams,
   GetProposalDepositsByIdPathParams,
   GetVotesByProposalIdParams,
   GetVotesByProposalIdQuery,
@@ -54,6 +54,7 @@ import { GetDelegationInformationResponse } from './dtos/responses/general/get-d
 import { GetDelegatorRewardsResponse } from './dtos/responses/general/get-delegator-rewards.response';
 import { GetProposalDetailsResponse } from './dtos/responses/general/get-proposal-details.response';
 import { GetProposalsResponse } from './dtos/responses/general/get-proposals.response';
+import { GetValidatorVotesByProposalIdResponse } from './dtos/responses/gov/get-validator-votes-by-proposal-id.response';
 import { GetVotesByProposalIdResponse } from './dtos/responses/gov/get-votes-by-proposal-id.response';
 import {
   AuraTx,
@@ -106,8 +107,7 @@ export const REQUEST_CONFIG = {
   GET_PROPOSAL_DETAILS_PARAM: GetProposalDetailsParam,
   GET_TX_DETAIL_QUERY: GetTxDetailQuery,
   GET_PROPOSALS_PARAM: GetProposalsParam,
-  GET_PROPOSAL_VALIDATOR_VOTES_BY_ID_PARAM:
-    GetProposalValidatorVotesByIdPathParams,
+  GET_VALIDATOR_VOTES_BY_PROPOSAL_ID_PARAM: GetValidatorVotesByProposalIdParams,
   GET_PROPOSAL_DEPOSITS_BY_ID_PARAM: GetProposalDepositsByIdPathParams,
   GET_VOTES_BY_PROPOSAL_ID_PARAM: GetVotesByProposalIdParams,
   GET_VOTES_BY_PROPOSAL_ID_QUERY: GetVotesByProposalIdQuery,
@@ -132,6 +132,8 @@ export const RESPONSE_CONFIG = {
   GET_PROPOSALS_RESPONSE: GetProposalsResponse,
   GET_PROPOSAL_DETAILS_RESPONSE: GetProposalDetailsResponse,
   GET_VOTES_BY_PROPOSAL_ID_RESPONSE: GetVotesByProposalIdResponse,
+  GET_VALIDATOR_VOTES_BY_PROPOSAL_ID_RESPONSE:
+    GetValidatorVotesByProposalIdResponse,
 };
 
 export namespace MODULE_REQUEST {
@@ -161,7 +163,8 @@ export namespace MODULE_REQUEST {
   export abstract class GetTxDetailQuery extends REQUEST_CONFIG.GET_TX_DETAIL_QUERY {}
   export abstract class AuthRequest extends REQUEST_CONFIG.SIGN_IN_REQUEST {}
   export abstract class GetProposalsParam extends REQUEST_CONFIG.GET_PROPOSALS_PARAM {}
-  export abstract class GetProposalValidatorVotesByIdPathParams extends REQUEST_CONFIG.GET_PROPOSAL_VALIDATOR_VOTES_BY_ID_PARAM {}
+  export abstract class GetProposalDetailsParam extends REQUEST_CONFIG.GET_PROPOSAL_DETAILS_PARAM {}
+  export abstract class GetValidatorVotesByProposalIdParams extends REQUEST_CONFIG.GET_VALIDATOR_VOTES_BY_PROPOSAL_ID_PARAM {}
   export abstract class GetProposalDepositsByIdPathParams extends REQUEST_CONFIG.GET_PROPOSAL_DEPOSITS_BY_ID_PARAM {}
   export abstract class GetVotesByProposalIdParams extends REQUEST_CONFIG.GET_VOTES_BY_PROPOSAL_ID_PARAM {}
   export abstract class GetVotesByProposalIdQuery extends REQUEST_CONFIG.GET_VOTES_BY_PROPOSAL_ID_QUERY {}
@@ -185,6 +188,7 @@ export namespace MODULE_RESPONSE {
   export abstract class GetProposalsResponse extends RESPONSE_CONFIG.GET_PROPOSALS_RESPONSE {}
   export abstract class GetProposalDetailsResponse extends RESPONSE_CONFIG.GET_PROPOSAL_DETAILS_RESPONSE {}
   export abstract class GetVotesByProposalIdResponse extends RESPONSE_CONFIG.GET_VOTES_BY_PROPOSAL_ID_RESPONSE {}
+  export abstract class GetValidatorVotesByProposalIdResponse extends RESPONSE_CONFIG.GET_VALIDATOR_VOTES_BY_PROPOSAL_ID_RESPONSE {}
 }
 
 export const SERVICE_INTERFACE = {
