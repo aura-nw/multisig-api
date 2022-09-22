@@ -73,6 +73,24 @@ export class GovController {
   }
 
   @CommonGet({
+    url: URL_CONSTANTS.GET_VALIDATOR_VOTES_BY_PROPOSAL_ID,
+    summary: 'List validator votes by proposal Id.',
+    apiOkResponseOptions: {
+      status: 200,
+      type: SwaggerBaseApiResponse(
+        MODULE_RESPONSE.GetValidatorVotesByProposalIdResponse,
+      ),
+      description: 'List validators votes by proposal Id',
+      schema: {},
+    },
+  })
+  async getValidatorVotesByProposalId(
+    @Param() param: MODULE_REQUEST.GetValidatorVotesByProposalIdParams,
+  ) {
+    return this.govService.getValidatorVotesByProposalId(param);
+  }
+
+  @CommonGet({
     url: URL_CONSTANTS.GET_PROPOSAL_DEPOSITS_BY_ID,
     summary: 'Queries deposit txs of a given proposal.',
     apiOkResponseOptions: {
@@ -82,7 +100,7 @@ export class GovController {
       schema: {},
     },
   })
-  async getProposalValidatorVotesById(
+  async getProposalDepositById(
     @Param() param: MODULE_REQUEST.GetProposalDepositsByIdPathParams,
   ) {
     this._logger.log(

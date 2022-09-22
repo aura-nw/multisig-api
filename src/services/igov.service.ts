@@ -26,4 +26,8 @@ export interface IGovService {
     param: MODULE_REQUEST.GetVotesByProposalIdParams,
     query: MODULE_REQUEST.GetVotesByProposalIdQuery,
   ): Promise<ResponseDto>;
+
+  getValidatorVotesByProposalId(
+    param: MODULE_REQUEST.GetValidatorVotesByProposalIdParams,
+  ): Promise<ResponseDto>;
 }

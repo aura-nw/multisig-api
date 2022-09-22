@@ -23,6 +23,10 @@ import {
   GetVotesByProposalIdResponse,
   GetVotesVote,
 } from 'src/dtos/responses/gov/get-votes-by-proposal-id.response';
+import {
+  GetValidatorVotesByProposalIdResponse,
+  GetValidatorVotesVote,
+} from 'src/dtos/responses/gov/get-validator-votes-by-proposal-id.response';
 
 @Injectable()
 export class GovService implements IGovService {
@@ -222,31 +226,33 @@ export class GovService implements IGovService {
     }
   }
 
-  async getProposalValidatorVotesById(
-    param: MODULE_REQUEST.GetProposalValidatorVotesByIdPathParams,
+  async getValidatorVotesByProposalId(
+    param: MODULE_REQUEST.GetValidatorVotesByProposalIdParams,
   ): Promise<ResponseDto> {
-    const { internalChainId, proposalId } = param;
+    const { internalChainId, proposalId, answer } = param;
     try {
-      // const chain = await this.chainRepo.findChain(internalChainId);
-
-      // Get list validators
-
-      // For each validator, get vote tx
-
-      // Get bonded tokens
-      // const getNetworkStatusURL = new URL(
-      //   `/api/v1/network/status?chainid=${chain.chainId}`,
-      //   this.configService.get('INDEXER_URL'),
-      // ).href;
-      // const networkStatus = await this._commonUtil.request(getNetworkStatusURL);
-      // const bondedTokens = networkStatus.data?.pool?.bonded_tokens || -1;
-
-      // // Get proposal
-      // const getProposalDetailURL = new URL(
-      //   `api/v1/proposal?chainid=${chain.chainId}&proposalId=${proposalId}`,
-      //   this.configService.get('INDEXER_URL'),
-      // ).href;
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, {});
+      const chain = await this.chainRepo.findChain(internalChainId);
+      let url = `api/v1/votes/validators?chainid=${chain.chainId}&proposalid=${proposalId}`;
+      if (answer) {
+        url += `&answer=${answer}`;
+      }
+      const response = await this._commonUtil.request(
+        new URL(url, this.indexerUrl).href,
+      );
+      const results: GetValidatorVotesByProposalIdResponse = {
+        votes: [],
+        nextKey: response.data.nextKey,
+      };
+      for (const vote of response.data.votes) {
+        const result: GetValidatorVotesVote = {
+          validator: vote.voter_address,
+          answer: vote.answer,
+          time: vote.timestamp,
+          txHash: vote.txhash,
+        };
+        results.votes.push(result);
+      }
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, results);
     } catch (e) {
       return ResponseDto.responseError(GovService.name, e);
     }
