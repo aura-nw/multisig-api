@@ -31,6 +31,9 @@ import { SeederModule } from './database/seeders/seeder.module';
 import { GasRepository } from './repositories/impls/gas.repository';
 import { GovService } from './services/impls/gov.service';
 import { GovController } from './controllers/gov.controller';
+import { UserController } from './controllers/user.controller';
+import { UserRepository } from './repositories/impls/user.repository';
+import { UserService } from './services/impls/user.service';
 
 const controllers = [
   MultisigWalletController,
@@ -39,6 +42,7 @@ const controllers = [
   GeneralController,
   AuthController,
   GovController,
+  UserController,
   // AppController,
 ];
 const entities = [
@@ -49,6 +53,7 @@ const entities = [
   ENTITIES_CONFIG.MULTISIG_TRANSACTION,
   ENTITIES_CONFIG.AURA_TX,
   ENTITIES_CONFIG.GAS,
+  ENTITIES_CONFIG.USER,
 ];
 @Module({
   imports: [
@@ -106,6 +111,10 @@ const entities = [
       provide: REPOSITORY_INTERFACE.IGAS_REPOSITORY,
       useClass: GasRepository,
     },
+    {
+      provide: REPOSITORY_INTERFACE.IUSER_REPOSITORY,
+      useClass: UserRepository,
+    },
     //service
     {
       provide: SERVICE_INTERFACE.IMULTISIG_TRANSACTION_SERVICE,
@@ -130,6 +139,10 @@ const entities = [
     {
       provide: SERVICE_INTERFACE.IGOV_SERVICE,
       useClass: GovService,
+    },
+    {
+      provide: SERVICE_INTERFACE.IUSER_SERVICE,
+      useClass: UserService,
     },
   ],
 })

@@ -7,6 +7,7 @@ export const CONTROLLER_CONSTANTS = {
   GENERAL: 'general',
   AUTH: 'auth',
   GOV: 'gov',
+  USER: 'user',
 };
 export const URL_CONSTANTS = {
   broadcasting: 'broadcasting',
@@ -40,4 +41,5 @@ export const URL_CONSTANTS = {
   GET_PROPOSAL_BY_ID: ':internalChainId/proposals/:proposalId',
   GET_PROPOSAL_DEPOSITS_BY_ID:
     ':internalChainId/proposal/:proposalId/depositors',
+  GET_USER_BY_ADDRESS: ':address',
 };

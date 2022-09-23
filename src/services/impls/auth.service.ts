@@ -22,22 +22,25 @@ import {
   verifyEvmosSig,
 } from 'src/chains';
 import { UserInfo } from 'src/dtos/userInfo';
+import { IUserRepository } from 'src/repositories/iuser.repository';
 @Injectable()
 export class AuthService implements IAuthService {
   private readonly _logger = new Logger(AuthService.name);
   private static _authUserKey = AppConstants.USER_KEY;
 
   constructor(
-    private configService: ConfigService = new ConfigService(),
     private jwtService: JwtService,
     @Inject(REPOSITORY_INTERFACE.IGENERAL_REPOSITORY)
     private chainRepo: IGeneralRepository,
+    @Inject(REPOSITORY_INTERFACE.IUSER_REPOSITORY)
+    private userRepo: IUserRepository,
   ) {
     this._logger.log('============== Constructor Auth Service ==============');
   }
   async auth(request: MODULE_REQUEST.AuthRequest): Promise<ResponseDto> {
     try {
       const { pubkey, data, signature, internalChainId } = request;
+      const plainData = Buffer.from(data, 'base64').toString('binary');
 
       // validate input
       if (!COMMON_CONSTANTS.REGEX_BASE64.test(pubkey)) {
@@ -45,9 +48,6 @@ export class AuthService implements IAuthService {
       }
       if (!COMMON_CONSTANTS.REGEX_BASE64.test(signature)) {
         throw new CustomError(ErrorMap.SIGNATURE_NOT_BASE64);
-      }
-      if (!isNumberString(data) || new Date(Number(data)).getTime() <= 0) {
-        throw new CustomError(ErrorMap.INVALID_TIMESTAMP);
       }
 
       // Find chain
@@ -60,7 +60,7 @@ export class AuthService implements IAuthService {
         // get address from pubkey
         address = pubkeyToAddressEvmos(pubkey);
         // create message hash from data
-        const msg = createSignMessageByData(address, data);
+        const msg = createSignMessageByData(address, plainData);
         // verify signature
         resultVerify = await verifyEvmosSig(signature, msg, address);
       } else {
@@ -68,13 +68,14 @@ export class AuthService implements IAuthService {
         const pubkeyFormated = encodeSecp256k1Pubkey(fromBase64(pubkey));
         address = pubkeyToAddress(pubkeyFormated, prefix);
         // create message hash from data
-        const msg = createSignMessageByData(address, data);
+        const msg = createSignMessageByData(address, plainData);
         // verify signature
         resultVerify = await verifyCosmosSig(
           signature,
           msg,
           fromBase64(pubkey),
         );
+        // resultVerify = await verifyADR36Amino(prefix, address, plainData, fromBase64(pubkey), fromBase64(signature))
       }
       if (!resultVerify) {
         throw new CustomError(ErrorMap.SIGNATURE_VERIFICATION_FAILED);
@@ -83,13 +84,17 @@ export class AuthService implements IAuthService {
       const payload = {
         address: address,
         pubkey: pubkey,
-        data: data,
+        // data: data,
         signature: signature,
       };
       const accessToken = this.jwtService.sign(payload);
 
+      // insert user if not exist
+      const user = await this.userRepo.createUserIfNotExists(address, pubkey);
+
       return ResponseDto.response(ErrorMap.SUCCESSFUL, {
         AccessToken: `${accessToken}`,
+        user,
       });
     } catch (error) {
       return ResponseDto.responseError(AuthService.name, error);
