@@ -15,7 +15,7 @@ async function bootstrap() {
 
   const configService = app.select(SharedModule).get(ConfigService);
 
-  //create or update chain info
+  // create or update chain info
   const seederService = app.select(SeederModule).get(SeederService);
   seederService
     .seed()

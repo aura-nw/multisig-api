@@ -31,6 +31,8 @@ import { SeederModule } from './database/seeders/seeder.module';
 import { GasRepository } from './repositories/impls/gas.repository';
 import { GovService } from './services/impls/gov.service';
 import { GovController } from './controllers/gov.controller';
+import { DistributionController } from './controllers/distribution.controller';
+import { DistributionService } from './services/impls/distribution.service';
 import { UserController } from './controllers/user.controller';
 import { UserRepository } from './repositories/impls/user.repository';
 import { UserService } from './services/impls/user.service';
@@ -42,6 +44,7 @@ const controllers = [
   GeneralController,
   AuthController,
   GovController,
+  DistributionController,
   UserController,
   // AppController,
 ];
@@ -139,6 +142,10 @@ const entities = [
     {
       provide: SERVICE_INTERFACE.IGOV_SERVICE,
       useClass: GovService,
+    },
+    {
+      provide: SERVICE_INTERFACE.IDISTRIBUTION_SERVICE,
+      useClass: DistributionService,
     },
     {
       provide: SERVICE_INTERFACE.IUSER_SERVICE,

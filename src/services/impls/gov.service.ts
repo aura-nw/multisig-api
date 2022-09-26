@@ -19,6 +19,14 @@ import {
   GetProposalsTally,
   GetProposalsTurnout,
 } from 'src/dtos/responses/gov/get-proposals.response';
+import {
+  GetVotesByProposalIdResponse,
+  GetVotesVote,
+} from 'src/dtos/responses/gov/get-votes-by-proposal-id.response';
+import {
+  GetValidatorVotesByProposalIdResponse,
+  GetValidatorVotesVote,
+} from 'src/dtos/responses/gov/get-validator-votes-by-proposal-id.response';
 
 @Injectable()
 export class GovService implements IGovService {
@@ -97,57 +105,56 @@ export class GovService implements IGovService {
     const result: GetProposalsTally = {
       yes: {
         number: tally.yes,
-        percent: this.getPercentage(tally.yes, sum),
+        percent: this._commonUtil.getPercentage(tally.yes, sum),
       },
       abstain: {
         number: tally.abstain,
-        percent: this.getPercentage(tally.abstain, sum),
+        percent: this._commonUtil.getPercentage(tally.abstain, sum),
       },
       no: {
         number: tally.no,
-        percent: this.getPercentage(tally.no, sum),
+        percent: this._commonUtil.getPercentage(tally.no, sum),
       },
       noWithVeto: {
         number: tally.no_with_veto,
-        percent: this.getPercentage(tally.no_with_veto, sum),
+        percent: this._commonUtil.getPercentage(tally.no_with_veto, sum),
       },
       mostVotedOn: {
         name: mostVotedOptionKey,
-        percent: this.getPercentage(tally[mostVotedOptionKey], sum),
+        percent: this._commonUtil.getPercentage(tally[mostVotedOptionKey], sum),
       },
     };
     return result;
   }
 
-  getPercentage(number: any, sum: any): string {
-    if (number == 0) {
-      return '0';
-    }
-    return ((+number * 100) / sum).toFixed(2);
-  }
-
   async getProposalById(param: MODULE_REQUEST.GetProposalDetailsParam) {
     const { internalChainId, proposalId } = param;
-    const chain = await this.chainRepo.findChain(internalChainId);
-    const response = await this._commonUtil.request(
-      new URL(
-        `api/v1/proposal?chainid=${chain.chainId}&proposalId=${proposalId}`,
-        this.indexerUrl,
-      ).href,
-    );
-    const proposal = response.data.proposals[0];
-    const result = this.mapProposal(proposal);
-    //add additional properties for proposal details page
-    const networkStatus = await this._commonUtil.request(
-      new URL(`api/v1/network/status?chainid=${chain.chainId}`, this.indexerUrl)
-        .href,
-    );
-    const bondedTokens = networkStatus.data.pool.bonded_tokens;
-    result.description = proposal.content.description;
-    result.type = proposal.content['@type'];
-    result.depositEndTime = proposal.deposit_end_time;
-    result.turnout = this.calculateProposalTunrout(proposal, bondedTokens);
-    return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
+    try {
+      const chain = await this.chainRepo.findChain(internalChainId);
+      const response = await this._commonUtil.request(
+        new URL(
+          `api/v1/proposal?chainid=${chain.chainId}&proposalId=${proposalId}`,
+          this.indexerUrl,
+        ).href,
+      );
+      const proposal = response.data.proposals[0];
+      const result = this.mapProposal(proposal);
+      //add additional properties for proposal details page
+      const networkStatus = await this._commonUtil.request(
+        new URL(
+          `api/v1/network/status?chainid=${chain.chainId}`,
+          this.indexerUrl,
+        ).href,
+      );
+      const bondedTokens = networkStatus.data.pool.bonded_tokens;
+      result.description = proposal.content.description;
+      result.type = proposal.content['@type'];
+      result.depositEndTime = proposal.deposit_end_time;
+      result.turnout = this.calculateProposalTunrout(proposal, bondedTokens);
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
+    } catch (e) {
+      return ResponseDto.responseError(GovService.name, e);
+    }
   }
 
   calculateProposalTunrout(proposal: any, bondedTokens: string) {
@@ -161,45 +168,98 @@ export class GovService implements IGovService {
     const result: GetProposalsTurnout = {
       voted: {
         number: numberOfVoted.toString(),
-        percent: this.getPercentage(numberOfVoted, bondedTokens),
+        percent: this._commonUtil.getPercentage(numberOfVoted, bondedTokens),
       },
       votedAbstain: {
         number: tally.abstain,
-        percent: this.getPercentage(tally.abstain, bondedTokens),
+        percent: this._commonUtil.getPercentage(tally.abstain, bondedTokens),
       },
       didNotVote: {
         number: numberOfNotVoted.toString(),
-        percent: this.getPercentage(numberOfNotVoted, bondedTokens),
+        percent: this._commonUtil.getPercentage(numberOfNotVoted, bondedTokens),
       },
     };
     return result;
   }
 
-  async getProposalValidatorVotesById(
-    param: MODULE_REQUEST.GetProposalValidatorVotesByIdPathParams,
+  async getVotesByProposalId(
+    param: MODULE_REQUEST.GetVotesByProposalIdParams,
+    query: MODULE_REQUEST.GetVotesByProposalIdQuery,
   ): Promise<ResponseDto> {
     const { internalChainId, proposalId } = param;
+    const {
+      answer,
+      nextKey,
+      pageLimit = 5,
+      pageOffset = 0,
+      reverse = false,
+    } = query;
     try {
-      // const chain = await this.chainRepo.findChain(internalChainId);
+      const chain = await this.chainRepo.findChain(internalChainId);
+      let url = `api/v1/votes?chainid=${chain.chainId}&proposalid=${proposalId}&pageOffset=${pageOffset}&pageLimit=${pageLimit}&reverse=${reverse}`;
+      if (answer) {
+        url += `&answer=${answer}`;
+      }
+      if (nextKey) {
+        url += `&nextKey=${nextKey}`;
+      }
+      const response = await this._commonUtil.request(
+        new URL(url, this.indexerUrl).href,
+      );
+      const votes = response.data.votes;
+      const results: GetVotesByProposalIdResponse = {
+        votes: [],
+        nextKey: response.data.nextKey,
+      };
+      for (const vote of votes) {
+        const result: GetVotesVote = {
+          answer: vote.answer,
+          time: vote.timestamp,
+          txHash: vote.txhash,
+          voter: vote.voter_address,
+        };
+        results.votes.push(result);
+      }
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, results);
+    } catch (e) {
+      return ResponseDto.responseError(GovService.name, e);
+    }
+  }
 
-      // Get list validators
-
-      // For each validator, get vote tx
-
-      // Get bonded tokens
-      // const getNetworkStatusURL = new URL(
-      //   `/api/v1/network/status?chainid=${chain.chainId}`,
-      //   this.configService.get('INDEXER_URL'),
-      // ).href;
-      // const networkStatus = await this._commonUtil.request(getNetworkStatusURL);
-      // const bondedTokens = networkStatus.data?.pool?.bonded_tokens || -1;
-
-      // // Get proposal
-      // const getProposalDetailURL = new URL(
-      //   `api/v1/proposal?chainid=${chain.chainId}&proposalId=${proposalId}`,
-      //   this.configService.get('INDEXER_URL'),
-      // ).href;
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, {});
+  async getValidatorVotesByProposalId(
+    param: MODULE_REQUEST.GetValidatorVotesByProposalIdParams,
+  ): Promise<ResponseDto> {
+    const { internalChainId, proposalId, answer } = param;
+    try {
+      const chain = await this.chainRepo.findChain(internalChainId);
+      let url = `api/v1/votes/validators?chainid=${chain.chainId}&proposalid=${proposalId}`;
+      if (answer) {
+        url += `&answer=${answer}`;
+      }
+      const response = await this._commonUtil.request(
+        new URL(url, this.indexerUrl).href,
+      );
+      const results: GetValidatorVotesByProposalIdResponse = {
+        votes: [],
+        nextKey: response.data.nextKey,
+      };
+      for (const data of response.data.result) {
+        const vote = data.vote;
+        const result: GetValidatorVotesVote = {
+          validator: data.account_address,
+          answer: '',
+          time: '',
+          txHash: '',
+          percentVotingPower: data.percent_voting_power,
+        };
+        if (vote) {
+          result.answer = vote.answer;
+          result.time = vote.timestamp;
+          result.txHash = vote.txhash;
+        }
+        results.votes.push(result);
+      }
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, results);
     } catch (e) {
       return ResponseDto.responseError(GovService.name, e);
     }
