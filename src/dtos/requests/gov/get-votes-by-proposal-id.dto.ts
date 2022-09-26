@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { VOTE_ANSWER } from 'src/common/constants/app.constant';
 
 export class GetVotesByProposalIdParams {
@@ -16,31 +16,31 @@ export class GetVotesByProposalIdParams {
 }
 
 export class GetVotesByProposalIdQuery {
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Vote result selection',
-    type: VOTE_ANSWER,
+    enum: VOTE_ANSWER,
   })
   answer: VOTE_ANSWER;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'page limit',
     type: Number,
   })
   pageLimit: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'page offset',
     type: Number,
   })
   pageOffset: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'next key for faster retrieve the next batch',
     type: String,
   })
   nextKey: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'reverse the list',
     type: Boolean,
   })
