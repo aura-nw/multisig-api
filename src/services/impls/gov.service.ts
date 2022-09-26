@@ -190,19 +190,20 @@ export class GovService implements IGovService {
     const {
       answer,
       nextKey,
-      pageLimit = 5,
+      pageLimit = 45,
       pageOffset = 0,
       reverse = false,
     } = query;
     try {
       const chain = await this.chainRepo.findChain(internalChainId);
-      let url = `api/v1/votes?chainid=${chain.chainId}&proposalid=${proposalId}&pageOffset=${pageOffset}&pageLimit=${pageLimit}&reverse=${reverse}`;
-      if (answer) {
-        url += `&answer=${answer}`;
-      }
-      if (nextKey) {
-        url += `&nextKey=${nextKey}`;
-      }
+      let url = `api/v1/votes?chainid=${chain.chainId}&proposalid=${proposalId}`;
+
+      url += answer ? `&answer=${answer}` : '' ; //optional
+      url += nextKey ? `&nextKey=${nextKey}` : '' ; //optional
+      url += pageOffset ? `&pageOffset=${pageOffset}` : '&pageOffset=0' ; //optional
+      url += pageLimit ? `&pageLimit=${pageLimit}` : '&pageLimit=45' ; //optional
+      url += reverse ? `&reverse=${reverse}` : '' ; //optional
+
       const response = await this._commonUtil.request(
         new URL(url, this.indexerUrl).href,
       );
@@ -213,10 +214,10 @@ export class GovService implements IGovService {
       };
       for (const vote of votes) {
         const result: GetVotesVote = {
+          voter: vote.voter_address,
+          txHash: vote.txhash,
           answer: vote.answer,
           time: vote.timestamp,
-          txHash: vote.txhash,
-          voter: vote.voter_address,
         };
         results.votes.push(result);
       }
@@ -229,37 +230,29 @@ export class GovService implements IGovService {
   async getValidatorVotesByProposalId(
     param: MODULE_REQUEST.GetValidatorVotesByProposalIdParams,
   ): Promise<ResponseDto> {
-    const { internalChainId, proposalId, answer } = param;
+    const { internalChainId, proposalId } = param;
     try {
       const chain = await this.chainRepo.findChain(internalChainId);
-      let url = `api/v1/votes/validators?chainid=${chain.chainId}&proposalid=${proposalId}`;
-      if (answer) {
-        url += `&answer=${answer}`;
-      }
+      const url = `api/v1/votes/validators?chainid=${chain.chainId}&proposalid=${proposalId}`;
+
+      /** Example data
+       * {
+          "rank": "1",
+          "percent_voting_power": 2.771891,
+          "validator_address": "aura1etx55kw7tkmnjqz0k0mups4ewxlr324twrzdul",
+          "operator_address": "auravaloper1etx55kw7tkmnjqz0k0mups4ewxlr324t43n9yp",
+          "validator_identity": "94EFE192B2C52424",
+          "validator_name": "NodeStake",
+          "answer": "VOTE_OPTION_YES",
+          "tx_hash": "F41AAA9488DFC7DDD7A19956C072123699DD74C2BECE28A8193517FE492C7646",
+          "timestamp": "2022-09-07T12:06:49.000Z"
+        },
+       */
       const response = await this._commonUtil.request(
         new URL(url, this.indexerUrl).href,
       );
-      const results: GetValidatorVotesByProposalIdResponse = {
-        votes: [],
-        nextKey: response.data.nextKey,
-      };
-      for (const data of response.data.result) {
-        const vote = data.vote;
-        const result: GetValidatorVotesVote = {
-          validator: data.account_address,
-          answer: '',
-          time: '',
-          txHash: '',
-          percentVotingPower: data.percent_voting_power,
-        };
-        if (vote) {
-          result.answer = vote.answer;
-          result.time = vote.timestamp;
-          result.txHash = vote.txhash;
-        }
-        results.votes.push(result);
-      }
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, results);
+      
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, response.data);
     } catch (e) {
       return ResponseDto.responseError(GovService.name, e);
     }

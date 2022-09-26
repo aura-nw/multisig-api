@@ -14,9 +14,9 @@ export class GetValidatorVotesByProposalIdParams {
   })
   proposalId: number;
 
-  @ApiProperty({
-    description: 'Vote result selection',
-    type: VOTE_ANSWER,
-  })
-  answer: VOTE_ANSWER;
+  // @ApiProperty({
+  //   description: 'Vote result selection',
+  //   type: VOTE_ANSWER,
+  // })
+  // answer: VOTE_ANSWER;
 }
