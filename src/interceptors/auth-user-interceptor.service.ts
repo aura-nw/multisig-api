@@ -14,7 +14,7 @@ export class AuthUserInterceptor implements NestInterceptor {
     const user: UserInfo = {
       address: request.user.address,
       pubkey: request.user.pubkey,
-      data: request.user.data,
+      // data: request.user.data,
       signature: request.user.signature,
     };
     AuthService.setAuthUser(user);

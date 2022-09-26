@@ -23,6 +23,7 @@ import {
   GetProposalDepositsByIdPathParams,
   GetVotesByProposalIdParams,
   GetVotesByProposalIdQuery,
+  GetUserPathParam,
 } from './dtos/requests';
 import { AuthRequest } from './dtos/requests/auth/signin.request';
 import {
@@ -65,6 +66,7 @@ import {
   Safe,
   SafeOwner,
 } from './entities';
+import { User } from './entities/user.entity';
 
 export const ENTITIES_CONFIG = {
   SAFE: Safe,
@@ -74,6 +76,7 @@ export const ENTITIES_CONFIG = {
   MULTISIG_TRANSACTION: MultisigTransaction,
   AURA_TX: AuraTx,
   GAS: Gas,
+  USER: User,
 };
 
 export const REQUEST_CONFIG = {
@@ -109,6 +112,7 @@ export const REQUEST_CONFIG = {
   GET_PROPOSAL_DEPOSITS_BY_ID_PARAM: GetProposalDepositsByIdPathParams,
   GET_VOTES_BY_PROPOSAL_ID_PARAM: GetVotesByProposalIdParams,
   GET_VOTES_BY_PROPOSAL_ID_QUERY: GetVotesByProposalIdQuery,
+  GET_USER_PATH_PARAMS: GetUserPathParam,
 };
 
 export const RESPONSE_CONFIG = {
@@ -165,6 +169,7 @@ export namespace MODULE_REQUEST {
   export abstract class GetProposalDepositsByIdPathParams extends REQUEST_CONFIG.GET_PROPOSAL_DEPOSITS_BY_ID_PARAM {}
   export abstract class GetVotesByProposalIdParams extends REQUEST_CONFIG.GET_VOTES_BY_PROPOSAL_ID_PARAM {}
   export abstract class GetVotesByProposalIdQuery extends REQUEST_CONFIG.GET_VOTES_BY_PROPOSAL_ID_QUERY {}
+  export abstract class GetUserPathParams extends REQUEST_CONFIG.GET_USER_PATH_PARAMS {}
 }
 
 export namespace MODULE_RESPONSE {
@@ -197,6 +202,7 @@ export const SERVICE_INTERFACE = {
   IAUTH_SERVICE: 'IAuthService',
   IGOV_SERVICE: 'IGovService',
   IDISTRIBUTION_SERVICE: 'IDistributionService',
+  IUSER_SERVICE: 'IUserService',
 };
 
 export const REPOSITORY_INTERFACE = {
@@ -207,6 +213,7 @@ export const REPOSITORY_INTERFACE = {
   IMULTISIG_TRANSACTION_REPOSITORY: 'IMultisigTransactionsRepository',
   IMULTISIG_CONFIRM_REPOSITORY: 'IMultisigConfirmRepository',
   IGAS_REPOSITORY: 'IGasRepository',
+  IUSER_REPOSITORY: 'IUserRepository',
 };
 
 export const PROVIDER_INTERFACE = {};

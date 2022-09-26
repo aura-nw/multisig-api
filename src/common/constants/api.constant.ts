@@ -8,6 +8,7 @@ export const CONTROLLER_CONSTANTS = {
   AUTH: 'auth',
   GOV: 'gov',
   DISTRIBUTION: 'distribution',
+  USER: 'user',
 };
 export const URL_CONSTANTS = {
   broadcasting: 'broadcasting',
@@ -47,4 +48,5 @@ export const URL_CONSTANTS = {
   GET_VOTES_BY_PROPOSAL_ID: ':internalChainId/proposal/:proposalId/votes',
   GET_VALIDATOR_VOTES_BY_PROPOSAL_ID:
     ':internalChainId/proposal/:proposalId/validator-votes',
+  GET_USER_BY_ADDRESS: ':address',
 };

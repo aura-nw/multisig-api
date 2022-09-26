@@ -33,6 +33,9 @@ import { GovService } from './services/impls/gov.service';
 import { GovController } from './controllers/gov.controller';
 import { DistributionController } from './controllers/distribution.controller';
 import { DistributionService } from './services/impls/distribution.service';
+import { UserController } from './controllers/user.controller';
+import { UserRepository } from './repositories/impls/user.repository';
+import { UserService } from './services/impls/user.service';
 
 const controllers = [
   MultisigWalletController,
@@ -42,6 +45,7 @@ const controllers = [
   AuthController,
   GovController,
   DistributionController,
+  UserController,
   // AppController,
 ];
 const entities = [
@@ -52,6 +56,7 @@ const entities = [
   ENTITIES_CONFIG.MULTISIG_TRANSACTION,
   ENTITIES_CONFIG.AURA_TX,
   ENTITIES_CONFIG.GAS,
+  ENTITIES_CONFIG.USER,
 ];
 @Module({
   imports: [
@@ -109,6 +114,10 @@ const entities = [
       provide: REPOSITORY_INTERFACE.IGAS_REPOSITORY,
       useClass: GasRepository,
     },
+    {
+      provide: REPOSITORY_INTERFACE.IUSER_REPOSITORY,
+      useClass: UserRepository,
+    },
     //service
     {
       provide: SERVICE_INTERFACE.IMULTISIG_TRANSACTION_SERVICE,
@@ -137,6 +146,10 @@ const entities = [
     {
       provide: SERVICE_INTERFACE.IDISTRIBUTION_SERVICE,
       useClass: DistributionService,
+    },
+    {
+      provide: SERVICE_INTERFACE.IUSER_SERVICE,
+      useClass: UserService,
     },
   ],
 })

@@ -23,7 +23,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "migration:generate": "ts-node node_modules/typeorm/cli.js -f ormconfig migration:generate -d src/migrations -n",
-    "migration:create": "ts-node node_modules/typeorm/cli.js -f ormconfig migration:create -d src/migrations -n",
+    "migration:create": "ts-node node_modules/typeorm/cli.js migration:create",
     "migration:revert": "ts-node node_modules/typeorm/cli.js -f ormconfig migration:revert"
   },
   "dependencies": {
@@ -33,6 +33,7 @@
     "@cosmjs/crypto": "^0.28.1",
     "@cosmjs/encoding": "^0.28.1",
     "@cosmjs/stargate": "0.28.11",
+    "@keplr-wallet/cosmos": "^0.11.1",
     "@keplr-wallet/crypto": "^0.10.14",
     "@nestjs/axios": "0.1.0",
     "@nestjs/common": "9.0.11",
