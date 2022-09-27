@@ -33,7 +33,7 @@ import {
 } from '@cosmjs/encoding';
 import { makeCompactBitArray } from '@cosmjs/stargate/build/multisignature';
 import * as Long from 'long';
-import { ethToEvmos } from '@tharsis/address-converter';
+import { ethToEvmos } from '@evmos/address-converter';
 import * as ethUtils from 'ethereumjs-util';
 
 // As discussed in https://github.com/binance-chain/javascript-sdk/issues/163
