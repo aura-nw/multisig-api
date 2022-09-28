@@ -32,6 +32,7 @@ import { GasRepository } from './repositories/impls/gas.repository';
 import { UserController } from './controllers/user.controller';
 import { UserRepository } from './repositories/impls/user.repository';
 import { UserService } from './services/impls/user.service';
+import { BullModule } from '@nestjs/bull';
 
 const controllers = [
   MultisigWalletController,
@@ -73,6 +74,17 @@ const entities = [
       imports: [SharedModule],
       useFactory: (configService: ConfigService) => configService.jwtConfig,
       inject: [ConfigService],
+    }),
+    BullModule.forRoot({
+      redis: {
+        host: 'localhost',
+        port: 6379,
+        // db: 69,
+      },
+      prefix: 'pyxis-safe',
+    }),
+    BullModule.registerQueue({
+      name: 'pyxis-sync-tx',
     }),
   ],
   controllers: [...controllers],

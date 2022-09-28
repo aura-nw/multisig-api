@@ -38,6 +38,8 @@ import {
 import { CommonUtil } from 'src/utils/common.util';
 import { makeSignDoc } from '@cosmjs/amino';
 import { checkAccountBalance, verifyCosmosSig } from 'src/chains';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
 
 @Injectable()
 export class MultisigTransactionService
@@ -58,6 +60,7 @@ export class MultisigTransactionService
     private safeRepos: IMultisigWalletRepository,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_OWNER_REPOSITORY)
     private safeOwnerRepo: IMultisigWalletOwnerRepository,
+    @InjectQueue('pyxis-sync-tx') private pyxisSyncTxQueue: Queue,
   ) {
     super(multisigTransactionRepos);
     this._logger.log(
@@ -199,6 +202,23 @@ export class MultisigTransactionService
   async sendTransaction(
     request: MODULE_REQUEST.SendTransactionRequest,
   ): Promise<ResponseDto> {
+    // Add txHash to pending tx queue
+    // await this.pyxisSyncTxQueue.add(
+    //   'pending-tx',
+    //   {
+    //     chainId: 'aura-testnet',
+    //     txHash:
+    //       '9E57ACC34CA8FF4A800B94E657D67C23587A95368B08C6157C91B0D8AB73B18F',
+    //   },
+    //   {
+    //     attempts: 120,
+    //     backoff: {
+    //       type: 'exponential',
+    //       delay: 1000,
+    //     },
+    //   },
+    // );
+    // return ResponseDto.response(ErrorMap.SUCCESSFUL);
     const res = new ResponseDto();
     try {
       const authInfo = this._commonUtil.getAuthInfo();
@@ -256,6 +276,22 @@ export class MultisigTransactionService
           await this.multisigTransactionRepos.updateTxBroadcastSucces(
             multisigTransaction.id,
             error.txId,
+          );
+
+          // Add txHash to pending tx queue
+          await this.pyxisSyncTxQueue.add(
+            'pending-tx',
+            {
+              chainId: chain.chainId,
+              txHash: error.txId,
+            },
+            {
+              attempts: 120,
+              backoff: {
+                type: 'exponential',
+                delay: 1000,
+              },
+            },
           );
           return res.return(ErrorMap.SUCCESSFUL, { TxHash: error.txId });
         }
