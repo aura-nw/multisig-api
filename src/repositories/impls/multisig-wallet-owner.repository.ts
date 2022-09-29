@@ -24,6 +24,17 @@ export class MultisigWalletOwnerRepository
     );
   }
 
+  async getSafeByOwnerAddress(ownerAddress: string) {
+    const sqlQuerry = this.repos
+      .createQueryBuilder('safeOwner')
+      .innerJoin(Safe, 'safe', 'safe.id = safeOwner.safeId')
+      .where('safeOwner.ownerAddress = :ownerAddress', { ownerAddress })
+      .andWhere('safe.threshold = :threshold', { threshold: 2 })
+      .select(['safe.safeAddress as SafeAddress']);
+    const result = await sqlQuerry.getRawMany();
+    return result.map((r) => r.SafeAddress);
+  }
+
   async recoverSafeOwner(
     safeId: string,
     ownerAddress: string,

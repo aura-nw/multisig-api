@@ -38,6 +38,17 @@ export class MultisigTransactionRepository
     );
   }
 
+  async countMultisigTransactionBySafeAddress(safeAddress: string): Promise<number> {
+    const sqlQuerry = this.repos
+      .createQueryBuilder('multisigTransaction')
+      .where('multisigTransaction.fromAddress = :fromAddress', { fromAddress: safeAddress })
+      .andWhere('multisigTransaction.status = :status', { status: 'SUCCESS' })
+      .andWhere('multisigTransaction.CreatedAt > :start_at', { start_at: '2022-09-28 11:00:00.000000' })
+      .andWhere('multisigTransaction.CreatedAt < :end_at', { end_at: '2022-09-29 11:00:00.000000' })
+      .select(['multisigTransaction.id as id']);
+    return sqlQuerry.getCount();
+  }
+
   async validateCreateTx(
     safeAddress: string,
     internalChainId: number,

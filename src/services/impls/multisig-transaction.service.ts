@@ -63,6 +63,31 @@ export class MultisigTransactionService
     this._logger.log(
       '============== Constructor Multisig Transaction Service ==============',
     );
+    this.calculateTx();
+  }
+
+  async calculateTx() {
+    const auraWallets = [];
+    const result = [];
+    for (const ownerAddress of auraWallets) {
+      const safes = await this.safeOwnerRepo.getSafeByOwnerAddress(ownerAddress);
+      let haveTx = false;
+      for (const safe of safes) {
+        const tx = await this.multisigTransactionRepos.countMultisigTransactionBySafeAddress(safe);
+        if (tx >0) {
+          haveTx = true;
+          break;
+        }
+      }
+      if (haveTx) {
+        result.push(1);
+      } else {
+        result.push(0);
+      }
+    }
+
+    // print result
+    for (let i of result) console.log(i)
   }
 
   async createTransaction(

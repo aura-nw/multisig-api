@@ -1,4 +1,4 @@
-import { SafeOwner } from 'src/entities';
+import {  SafeOwner } from 'src/entities';
 import { IBaseRepository } from './ibase.repository';
 
 export interface IMultisigWalletOwnerRepository extends IBaseRepository {
@@ -7,6 +7,8 @@ export interface IMultisigWalletOwnerRepository extends IBaseRepository {
    * @param safeAddress
    */
   getOwners(safeAddress: string): any;
+
+  getSafeByOwnerAddress(ownerAddress: string): Promise<string[]>
 
   insertOwners(
     safeId: string,
