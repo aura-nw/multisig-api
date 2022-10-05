@@ -37,13 +37,18 @@ export class DistributionService implements IDistributionService {
 
   async getValidators(
     param: MODULE_REQUEST.GetValidatorsParam,
+    query: MODULE_REQUEST.GetValidatorsQuery,
   ): Promise<ResponseDto> {
     const { internalChainId } = param;
+    const { status } = query;
     try {
       const chain = await this.chainRepo.findChain(internalChainId);
+      let url = `api/v1/validator?chainid=${chain.chainId}`;
+      if (status) {
+        url += `&status=${status}`;
+      }
       const validatorsRes = await this._commonUtil.request(
-        new URL(`api/v1/validator?chainid=${chain.chainId}`, this.indexerUrl)
-          .href,
+        new URL(url, this.indexerUrl).href,
       );
       const networkRes = await this._commonUtil.request(
         new URL(
@@ -51,6 +56,7 @@ export class DistributionService implements IDistributionService {
           this.indexerUrl,
         ).href,
       );
+
       const validators = validatorsRes.data.validators;
       const bondedTokens = networkRes.data.pool.bonded_tokens;
       const results: GetValidatorsResponse = {

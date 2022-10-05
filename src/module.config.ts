@@ -31,6 +31,7 @@ import {
   GetProposalDetailsParam,
   GetProposalsQuery,
   GetValidatorsParam,
+  GetValidatorsQuery,
 } from './dtos/requests/general';
 import {
   GetMultisigWalletResponse,
@@ -97,6 +98,7 @@ export const REQUEST_CONFIG = {
   GET_ACCOUNT_ONCHAIN_PARAM: GetAccountOnchainParam,
   SIGN_IN_REQUEST: AuthRequest,
   GET_VALIDATORS_PARAM: GetValidatorsParam,
+  GET_VALIDATORS_QUERY: GetValidatorsQuery,
   GET_DELEGATOR_REWARDS_PARAM: GetDelegatorRewardsParam,
   GET_DELEGATION_INFORMATION_PARAM: GetDelegationInformationParam,
   GET_DELEGATION_INFORMATION_QUERY: GetDelegationInformationQuery,
@@ -150,6 +152,7 @@ export namespace MODULE_REQUEST {
   export abstract class GetSafeBalancePathParams extends REQUEST_CONFIG.GET_SAFE_BALANCE_PATH_PARAMS {}
   export abstract class GetAccountOnchainParam extends REQUEST_CONFIG.GET_ACCOUNT_ONCHAIN_PARAM {}
   export abstract class GetValidatorsParam extends REQUEST_CONFIG.GET_VALIDATORS_PARAM {}
+  export abstract class GetValidatorsQuery extends REQUEST_CONFIG.GET_VALIDATORS_QUERY {}
   export abstract class GetDelegatorRewardsParam extends REQUEST_CONFIG.GET_DELEGATOR_REWARDS_PARAM {}
   export abstract class GetDelegationInformationParam extends REQUEST_CONFIG.GET_DELEGATOR_REWARDS_PARAM {}
   export abstract class GetDelegationInformationQuery extends REQUEST_CONFIG.GET_DELEGATION_INFORMATION_QUERY {}
