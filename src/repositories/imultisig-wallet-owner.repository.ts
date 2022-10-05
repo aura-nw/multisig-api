@@ -9,6 +9,7 @@ export interface IMultisigWalletOwnerRepository extends IBaseRepository {
   getOwners(safeAddress: string): any;
 
   getSafeByOwnerAddress(ownerAddress: string): Promise<string[]>
+  getSafeByOwnerAddresses(ownerAddresses: string[]): Promise<any[]>
 
   insertOwners(
     safeId: string,

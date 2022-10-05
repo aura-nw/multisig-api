@@ -29,10 +29,28 @@ export class MultisigWalletOwnerRepository
       .createQueryBuilder('safeOwner')
       .innerJoin(Safe, 'safe', 'safe.id = safeOwner.safeId')
       .where('safeOwner.ownerAddress = :ownerAddress', { ownerAddress })
-      .andWhere('safe.threshold = :threshold', { threshold: 2 })
+      .andWhere('safe.threshold >= :threshold', { threshold: 2 })
       .select(['safe.safeAddress as SafeAddress']);
     const result = await sqlQuerry.getRawMany();
     return result.map((r) => r.SafeAddress);
+  }
+
+  async getSafeByOwnerAddresses(ownerAddresses: any[]) {
+    const results = [];
+    for (const ownerAddress of ownerAddresses) {
+      if (ownerAddress === 'cosmos1f4kp7gqumq4qux7338y25934a7z600xclall9v' || ownerAddress === 'aura1f4kp7gqumq4qux7338y25934a7z600xcytga84' || ownerAddress === 'evmos1yxanme42vfwhjzn6yj9wmm3sq4ew5v756z690z') continue;
+      const sqlQuery = await this.repos.find({
+        where: {
+          ownerAddress: ownerAddress,
+        },
+        select: ['safeId'],
+      });
+      results.push(sqlQuery.map((r) => r.safeId));
+    }
+
+    console.log(results);
+    const safeIds = _.intersection(...results);
+    return safeIds;
   }
 
   async recoverSafeOwner(

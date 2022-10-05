@@ -67,27 +67,45 @@ export class MultisigTransactionService
   }
 
   async calculateTx() {
-    const auraWallets = [];
+    const auraWallet = [];
+    // const thetaWallet = [];
+    // const evmosWallet = [];
+    const wallets = auraWallet;
     const result = [];
-    for (const ownerAddress of auraWallets) {
-      const safes = await this.safeOwnerRepo.getSafeByOwnerAddress(ownerAddress);
+    const groups = [];
+    let group = [];
+    for (let i = 1; i <= wallets.length; i++) {
+      if (i % 3 !== 0) {
+        group.push(wallets[i - 1]);
+      } else {
+        group.push(wallets[i - 1]);
+        groups.push(group);
+        group = [];
+      }
+      if (i === wallets.length && group.length > 0) groups.push(group);
+    }
+
+    for (const group of groups) {
+      const safeIds = await this.safeOwnerRepo.getSafeByOwnerAddresses(group);
       let haveTx = false;
-      for (const safe of safes) {
-        const tx = await this.multisigTransactionRepos.countMultisigTransactionBySafeAddress(safe);
-        if (tx >0) {
+      for (const safeId of safeIds) {
+        const safe = await this.safeRepos.getSafe(safeId);
+        const tx =
+          await this.multisigTransactionRepos.countMultisigTransactionBySafeAddress(
+            safe.safeAddress,
+          );
+        if (tx > 0) {
           haveTx = true;
           break;
         }
       }
-      if (haveTx) {
-        result.push(1);
-      } else {
-        result.push(0);
+      for (let i = 0; i < 3; i++) {
+        result.push(haveTx ? 1 : 0);
       }
     }
 
     // print result
-    for (let i of result) console.log(i)
+    for (let i of result) console.log(i);
   }
 
   async createTransaction(
