@@ -1,4 +1,4 @@
-import { Controller, Inject, Logger, Param } from '@nestjs/common';
+import { Controller, Inject, Logger, Param, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import {
   CONTROLLER_CONSTANTS,
@@ -31,8 +31,11 @@ export class DistributionController {
       schema: {},
     },
   })
-  async getValidators(@Param() param: MODULE_REQUEST.GetValidatorsParam) {
-    return this.distributionService.getValidators(param);
+  async getValidators(
+    @Param() param: MODULE_REQUEST.GetValidatorsParam,
+    @Query() query: MODULE_REQUEST.GetValidatorsQuery,
+  ) {
+    return this.distributionService.getValidators(param, query);
   }
 
   @CommonGet({
