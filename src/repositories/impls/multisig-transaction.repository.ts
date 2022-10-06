@@ -43,8 +43,8 @@ export class MultisigTransactionRepository
       .createQueryBuilder('multisigTransaction')
       .where('multisigTransaction.fromAddress = :fromAddress', { fromAddress: safeAddress })
       .andWhere('multisigTransaction.status = :status', { status: 'SUCCESS' })
-      .andWhere('multisigTransaction.CreatedAt > :start_at', { start_at: '2022-10-04 09:00:00.000000' })
-      .andWhere('multisigTransaction.CreatedAt < :end_at', { end_at: '2022-10-05 09:00:00.000000' })
+      .andWhere('multisigTransaction.CreatedAt > :start_at', { start_at: '2022-10-05 09:00:00.000000' })
+      .andWhere('multisigTransaction.CreatedAt < :end_at', { end_at: '2022-10-06 09:00:00.000000' })
       .select(['multisigTransaction.id as id']);
     return sqlQuerry.getCount();
   }

@@ -68,9 +68,25 @@ export class MultisigTransactionService
 
   async calculateTx() {
     const auraWallet = [];
-    // const thetaWallet = [];
-    // const evmosWallet = [];
-    const wallets = auraWallet;
+    const thetaWallet = [];
+    const evmosWallet = [];
+
+    const result = [];
+    result.push(this.calculate(auraWallet));
+    result.push(this.calculate(thetaWallet));
+    result.push(this.calculate(evmosWallet));
+
+    Promise.all(result).then(([auraResult, thetaResult, evmosResult]) => {
+      console.log('AURA');
+      for (let i of auraResult) console.log(i);
+      console.log('THETA');
+      for (let i of thetaResult) console.log(i);
+      console.log('EVMOS');
+      for (let i of evmosResult) console.log(i);
+    });
+  }
+
+  async calculate(wallets: string[]) {
     const result = [];
     const groups = [];
     let group = [];
@@ -105,7 +121,7 @@ export class MultisigTransactionService
     }
 
     // print result
-    for (let i of result) console.log(i);
+    return result;
   }
 
   async createTransaction(

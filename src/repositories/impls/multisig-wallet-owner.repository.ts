@@ -7,6 +7,7 @@ import { ENTITIES_CONFIG } from 'src/module.config';
 import { Safe, SafeOwner } from 'src/entities';
 import { CustomError } from 'src/common/customError';
 import { ErrorMap } from 'src/common/error.map';
+import * as _ from 'lodash';
 
 @Injectable()
 export class MultisigWalletOwnerRepository
