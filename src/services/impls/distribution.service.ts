@@ -104,7 +104,10 @@ export class DistributionService implements IDistributionService {
         availableBalance: delegationRes.data.account_balances[0],
         delegations: [],
         total: {
-          staked: delegationRes,
+          staked:
+            delegations.length > 0
+              ? this.calculateTotalStaked(delegations)
+              : null,
           reward: delegationRes.data.account_delegate_rewards.total,
         },
       };
@@ -125,6 +128,17 @@ export class DistributionService implements IDistributionService {
     } catch (e) {
       return ResponseDto.responseError(DistributionService.name, e);
     }
+  }
+
+  calculateTotalStaked(delegations: any) {
+    let total = 0;
+    for (const delegation of delegations) {
+      total += +delegation.balance.amount;
+    }
+    return {
+      amount: total.toString(),
+      denom: delegations[0].balance.denom,
+    };
   }
 
   async getUndelegations(
