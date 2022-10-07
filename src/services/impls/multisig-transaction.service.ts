@@ -24,6 +24,7 @@ import {
 import { CustomError } from 'src/common/customError';
 import {
   IGeneralRepository,
+  IMessageRepository,
   IMultisigConfirmRepository,
   IMultisigTransactionsRepository,
   IMultisigWalletOwnerRepository,
@@ -58,6 +59,8 @@ export class MultisigTransactionService
     private safeRepos: IMultisigWalletRepository,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_OWNER_REPOSITORY)
     private safeOwnerRepo: IMultisigWalletOwnerRepository,
+    @Inject(REPOSITORY_INTERFACE.IMESSAGE_REPOSITORY)
+    private messageRepos: IMessageRepository,
   ) {
     super(multisigTransactionRepos);
     this._logger.log(
@@ -178,6 +181,9 @@ export class MultisigTransactionService
         await this.multisigTransactionRepos.insertMultisigTransaction(
           transaction,
         );
+      
+      // save msgs
+      await this.messageRepos.saveMsgs(transactionResult.id, messages);
 
       const requestSign = new ConfirmTransactionRequest();
       requestSign.transactionId = transactionResult.id;
