@@ -169,7 +169,7 @@ export class TransactionService
           );
 
         // Get msgs of tx
-        // txDetail.Messages = await this.multisigTransactionRepos.getMsgsByTxId(
+        txDetail.Messages = await this.messageRepos.getMsgsByTxId(txDetail.Id);
       }
       return ResponseDto.response(ErrorMap.SUCCESSFUL, txDetail);
     } catch (error) {
