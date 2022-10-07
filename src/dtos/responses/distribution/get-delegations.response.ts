@@ -4,7 +4,7 @@ export class GetDelegationsResponse {
   availableBalance: Coin;
   delegations: GetDelegationsDelegation[];
   total: {
-    staked: number;
+    staked: Coin;
     reward: Coin[];
   };
 }
