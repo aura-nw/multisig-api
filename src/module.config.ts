@@ -62,12 +62,13 @@ import {
   AuraTx,
   Chain,
   Gas,
+  Message,
   MultisigConfirm,
   MultisigTransaction,
   Safe,
   SafeOwner,
+  User,
 } from './entities';
-import { User } from './entities/user.entity';
 
 export const ENTITIES_CONFIG = {
   SAFE: Safe,
@@ -78,6 +79,7 @@ export const ENTITIES_CONFIG = {
   AURA_TX: AuraTx,
   GAS: Gas,
   USER: User,
+  MESSAGE: Message,
 };
 
 export const REQUEST_CONFIG = {
@@ -217,6 +219,7 @@ export const REPOSITORY_INTERFACE = {
   IMULTISIG_CONFIRM_REPOSITORY: 'IMultisigConfirmRepository',
   IGAS_REPOSITORY: 'IGasRepository',
   IUSER_REPOSITORY: 'IUserRepository',
+  IMESSAGE_REPOSITORY: 'IMessageRepository',
 };
 
 export const PROVIDER_INTERFACE = {};
