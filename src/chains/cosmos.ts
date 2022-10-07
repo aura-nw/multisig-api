@@ -13,7 +13,6 @@ export async function verifyCosmosSig(
     pubkey,
   );
   if (!resultVerify) {
-    this._logger.error('Signature verification failed');
     return false;
   }
   return true;

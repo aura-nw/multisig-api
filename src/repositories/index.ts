@@ -6,3 +6,5 @@ export * from './imultisig-wallet-owner.repository';
 export * from './imultisig-wallet.repository';
 export * from './isafe.repository';
 export * from './itransaction.repository';
+export * from './iuser.repository';
+export * from './imessage.repository';
