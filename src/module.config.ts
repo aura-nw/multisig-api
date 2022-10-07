@@ -19,20 +19,16 @@ import {
   GetAccountOnchainParam,
   GetTxDetailQuery,
   GetUserPathParam,
-} from './dtos/requests';
-import { AuthRequest } from './dtos/requests/auth/signin.request';
-import {
+  GetProposalParam,
+  GetDelegatorRewardsParam,
   GetDelegationInformationParam,
   GetDelegationInformationQuery,
-  GetDelegatorRewardsParam,
   GetUndelegationsParam,
-} from './dtos/requests/distribution';
-import {
-  GetProposalDetailsParam,
-  GetProposalsQuery,
   GetValidatorsParam,
   GetValidatorsQuery,
-} from './dtos/requests/general';
+  GetProposalsQuery,
+  AuthRequest,
+} from './dtos/requests';
 import {
   GetMultisigWalletResponse,
   MultisigSignatureResponse,
@@ -43,16 +39,14 @@ import {
   GetAccountOnchainResponse,
   CreateSafeResponse,
   GetBalanceResponse,
+  GetProposalsResponse,
+  GetProposalsProposal,
+  GetVotesByProposalIdResponse,
+  GetValidatorVotesByProposalIdResponse,
+  GetValidatorsResponse,
+  GetDelegationsResponse,
+  GetUndelegationsResponse,
 } from './dtos/responses';
-import { GetDelegationsResponse } from './dtos/responses/distribution/get-delegations.response';
-import { GetUndelegationsResponse } from './dtos/responses/distribution/get-undelegations.response';
-import { GetValidatorsResponse } from './dtos/responses/distribution/get-validators.response';
-import { GetDelegationInformationResponse } from './dtos/responses/general/get-delegation-information.response';
-import { GetDelegatorRewardsResponse } from './dtos/responses/general/get-delegator-rewards.response';
-import { GetProposalDetailsResponse } from './dtos/responses/general/get-proposal-details.response';
-import { GetProposalsResponse } from './dtos/responses/general/get-proposals.response';
-import { GetValidatorVotesByProposalIdResponse } from './dtos/responses/gov/get-validator-votes-by-proposal-id.response';
-import { GetVotesByProposalIdResponse } from './dtos/responses/gov/get-votes-by-proposal-id.response';
 import {
   AuraTx,
   Chain,
@@ -106,7 +100,7 @@ export const REQUEST_CONFIG = {
   GET_DELEGATION_INFORMATION_QUERY: GetDelegationInformationQuery,
   GET_UNDELEGATIONS_PARAM: GetUndelegationsParam,
   GET_PROPOSALS_QUERY: GetProposalsQuery,
-  GET_PROPOSAL_DETAILS_PARAM: GetProposalDetailsParam,
+  GET_PROPOSAL_PARAM: GetProposalParam,
   GET_TX_DETAIL_QUERY: GetTxDetailQuery,
   GET_USER_PATH_PARAMS: GetUserPathParam,
 };
@@ -125,10 +119,8 @@ export const RESPONSE_CONFIG = {
   GET_VALIDATORS_RESPONSE: GetValidatorsResponse,
   GET_DELEGATIONS_RESPONSE: GetDelegationsResponse,
   GET_UNDELEGATIONS_RESPONSE: GetUndelegationsResponse,
-  GET_DELEGATOR_REWARDS_RESPONSE: GetDelegatorRewardsResponse,
-  GET_DELEGATION_INFORMATION_RESPONSE: GetDelegationInformationResponse,
   GET_PROPOSALS_RESPONSE: GetProposalsResponse,
-  GET_PROPOSAL_DETAILS_RESPONSE: GetProposalDetailsResponse,
+  GET_PROPOSAL_RESPONSE: GetProposalsProposal,
   GET_VOTES_BY_PROPOSAL_ID_RESPONSE: GetVotesByProposalIdResponse,
   GET_VALIDATOR_VOTES_BY_PROPOSAL_ID_RESPONSE:
     GetValidatorVotesByProposalIdResponse,
@@ -161,6 +153,12 @@ export namespace MODULE_REQUEST {
   export abstract class GetUndelegationsParam extends REQUEST_CONFIG.GET_UNDELEGATIONS_PARAM {}
   export abstract class GetTxDetailQuery extends REQUEST_CONFIG.GET_TX_DETAIL_QUERY {}
   export abstract class AuthRequest extends REQUEST_CONFIG.SIGN_IN_REQUEST {}
+  export abstract class GetProposalsParam extends REQUEST_CONFIG.GET_PROPOSALS_PARAM {}
+  export abstract class GetProposalParam extends REQUEST_CONFIG.GET_PROPOSAL_PARAM {}
+  export abstract class GetValidatorVotesByProposalIdParams extends REQUEST_CONFIG.GET_VALIDATOR_VOTES_BY_PROPOSAL_ID_PARAM {}
+  export abstract class GetProposalDepositsByIdPathParams extends REQUEST_CONFIG.GET_PROPOSAL_DEPOSITS_BY_ID_PARAM {}
+  export abstract class GetVotesByProposalIdParams extends REQUEST_CONFIG.GET_VOTES_BY_PROPOSAL_ID_PARAM {}
+  export abstract class GetVotesByProposalIdQuery extends REQUEST_CONFIG.GET_VOTES_BY_PROPOSAL_ID_QUERY {}
   export abstract class GetUserPathParams extends REQUEST_CONFIG.GET_USER_PATH_PARAMS {}
 }
 
@@ -177,10 +175,8 @@ export namespace MODULE_RESPONSE {
   export abstract class GetValidatorsResponse extends RESPONSE_CONFIG.GET_VALIDATORS_RESPONSE {}
   export abstract class GetDelegationsResponse extends RESPONSE_CONFIG.GET_DELEGATIONS_RESPONSE {}
   export abstract class GetUndelegationsResponse extends RESPONSE_CONFIG.GET_UNDELEGATIONS_RESPONSE {}
-  export abstract class GetDelegatorRewardsResponse extends RESPONSE_CONFIG.GET_DELEGATOR_REWARDS_RESPONSE {}
-  export abstract class GetDelegationInformationResponse extends RESPONSE_CONFIG.GET_DELEGATION_INFORMATION_RESPONSE {}
   export abstract class GetProposalsResponse extends RESPONSE_CONFIG.GET_PROPOSALS_RESPONSE {}
-  export abstract class GetProposalDetailsResponse extends RESPONSE_CONFIG.GET_PROPOSAL_DETAILS_RESPONSE {}
+  export abstract class GetProposalResponse extends RESPONSE_CONFIG.GET_PROPOSAL_RESPONSE {}
   export abstract class GetVotesByProposalIdResponse extends RESPONSE_CONFIG.GET_VOTES_BY_PROPOSAL_ID_RESPONSE {}
   export abstract class GetValidatorVotesByProposalIdResponse extends RESPONSE_CONFIG.GET_VALIDATOR_VOTES_BY_PROPOSAL_ID_RESPONSE {}
 }

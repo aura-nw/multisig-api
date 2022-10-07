@@ -10,9 +10,7 @@ export interface IGovService {
   /**
    * get gov proposal
    */
-  getProposalById(
-    param: MODULE_REQUEST.GetProposalDetailsParam,
-  ): Promise<ResponseDto>;
+  getProposalById(param: MODULE_REQUEST.GetProposalParam): Promise<ResponseDto>;
 
   /**
    *

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class GetProposalDetailsParam {
+export class GetProposalParam {
   @ApiProperty({
     description: 'Internal Id of Chain',
     type: Number,
