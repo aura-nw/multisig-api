@@ -15,3 +15,6 @@ export * from './paginator.request';
 export * from './general/get-account-onchain.request';
 export * from './gov';
 export * from './user';
+export * from './distribution';
+export * from './general';
+export * from './auth';
