@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Message } from 'src/entities';
 
 export class TxDetailResponse {
   @ApiProperty({
@@ -109,4 +110,9 @@ export class TxDetailResponse {
     example: 'E48F99E3A20753AC7078D3A3372A5BFA575687C52F0A598B73781010C044413C',
   })
   TxHash: string;
+
+  @ApiProperty({
+    example: 'E48F99E3A20753AC7078D3A3372A5BFA575687C52F0A598B73781010C044413C',
+  })
+  Messages: Message[];
 }

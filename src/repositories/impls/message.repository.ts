@@ -31,4 +31,11 @@ export class MessageRepository extends BaseRepository implements IMessageReposit
     const result = await this.repos.save(newMsgs);
     return result;
   }
+
+  async getMsgsByTxId(txId: number): Promise<Message[]> {
+    const result = await this.repos.find({ 
+      where: { txId },
+     });
+    return result;
+  }
 }
