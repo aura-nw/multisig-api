@@ -1,4 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Message } from 'src/entities';
+import { TxMessageResponse } from '../message/tx-msg.response';
 
 export class TxDetailResponse {
   @ApiProperty({
@@ -109,4 +111,20 @@ export class TxDetailResponse {
     example: 'E48F99E3A20753AC7078D3A3372A5BFA575687C52F0A598B73781010C044413C',
   })
   TxHash: string;
+
+  @ApiProperty({
+    example: [
+      {
+        "typeUrl": "/cosmos.staking.v1beta1.MsgDelegate",
+        "fromAddress": null,
+        "toAddress": null,
+        "amount": null,
+        "delegatorAddress": "aura1nqw4cla0k49yfzpa6afl32hracut6tvwldmuuk",
+        "validatorAddress": "auravaloper1d3n0v5f23sqzkhlcnewhksaj8l3x7jeyu938gx",
+        "validatorSrcAddress": null,
+        "validatorDstAddress": null
+      }
+    ],
+  })
+  Messages: TxMessageResponse[];
 }

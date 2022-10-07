@@ -8,6 +8,7 @@ import { ErrorMap } from 'src/common/error.map';
 import { ResponseDto } from 'src/dtos/responses';
 import { TxDetailResponse } from 'src/dtos/responses/multisig-transaction/tx-detail.response';
 import { MODULE_REQUEST, REPOSITORY_INTERFACE } from 'src/module.config';
+import { IMessageRepository } from 'src/repositories';
 import { IMultisigConfirmRepository } from 'src/repositories/imultisig-confirm.repository';
 import { IMultisigTransactionsRepository } from 'src/repositories/imultisig-transaction.repository';
 import { IMultisigWalletOwnerRepository } from 'src/repositories/imultisig-wallet-owner.repository';
@@ -34,6 +35,8 @@ export class TransactionService
     private safeRepos: IMultisigWalletRepository,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_OWNER_REPOSITORY)
     private safeOwnerRepos: IMultisigWalletOwnerRepository,
+    @Inject(REPOSITORY_INTERFACE.IMESSAGE_REPOSITORY)
+    private messageRepos: IMessageRepository,
   ) {
     super(transRepos);
     this._logger.log(
@@ -164,6 +167,9 @@ export class TransactionService
             txDetail.TxHash,
             MULTISIG_CONFIRM_STATUS.SEND,
           );
+
+        // Get msgs of tx
+        txDetail.Messages = await this.messageRepos.getMsgsByTxId(txDetail.Id);
       }
       return ResponseDto.response(ErrorMap.SUCCESSFUL, txDetail);
     } catch (error) {
