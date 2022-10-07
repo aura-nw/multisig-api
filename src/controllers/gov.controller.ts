@@ -42,14 +42,12 @@ export class GovController {
     summary: 'Queries a single proposal.',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetProposalDetailsResponse),
+      type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetProposalResponse),
       description: 'Proposal Details',
       schema: {},
     },
   })
-  async getProposalById(
-    @Param() param: MODULE_REQUEST.GetProposalDetailsParam,
-  ) {
+  async getProposalById(@Param() param: MODULE_REQUEST.GetProposalParam) {
     return this.govService.getProposalById(param);
   }
 

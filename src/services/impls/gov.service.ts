@@ -23,10 +23,6 @@ import {
   GetVotesByProposalIdResponse,
   GetVotesVote,
 } from 'src/dtos/responses/gov/get-votes-by-proposal-id.response';
-import {
-  GetValidatorVotesByProposalIdResponse,
-  GetValidatorVotesVote,
-} from 'src/dtos/responses/gov/get-validator-votes-by-proposal-id.response';
 
 @Injectable()
 export class GovService implements IGovService {
@@ -127,7 +123,7 @@ export class GovService implements IGovService {
     return result;
   }
 
-  async getProposalById(param: MODULE_REQUEST.GetProposalDetailsParam) {
+  async getProposalById(param: MODULE_REQUEST.GetProposalParam) {
     const { internalChainId, proposalId } = param;
     try {
       const chain = await this.chainRepo.findChain(internalChainId);
@@ -198,11 +194,11 @@ export class GovService implements IGovService {
       const chain = await this.chainRepo.findChain(internalChainId);
       let url = `api/v1/votes?chainid=${chain.chainId}&proposalid=${proposalId}`;
 
-      url += answer ? `&answer=${answer}` : '' ; //optional
-      url += nextKey ? `&nextKey=${nextKey}` : '' ; //optional
-      url += pageOffset ? `&pageOffset=${pageOffset}` : '&pageOffset=0' ; //optional
-      url += pageLimit ? `&pageLimit=${pageLimit}` : '&pageLimit=45' ; //optional
-      url += reverse ? `&reverse=${reverse}` : '' ; //optional
+      url += answer ? `&answer=${answer}` : ''; //optional
+      url += nextKey ? `&nextKey=${nextKey}` : ''; //optional
+      url += pageOffset ? `&pageOffset=${pageOffset}` : '&pageOffset=0'; //optional
+      url += pageLimit ? `&pageLimit=${pageLimit}` : '&pageLimit=45'; //optional
+      url += reverse ? `&reverse=${reverse}` : ''; //optional
 
       const response = await this._commonUtil.request(
         new URL(url, this.indexerUrl).href,
@@ -251,7 +247,7 @@ export class GovService implements IGovService {
       const response = await this._commonUtil.request(
         new URL(url, this.indexerUrl).href,
       );
-      
+
       return ResponseDto.response(ErrorMap.SUCCESSFUL, response.data);
     } catch (e) {
       return ResponseDto.responseError(GovService.name, e);
