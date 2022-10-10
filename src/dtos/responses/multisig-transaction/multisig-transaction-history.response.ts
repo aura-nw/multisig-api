@@ -48,6 +48,11 @@ export class MultisigTransactionHistoryResponse {
   Denom: string;
 
   @ApiProperty({
+    example: '/cosmos.bank.v1beta1.MsgSend',
+  })
+  TypeUrl: string;
+
+  @ApiProperty({
     example: TRANSACTION_STATUS.SUCCESS,
   })
   Status: string;
