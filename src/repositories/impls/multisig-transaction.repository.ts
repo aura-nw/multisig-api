@@ -177,12 +177,14 @@ export class MultisigTransactionRepository
     else sqlQuerry.where('multisigTransaction.id = :param', { param });
     const result = await sqlQuerry.getRawOne();
 
-    if (!result) throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
-
-    const txDetail = plainToInstance(TxDetailResponse, result);
-    txDetail.Direction = TRANSFER_DIRECTION.OUTGOING;
-
-    return txDetail;
+    if (result) {
+      const txDetail = plainToInstance(TxDetailResponse, result);
+      txDetail.Direction = TRANSFER_DIRECTION.OUTGOING;
+  
+      return txDetail;
+    }
+    // throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
+    return result;
   }
 
   async getQueueTransaction(

@@ -92,6 +92,8 @@ export class TransactionService
         );
       // Loop to get Status based on Code and get Multisig Confirm of Multisig Tx
       for (const tx of result) {
+        // continue if tx is not multisig
+        if (tx.TypeUrl === null) continue;
         if (tx.TypeUrl === '/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward') tx.Direction = TRANSFER_DIRECTION.INCOMING;
         const confirmations: any[] =
           await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
@@ -121,22 +123,10 @@ export class TransactionService
 
       // Check if param entered is Id or TxHash
       const condition = this.calculateCondition(internalTxHash);
-      let txDetail: TxDetailResponse;
-
-      if (
-        direction &&
-        direction.toUpperCase() === TRANSFER_DIRECTION.INCOMING
-      ) {
-        // Get AuraTx
-        txDetail = await this.transRepos.getTransactionDetailsAuraTx(
-          internalTxHash,
-        );
-      } else {
-        // Get MultisigTx
-        txDetail =
-          await this.multisigTransactionRepos.getTransactionDetailsMultisigTransaction(
-            condition,
-          );
+      let txDetail = await this.multisigTransactionRepos.getTransactionDetailsMultisigTransaction(
+        condition,
+      );
+      if (txDetail) {
         const threshold = await this.safeRepos.getThreshold(safeAddress);
         const owner = await this.safeOwnerRepos.getOwners(safeAddress);
         txDetail.ConfirmationsRequired = threshold.ConfirmationsRequired;
@@ -170,7 +160,13 @@ export class TransactionService
 
         // Get msgs of tx
         txDetail.Messages = await this.messageRepos.getMsgsByTxId(txDetail.Id);
+      } else {
+        // Query deposited tx in aura tx table
+        txDetail = await this.transRepos.getTransactionDetailsAuraTx(
+          internalTxHash,
+        );
       }
+
       return ResponseDto.response(ErrorMap.SUCCESSFUL, txDetail);
     } catch (error) {
       return ResponseDto.responseError(TransactionService.name, error);
