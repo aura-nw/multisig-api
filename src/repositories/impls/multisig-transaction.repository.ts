@@ -17,6 +17,7 @@ import { ErrorMap } from 'src/common/error.map';
 import { plainToInstance } from 'class-transformer';
 import { MultisigTransactionHistoryResponse } from 'src/dtos/responses';
 import { TxDetailResponse } from 'src/dtos/responses/multisig-transaction/tx-detail.response';
+import { TallyTime } from 'src/dtos/requests/tally-2';
 
 @Injectable()
 export class MultisigTransactionRepository
@@ -38,13 +39,13 @@ export class MultisigTransactionRepository
     );
   }
 
-  async countMultisigTransactionBySafeAddress(safeAddress: string): Promise<number> {
+  async countMultisigTransactionBySafeAddress(safeAddress: string, time: TallyTime): Promise<number> {
     const sqlQuerry = this.repos
       .createQueryBuilder('multisigTransaction')
       .where('multisigTransaction.fromAddress = :fromAddress', { fromAddress: safeAddress })
       .andWhere('multisigTransaction.status = :status', { status: 'SUCCESS' })
-      .andWhere('multisigTransaction.CreatedAt > :start_at', { start_at: '2022-10-05 09:00:00.000000' })
-      .andWhere('multisigTransaction.CreatedAt < :end_at', { end_at: '2022-10-06 09:00:00.000000' })
+      .andWhere('multisigTransaction.CreatedAt > :start_at', { start_at: time.start_at })
+      .andWhere('multisigTransaction.CreatedAt < :end_at', { end_at: time.end_at })
       .select(['multisigTransaction.id as id']);
     return sqlQuerry.getCount();
   }

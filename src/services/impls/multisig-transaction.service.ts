@@ -38,6 +38,7 @@ import {
 import { CommonUtil } from 'src/utils/common.util';
 import { makeSignDoc } from '@cosmjs/amino';
 import { checkAccountBalance, verifyCosmosSig } from 'src/chains';
+import { TallyTime } from 'src/dtos/requests/tally-2';
 
 @Injectable()
 export class MultisigTransactionService
@@ -70,11 +71,14 @@ export class MultisigTransactionService
     const auraWallet = [];
     const thetaWallet = [];
     const evmosWallet = [];
+    const fromDay = 7;
+    const toDay = 8;
+    const time = new TallyTime(`2022-10-0${fromDay} 09:00:00.000000`,  `2022-10-0${toDay} 09:00:00.000000`);
 
     const result = [];
-    result.push(this.calculate(auraWallet));
-    result.push(this.calculate(thetaWallet));
-    result.push(this.calculate(evmosWallet));
+    result.push(this.calculate(auraWallet, time));
+    result.push(this.calculate(thetaWallet, time));
+    result.push(this.calculate(evmosWallet, time));
 
     Promise.all(result).then(([auraResult, thetaResult, evmosResult]) => {
       console.log('AURA');
@@ -86,7 +90,7 @@ export class MultisigTransactionService
     });
   }
 
-  async calculate(wallets: string[]) {
+  async calculate(wallets: string[],time: TallyTime) {
     const result = [];
     const groups = [];
     let group = [];
@@ -109,6 +113,7 @@ export class MultisigTransactionService
         const tx =
           await this.multisigTransactionRepos.countMultisigTransactionBySafeAddress(
             safe.safeAddress,
+            time
           );
         if (tx > 0) {
           haveTx = true;

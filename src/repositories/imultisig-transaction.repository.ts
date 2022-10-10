@@ -1,3 +1,4 @@
+import { TallyTime } from 'src/dtos/requests/tally-2';
 import { MultisigTransactionHistoryResponse } from 'src/dtos/responses';
 import { TxDetailResponse } from 'src/dtos/responses/multisig-transaction/tx-detail.response';
 import { MultisigTransaction } from 'src/entities';
@@ -5,7 +6,7 @@ import { IBaseRepository } from './ibase.repository';
 
 export interface IMultisigTransactionsRepository extends IBaseRepository {
 
-  countMultisigTransactionBySafeAddress(safeAddress: string): Promise<number>;
+  countMultisigTransactionBySafeAddress(safeAddress: string, time: TallyTime): Promise<number>;
   /**
    * Get Id of a Multisig Transaction
    * @param internalTxHash
