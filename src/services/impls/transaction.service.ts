@@ -92,7 +92,7 @@ export class TransactionService
         );
       // Loop to get Status based on Code and get Multisig Confirm of Multisig Tx
       for (const tx of result) {
-        if (tx.Direction !== TRANSFER_DIRECTION.OUTGOING) continue;
+        if (tx.TypeUrl === '/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward') tx.Direction = TRANSFER_DIRECTION.INCOMING;
         const confirmations: any[] =
           await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
             tx.Id,
