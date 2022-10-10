@@ -9,6 +9,7 @@ import {
   AminoTypes,
   coins,
   createBankAminoConverters,
+  createDistributionAminoConverters,
   createStakingAminoConverters,
   makeMultisignedTx,
   StargateClient,
@@ -114,6 +115,7 @@ export class MultisigTransactionService
       const aminoTypes = new AminoTypes({
         ...createBankAminoConverters(),
         ...createStakingAminoConverters(chain.prefix),
+        ...createDistributionAminoConverters()
       });
       const msgs = messages.map((msg: any) => {
         const decoder = registry.lookupType(msg.typeUrl);
