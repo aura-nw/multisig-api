@@ -31,7 +31,7 @@ export class MessageRepository
       });
       newMsg.txId = txId;
       newMsg.typeUrl = msg.typeUrl;
-      newMsg.amount = msg.value.amount[0]?.amount;
+      newMsg.amount = msg.value.amount ? msg.value.amount[0]?.amount : null;
       return newMsg;
     });
     const result = await this.repos.save(newMsgs);
