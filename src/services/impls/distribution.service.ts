@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ErrorMap } from 'src/common/error.map';
-import { ResponseDto } from 'src/dtos/responses';
+import { GetDelegationResponse, ResponseDto } from 'src/dtos/responses';
 import {
   GetDelegationsDelegation,
   GetDelegationsResponse,
@@ -85,8 +85,77 @@ export class DistributionService implements IDistributionService {
     }
   }
 
+  async getDelegation(
+    query: MODULE_REQUEST.GetDelegationQuery,
+  ): Promise<ResponseDto> {
+    const { internalChainId, delegatorAddress, operatorAddress } = query;
+    try {
+      const chain = await this.chainRepo.findChain(internalChainId);
+      //get delegation info from account
+      const delegationRes = await this._commonUtil.request(
+        new URL(
+          `api/v1/account-info?address=${delegatorAddress}&chainId=${chain.chainId}`,
+          this.indexerUrl,
+        ).href,
+      );
+      const accountInfo = delegationRes.data;
+      //get validator info
+      const validatorRes = await this._commonUtil.request(
+        new URL(
+          `api/v1/validator?operatorAddress=${operatorAddress}&chainid=${chain.chainId}`,
+          this.indexerUrl,
+        ).href,
+      );
+      const validator = validatorRes.data.validators[0];
+      // combine info from two api
+      const claimedReward = accountInfo.account_claimed_rewards.find(
+        (r) => r.validator_address === validator.operator_address,
+      );
+      const delegationBalance = accountInfo.account_delegations.find(
+        (r) => r.delegation.validator_address === validator.operator_address,
+      ).balance;
+      const pendingReward = accountInfo.account_delegate_rewards.rewards.find(
+        (r) => r.validator_address === validator.operator_address,
+      ).reward[0];
+      ///
+      const result: GetDelegationResponse = {
+        validator: {
+          operatorAddress: validator.operator_address,
+          votingPower: {
+            percent_voting_power: validator.percent_voting_power,
+            tokens: {
+              amount: validator.tokens,
+              denom: chain.symbol,
+            },
+          },
+          commission: validator.commission.commission_rates.rate,
+          delegators: validator.number_delegators,
+        },
+        delegation: {
+          claimedReward: claimedReward
+            ? {
+                denom: claimedReward.denom,
+                amount: claimedReward.amount,
+              }
+            : null,
+          delegatableBalance: accountInfo.account_balances[0]
+            ? {
+                denom: accountInfo.account_balances[0].denom,
+                amount: accountInfo.account_balances[0].amount,
+              }
+            : null,
+          delegationBalance: delegationBalance ? delegationBalance : null,
+          pendingReward: pendingReward ? pendingReward : null,
+        },
+      };
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
+    } catch (e) {
+      return ResponseDto.responseError(DistributionService.name, e);
+    }
+  }
+
   async getDelegations(
-    param: MODULE_REQUEST.GetDelegationInformationParam,
+    param: MODULE_REQUEST.GetDelegationsParam,
   ): Promise<ResponseDto> {
     const { internalChainId, delegatorAddress } = param;
     try {
