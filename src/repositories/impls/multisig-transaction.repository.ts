@@ -39,15 +39,17 @@ export class MultisigTransactionRepository
     );
   }
 
-  async countMultisigTransactionBySafeAddress(safeAddress: string, time: TallyTime): Promise<number> {
+  async firstMultisigTransactionBySafeAddress(safeAddress: string, time: TallyTime): Promise<any> {
     const sqlQuerry = this.repos
       .createQueryBuilder('multisigTransaction')
       .where('multisigTransaction.fromAddress = :fromAddress', { fromAddress: safeAddress })
       .andWhere('multisigTransaction.status = :status', { status: 'SUCCESS' })
-      .andWhere('multisigTransaction.CreatedAt > :start_at', { start_at: time.start_at })
-      .andWhere('multisigTransaction.CreatedAt < :end_at', { end_at: time.end_at })
-      .select(['multisigTransaction.id as id']);
-    return sqlQuerry.getCount();
+      .andWhere('multisigTransaction.UpdatedAt > :start_at', { start_at: time.start_at })
+      .andWhere('multisigTransaction.UpdatedAt < :end_at', { end_at: time.end_at })
+      .orderBy('multisigTransaction.UpdatedAt', 'ASC')
+      .take(1)
+      .select(['multisigTransaction.id as id', 'multisigTransaction.UpdatedAt as updatedAt']);
+    return sqlQuerry.getRawOne();
   }
 
   async validateCreateTx(

@@ -39,6 +39,7 @@ import { CommonUtil } from 'src/utils/common.util';
 import { makeSignDoc } from '@cosmjs/amino';
 import { checkAccountBalance, verifyCosmosSig } from 'src/chains';
 import { TallyTime } from 'src/dtos/requests/tally-2';
+import * as _ from 'lodash';
 
 @Injectable()
 export class MultisigTransactionService
@@ -68,30 +69,49 @@ export class MultisigTransactionService
   }
 
   async calculateTx() {
-    const auraWallet = [];
-    const thetaWallet = [];
-    const evmosWallet = [];
-    const fromDay = 7;
-    const toDay = 8;
-    const time = new TallyTime(`2022-10-0${fromDay} 09:00:00.000000`,  `2022-10-0${toDay} 09:00:00.000000`);
+    const day1 = [];
+    const day2 = [];
+    const day3 = [];
+    const day4 = [];
+
+    const timeDay1 = new TallyTime(
+      `2022-10-04 09:00:00.000000`,
+      `2022-10-05 09:00:00.000000`,
+    );
+    const timeDay2 = new TallyTime(
+      `2022-10-05 09:00:00.000000`,
+      `2022-10-06 09:00:00.000000`,
+    );
+    const timeDay3 = new TallyTime(
+      `2022-10-06 09:00:00.000000`,
+      `2022-10-07 09:00:00.000000`,
+    );
+    const timeDay4 = new TallyTime(
+      `2022-10-07 09:00:00.000000`,
+      `2022-10-08 09:00:00.000000`,
+    );
 
     const result = [];
-    result.push(this.calculate(auraWallet, time));
-    result.push(this.calculate(thetaWallet, time));
-    result.push(this.calculate(evmosWallet, time));
+    result.push(this.calculate(day1, timeDay1));
+    result.push(this.calculate(day2, timeDay2));
+    result.push(this.calculate(day3, timeDay3));
+    result.push(this.calculate(day4, timeDay4));
 
-    Promise.all(result).then(([auraResult, thetaResult, evmosResult]) => {
-      console.log('AURA');
-      for (let i of auraResult) console.log(i);
-      console.log('THETA');
-      for (let i of thetaResult) console.log(i);
-      console.log('EVMOS');
-      for (let i of evmosResult) console.log(i);
+    Promise.all(result).then(([resultDay1, resultDay2, resultDay3, resultDay4]) => {
+      // console.log('AURA');
+      // for (let i of auraResult) console.log(i);
+      let finalResult = [...resultDay1, ...resultDay2, ...resultDay3, ...resultDay4];
+      const sortedResult = _.sortBy(finalResult, 'smallestDiffTime');
+      console.log('FINAL');
+      for (let i = 0; i < 5; i++) {
+        console.log(sortedResult[i]);
+      }
     });
+
+   
   }
 
-  async calculate(wallets: string[],time: TallyTime) {
-    const result = [];
+  async calculate(wallets: string[], time: TallyTime) {
     const groups = [];
     let group = [];
     for (let i = 1; i <= wallets.length; i++) {
@@ -105,28 +125,45 @@ export class MultisigTransactionService
       if (i === wallets.length && group.length > 0) groups.push(group);
     }
 
+    const groupsResult = [];
+
     for (const group of groups) {
       const safeIds = await this.safeOwnerRepo.getSafeByOwnerAddresses(group);
-      let haveTx = false;
+      // const groupResult = [];
+      let smallestDiffTime = 0;
+      let groupSafeId = 0;
+      let createdSafeDate;
+      let txDate;
       for (const safeId of safeIds) {
         const safe = await this.safeRepos.getSafe(safeId);
         const tx =
-          await this.multisigTransactionRepos.countMultisigTransactionBySafeAddress(
+          await this.multisigTransactionRepos.firstMultisigTransactionBySafeAddress(
             safe.safeAddress,
-            time
+            time,
           );
-        if (tx > 0) {
-          haveTx = true;
-          break;
+        if (tx) {
+          const createSafeDate = new Date(safe.createdAt);
+          const finishTxDate = new Date(tx.updatedAt);
+          const diffTime = Math.abs(finishTxDate.valueOf() - createSafeDate.valueOf());
+          if (smallestDiffTime === 0 || smallestDiffTime > diffTime) {
+            smallestDiffTime = diffTime;
+            groupSafeId = safe.id;
+            createdSafeDate = safe.createdAt;
+            txDate = tx.updatedAt;
+          }
         }
       }
-      for (let i = 0; i < 3; i++) {
-        result.push(haveTx ? 1 : 0);
-      }
+      groupsResult.push({
+        group,
+        smallestDiffTime,
+        groupSafeId,
+        createdSafeDate,
+        txDate,
+        timeInMinutes: millisToMinutesAndSeconds(smallestDiffTime),
+      });
     }
-
-    // print result
-    return result;
+    const removedZeroTime = groupsResult.filter(i => i.smallestDiffTime !== 0);
+    return removedZeroTime;
   }
 
   async createTransaction(
@@ -533,4 +570,10 @@ export class MultisigTransactionService
     );
     return encodeTransaction;
   }
+}
+
+function millisToMinutesAndSeconds(millis) {
+  const minutes = Math.floor(millis / 60000);
+  const seconds = ((millis % 60000) / 1000).toFixed(0);
+  return minutes + ":" + (Number(seconds) < 10 ? '0' : '') + seconds;
 }

@@ -6,7 +6,7 @@ import { IBaseRepository } from './ibase.repository';
 
 export interface IMultisigTransactionsRepository extends IBaseRepository {
 
-  countMultisigTransactionBySafeAddress(safeAddress: string, time: TallyTime): Promise<number>;
+  firstMultisigTransactionBySafeAddress(safeAddress: string, time: TallyTime): Promise<any>;
   /**
    * Get Id of a Multisig Transaction
    * @param internalTxHash
