@@ -48,10 +48,22 @@ export class DistributionController {
       schema: {},
     },
   })
-  async getDelegations(
-    @Param() param: MODULE_REQUEST.GetDelegationInformationParam,
-  ) {
+  async getDelegations(@Param() param: MODULE_REQUEST.GetDelegationsParam) {
     return this.distributionService.getDelegations(param);
+  }
+
+  @CommonGet({
+    url: URL_CONSTANTS.GET_DELEGATION,
+    summary: 'Get single validator info and delegation from user.',
+    apiOkResponseOptions: {
+      status: 200,
+      type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetDelegationResponse),
+      description: 'List delegation and validator of a user',
+      schema: {},
+    },
+  })
+  async getDelegation(@Query() query: MODULE_REQUEST.GetDelegationQuery) {
+    return this.distributionService.getDelegation(query);
   }
 
   @CommonGet({
