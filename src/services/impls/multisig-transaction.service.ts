@@ -38,6 +38,7 @@ import {
 import { CommonUtil } from 'src/utils/common.util';
 import { makeSignDoc } from '@cosmjs/amino';
 import { checkAccountBalance, verifyCosmosSig } from 'src/chains';
+import * as _ from 'lodash';
 
 @Injectable()
 export class MultisigTransactionService
@@ -71,23 +72,23 @@ export class MultisigTransactionService
     const result = [];
     for (const ownerAddress of auraWallets) {
       const safes = await this.safeOwnerRepo.getSafeByOwnerAddress(ownerAddress);
-      let haveTx = false;
+      let totalTx = 0;
       for (const safe of safes) {
+        
         const tx = await this.multisigTransactionRepos.countMultisigTransactionBySafeAddress(safe);
         if (tx >0) {
-          haveTx = true;
-          break;
+          totalTx += tx;
         }
       }
-      if (haveTx) {
-        result.push(1);
-      } else {
-        result.push(0);
-      }
+      result.push({
+        ownerAddress,
+        totalTx,
+      })
     }
 
     // print result
-    for (let i of result) console.log(i)
+    const sortedResult = _.sortBy(result, ['totalTx']).reverse();
+    console.log(sortedResult);
   }
 
   async createTransaction(
