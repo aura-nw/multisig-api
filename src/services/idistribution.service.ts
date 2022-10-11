@@ -7,8 +7,9 @@ export interface IDistributionService {
     query: MODULE_REQUEST.GetValidatorsQuery,
   ): Promise<ResponseDto>;
   getDelegations(
-    param: MODULE_REQUEST.GetDelegationInformationParam,
+    param: MODULE_REQUEST.GetDelegationsParam,
   ): Promise<ResponseDto>;
+  getDelegation(query: MODULE_REQUEST.GetDelegationQuery): Promise<ResponseDto>;
   getUndelegations(
     param: MODULE_REQUEST.GetUndelegationsParam,
   ): Promise<ResponseDto>;

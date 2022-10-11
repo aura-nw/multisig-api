@@ -21,13 +21,13 @@ import {
   GetUserPathParam,
   GetProposalParam,
   GetDelegatorRewardsParam,
-  GetDelegationInformationParam,
-  GetDelegationInformationQuery,
   GetUndelegationsParam,
   GetValidatorsParam,
   GetValidatorsQuery,
   GetProposalsQuery,
   AuthRequest,
+  GetDelegationQuery,
+  GetDelegationsParam,
 } from './dtos/requests';
 import {
   GetMultisigWalletResponse,
@@ -46,6 +46,7 @@ import {
   GetValidatorsResponse,
   GetDelegationsResponse,
   GetUndelegationsResponse,
+  GetDelegationResponse,
 } from './dtos/responses';
 import {
   AuraTx,
@@ -95,9 +96,9 @@ export const REQUEST_CONFIG = {
   SIGN_IN_REQUEST: AuthRequest,
   GET_VALIDATORS_PARAM: GetValidatorsParam,
   GET_VALIDATORS_QUERY: GetValidatorsQuery,
+  GET_DELEGATION_QUERY: GetDelegationQuery,
+  GET_DELEGATIONS_PARAM: GetDelegationsParam,
   GET_DELEGATOR_REWARDS_PARAM: GetDelegatorRewardsParam,
-  GET_DELEGATION_INFORMATION_PARAM: GetDelegationInformationParam,
-  GET_DELEGATION_INFORMATION_QUERY: GetDelegationInformationQuery,
   GET_UNDELEGATIONS_PARAM: GetUndelegationsParam,
   GET_PROPOSALS_QUERY: GetProposalsQuery,
   GET_PROPOSAL_PARAM: GetProposalParam,
@@ -118,6 +119,7 @@ export const RESPONSE_CONFIG = {
   GET_ACCOUNT_ONCHAIN_RESPONSE: GetAccountOnchainResponse,
   GET_VALIDATORS_RESPONSE: GetValidatorsResponse,
   GET_DELEGATIONS_RESPONSE: GetDelegationsResponse,
+  GET_DELEGATION_RESPONSE: GetDelegationResponse,
   GET_UNDELEGATIONS_RESPONSE: GetUndelegationsResponse,
   GET_PROPOSALS_RESPONSE: GetProposalsResponse,
   GET_PROPOSAL_RESPONSE: GetProposalsProposal,
@@ -147,9 +149,9 @@ export namespace MODULE_REQUEST {
   export abstract class GetAccountOnchainParam extends REQUEST_CONFIG.GET_ACCOUNT_ONCHAIN_PARAM {}
   export abstract class GetValidatorsParam extends REQUEST_CONFIG.GET_VALIDATORS_PARAM {}
   export abstract class GetValidatorsQuery extends REQUEST_CONFIG.GET_VALIDATORS_QUERY {}
+  export abstract class GetDelegationQuery extends REQUEST_CONFIG.GET_DELEGATION_QUERY {}
+  export abstract class GetDelegationsParam extends REQUEST_CONFIG.GET_DELEGATIONS_PARAM {}
   export abstract class GetDelegatorRewardsParam extends REQUEST_CONFIG.GET_DELEGATOR_REWARDS_PARAM {}
-  export abstract class GetDelegationInformationParam extends REQUEST_CONFIG.GET_DELEGATOR_REWARDS_PARAM {}
-  export abstract class GetDelegationInformationQuery extends REQUEST_CONFIG.GET_DELEGATION_INFORMATION_QUERY {}
   export abstract class GetUndelegationsParam extends REQUEST_CONFIG.GET_UNDELEGATIONS_PARAM {}
   export abstract class GetTxDetailQuery extends REQUEST_CONFIG.GET_TX_DETAIL_QUERY {}
   export abstract class AuthRequest extends REQUEST_CONFIG.SIGN_IN_REQUEST {}
@@ -174,6 +176,7 @@ export namespace MODULE_RESPONSE {
   export abstract class GetAccountOnchainResponse extends RESPONSE_CONFIG.GET_ACCOUNT_ONCHAIN_RESPONSE {}
   export abstract class GetValidatorsResponse extends RESPONSE_CONFIG.GET_VALIDATORS_RESPONSE {}
   export abstract class GetDelegationsResponse extends RESPONSE_CONFIG.GET_DELEGATIONS_RESPONSE {}
+  export abstract class GetDelegationResponse extends RESPONSE_CONFIG.GET_DELEGATION_RESPONSE {}
   export abstract class GetUndelegationsResponse extends RESPONSE_CONFIG.GET_UNDELEGATIONS_RESPONSE {}
   export abstract class GetProposalsResponse extends RESPONSE_CONFIG.GET_PROPOSALS_RESPONSE {}
   export abstract class GetProposalResponse extends RESPONSE_CONFIG.GET_PROPOSAL_RESPONSE {}
