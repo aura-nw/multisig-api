@@ -68,6 +68,10 @@ export class DistributionService implements IDistributionService {
           operatorAddress: validator.operator_address,
           status: validator.status,
           commission: validator.commission,
+          description: {
+            moniker: validator.description.moniker,
+            identity: validator.description.identity,
+          },
           votingPower: {
             number: validator.tokens,
             percentage: this._commonUtil.getPercentage(

@@ -7,6 +7,10 @@ export class GetValidatorsResponse {
         validator: 'Singapore',
         operatorAddress: 'auravaloper1d3n0v5f23sqzkhlcnewhksaj8l3x7jeyu938gx',
         status: 'BOND_STATUS_BONDED',
+        description: {
+          moniker: "Staketab",
+          identity: "D55266E648F3F70B"
+        },
         commission: {
           commission_rates: {
             rate: '1.000000000000000000',
@@ -25,6 +29,10 @@ export class GetValidatorsResponse {
         validator: 'mynode',
         operatorAddress: 'auravaloper1edw4lwcz3esnlgzcw60ra8m38k3zygz2xtl2qh',
         status: 'BOND_STATUS_BONDED',
+        description: {
+          moniker: "Staketab",
+          identity: "D55266E648F3F70B"
+        },
         commission: {
           commission_rates: {
             rate: '0.100000000000000000',
@@ -52,6 +60,10 @@ export class GetValidatorsValidator {
     number: string;
     percentage: string;
   };
+  description: {
+    moniker: string;
+    identity: string;
+  }
   commission: any;
   // participation:
   uptime: number;
