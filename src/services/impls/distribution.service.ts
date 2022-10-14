@@ -97,11 +97,9 @@ export class DistributionService implements IDistributionService {
       return this.configService.get('DEFAULT_VALIDATOR_IMG');
     }
     try {
+      const keybase = this.configService.get('KEYBASE');
       const res = await this._commonUtil.request(
-        new URL(
-          `_/api/1.0/user/lookup.json?key_suffix=${identity}`,
-          this.configService.get('KEYBASE'),
-        ).href,
+        new URL(`${keybase}${identity}`).href,
       );
       const picture = res.them[0].pictures.primary.url;
       if (picture) {
