@@ -8,8 +8,8 @@ export class GetValidatorsResponse {
         operatorAddress: 'auravaloper1d3n0v5f23sqzkhlcnewhksaj8l3x7jeyu938gx',
         status: 'BOND_STATUS_BONDED',
         description: {
-          moniker: "Staketab",
-          identity: "D55266E648F3F70B"
+          moniker: 'Staketab',
+          identity: 'D55266E648F3F70B',
         },
         commission: {
           commission_rates: {
@@ -30,8 +30,9 @@ export class GetValidatorsResponse {
         operatorAddress: 'auravaloper1edw4lwcz3esnlgzcw60ra8m38k3zygz2xtl2qh',
         status: 'BOND_STATUS_BONDED',
         description: {
-          moniker: "Staketab",
-          identity: "D55266E648F3F70B"
+          moniker: 'Staketab',
+          picture:
+            'https://s3.amazonaws.com/keybase_processed_uploads/8b0c28b642e5dfcc2cba07bea1157e05_360_360.jpg',
         },
         commission: {
           commission_rates: {
@@ -62,8 +63,8 @@ export class GetValidatorsValidator {
   };
   description: {
     moniker: string;
-    identity: string;
-  }
+    picture: string;
+  };
   commission: any;
   // participation:
   uptime: number;

@@ -63,6 +63,9 @@ export class DistributionService implements IDistributionService {
         validators: [],
       };
       for (const validator of validators) {
+        const picture = await this.getValidatorPicture(
+          validator.description.identity,
+        );
         const result: GetValidatorsValidator = {
           validator: validator.description.moniker,
           operatorAddress: validator.operator_address,
@@ -70,7 +73,7 @@ export class DistributionService implements IDistributionService {
           commission: validator.commission,
           description: {
             moniker: validator.description.moniker,
-            identity: validator.description.identity,
+            picture: picture,
           },
           votingPower: {
             number: validator.tokens,
@@ -86,6 +89,27 @@ export class DistributionService implements IDistributionService {
       return ResponseDto.response(ErrorMap.SUCCESSFUL, results);
     } catch (e) {
       return ResponseDto.responseError(DistributionService.name, e);
+    }
+  }
+
+  private async getValidatorPicture(identity: string): Promise<string> {
+    if (!identity) {
+      return this.configService.get('DEFAULT_VALIDATOR_IMG');
+    }
+    try {
+      const res = await this._commonUtil.request(
+        new URL(
+          `_/api/1.0/user/lookup.json?key_suffix=${identity}`,
+          this.configService.get('KEYBASE'),
+        ).href,
+      );
+      const picture = res.them[0].pictures.primary.url;
+      if (picture) {
+        return picture;
+      }
+      return this.configService.get('DEFAULT_VALIDATOR_IMG');
+    } catch (e) {
+      return this.configService.get('DEFAULT_VALIDATOR_IMG');
     }
   }
 
