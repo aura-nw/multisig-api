@@ -139,10 +139,10 @@ export class DistributionService implements IDistributionService {
       );
       const delegationBalance = accountInfo.account_delegations.find(
         (r) => r.delegation.validator_address === validator.operator_address,
-      ).balance;
+      )?.balance;
       const pendingReward = accountInfo.account_delegate_rewards.rewards.find(
         (r) => r.validator_address === validator.operator_address,
-      ).reward[0];
+      )?.reward[0];
       ///
       const result: GetDelegationResponse = {
         validator: {
