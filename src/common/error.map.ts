@@ -3,6 +3,10 @@ export const ErrorMap = {
     Code: 'SUCCESSFUL',
     Message: 'Successfully!',
   },
+  UNAUTHRORIZED: {
+    Code: 'E401',
+    Message: `Unauthorized`,
+  },
   E001: {
     Code: 'E001',
     Message: `Invalid address`,
@@ -121,11 +125,43 @@ export const ErrorMap = {
   },
   BROADCAST_TX_FAILED: {
     Code: 'E030',
-    Message: 'Broadcast transaction failed!'
+    Message: 'Broadcast transaction failed!',
   },
   ADDRESS_PUBKEY_MISMATCH: {
     Code: 'E031',
-    Message: 'The provided public key does not match the address'
+    Message: 'The provided public key does not match the address',
+  },
+  PUBKEY_NOT_BASE64: {
+    Code: 'E032',
+    Message: `Pubkey must be Base64 type!`,
+  },
+  SIGNATURE_NOT_BASE64: {
+    Code: 'E033',
+    Message: `Signature must be Base64 type!`,
+  },
+  INVALID_TIMESTAMP: {
+    Code: 'E034',
+    Message: `Invalid Timestamp!`,
+  },
+  CHAIN_NOT_FOUND: {
+    Code: 'E035',
+    Message: `Chain not found!`,
+  },
+  VERIFY_SIGNATURE_FAIL: {
+    Code: 'E036',
+    Message: `Verify signature fail!`,
+  },
+  SIGNATURE_VERIFICATION_FAILED: {
+    Code: 'E037',
+    Message: 'Signature verification failed!',
+  },
+  USER_NOT_FOUND: {
+    Code: 'E038',
+    Message: 'User not found',
+  },
+  REQUEST_ERROR: {
+    Code: 'E039',
+    Message: 'Request to server error',
   },
   C001: {
     Code: 'C001',

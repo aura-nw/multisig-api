@@ -6,7 +6,11 @@
 
 [![codecov](https://img.shields.io/codecov/c/gh/aura-nw/multisig-api/dev?style=flat-square&token=FNWOTPBIRX)](https://codecov.io/gh/aura-nw/multisig-api)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=aura-nw_multisig-api&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=aura-nw_multisig-api)
-[![Maintainability](https://api.codeclimate.com/v1/badges/670351cb6c558dc7d9c2/maintainability)](https://codeclimate.com/github/aura-nw/multisig-api/maintainability)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=aura-nw_multisig-api&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=aura-nw_multisig-api)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=aura-nw_multisig-api&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=aura-nw_multisig-api)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=aura-nw_multisig-api&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=aura-nw_multisig-api)
+
+<!-- [![Maintainability](https://api.codeclimate.com/v1/badges/670351cb6c558dc7d9c2/maintainability)](https://codeclimate.com/github/aura-nw/multisig-api/maintainability) -->
 
 # Overview
 

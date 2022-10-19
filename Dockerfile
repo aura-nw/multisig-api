@@ -1,15 +1,24 @@
-FROM node:16.10 as build-stage
+FROM node:16.17-alpine as build-stage
 
-ARG PORT=3000
+COPY --chown=node:node package*.json ./
 
-RUN mkdir -p /usr/src/app
-
-WORKDIR /usr/src/app
-
-COPY . .
-RUN npm install && npm cache clean --force
+# ✅ Safe install
+RUN npm ci
+COPY --chown=node:node . .
 RUN npm run build
 
-EXPOSE $PORT
+# Run-time stage
+FROM node:16.17-alpine as run-stage
+USER node
 
-CMD [ "npm", "run", "start" ]
+ARG PORT=3000
+EXPOSE $PORT
+WORKDIR /usr/src/app/
+
+COPY --chown=node:node --from=build-stage node_modules ./node_modules
+COPY --chown=node:node --from=build-stage dist package*.json ./
+
+# ✅ Clean dev packages
+RUN npm prune --production
+
+CMD [ "node", "src/main.js" ]

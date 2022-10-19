@@ -24,9 +24,18 @@ export class Chain extends BaseEntityAutoId {
   @Column({ name: 'Denom' })
   denom: string;
 
+  @Column({ name: 'TokenImg' })
+  tokenImg: string;
+
   @Column({ name: 'ChainId' })
   chainId: string;
 
   @Column({ name: 'Prefix' })
   prefix: string;
+
+  @Column({ name: 'CoinDecimals' })
+  coinDecimals: number;
+
+  @Column({ name: 'GasPrice' })
+  gasPrice: number;
 }

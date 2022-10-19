@@ -162,7 +162,7 @@ describe(MultisigWalletController.name, () => {
 
     it(`should return error: ${ErrorMap.DUPLICATE_SAFE_ADDRESS_HASH.Message}`, async () => {
       // find chain by internalChainId
-      mockFindOneChain.mockResolvedValue({});
+      mockFindOneChain.mockResolvedValue(mockChain[0]);
       // find exist safe by address hash
       mockFindSafeByCondition.mockResolvedValue([
         {
@@ -170,7 +170,7 @@ describe(MultisigWalletController.name, () => {
         },
       ]);
       const result = await safeController.createMultisigWallet(
-        mockCreateRequest[2],
+        mockCreateRequest[4],
       );
       expect(result.Message).toEqual(
         ErrorMap.DUPLICATE_SAFE_ADDRESS_HASH.Message,
@@ -179,7 +179,7 @@ describe(MultisigWalletController.name, () => {
 
     it(`should return error: ${ErrorMap.CANNOT_CREATE_SAFE_ADDRESS.Message}`, async () => {
       // find chain by internalChainId
-      mockFindOneChain.mockResolvedValue({});
+      mockFindOneChain.mockResolvedValue(mockChain[0]);
       // find exist safe by address hash
       mockFindSafeByCondition.mockResolvedValue(undefined);
 
@@ -255,6 +255,7 @@ describe(MultisigWalletController.name, () => {
         };
         // find safe
         mockFindSafeByCondition.mockResolvedValue([]);
+        mockFindOneChain.mockResolvedValue(mockChain[1]);
 
         const result = await safeController.getMultisigWallet(param, query);
         expect(result.Message).toEqual(ErrorMap.NO_SAFES_FOUND.Message);
@@ -297,27 +298,6 @@ describe(MultisigWalletController.name, () => {
         expect(result.Message).toEqual(ErrorMap.CHAIN_ID_NOT_EXIST.Message);
       });
 
-      // it(`should return error: ${ErrorMap.GET_BALANCE_FAILED.Message}`, async () => {
-      //   const param: MODULE_REQUEST.GetSafePathParams = {
-      //     safeId: '3',
-      //   };
-      //   const query: MODULE_REQUEST.GetSafeQuery = {
-      //     internalChainId: undefined,
-      //   };
-
-      //   // find safe
-      //   mockFindSafeByCondition.mockResolvedValue([mockSafe[0]]);
-      //   // find safe owner
-      //   mockFindSafeOwnerByCondition.mockResolvedValue([mockSafeOwner[0]]);
-      //   // find chainInfo
-      //   mockFindOneChain.mockResolvedValue(mockChain[0]);
-      //   // get balance from network
-      //   mockInitNetwork.mockRejectedValue({});
-
-      //   const result = await safeController.getMultisigWallet(param, query);
-      //   expect(result.Message).toEqual(ErrorMap.GET_BALANCE_FAILED.Message);
-      // });
-
       it(`should return error: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
         const param: MODULE_REQUEST.GetSafePathParams = {
           safeId: '3',
@@ -351,6 +331,7 @@ describe(MultisigWalletController.name, () => {
 
         // find safe
         mockFindSafeByCondition.mockResolvedValue([]);
+        mockFindOneChain.mockResolvedValue(mockChain[1]);
 
         const result = await safeController.getMultisigWallet(param, query);
         expect(result.Message).toEqual(ErrorMap.NO_SAFES_FOUND.Message);
@@ -365,7 +346,7 @@ describe(MultisigWalletController.name, () => {
         };
 
         // find safe
-        mockFindSafeByCondition.mockResolvedValue([mockSafe[0]]);
+        mockFindSafeByCondition.mockResolvedValue([mockSafe[1]]);
         // find safe owner
         mockFindSafeOwnerByCondition.mockResolvedValue([]);
 
@@ -391,27 +372,6 @@ describe(MultisigWalletController.name, () => {
         const result = await safeController.getMultisigWallet(param, query);
         expect(result.Message).toEqual(ErrorMap.CHAIN_ID_NOT_EXIST.Message);
       });
-
-      // it(`should return error: ${ErrorMap.GET_BALANCE_FAILED.Message}`, async () => {
-      //   const param: MODULE_REQUEST.GetSafePathParams = {
-      //     safeId: 'aura1hnr59hsqchckgtd49nsejmy5mj400nv6cpmm9v',
-      //   };
-      //   const query: MODULE_REQUEST.GetSafeQuery = {
-      //     internalChainId: 3,
-      //   };
-
-      //   // find safe
-      //   mockFindSafeByCondition.mockResolvedValue([mockSafe[1]]);
-      //   // find safe owner
-      //   mockFindSafeOwnerByCondition.mockResolvedValue([mockSafeOwner[0]]);
-      //   // find chainInfo
-      //   mockFindOneChain.mockResolvedValue(mockChain[0]);
-      //   // get balance from network
-      //   mockInitNetwork.mockRejectedValue({});
-
-      //   const result = await safeController.getMultisigWallet(param, query);
-      //   expect(result.Message).toEqual(ErrorMap.GET_BALANCE_FAILED.Message);
-      // });
 
       it(`should return error: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
         const param: MODULE_REQUEST.GetSafePathParams = {
@@ -446,6 +406,7 @@ describe(MultisigWalletController.name, () => {
       };
       // find safe
       mockFindSafeByCondition.mockResolvedValue([]);
+      mockFindOneChain.mockResolvedValue(mockChain[1]);
 
       const result = await safeController.getBalance(param, query);
       expect(result.Message).toEqual(ErrorMap.NO_SAFES_FOUND.Message);
@@ -539,6 +500,7 @@ describe(MultisigWalletController.name, () => {
 
       // find safe
       mockFindSafeByCondition.mockResolvedValue([]);
+      mockFindOneChain.mockResolvedValue(mockChain[1]);
 
       const result = await safeController.confirmMultisigWallet(param, request);
       expect(result.Message).toEqual(ErrorMap.NO_SAFES_FOUND.Message);
@@ -571,6 +533,7 @@ describe(MultisigWalletController.name, () => {
 
       // find safe
       mockFindSafeByCondition.mockResolvedValue([mockSafe[2]]);
+      mockFindOneChain.mockResolvedValue([mockChain[1]]);
       // find safe owners
       mockFindSafeOwnerByCondition.mockResolvedValue([
         mockSafeOwner[0],
@@ -594,6 +557,7 @@ describe(MultisigWalletController.name, () => {
 
       // find safe
       mockFindSafeByCondition.mockResolvedValue([mockSafe[2]]);
+      mockFindOneChain.mockResolvedValue([mockChain[1]]);
       // find safe owners
       mockFindSafeOwnerByCondition.mockResolvedValue([
         mockSafeOwner[1],

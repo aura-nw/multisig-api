@@ -1,4 +1,4 @@
-import { CacheModule, Module } from '@nestjs/common';
+import { CacheModule, MiddlewareConsumer, Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MultisigWalletController } from './controllers/multisig-wallet.controller';
@@ -22,16 +22,31 @@ import { MultisigTransactionRepository } from './repositories/impls/multisig-tra
 import { MultisigConfirmRepository } from './repositories/impls/multisig-confirm.repository';
 import { TransactionRepository } from './repositories/impls/transaction.repository';
 import { TransactionService } from './services/impls/transaction.service';
-import { SmartContractController } from './controllers/smart-contract.controller';
-import { SmartContractService } from './services/impls/smart-contract.service';
-import { SmartContractRepository } from './repositories/impls/smart-contract.repository';
+import { AuthController } from './controllers/auth.controller';
+import { AuthService } from './services/impls/auth.service';
+import { JwtModule } from '@nestjs/jwt';
+import { JwtStrategy } from './jwt.strategy';
+import { contextMiddleware } from './middlewares';
+import { SeederModule } from './database/seeders/seeder.module';
+import { GasRepository } from './repositories/impls/gas.repository';
+import { GovService } from './services/impls/gov.service';
+import { GovController } from './controllers/gov.controller';
+import { DistributionController } from './controllers/distribution.controller';
+import { DistributionService } from './services/impls/distribution.service';
+import { UserController } from './controllers/user.controller';
+import { UserRepository } from './repositories/impls/user.repository';
+import { UserService } from './services/impls/user.service';
+import { MessageRepository } from './repositories/impls/message.repository';
 
 const controllers = [
   MultisigWalletController,
   TransactionController,
   OwnerController,
   GeneralController,
-  SmartContractController,
+  AuthController,
+  GovController,
+  DistributionController,
+  UserController,
   // AppController,
 ];
 const entities = [
@@ -41,7 +56,9 @@ const entities = [
   ENTITIES_CONFIG.MULTISIG_CONFIRM,
   ENTITIES_CONFIG.MULTISIG_TRANSACTION,
   ENTITIES_CONFIG.AURA_TX,
-  ENTITIES_CONFIG.SMART_CONTRACT_TX,
+  ENTITIES_CONFIG.GAS,
+  ENTITIES_CONFIG.USER,
+  ENTITIES_CONFIG.MESSAGE,
 ];
 @Module({
   imports: [
@@ -53,15 +70,23 @@ const entities = [
     }),
     CacheModule.register({ ttl: 10000 }),
     SharedModule,
+    SeederModule,
     TypeOrmModule.forFeature([...entities]),
     TypeOrmModule.forRootAsync({
       imports: [SharedModule],
       useFactory: (configService: ConfigService) => configService.typeOrmConfig,
       inject: [ConfigService],
     }),
+    JwtModule.registerAsync({
+      imports: [SharedModule],
+      useFactory: (configService: ConfigService) => configService.jwtConfig,
+      inject: [ConfigService],
+    }),
   ],
   controllers: [...controllers],
   providers: [
+    //jwt
+    JwtStrategy,
     //repository
     {
       provide: REPOSITORY_INTERFACE.IMULTISIG_WALLET_REPOSITORY,
@@ -88,8 +113,16 @@ const entities = [
       useClass: TransactionRepository,
     },
     {
-      provide: REPOSITORY_INTERFACE.ISMART_CONTRACT_REPOSITORY,
-      useClass: SmartContractRepository,
+      provide: REPOSITORY_INTERFACE.IGAS_REPOSITORY,
+      useClass: GasRepository,
+    },
+    {
+      provide: REPOSITORY_INTERFACE.IUSER_REPOSITORY,
+      useClass: UserRepository,
+    },
+    {
+      provide: REPOSITORY_INTERFACE.IMESSAGE_REPOSITORY,
+      useClass: MessageRepository,
     },
     //service
     {
@@ -109,9 +142,25 @@ const entities = [
       useClass: TransactionService,
     },
     {
-      provide: SERVICE_INTERFACE.ISMART_CONTRACT_SERVICE,
-      useClass: SmartContractService,
-    }
+      provide: SERVICE_INTERFACE.IAUTH_SERVICE,
+      useClass: AuthService,
+    },
+    {
+      provide: SERVICE_INTERFACE.IGOV_SERVICE,
+      useClass: GovService,
+    },
+    {
+      provide: SERVICE_INTERFACE.IDISTRIBUTION_SERVICE,
+      useClass: DistributionService,
+    },
+    {
+      provide: SERVICE_INTERFACE.IUSER_SERVICE,
+      useClass: UserService,
+    },
   ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer): MiddlewareConsumer | void {
+    consumer.apply(contextMiddleware).forRoutes('*');
+  }
+}

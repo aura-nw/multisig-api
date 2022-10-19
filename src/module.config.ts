@@ -1,11 +1,9 @@
 import {
-  ConfirmMultisigWalletRequest,
   ConfirmSafePathParams,
   ConfirmTransactionRequest,
   ConnectMultisigWalletRequest,
   CreateMultisigWalletRequest,
   CreateTransactionRequest,
-  DeleteMultisigWalletRequest,
   DeleteSafePathParams,
   GetAllTransactionsRequest,
   GetMultisigSignaturesParam,
@@ -19,8 +17,22 @@ import {
   RejectTransactionRequest,
   SendTransactionRequest,
   GetAccountOnchainParam,
-  QueryMessageRequest,
-  ExecuteMessageRequest,
+  GetTxDetailQuery,
+  GetProposalsParam,
+  GetValidatorVotesByProposalIdParams,
+  GetProposalDepositsByIdPathParams,
+  GetVotesByProposalIdParams,
+  GetVotesByProposalIdQuery,
+  GetUserPathParam,
+  GetProposalParam,
+  GetDelegatorRewardsParam,
+  GetUndelegationsParam,
+  GetValidatorsParam,
+  GetValidatorsQuery,
+  GetProposalsQuery,
+  AuthRequest,
+  GetDelegationQuery,
+  GetDelegationsParam,
 } from './dtos/requests';
 import {
   GetMultisigWalletResponse,
@@ -32,15 +44,25 @@ import {
   GetAccountOnchainResponse,
   CreateSafeResponse,
   GetBalanceResponse,
+  GetProposalsResponse,
+  GetProposalsProposal,
+  GetVotesByProposalIdResponse,
+  GetValidatorVotesByProposalIdResponse,
+  GetValidatorsResponse,
+  GetDelegationsResponse,
+  GetUndelegationsResponse,
+  GetDelegationResponse,
 } from './dtos/responses';
 import {
   AuraTx,
   Chain,
+  Gas,
+  Message,
   MultisigConfirm,
   MultisigTransaction,
   Safe,
   SafeOwner,
-  SmartContractTx,
+  User,
 } from './entities';
 
 export const ENTITIES_CONFIG = {
@@ -50,13 +72,13 @@ export const ENTITIES_CONFIG = {
   MULTISIG_CONFIRM: MultisigConfirm,
   MULTISIG_TRANSACTION: MultisigTransaction,
   AURA_TX: AuraTx,
-  SMART_CONTRACT_TX: SmartContractTx,
+  GAS: Gas,
+  USER: User,
+  MESSAGE: Message,
 };
 
 export const REQUEST_CONFIG = {
   CREATE_MULTISIG_WALLET_REQUEST: CreateMultisigWalletRequest,
-  CONFIRM_MULTISIG_WALLET_REQUEST: ConfirmMultisigWalletRequest,
-  DELETE_MULTISIG_WALLET_REQUEST: DeleteMultisigWalletRequest,
   CREATE_TRANSACTION_REQUEST: CreateTransactionRequest,
   SEND_TRANSACTION_REQUEST: SendTransactionRequest,
   CONFIRM_TRANSACTION_REQUEST: ConfirmTransactionRequest,
@@ -74,8 +96,22 @@ export const REQUEST_CONFIG = {
   REJECT_TRANSACTION_PARAM: RejectTransactionRequest,
   GET_MULTISIG_SIGNATURES_PARAM: GetMultisigSignaturesParam,
   GET_ACCOUNT_ONCHAIN_PARAM: GetAccountOnchainParam,
-  QUERY_MESSAGE_REQUEST: QueryMessageRequest,
-  EXECUTE_MESSAGE_REQUEST: ExecuteMessageRequest,
+  SIGN_IN_REQUEST: AuthRequest,
+  GET_VALIDATORS_PARAM: GetValidatorsParam,
+  GET_VALIDATORS_QUERY: GetValidatorsQuery,
+  GET_DELEGATION_QUERY: GetDelegationQuery,
+  GET_DELEGATIONS_PARAM: GetDelegationsParam,
+  GET_DELEGATOR_REWARDS_PARAM: GetDelegatorRewardsParam,
+  GET_UNDELEGATIONS_PARAM: GetUndelegationsParam,
+  GET_PROPOSALS_QUERY: GetProposalsQuery,
+  GET_PROPOSAL_PARAM: GetProposalParam,
+  GET_TX_DETAIL_QUERY: GetTxDetailQuery,
+  GET_PROPOSALS_PARAM: GetProposalsParam,
+  GET_VALIDATOR_VOTES_BY_PROPOSAL_ID_PARAM: GetValidatorVotesByProposalIdParams,
+  GET_PROPOSAL_DEPOSITS_BY_ID_PARAM: GetProposalDepositsByIdPathParams,
+  GET_VOTES_BY_PROPOSAL_ID_PARAM: GetVotesByProposalIdParams,
+  GET_VOTES_BY_PROPOSAL_ID_QUERY: GetVotesByProposalIdQuery,
+  GET_USER_PATH_PARAMS: GetUserPathParam,
 };
 
 export const RESPONSE_CONFIG = {
@@ -88,12 +124,19 @@ export const RESPONSE_CONFIG = {
   TRANSACTION_DETAILS_RESPONSE: TransactionDetailsResponse,
   NETWORK_LIST_RESPONSE: NetworkListResponse,
   GET_ACCOUNT_ONCHAIN_RESPONSE: GetAccountOnchainResponse,
+  GET_VALIDATORS_RESPONSE: GetValidatorsResponse,
+  GET_DELEGATIONS_RESPONSE: GetDelegationsResponse,
+  GET_DELEGATION_RESPONSE: GetDelegationResponse,
+  GET_UNDELEGATIONS_RESPONSE: GetUndelegationsResponse,
+  GET_PROPOSALS_RESPONSE: GetProposalsResponse,
+  GET_PROPOSAL_RESPONSE: GetProposalsProposal,
+  GET_VOTES_BY_PROPOSAL_ID_RESPONSE: GetVotesByProposalIdResponse,
+  GET_VALIDATOR_VOTES_BY_PROPOSAL_ID_RESPONSE:
+    GetValidatorVotesByProposalIdResponse,
 };
 
-export module MODULE_REQUEST {
+export namespace MODULE_REQUEST {
   export abstract class CreateMultisigWalletRequest extends REQUEST_CONFIG.CREATE_MULTISIG_WALLET_REQUEST {}
-  export abstract class ConfirmMultisigWalletRequest extends REQUEST_CONFIG.CONFIRM_MULTISIG_WALLET_REQUEST {}
-  export abstract class DeleteMultisigWalletRequest extends REQUEST_CONFIG.DELETE_MULTISIG_WALLET_REQUEST {}
   export abstract class CreateTransactionRequest extends REQUEST_CONFIG.CREATE_TRANSACTION_REQUEST {}
   export abstract class SendTransactionRequest extends REQUEST_CONFIG.SEND_TRANSACTION_REQUEST {}
   export abstract class ConfirmTransactionRequest extends REQUEST_CONFIG.CONFIRM_TRANSACTION_REQUEST {}
@@ -111,11 +154,24 @@ export module MODULE_REQUEST {
   export abstract class GetSafeBalanceQuery extends REQUEST_CONFIG.GET_SAFE_BALANCE_QUERY {}
   export abstract class GetSafeBalancePathParams extends REQUEST_CONFIG.GET_SAFE_BALANCE_PATH_PARAMS {}
   export abstract class GetAccountOnchainParam extends REQUEST_CONFIG.GET_ACCOUNT_ONCHAIN_PARAM {}
-  export abstract class QueryMessageRequest extends REQUEST_CONFIG.QUERY_MESSAGE_REQUEST {}
-  export abstract class ExecuteMessageRequest extends REQUEST_CONFIG.EXECUTE_MESSAGE_REQUEST {}
+  export abstract class GetValidatorsParam extends REQUEST_CONFIG.GET_VALIDATORS_PARAM {}
+  export abstract class GetValidatorsQuery extends REQUEST_CONFIG.GET_VALIDATORS_QUERY {}
+  export abstract class GetDelegationQuery extends REQUEST_CONFIG.GET_DELEGATION_QUERY {}
+  export abstract class GetDelegationsParam extends REQUEST_CONFIG.GET_DELEGATIONS_PARAM {}
+  export abstract class GetDelegatorRewardsParam extends REQUEST_CONFIG.GET_DELEGATOR_REWARDS_PARAM {}
+  export abstract class GetUndelegationsParam extends REQUEST_CONFIG.GET_UNDELEGATIONS_PARAM {}
+  export abstract class GetTxDetailQuery extends REQUEST_CONFIG.GET_TX_DETAIL_QUERY {}
+  export abstract class AuthRequest extends REQUEST_CONFIG.SIGN_IN_REQUEST {}
+  export abstract class GetProposalsParam extends REQUEST_CONFIG.GET_PROPOSALS_PARAM {}
+  export abstract class GetProposalParam extends REQUEST_CONFIG.GET_PROPOSAL_PARAM {}
+  export abstract class GetValidatorVotesByProposalIdParams extends REQUEST_CONFIG.GET_VALIDATOR_VOTES_BY_PROPOSAL_ID_PARAM {}
+  export abstract class GetProposalDepositsByIdPathParams extends REQUEST_CONFIG.GET_PROPOSAL_DEPOSITS_BY_ID_PARAM {}
+  export abstract class GetVotesByProposalIdParams extends REQUEST_CONFIG.GET_VOTES_BY_PROPOSAL_ID_PARAM {}
+  export abstract class GetVotesByProposalIdQuery extends REQUEST_CONFIG.GET_VOTES_BY_PROPOSAL_ID_QUERY {}
+  export abstract class GetUserPathParams extends REQUEST_CONFIG.GET_USER_PATH_PARAMS {}
 }
 
-export module MODULE_RESPONSE {
+export namespace MODULE_RESPONSE {
   export abstract class ResponseDto extends RESPONSE_CONFIG.RESPONSE_DTO {}
   export abstract class CreateSafeResponse extends RESPONSE_CONFIG.CREATE_SAFE_RESPONSE {}
   export abstract class GetSafeBalanceResponse extends RESPONSE_CONFIG.GET_SAFE_BALANCE {}
@@ -125,6 +181,14 @@ export module MODULE_RESPONSE {
   export abstract class TransactionDetailsResponse extends RESPONSE_CONFIG.TRANSACTION_DETAILS_RESPONSE {}
   export abstract class NetworkListResponse extends RESPONSE_CONFIG.NETWORK_LIST_RESPONSE {}
   export abstract class GetAccountOnchainResponse extends RESPONSE_CONFIG.GET_ACCOUNT_ONCHAIN_RESPONSE {}
+  export abstract class GetValidatorsResponse extends RESPONSE_CONFIG.GET_VALIDATORS_RESPONSE {}
+  export abstract class GetDelegationsResponse extends RESPONSE_CONFIG.GET_DELEGATIONS_RESPONSE {}
+  export abstract class GetDelegationResponse extends RESPONSE_CONFIG.GET_DELEGATION_RESPONSE {}
+  export abstract class GetUndelegationsResponse extends RESPONSE_CONFIG.GET_UNDELEGATIONS_RESPONSE {}
+  export abstract class GetProposalsResponse extends RESPONSE_CONFIG.GET_PROPOSALS_RESPONSE {}
+  export abstract class GetProposalResponse extends RESPONSE_CONFIG.GET_PROPOSAL_RESPONSE {}
+  export abstract class GetVotesByProposalIdResponse extends RESPONSE_CONFIG.GET_VOTES_BY_PROPOSAL_ID_RESPONSE {}
+  export abstract class GetValidatorVotesByProposalIdResponse extends RESPONSE_CONFIG.GET_VALIDATOR_VOTES_BY_PROPOSAL_ID_RESPONSE {}
 }
 
 export const SERVICE_INTERFACE = {
@@ -133,7 +197,10 @@ export const SERVICE_INTERFACE = {
   ITRANSACTION_SERVICE: 'ITransactionService',
   IGENERAL_SERVICE: 'IGeneralService',
   IMULTISIG_TRANSACTION_SERVICE: 'IMultisigTransactionService',
-  ISMART_CONTRACT_SERVICE: 'ISmartContractService',
+  IAUTH_SERVICE: 'IAuthService',
+  IGOV_SERVICE: 'IGovService',
+  IDISTRIBUTION_SERVICE: 'IDistributionService',
+  IUSER_SERVICE: 'IUserService',
 };
 
 export const REPOSITORY_INTERFACE = {
@@ -143,7 +210,9 @@ export const REPOSITORY_INTERFACE = {
   IGENERAL_REPOSITORY: 'IGeneralRepository',
   IMULTISIG_TRANSACTION_REPOSITORY: 'IMultisigTransactionsRepository',
   IMULTISIG_CONFIRM_REPOSITORY: 'IMultisigConfirmRepository',
-  ISMART_CONTRACT_REPOSITORY: 'ISmartContractRepository',
+  IGAS_REPOSITORY: 'IGasRepository',
+  IUSER_REPOSITORY: 'IUserRepository',
+  IMESSAGE_REPOSITORY: 'IMessageRepository',
 };
 
 export const PROVIDER_INTERFACE = {};

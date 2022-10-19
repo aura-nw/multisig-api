@@ -3,7 +3,6 @@ import { Column, Entity } from 'typeorm';
 
 @Entity({ name: 'Safe' })
 export class Safe extends BaseEntityAutoId {
-
   @Column({ name: 'SafeAddress', unique: true, nullable: true })
   safeAddress: string;
 
@@ -27,6 +26,12 @@ export class Safe extends BaseEntityAutoId {
 
   @Column({ name: 'InternalChainId' })
   internalChainId: number;
+
+  @Column({ name: 'TxHistoryTag' })
+  txHistoryTag: string;
+
+  @Column({ name: 'TxQueuedTag' })
+  txQueuedTag: string;
 
   // index: [SafeAddress]
 }

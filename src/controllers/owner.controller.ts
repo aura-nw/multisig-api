@@ -22,7 +22,7 @@ export class OwnerController {
   constructor(
     @Inject(SERVICE_INTERFACE.IMULTISIG_WALLET_SERVICE)
     private multisigWalletService: IMultisigWalletService,
-  ) { }
+  ) {}
 
   @Get(URL_CONSTANTS.GET_SAFES_BY_OWNER)
   @ApiOperation({
@@ -37,9 +37,6 @@ export class OwnerController {
     this._logger.log(
       '========== Return Safes where the address provided is an owner ==========',
     );
-    return this.multisigWalletService.getMultisigWalletsByOwner(
-      param,
-      query,
-    );
+    return this.multisigWalletService.getMultisigWalletsByOwner(param, query);
   }
 }

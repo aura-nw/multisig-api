@@ -25,7 +25,7 @@ export class GeneralRepository
   }
 
   async showNetworkList() {
-    let sqlQuerry = this.repos
+    const sqlQuerry = this.repos
       .createQueryBuilder('chain')
       .select([
         'chain.id as id',
@@ -37,12 +37,22 @@ export class GeneralRepository
         'chain.symbol as symbol',
         'chain.denom as denom',
         'chain.prefix as prefix',
+        'chain.coinDecimals as coinDecimals',
+        'chain.gasPrice as gasPrice',
+        'chain.tokenImg as tokenImg',
       ]);
-    return sqlQuerry.getRawMany();
+    const result = await sqlQuerry.getRawMany();
+    return result;
   }
 
   async findChain(internalChainId: number): Promise<Chain> {
-    const chainInfo = (await this.findOne(internalChainId)) as Chain;
+    const chainInfo = (await this.findOne({ id: internalChainId })) as Chain;
+    if (!chainInfo) throw new CustomError(ErrorMap.CHAIN_ID_NOT_EXIST);
+    return chainInfo;
+  }
+
+  async findChainByChainId(chainId: string): Promise<Chain> {
+    const chainInfo = (await this.findOne({ chainId })) as Chain;
     if (!chainInfo) throw new CustomError(ErrorMap.CHAIN_ID_NOT_EXIST);
     return chainInfo;
   }

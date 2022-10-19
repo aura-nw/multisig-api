@@ -1,17 +1,38 @@
+import fetch from 'node-fetch';
 import {
   createMultisigThresholdPubkey,
+  encodeAminoPubkey,
   Pubkey,
   pubkeyToAddress,
   SinglePubkey,
 } from '@cosmjs/amino';
-import { Fee, LCDClient, LegacyAminoMultisigPublicKey, MsgSend, MultiSignature, SignatureV2, SimplePublicKey } from '@terra-money/terra.js';
+import { sha256 } from '@cosmjs/crypto';
+import { toBech32, toHex } from '@cosmjs/encoding';
+import {
+  Fee,
+  LCDClient,
+  LegacyAminoMultisigPublicKey,
+  MsgSend,
+  MultiSignature,
+  SignatureV2,
+  SimplePublicKey,
+} from '@terra-money/terra.js';
+import { plainToInstance } from 'class-transformer';
+import { readFile } from 'graceful-fs';
+import {
+  createMultisigThresholdPubkeyEvmos,
+  encodeAminoPubkeySupportEvmos,
+} from 'src/chains/evmos';
 import { PUBKEY_TYPES } from 'src/common/constants/app.constant';
+import { CustomError } from 'src/common/customError';
+import { ErrorMap } from 'src/common/error.map';
+import { UserInfo } from 'src/dtos/userInfo';
 import { MultisigTransaction, Safe } from 'src/entities';
+import { AuthService } from 'src/services/impls/auth.service';
 import { ConfigService } from '../shared/services/config.service';
 
 export class CommonUtil {
   private configService: ConfigService = new ConfigService();
-  constructor() {}
 
   /**
    * Calculate address from public key
@@ -22,20 +43,21 @@ export class CommonUtil {
     pubkey: Pubkey,
     prefix = this.configService.get('PREFIX'),
   ): string {
-    return pubkeyToAddress(pubkey, prefix);
-  }
+    if (prefix === 'evmos') {
+      const pubkeyAmino = encodeAminoPubkeySupportEvmos(pubkey);
+      console.log(toHex(pubkeyAmino));
+      const rawAddress = sha256(pubkeyAmino).slice(0, 20);
+      const address = toBech32(prefix, rawAddress);
+      return address;
+    } else {
+      const pubkeyData = encodeAminoPubkey(pubkey);
 
-  /**
-   * https://stackoverflow.com/a/34890276
-   * @param xs
-   * @param key
-   * @returns
-   */
-  public groupBy<TItem>(xs: TItem[], key: string): { [key: string]: TItem[] } {
-    return xs.reduce(function (rv, x) {
-      (rv[x[key]] = rv[x[key]] || []).push(x);
-      return rv;
-    }, {});
+      const rawAddress = sha256(pubkeyData).slice(0, 20);
+      const address = toBech32(prefix, rawAddress);
+      console.log(address);
+
+      return pubkeyToAddress(pubkey, prefix);
+    }
   }
 
   /**
@@ -66,8 +88,20 @@ export class CommonUtil {
     pubkey: string;
     address: string;
   } {
-    const arrPubkeys = pubKeyArrString.map(this.createPubkeys);
-    const multisigPubkey = createMultisigThresholdPubkey(arrPubkeys, threshold);
+    let arrPubkeys;
+    if (prefix === 'evmos') {
+      arrPubkeys = pubKeyArrString.map(this.createPubkeyEvmos);
+    } else arrPubkeys = pubKeyArrString.map(this.createPubkeys);
+
+    let multisigPubkey;
+    if (prefix === 'evmos') {
+      multisigPubkey = createMultisigThresholdPubkeyEvmos(
+        arrPubkeys,
+        threshold,
+      );
+    } else {
+      multisigPubkey = createMultisigThresholdPubkey(arrPubkeys, threshold);
+    }
     const multiSigWalletAddress = this.pubkeyToAddress(multisigPubkey, prefix);
     return {
       pubkey: JSON.stringify(multisigPubkey),
@@ -75,24 +109,39 @@ export class CommonUtil {
     };
   }
 
+  private createPubkeyEvmos(value: string): SinglePubkey {
+    const result: SinglePubkey = {
+      type: 'ethermint/PubKeyEthSecp256k1',
+      value: value,
+    };
+    return result;
+  }
+
   private createPubkeys(value: string): SinglePubkey {
     const result: SinglePubkey = {
-      type: PUBKEY_TYPES.SECP256K1,
+      type: 'tendermint/PubKeySecp256k1',
       value,
     };
     return result;
   }
 
-  async makeTerraTx(multisigTransaction: MultisigTransaction, safe: Safe, multisigConfirmArr: any[], client: LCDClient) {
-    const multisigPubkey = LegacyAminoMultisigPublicKey.fromAmino(JSON.parse(safe.safePubkey))
-    const multisig = new MultiSignature(multisigPubkey)
+  async makeTerraTx(
+    multisigTransaction: MultisigTransaction,
+    safe: Safe,
+    multisigConfirmArr: any[],
+    client: LCDClient,
+  ) {
+    const multisigPubkey = LegacyAminoMultisigPublicKey.fromAmino(
+      JSON.parse(safe.safePubkey),
+    );
+    const multisig = new MultiSignature(multisigPubkey);
 
     const amount = {};
     amount[multisigTransaction.denom] = multisigTransaction.amount;
     const send = new MsgSend(
       multisigTransaction.fromAddress,
       multisigTransaction.toAddress,
-      amount
+      amount,
     );
 
     const tx = await client.tx.create(
@@ -100,25 +149,28 @@ export class CommonUtil {
         {
           address: multisigTransaction.fromAddress,
           sequenceNumber: Number(multisigTransaction.sequence),
-          publicKey: multisigPubkey
+          publicKey: multisigPubkey,
         },
       ],
       {
         msgs: [send],
-        fee: new Fee(multisigTransaction.gas, multisigTransaction.fee + multisigTransaction.denom),
-        gas: multisigTransaction.gas.toString()
-      }
+        fee: new Fee(
+          multisigTransaction.gas,
+          multisigTransaction.fee + multisigTransaction.denom,
+        ),
+        gas: multisigTransaction.gas.toString(),
+      },
     );
 
-    let addressSignarureMap = [];
+    const addressSignarureMap = [];
     multisigConfirmArr.forEach((x) => {
       const pubkeyAmino: SimplePublicKey.Amino = {
         type: PUBKEY_TYPES.SECP256K1,
-        value: x.pubkey
+        value: x.pubkey,
       };
       const amino: SignatureV2.Amino = {
         signature: x.signature,
-        pub_key: pubkeyAmino
+        pub_key: pubkeyAmino,
       };
       const sig = SignatureV2.fromAmino(amino);
       addressSignarureMap.push(sig);
@@ -129,10 +181,57 @@ export class CommonUtil {
       new SignatureV2(
         multisigPubkey,
         multisig.toSignatureDescriptor(),
-        Number(multisigTransaction.sequence)
+        Number(multisigTransaction.sequence),
       ),
     ]);
 
     return tx;
+  }
+
+  getAuthInfo(): UserInfo {
+    const currentUser = AuthService.getAuthUser();
+    if (!currentUser) throw new CustomError(ErrorMap.UNAUTHRORIZED);
+    return plainToInstance(UserInfo, currentUser);
+  }
+
+  jsonReader(filePath, cb) {
+    readFile(filePath, 'utf-8', (error, fileData) => {
+      if (error) {
+        return cb && cb(error);
+      }
+      try {
+        const object = JSON.parse(fileData);
+        return cb && cb(null, object);
+      } catch (error) {
+        return cb && cb(error);
+      }
+    });
+  }
+
+  public async request(url: string, method = 'GET', body?: any) {
+    const options = {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    };
+    if (body) {
+      options['body'] = JSON.stringify(body);
+    }
+    const result = await fetch(url, options);
+    if (result.status !== 200) {
+      throw new CustomError(
+        ErrorMap.REQUEST_ERROR,
+        `${new URL(url).host} ${result.status} ${result.statusText} `,
+      );
+    }
+    return result.json();
+  }
+
+  getPercentage(number: any, sum: any): string {
+    if (number == 0) {
+      return '0';
+    }
+    return ((+number * 100) / sum).toFixed(2);
   }
 }

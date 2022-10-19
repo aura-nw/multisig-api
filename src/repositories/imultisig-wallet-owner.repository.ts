@@ -16,7 +16,7 @@ export interface IMultisigWalletOwnerRepository extends IBaseRepository {
     otherOwnersAddress: string[],
   ): any;
 
-  getSafeOwnersWithError(safeId: string): Promise<any>;
+  getSafeOwnersWithError(safeId: number): Promise<any>;
 
   getConfirmSafeStatus(
     safeId: string,
@@ -39,4 +39,11 @@ export interface IMultisigWalletOwnerRepository extends IBaseRepository {
     ownerPubkey: string,
     internalChainId: number,
   ): Promise<any>;
+
+  /**
+   * isSafeOwner
+   * @param walletAddress
+   * @param safeId
+   */
+  isSafeOwner(walletAddress: string, safeId: number): Promise<boolean>;
 }

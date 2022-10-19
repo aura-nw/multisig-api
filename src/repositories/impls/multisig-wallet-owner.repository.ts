@@ -45,7 +45,7 @@ export class MultisigWalletOwnerRepository
   }
 
   async getOwners(safeAddress: string) {
-    let sqlQuerry = this.repos
+    const sqlQuerry = this.repos
       .createQueryBuilder('safeOwner')
       .innerJoin(Safe, 'safe', 'safe.id = safeOwner.safeId')
       .where('safe.safeAddress = :safeAddress', { safeAddress })
@@ -84,7 +84,7 @@ export class MultisigWalletOwnerRepository
     }
   }
 
-  async getSafeOwnersWithError(safeId: string): Promise<any> {
+  async getSafeOwnersWithError(safeId: number): Promise<any> {
     const owners = (await this.findByCondition({ safeId })) as SafeOwner[];
     if (!owners || owners.length === 0) {
       this._logger.debug(`Not found any safe owner with safeId: ${safeId}`);
@@ -103,7 +103,7 @@ export class MultisigWalletOwnerRepository
     pubkeys: string[];
   }> {
     // get safe owners
-    const safeOwners = await this.getSafeOwnersWithError(safeId);
+    const safeOwners = await this.getSafeOwnersWithError(Number(safeId));
 
     // get safe owner by address
     const index = safeOwners.findIndex((s) => s.ownerAddress === myAddress);
@@ -127,5 +127,16 @@ export class MultisigWalletOwnerRepository
   async updateSafeOwner(safeOwner: SafeOwner): Promise<void> {
     const updateResult = await this.update(safeOwner);
     if (!updateResult) throw new CustomError(ErrorMap.UPDATE_SAFE_OWNER_FAILED);
+  }
+
+  async isSafeOwner(walletAddress: string, safeId: number): Promise<boolean> {
+    const result = await this.findOne({
+      where: {
+        safeId,
+        ownerAddress: walletAddress,
+      },
+    });
+    if (!result) throw new CustomError(ErrorMap.PERMISSION_DENIED);
+    return true;
   }
 }

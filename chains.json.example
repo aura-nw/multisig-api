@@ -1,0 +1,80 @@
+[
+  {
+    "name": "Juno Testnet",
+    "rest": "https://lcd.uni.juno.deuslabs.fi",
+    "rpc": "https://rpc.uni.juno.deuslabs.fi",
+    "webSocket": "wss://rpc.uni.juno.deuslabs.fi/websocket",
+    "explorer": "https://skynetexplorers.com/juno-uni-2/",
+    "symbol": "JUNO",
+    "denom": "ujunox",
+    "chainId": "uni-2",
+    "prefix": "juno",
+    "coinDecimals": 6,
+    "gasPrice": 0.0025
+  },
+  {
+    "name": "Osmosis Testnet",
+    "rest": "https://osmosistest-lcd.quickapi.com",
+    "rpc": "https://testnet-rpc.osmosis.zone/",
+    "webSocket": "wss://testnet-rpc.osmosis.zone/websocket",
+    "explorer": "https://bigdipper.testnet.osmo.mp20.net/",
+    "symbol": "OSMO",
+    "denom": "uosmo",
+    "chainId": "osmo-test-4",
+    "prefix": "osmo",
+    "coinDecimals": 6,
+    "gasPrice": 0.025
+  },
+  {
+    "name": "Gaia Testnet",
+    "rest": "https://rest-atom-testnet.aura.network/",
+    "rpc": "https://rpc-atom-testnet.aura.network/",
+    "webSocket": "wss://rpc-atom-testnet.aura.network/websocket",
+    "explorer": "https://explorer.theta-testnet.polypore.xyz/",
+    "symbol": "ATOM",
+    "denom": "uatom",
+    "chainId": "theta-testnet-001",
+    "prefix": "cosmos",
+    "coinDecimals": 6,
+    "gasPrice": 0.0025
+  },
+  {
+    "name": "Serenity Testnet",
+    "rest": "https://lcd.serenity.aura.network",
+    "rpc": "https://rpc.serenity.aura.network",
+    "webSocket": "wss://rpc.serenity.aura.network/websocket",
+    "explorer": "https://serenity.aurascan.io",
+    "symbol": "AURA",
+    "denom": "uaura",
+    "chainId": "serenity-testnet-001",
+    "prefix": "aura",
+    "coinDecimals": 6,
+    "gasPrice": 0.0025
+  },
+  {
+    "name": "Aura Devnet",
+    "rest": "https://lcd.dev.aura.network/",
+    "rpc": "https://rpc.dev.aura.network/",
+    "webSocket": "wss://rpc.dev.aura.network/websocket",
+    "explorer": "https://explorer.dev.aura.network",
+    "symbol": "TAURA",
+    "denom": "utaura",
+    "chainId": "aura-testnet",
+    "prefix": "aura",
+    "coinDecimals": 6,
+    "gasPrice": 0.0002
+  },
+  {
+    "name": "Evmos Testnet",
+    "rest": "https://rest.bd.evmos.dev:1317/",
+    "rpc": "https://tendermint.bd.evmos.dev:26657/",
+    "webSocket": "wss://tendermint.bd.evmos.dev:26657/websocket",
+    "explorer": "https://testnet.mintscan.io/evmos-testnet",
+    "symbol": "TEVMOS",
+    "denom": "atevmos",
+    "chainId": "evmos_9000-4",
+    "prefix": "evmos",
+    "coinDecimals": 18,
+    "gasPrice": 25000000000
+  }
+]

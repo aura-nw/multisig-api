@@ -5,7 +5,10 @@ export const CONTROLLER_CONSTANTS = {
   OWNER: 'owner',
   NOTIFICATION: 'notification',
   GENERAL: 'general',
-  SMART_CONTRACT: 'smartcontract',
+  AUTH: 'auth',
+  GOV: 'gov',
+  DISTRIBUTION: 'distribution',
+  USER: 'user',
 };
 export const URL_CONSTANTS = {
   broadcasting: 'broadcasting',
@@ -31,5 +34,20 @@ export const URL_CONSTANTS = {
   CONFIRM_EXECUTE_MESSAGE: 'confirm-execute-message',
   REJECT_EXECUTE_MESSAGE: 'reject-execute-message',
   SEND_EXECUTE_MESSAGE: 'send-execute-message',
+  AUTH: 'auth',
+  LIST_VALIDATORS: '/network/:internalChainId/validators',
+  GET_VALIDATORS: '/:internalChainId/validators',
+  GET_DELEGATIONS: '/:internalChainId/:delegatorAddress/delegations',
+  GET_DELEGATION: '/delegation',
+  GET_UNDELEGATIONS: '/:internalChainId/:delegatorAddress/undelegations',
+  DELEGATOR_REWARDS: '/:internalChainId/:delegatorAddress/rewards',
+  DELEGATION_INFORMATION: '/:internalChainId/:delegatorAddress',
+  GET_PROPOSALS: ':internalChainId/proposals',
+  GET_PROPOSAL_BY_ID: ':internalChainId/proposals/:proposalId',
+  GET_PROPOSAL_DEPOSITS_BY_ID:
+    ':internalChainId/proposal/:proposalId/depositors',
+  GET_VOTES_BY_PROPOSAL_ID: ':internalChainId/proposal/:proposalId/votes',
+  GET_VALIDATOR_VOTES_BY_PROPOSAL_ID:
+    ':internalChainId/proposal/:proposalId/validator-votes',
+  GET_USER_BY_ADDRESS: ':address',
 };
-

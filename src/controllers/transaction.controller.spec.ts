@@ -1,8 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ErrorMap } from 'src/common/error.map';
-import { mockSafe } from 'src/mock/safe.mock';
-import { mockChain, mockCreateTransactionRequest, mockTransaction } from 'src/mock/transaction.mock';
+import {
+  mockChain,
+  mockCreateTransactionRequest,
+} from 'src/mock/transaction.mock';
 import {
   ENTITIES_CONFIG,
   MODULE_REQUEST,
@@ -22,7 +24,6 @@ import { MultisigTransactionService } from 'src/services/impls/multisig-transact
 import { MultisigWalletService } from 'src/services/impls/multisig-wallet.service';
 import { TransactionService } from 'src/services/impls/transaction.service';
 import { SharedModule } from 'src/shared/shared.module';
-import { OwnerController } from './owner.controller';
 import { TransactionController } from './transaction.controller';
 
 describe(TransactionController.name, () => {
@@ -69,7 +70,7 @@ describe(TransactionController.name, () => {
         {
           provide: getRepositoryToken(ENTITIES_CONFIG.SAFE_OWNER),
           useValue: {
-            createQueryBuilder: mockCreateQueryBuilder
+            createQueryBuilder: mockCreateQueryBuilder,
           },
         },
         {
@@ -86,7 +87,7 @@ describe(TransactionController.name, () => {
         {
           provide: getRepositoryToken(ENTITIES_CONFIG.MULTISIG_CONFIRM),
           useValue: {
-            createQueryBuilder: mockGetMultisigConfirm
+            createQueryBuilder: mockGetMultisigConfirm,
           },
         },
         {
@@ -189,19 +190,23 @@ describe(TransactionController.name, () => {
     it(`should return: ${ErrorMap.TRANSACTION_NOT_EXIST.Message}`, async () => {
       // find multisig transaction
       const param: MODULE_REQUEST.GetMultisigSignaturesParam = {
-        id: 1000
-      }
+        id: 1000,
+      };
       mockFindOneMultisigTransaction.mockResolvedValue(undefined);
-      const result = await transactionController.getSignaturesOfMultisigTx(param);
+      const result = await transactionController.getSignaturesOfMultisigTx(
+        param,
+      );
       expect(result.Message).toEqual(ErrorMap.TRANSACTION_NOT_EXIST.Message);
     });
 
     it(`should return: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
       const param: MODULE_REQUEST.GetMultisigSignaturesParam = {
-        id: 1
-      }
+        id: 1,
+      };
       mockFindOneMultisigTransaction.mockResolvedValue([]);
-      const result = await transactionController.getSignaturesOfMultisigTx(param);
+      const result = await transactionController.getSignaturesOfMultisigTx(
+        param,
+      );
       expect(result.Message).toEqual(ErrorMap.SUCCESSFUL.Message);
     });
   });
@@ -211,26 +216,14 @@ describe(TransactionController.name, () => {
       // find safe
       const request: MODULE_REQUEST.GetAllTransactionsRequest = {
         safeAddress: '123',
+        internalChainId: 1,
         isHistory: true,
         pageIndex: 1,
-        pageSize: 10
-      }
+        pageSize: 10,
+      };
       mockFindSafeByCondition.mockResolvedValue([]);
       const result = await transactionController.getAllTxs(request);
       expect(result.Message).toEqual(ErrorMap.NO_SAFES_FOUND.Message);
     });
-
-    // it(`should return: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
-    //   const request: MODULE_REQUEST.GetAllTransactionsRequest = {
-    //     safeAddress: 'aura1hnr59hsqchckgtd49nsejmy5mj400nv6cpmm9v',
-    //     isHistory: true,
-    //     pageIndex: 1,
-    //     pageSize: 10
-    //   };
-    //   mockFindSafeByCondition.mockResolvedValue(mockSafe);
-    //   // mockGetTransactions.mockResolvedValue(mockTransaction);
-    //   const result = await transactionController.getAllTxs(request);
-    //   expect(result.Message).toEqual(ErrorMap.SUCCESSFUL.Message);
-    // })
-  })
+  });
 });

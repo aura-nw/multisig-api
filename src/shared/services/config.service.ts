@@ -1,3 +1,4 @@
+import { JwtModuleOptions } from '@nestjs/jwt';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import * as dotenv from 'dotenv';
 import { DATABASE_TYPE } from 'src/common/constants/app.constant';
@@ -63,6 +64,13 @@ export class ConfigService {
       logging: this.nodeEnv === 'development',
       namingStrategy: new PascalCaseStrategy(),
       multipleStatements: true,
+    };
+  }
+
+  get jwtConfig(): JwtModuleOptions {
+    return {
+      secret: this.get('JWT_SECRET'),
+      signOptions: { expiresIn: this.get('JWT_EXPIRATION') },
     };
   }
 }

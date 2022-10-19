@@ -9,6 +9,10 @@ import { IGeneralRepository } from 'src/repositories/igeneral.repository';
 import { ErrorMap } from 'src/common/error.map';
 import { IMultisigWalletRepository } from 'src/repositories';
 import { LCDClient } from '@terra-money/terra.js';
+import { getEvmosAccount } from 'src/chains/evmos';
+import * as axios from 'axios';
+import { IGasRepository } from 'src/repositories/igas.repository';
+import { CustomError } from 'src/common/customError';
 
 export class GeneralService extends BaseService implements IGeneralService {
   private readonly _logger = new Logger(GeneralService.name);
@@ -19,6 +23,8 @@ export class GeneralService extends BaseService implements IGeneralService {
     private chainRepo: IGeneralRepository,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_REPOSITORY)
     private safeRepo: IMultisigWalletRepository,
+    @Inject(REPOSITORY_INTERFACE.IGAS_REPOSITORY)
+    private gasRepo: IGasRepository,
   ) {
     super(chainRepo);
     this._logger.log(
@@ -26,41 +32,83 @@ export class GeneralService extends BaseService implements IGeneralService {
     );
   }
 
+  async getValidators(param: MODULE_REQUEST.GetValidatorsParam) {
+    const { internalChainId } = param;
+    try {
+      const chain = await this.chainRepo.findChain(internalChainId);
+      const result = await axios.default.get(
+        new URL(
+          '/cosmos/staking/v1beta1/validators?status=BOND_STATUS_BONDED',
+          chain.rest,
+        ).href,
+      );
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, result.data);
+    } catch (error) {
+      return ResponseDto.responseError(GeneralService.name, error);
+    }
+  }
+
   async showNetworkList(): Promise<ResponseDto> {
-    const res = new ResponseDto();
-    const result = await this.chainRepo.showNetworkList();
-    return res.return(ErrorMap.SUCCESSFUL, result);
+    try {
+      const chains = await this.chainRepo.showNetworkList();
+      for (const chain of chains) {
+        const gas = await this.gasRepo.findByCondition(
+          {
+            chainId: chain.chainId,
+          },
+          undefined,
+          ['typeUrl', 'gasAmount', 'multiplier'],
+        );
+        chain.defaultGas = gas;
+      }
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, chains);
+    } catch (error) {
+      return ResponseDto.responseError(GeneralService.name, error);
+    }
   }
 
   async getAccountOnchain(
     param: MODULE_REQUEST.GetAccountOnchainParam,
   ): Promise<ResponseDto> {
-    const res = new ResponseDto();
     try {
       const safeAddress = { safeAddress: param.safeAddress };
       const safe = await this.safeRepo.findByCondition(safeAddress);
-      if (safe.length === 0) return res.return(ErrorMap.NO_SAFES_FOUND);
+      if (safe.length === 0) throw new CustomError(ErrorMap.NO_SAFES_FOUND);
 
       const condition = { id: param.internalChainId };
       const chain = await this.chainRepo.findByCondition(condition);
-      if (chain.length === 0) return res.return(ErrorMap.CHAIN_ID_NOT_EXIST);
+      if (chain.length === 0)
+        throw new CustomError(ErrorMap.CHAIN_ID_NOT_EXIST);
 
       let client, accountOnChain;
-      if(chain[0].name !== 'Terra Testnet') {
-        client = await StargateClient.connect(chain[0].rpc);
-        accountOnChain = await client.getAccount(param.safeAddress);
-      } else {
-        client = new LCDClient({
-          chainID: chain[0].chainId,
-          URL: chain[0].rest,
-        });
-        accountOnChain = await client.auth.accountInfo(param.safeAddress);
+      switch (chain[0].chainId) {
+        case 'evmos_9000-4':
+          const { sequence, accountNumber } = await getEvmosAccount(
+            chain[0].rest,
+            param.safeAddress,
+          );
+          accountOnChain = {
+            accountNumber,
+            sequence,
+            address: param.safeAddress,
+            pubkey: safe[0].safePubkey ? JSON.parse(safe[0].safePubkey) : null,
+          };
+          break;
+        case 'terra':
+          client = new LCDClient({
+            chainID: chain[0].chainId,
+            URL: chain[0].rest,
+          });
+          accountOnChain = await client.auth.accountInfo(param.safeAddress);
+          break;
+        default:
+          client = await StargateClient.connect(chain[0].rpc);
+          accountOnChain = await client.getAccount(param.safeAddress);
+          break;
       }
-      // const balance = await client.getBalance(param.safeAddress, chain[0].denom);
-      // return res.return(ErrorMap.SUCCESSFUL, { accountOnChain, balance });
-      return res.return(ErrorMap.SUCCESSFUL, accountOnChain);
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, accountOnChain);
     } catch (error) {
-      console.log(error);
+      return ResponseDto.responseError(GeneralService.name, error);
     }
   }
 }

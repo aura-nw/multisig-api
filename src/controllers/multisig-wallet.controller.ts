@@ -5,12 +5,16 @@ import {
   URL_CONSTANTS,
 } from 'src/common/constants/api.constant';
 import {
-  CommonDelete,
+  CommonAuthDelete,
+  CommonAuthPost,
   CommonGet,
-  CommonPost,
 } from 'src/decorators/common.decorator';
 import { SwaggerBaseApiResponse } from 'src/dtos/responses';
-import { MODULE_REQUEST, MODULE_RESPONSE, SERVICE_INTERFACE } from 'src/module.config';
+import {
+  MODULE_REQUEST,
+  MODULE_RESPONSE,
+  SERVICE_INTERFACE,
+} from 'src/module.config';
 import { IMultisigWalletService } from 'src/services/imultisig-wallet.service';
 @Controller(CONTROLLER_CONSTANTS.MULTISIG_WALLET)
 @ApiTags(CONTROLLER_CONSTANTS.MULTISIG_WALLET)
@@ -22,7 +26,7 @@ export class MultisigWalletController {
     private multisigWalletService: IMultisigWalletService,
   ) {}
 
-  @CommonPost({
+  @CommonAuthPost({
     summary: 'Create a multisig wallet',
     apiOkResponseOptions: {
       status: 200,
@@ -78,36 +82,25 @@ export class MultisigWalletController {
     return this.multisigWalletService.getBalance(param, query);
   }
 
-  @CommonPost({
+  @CommonAuthPost({
     url: URL_CONSTANTS.CONFIRM_SAFE,
     summary: 'Confirm multisig wallet',
   })
   async confirmMultisigWallet(
     @Param() param: MODULE_REQUEST.ConfirmSafePathParams,
-    @Body() request: MODULE_REQUEST.ConfirmMultisigWalletRequest,
   ) {
     this._logger.log('========== Confirm multisig wallet ==========');
-    return this.multisigWalletService.confirm(param, request);
+    return this.multisigWalletService.confirm(param);
   }
 
-  @CommonDelete({
+  @CommonAuthDelete({
     url: URL_CONSTANTS.DELETE_SAFE,
     summary: 'Delete pending multisig wallet',
   })
   async deletePendingMultisigWallet(
     @Param() param: MODULE_REQUEST.DeleteSafePathParams,
-    @Body() request: MODULE_REQUEST.DeleteMultisigWalletRequest,
   ) {
     this._logger.log('========== Delete pending multisig wallet ==========');
-    return this.multisigWalletService.deletePending(param, request);
+    return this.multisigWalletService.deletePending(param);
   }
-
-  // @Post()
-  // @ApiOperation({ summary: 'Connect multisig wallet' })
-  // @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
-  // @HttpCode(HttpStatus.OK)
-  // async createIAO(@Body() request: MODULE_REQUEST.ConnectMultisigWalletRequest) {
-  //   this._logger.log('========== Connect multisig wallet ==========');
-  //   return await this.multisigWalletService.connectMultisigWalletByAddress(request);
-  // }
 }
