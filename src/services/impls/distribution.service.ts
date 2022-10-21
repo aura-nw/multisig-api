@@ -76,11 +76,8 @@ export class DistributionService implements IDistributionService {
             picture: picture,
           },
           votingPower: {
-            number: validator.tokens,
-            percentage: this._commonUtil.getPercentage(
-              validator.tokens,
-              bondedTokens,
-            ),
+            number: (+validator.tokens / 10 ** 6).toFixed(3),
+            percentage: validator.percent_voting_power,
           },
           uptime: validator.uptime,
         };
@@ -192,11 +189,11 @@ export class DistributionService implements IDistributionService {
           this.indexerUrl,
         ).href,
       );
-      const delegations = delegationRes.data.account_delegations;
+      const delegations = delegationRes.data?.account_delegations;
       const rewards: any[] =
-        delegationRes.data.account_delegate_rewards.rewards;
+        delegationRes.data.account_delegate_rewards?.rewards;
       const results: GetDelegationsResponse = {
-        availableBalance: delegationRes.data.account_balances[0]
+        availableBalance: delegationRes.data?.account_balances[0]
           ? delegationRes.data.account_balances[0]
           : null,
         delegations: [],
