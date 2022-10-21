@@ -60,6 +60,7 @@ import {
   SafeOwner,
   User,
 } from './entities';
+import { TxMessage } from './entities/tx-message.entity';
 
 export const ENTITIES_CONFIG = {
   SAFE: Safe,
@@ -73,6 +74,7 @@ export const ENTITIES_CONFIG = {
   GAS: Gas,
   USER: User,
   MESSAGE: Message,
+  TX_MESSAGE: TxMessage,
 };
 
 export const REQUEST_CONFIG = {
@@ -210,6 +212,7 @@ export const REPOSITORY_INTERFACE = {
   IGAS_REPOSITORY: 'IGasRepository',
   IUSER_REPOSITORY: 'IUserRepository',
   IMESSAGE_REPOSITORY: 'IMessageRepository',
+  ITX_MESSAGE_REPOSITORY: 'ITxMessageRepository',
 };
 
 export const PROVIDER_INTERFACE = {};
