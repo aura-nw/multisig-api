@@ -159,6 +159,10 @@ export const ErrorMap = {
     Code: 'E038',
     Message: 'User not found',
   },
+  REQUEST_ERROR: {
+    Code: 'E039',
+    Message: 'Request to server error',
+  },
   C001: {
     Code: 'C001',
     Message: `Missing result from Chaincode`,

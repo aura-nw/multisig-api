@@ -63,11 +63,18 @@ export class DistributionService implements IDistributionService {
         validators: [],
       };
       for (const validator of validators) {
+        const picture = await this.getValidatorPicture(
+          validator.description.identity,
+        );
         const result: GetValidatorsValidator = {
           validator: validator.description.moniker,
           operatorAddress: validator.operator_address,
           status: validator.status,
           commission: validator.commission,
+          description: {
+            moniker: validator.description.moniker,
+            picture: picture,
+          },
           votingPower: {
             number: validator.tokens,
             percentage: this._commonUtil.getPercentage(
@@ -82,6 +89,25 @@ export class DistributionService implements IDistributionService {
       return ResponseDto.response(ErrorMap.SUCCESSFUL, results);
     } catch (e) {
       return ResponseDto.responseError(DistributionService.name, e);
+    }
+  }
+
+  private async getValidatorPicture(identity: string): Promise<string> {
+    if (!identity) {
+      return this.configService.get('DEFAULT_VALIDATOR_IMG');
+    }
+    try {
+      const keybase = this.configService.get('KEYBASE');
+      const res = await this._commonUtil.request(
+        new URL(`${keybase}${identity}`).href,
+      );
+      const picture = res.them[0].pictures.primary.url;
+      if (picture) {
+        return picture;
+      }
+      return this.configService.get('DEFAULT_VALIDATOR_IMG');
+    } catch (e) {
+      return this.configService.get('DEFAULT_VALIDATOR_IMG');
     }
   }
 
@@ -113,10 +139,10 @@ export class DistributionService implements IDistributionService {
       );
       const delegationBalance = accountInfo.account_delegations.find(
         (r) => r.delegation.validator_address === validator.operator_address,
-      ).balance;
+      )?.balance;
       const pendingReward = accountInfo.account_delegate_rewards.rewards.find(
         (r) => r.validator_address === validator.operator_address,
-      ).reward[0];
+      )?.reward[0];
       ///
       const result: GetDelegationResponse = {
         validator: {
@@ -170,14 +196,16 @@ export class DistributionService implements IDistributionService {
       const rewards: any[] =
         delegationRes.data.account_delegate_rewards.rewards;
       const results: GetDelegationsResponse = {
-        availableBalance: delegationRes.data.account_balances[0],
+        availableBalance: delegationRes.data.account_balances[0]
+          ? delegationRes.data.account_balances[0]
+          : null,
         delegations: [],
         total: {
           staked:
             delegations.length > 0
               ? this.calculateTotalStaked(delegations)
               : null,
-          reward: delegationRes.data.account_delegate_rewards.total,
+          reward: delegationRes.data.account_delegate_rewards?.total,
         },
       };
       for (const delegation of delegations) {

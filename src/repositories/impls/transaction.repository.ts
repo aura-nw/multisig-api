@@ -42,7 +42,7 @@ export class TransactionRepository
     // set direction of transaction
     const result: any[] = await this.repos.query(
       `
-                SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, null as TypeUrl, Code as Status, ? AS Direction
+                SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, "Receive" as TypeUrl, Code as Status, ? AS Direction
                 FROM AuraTx
                 WHERE ToAddress = ?
                 AND InternalChainId = ?
