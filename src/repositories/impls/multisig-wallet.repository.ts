@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BaseRepository } from './base.repository';
-import { ObjectLiteral, Repository } from 'typeorm';
+import { In, Not, ObjectLiteral, Repository } from 'typeorm';
 import { IMultisigWalletRepository } from '../imultisig-wallet.repository';
 import { ENTITIES_CONFIG, REPOSITORY_INTERFACE } from 'src/module.config';
 import { Safe, SafeOwner } from 'src/entities';
@@ -146,23 +146,19 @@ export class MultisigWalletRepository
     return safe;
   }
 
-  async findDuplicateSafeHash(addressHash) {
-    const existSafe = await this.findByCondition({ addressHash }, null, [
-      'id',
-      'addressHash',
-      'status',
-    ]);
-    // filter deleted status
-    if (existSafe && existSafe.length > 0) {
-      const existList = existSafe.filter(
-        (safe) => safe.status !== SAFE_STATUS.DELETED,
-      );
-      if (existList && existList.length > 0) {
-        this._logger.debug(`Safe with these information already exists!`);
-        throw new CustomError(ErrorMap.DUPLICATE_SAFE_ADDRESS_HASH);
-      }
+  async findDuplicateSafeHash(addressHash): Promise<number> {
+    const existSafe = await this.findOne({
+      where: {
+        addressHash,
+        status: Not(In([SAFE_STATUS.DELETED])),
+      },
+    });
+
+    if (existSafe) {
+      this._logger.debug(`Safe with these information already exists!`);
+      return existSafe.id;
     }
-    return false;
+    return -1;
   }
 
   async makeAddressHash(
@@ -178,9 +174,12 @@ export class MultisigWalletRepository
     const safeAddressHash = createHash('sha256')
       .update(JSON.stringify(safeAddress))
       .digest('base64');
-    const isDuplicate = await this.findDuplicateSafeHash(safeAddressHash);
-    if (isDuplicate)
-      throw new CustomError(ErrorMap.DUPLICATE_SAFE_ADDRESS_HASH);
+    const safeId = await this.findDuplicateSafeHash(safeAddressHash);
+    if (safeId > -1)
+      throw new CustomError(
+        ErrorMap.DUPLICATE_SAFE_ADDRESS_HASH,
+        safeId.toString(),
+      );
     return safeAddressHash;
   }
 
@@ -243,7 +242,7 @@ export class MultisigWalletRepository
       await this.checkAccountOnNetwork(condition.safeAddress, internalChainId);
       safe = await this.findOne(condition);
     }
-    
+
     if (!safe) {
       //Found on network
       throw new CustomError(ErrorMap.NO_SAFES_FOUND);
