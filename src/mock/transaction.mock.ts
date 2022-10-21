@@ -6,8 +6,6 @@ export const mockCreateTransactionRequest: MODULE_REQUEST.CreateTransactionReque
       from: 'aura1328x7tacz28w96zl4j50qnfg4gqjdd56wqd3ke',
       to: 'aura136v0nmlv0saryev8wqz89w80edzdu3quzm0ve9',
       amount: 3000000,
-      fee: 0.01,
-      gasLimit: 100000,
       internalChainId: 4,
       bodyBytes:
         'CogBChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEmgKK2F1cmExMzJha3g5OTg5Y2FueHV6a2ZqbnJneHd5Y2NmY210ZnpobWZscW0SK2F1cmExdHVlaDRodnJmbmZ3c3VobDMyd21sbWV2NjU2bmhxc2t2cTd0N3QaDAoFdWF1cmESAzIwMBIA',
