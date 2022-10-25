@@ -77,7 +77,9 @@ export class DistributionService implements IDistributionService {
           },
           votingPower: {
             number: (+validator.tokens / 10 ** 6).toFixed(3),
-            percentage: validator.percent_voting_power,
+            percentage: String(
+              Math.round(Number(validator.percent_voting_power) * 100) / 100,
+            ),
           },
           uptime: validator.uptime,
         };
