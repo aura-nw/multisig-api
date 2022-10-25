@@ -70,7 +70,13 @@ export class DistributionService implements IDistributionService {
           validator: validator.description.moniker,
           operatorAddress: validator.operator_address,
           status: validator.status,
-          commission: validator.commission,
+          commission: {
+            commission_rates: {
+              rate: String(
+                Number(validator.commission.commission_rates.rate) * 100,
+              ),
+            },
+          },
           description: {
             moniker: validator.description.moniker,
             picture: picture,
