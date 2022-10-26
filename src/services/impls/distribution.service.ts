@@ -102,9 +102,9 @@ export class DistributionService implements IDistributionService {
       return this.configService.get('DEFAULT_VALIDATOR_IMG');
     }
     try {
-      const keybase = this.configService.get('KEYBASE');
+      const keybaseUrl = this.configService.get('KEYBASE');
       const res = await this._commonUtil.request(
-        new URL(`${keybase}${identity}`).href,
+        new URL(keybaseUrl + identity).href,
       );
       const picture = res.them[0].pictures.primary.url;
       if (picture) {
@@ -112,6 +112,7 @@ export class DistributionService implements IDistributionService {
       }
       return this.configService.get('DEFAULT_VALIDATOR_IMG');
     } catch (e) {
+      this._logger.error(e);
       return this.configService.get('DEFAULT_VALIDATOR_IMG');
     }
   }
