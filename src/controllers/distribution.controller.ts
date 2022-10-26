@@ -3,15 +3,15 @@ import { ApiTags } from '@nestjs/swagger';
 import {
   CONTROLLER_CONSTANTS,
   URL_CONSTANTS,
-} from 'src/common/constants/api.constant';
-import { CommonGet } from 'src/decorators/common.decorator';
-import { SwaggerBaseApiResponse } from 'src/dtos/responses';
+} from '../common/constants/api.constant';
+import { CommonGet } from '../decorators/common.decorator';
+import { SwaggerBaseApiResponse } from '../dtos/responses';
 import {
   MODULE_REQUEST,
   MODULE_RESPONSE,
   SERVICE_INTERFACE,
-} from 'src/module.config';
-import { IDistributionService } from 'src/services/idistribution.service';
+} from '../module.config';
+import { IDistributionService } from '../services/idistribution.service';
 @Controller(CONTROLLER_CONSTANTS.DISTRIBUTION)
 @ApiTags(CONTROLLER_CONSTANTS.DISTRIBUTION)
 export class DistributionController {

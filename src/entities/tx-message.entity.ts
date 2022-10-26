@@ -2,7 +2,7 @@ import { BaseEntityAutoId } from './base/base.entity';
 import { Column, Entity } from 'typeorm';
 import { Expose } from 'class-transformer';
 
-@Entity({ name: 'Message' })
+@Entity({ name: 'TxMessage' })
 export class TxMessage extends BaseEntityAutoId {
   @Expose()
   @Column({ name: 'TxId' })

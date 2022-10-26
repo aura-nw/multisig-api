@@ -4,13 +4,13 @@ import { plainToInstance } from 'class-transformer';
 import {
   TRANSACTION_STATUS,
   TRANSFER_DIRECTION,
-} from 'src/common/constants/app.constant';
-import { CustomError } from 'src/common/customError';
-import { ErrorMap } from 'src/common/error.map';
-import { MultisigTransactionHistoryResponse } from 'src/dtos/responses';
-import { TxDetailResponse } from 'src/dtos/responses/multisig-transaction/tx-detail.response';
-import { Chain } from 'src/entities';
-import { ENTITIES_CONFIG } from 'src/module.config';
+} from '../../common/constants/app.constant';
+import { CustomError } from '../../common/customError';
+import { ErrorMap } from '../../common/error.map';
+import { MultisigTransactionHistoryResponse } from '../../dtos/responses';
+import { TxDetailResponse } from '../../dtos/responses/multisig-transaction/tx-detail.response';
+import { Chain } from '../../entities';
+import { ENTITIES_CONFIG } from '../../module.config';
 import { ObjectLiteral, Repository } from 'typeorm';
 import { ITransactionRepository } from '../itransaction.repository';
 import { BaseRepository } from './base.repository';
@@ -18,8 +18,7 @@ import { BaseRepository } from './base.repository';
 @Injectable()
 export class TransactionRepository
   extends BaseRepository
-  implements ITransactionRepository
-{
+  implements ITransactionRepository {
   private readonly _logger = new Logger(TransactionRepository.name);
   constructor(
     @InjectRepository(ENTITIES_CONFIG.AURA_TX)
@@ -42,12 +41,12 @@ export class TransactionRepository
     // set direction of transaction
     const result: any[] = await this.repos.query(
       `
-                SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, "Receive" as TypeUrl, Code as Status, ? AS Direction
+                SELECT Id, CreatedAt, UpdatedAt, TxHash, Amount, Denom, "Receive" as TypeUrl, Code as Status, ? AS Direction
                 FROM AuraTx
                 WHERE ToAddress = ?
                 AND InternalChainId = ?
                 UNION
-                SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, TypeUrl, Status, ? AS Direction
+                SELECT Id, CreatedAt, UpdatedAt, TxHash, Amount, Denom, TypeUrl, Status, ? AS Direction
                 FROM MultisigTransaction
                 WHERE FromAddress = ?
                 AND (Status = ? OR Status = ? OR Status = ?)
@@ -90,11 +89,7 @@ export class TransactionRepository
         'auraTx.code as Code',
         'auraTx.createdAt as CreatedAt',
         'auraTx.updatedAt as UpdatedAt',
-        'auraTx.fromAddress as FromAddress',
-        'auraTx.toAddress as ToAddress',
         'auraTx.txHash as TxHash',
-        'auraTx.amount as Amount',
-        'auraTx.denom as Denom',
         'auraTx.gasUsed as GasUsed',
         'auraTx.gasWanted as GasWanted',
         'auraTx.fee as GasPrice',

@@ -1,4 +1,4 @@
-import { Safe } from 'src/entities';
+import { Safe } from '../entities';
 import { IBaseRepository } from './ibase.repository';
 
 export interface IMultisigWalletRepository extends IBaseRepository {

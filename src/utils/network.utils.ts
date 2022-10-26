@@ -1,5 +1,5 @@
 import { StargateClient } from '@cosmjs/stargate';
-import { ConfigService } from 'src/shared/services/config.service';
+import { ConfigService } from '../shared/services/config.service';
 
 export class Network {
   client: StargateClient;

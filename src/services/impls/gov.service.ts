@@ -1,28 +1,28 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ResponseDto } from 'src/dtos/responses/response.dto';
+import { ResponseDto } from '../../dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import {
   MODULE_REQUEST,
   REPOSITORY_INTERFACE,
   RESPONSE_CONFIG,
-} from 'src/module.config';
-import { CommonUtil } from 'src/utils/common.util';
+} from '../../module.config';
+import { CommonUtil } from '../../utils/common.util';
 import { IGovService } from '../igov.service';
-import { IGeneralRepository } from 'src/repositories';
-import { Chain } from 'src/entities';
-import { ConfigService } from 'src/shared/services/config.service';
-import { ProposalDepositResponse } from 'src/dtos/responses';
-import { PROPOSAL_STATUS } from 'src/common/constants/app.constant';
+import { IGeneralRepository } from '../../repositories';
+import { Chain } from '../../entities';
+import { ConfigService } from '../../shared/services/config.service';
+import { ProposalDepositResponse } from '../../dtos/responses';
+import { PROPOSAL_STATUS } from '../../common/constants/app.constant';
 import {
   GetProposalsProposal,
   GetProposalsResponse,
   GetProposalsTally,
   GetProposalsTurnout,
-} from 'src/dtos/responses/gov/get-proposals.response';
+} from '../../dtos/responses/gov/get-proposals.response';
 import {
   GetVotesByProposalIdResponse,
   GetVotesVote,
-} from 'src/dtos/responses/gov/get-votes-by-proposal-id.response';
+} from '../../dtos/responses/gov/get-votes-by-proposal-id.response';
 
 @Injectable()
 export class GovService implements IGovService {

@@ -1,4 +1,4 @@
-import { Chain } from 'src/entities';
+import { Chain } from '../entities';
 import { IBaseRepository } from './ibase.repository';
 
 export interface IGeneralRepository extends IBaseRepository {

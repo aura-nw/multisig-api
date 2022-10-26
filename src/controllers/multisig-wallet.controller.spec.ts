@@ -1,29 +1,29 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { SAFE_STATUS } from 'src/common/constants/app.constant';
-import { ErrorMap } from 'src/common/error.map';
+import { SAFE_STATUS } from '../common/constants/app.constant';
+import { ErrorMap } from '../common/error.map';
 import {
   mockChain,
   mockCreateRequest,
   mockSafe,
   mockSafeOwner,
-} from 'src/mock/safe.mock';
+} from '../mock/safe.mock';
 import {
   ENTITIES_CONFIG,
   MODULE_REQUEST,
   REPOSITORY_INTERFACE,
   SERVICE_INTERFACE,
-} from 'src/module.config';
-import { GeneralRepository } from 'src/repositories/impls/general.repository';
-import { MultisigWalletOwnerRepository } from 'src/repositories/impls/multisig-wallet-owner.repository';
-import { MultisigWalletRepository } from 'src/repositories/impls/multisig-wallet.repository';
-import { GeneralService } from 'src/services/impls/general.service';
-import { MultisigWalletService } from 'src/services/impls/multisig-wallet.service';
-import { SharedModule } from 'src/shared/shared.module';
+} from '../module.config';
+import { GeneralRepository } from '../repositories/impls/general.repository';
+import { MultisigWalletOwnerRepository } from '../repositories/impls/multisig-wallet-owner.repository';
+import { MultisigWalletRepository } from '../repositories/impls/multisig-wallet.repository';
+import { GeneralService } from '../services/impls/general.service';
+import { MultisigWalletService } from '../services/impls/multisig-wallet.service';
+import { SharedModule } from '../shared/shared.module';
 import { MultisigWalletController } from './multisig-wallet.controller';
 
 let mockInitNetwork = jest.fn();
-jest.mock('src/utils/network.utils', () => {
+jest.mock('../utils/network.utils', () => {
   return {
     Network: jest.fn().mockImplementation(() => {
       return {

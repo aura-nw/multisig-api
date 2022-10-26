@@ -1,18 +1,18 @@
 import { Inject, Logger } from '@nestjs/common';
 import { StargateClient } from '@cosmjs/stargate';
-import { ResponseDto } from 'src/dtos/responses/response.dto';
+import { ResponseDto } from '../../dtos/responses/response.dto';
 import { IGeneralService } from '../igeneral.service';
 import { BaseService } from './base.service';
-import { CommonUtil } from 'src/utils/common.util';
-import { MODULE_REQUEST, REPOSITORY_INTERFACE } from 'src/module.config';
-import { IGeneralRepository } from 'src/repositories/igeneral.repository';
-import { ErrorMap } from 'src/common/error.map';
-import { IMultisigWalletRepository } from 'src/repositories';
+import { CommonUtil } from '../../utils/common.util';
+import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
+import { IGeneralRepository } from '../../repositories/igeneral.repository';
+import { ErrorMap } from '../../common/error.map';
+import { IMultisigWalletRepository } from '../../repositories';
 import { LCDClient } from '@terra-money/terra.js';
-import { getEvmosAccount } from 'src/chains/evmos';
+import { getEvmosAccount } from '../../chains/evmos';
 import * as axios from 'axios';
-import { IGasRepository } from 'src/repositories/igas.repository';
-import { CustomError } from 'src/common/customError';
+import { IGasRepository } from '../../repositories/igas.repository';
+import { CustomError } from '../../common/customError';
 
 export class GeneralService extends BaseService implements IGeneralService {
   private readonly _logger = new Logger(GeneralService.name);

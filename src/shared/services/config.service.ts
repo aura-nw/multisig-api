@@ -1,7 +1,7 @@
 import { JwtModuleOptions } from '@nestjs/jwt';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import * as dotenv from 'dotenv';
-import { DATABASE_TYPE } from 'src/common/constants/app.constant';
+import { DATABASE_TYPE } from '../../common/constants/app.constant';
 
 import { PascalCaseStrategy } from '../pascalCase.strategy';
 

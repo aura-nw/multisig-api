@@ -19,15 +19,15 @@ import {
 import {
   CONTROLLER_CONSTANTS,
   URL_CONSTANTS,
-} from 'src/common/constants/api.constant';
-import { CommonAuthPost } from 'src/decorators/common.decorator';
+} from '../common/constants/api.constant';
+import { CommonAuthPost } from '../decorators/common.decorator';
 import {
   MODULE_REQUEST,
   MODULE_RESPONSE,
   SERVICE_INTERFACE,
-} from 'src/module.config';
-import { TransactionService } from 'src/services/impls/transaction.service';
-import { IMultisigTransactionService } from 'src/services/multisig-transaction.service';
+} from '../module.config';
+import { TransactionService } from '../services/impls/transaction.service';
+import { IMultisigTransactionService } from '../services/multisig-transaction.service';
 
 @Controller(CONTROLLER_CONSTANTS.TRANSACTION)
 @ApiTags(CONTROLLER_CONSTANTS.TRANSACTION)

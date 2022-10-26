@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
-import { VALIDATOR_STATUS } from 'src/common/constants/app.constant';
+import { VALIDATOR_STATUS } from '../../../common/constants/app.constant';
 
 export class GetValidatorsParam {
   @ApiProperty({

@@ -1,5 +1,5 @@
-import { ResponseDto } from 'src/dtos/responses';
-import { MODULE_REQUEST } from 'src/module.config';
+import { ResponseDto } from '../dtos/responses';
+import { MODULE_REQUEST } from '../module.config';
 
 export interface ITransactionService {
   // /**

@@ -10,3 +10,5 @@ export * from './multisig-wallet/create-safe.response';
 export * from './multisig-wallet/get-balance.reponse';
 export * from './gov';
 export * from './distribution';
+export * from './tx-message/tx-message-history.response';
+export * from './tx-message/tx-message-details.response';

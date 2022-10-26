@@ -8,7 +8,7 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { GroupsGuard } from 'src/guards/groups.guard';
+import { GroupsGuard } from '../guards/groups.guard';
 import { AuthGuard } from '@nestjs/passport';
 import {
   ApiBadRequestResponse,
@@ -17,9 +17,9 @@ import {
   ApiOperation,
   ApiResponseOptions,
 } from '@nestjs/swagger';
-import { AuthUserInterceptor } from 'src/interceptors/auth-user-interceptor.service';
-import { SwaggerBaseApiResponse } from 'src/dtos/responses';
-import { MODULE_RESPONSE } from 'src/module.config';
+import { AuthUserInterceptor } from '../interceptors/auth-user-interceptor.service';
+import { SwaggerBaseApiResponse } from '../dtos/responses';
+import { MODULE_RESPONSE } from '../module.config';
 
 interface Options {
   url?: string;
