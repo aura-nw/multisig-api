@@ -1,4 +1,4 @@
-import { MODULE_REQUEST } from 'src/module.config';
+import { MODULE_REQUEST } from '../module.config';
 
 export const mockCreateRequest: MODULE_REQUEST.CreateMultisigWalletRequest[] = [
   {

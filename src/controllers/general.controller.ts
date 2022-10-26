@@ -17,13 +17,13 @@ import {
 import {
   CONTROLLER_CONSTANTS,
   URL_CONSTANTS,
-} from 'src/common/constants/api.constant';
+} from '../common/constants/api.constant';
 import {
   MODULE_REQUEST,
   MODULE_RESPONSE,
   SERVICE_INTERFACE,
-} from 'src/module.config';
-import { IGeneralService } from 'src/services/igeneral.service';
+} from '../module.config';
+import { IGeneralService } from '../services/igeneral.service';
 
 @Controller(CONTROLLER_CONSTANTS.GENERAL)
 @ApiTags(CONTROLLER_CONSTANTS.GENERAL)

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Message } from 'src/entities';
+import { Message } from '../../../entities';
 import { TxMessageResponse } from '../message/tx-msg.response';
 
 export class TxDetailResponse {
@@ -127,4 +127,16 @@ export class TxDetailResponse {
     ],
   })
   Messages: TxMessageResponse[];
+
+  @ApiProperty({
+    example: [
+      {
+        fromAddress: 'aura1nqw4cla0k49yfzpa6afl32hracut6tvwldmuuk',
+        toAddress: 'aura1hctj3tpmucmuv02umf9252enjedkce7mml69k8',
+        amount: 100000,
+        denom: 'uaura',
+      },
+    ],
+  })
+  TxMessages: any[];
 }

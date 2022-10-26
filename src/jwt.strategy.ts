@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { SERVICE_INTERFACE } from './module.config';
 import { IAuthService } from './services/iauth.service';
-import { ConfigService } from 'src/shared/services/config.service';
+import { ConfigService } from './shared/services/config.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {

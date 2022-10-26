@@ -1,4 +1,4 @@
-import { SafeOwner } from 'src/entities';
+import { SafeOwner } from '../entities';
 import { IBaseRepository } from './ibase.repository';
 
 export interface IMultisigWalletOwnerRepository extends IBaseRepository {

@@ -1,32 +1,32 @@
 import * as axios from 'axios';
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ResponseDto } from 'src/dtos/responses/response.dto';
+import { ResponseDto } from '../../dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { IMultisigWalletService } from '../imultisig-wallet.service';
-import { IMultisigWalletRepository } from 'src/repositories/imultisig-wallet.repository';
-import { IMultisigWalletOwnerRepository } from 'src/repositories/imultisig-wallet-owner.repository';
+import { IMultisigWalletRepository } from '../../repositories/imultisig-wallet.repository';
+import { IMultisigWalletOwnerRepository } from '../../repositories/imultisig-wallet-owner.repository';
 import {
   SAFE_OWNER_STATUS,
   SAFE_STATUS,
-} from 'src/common/constants/app.constant';
+} from '../../common/constants/app.constant';
 import {
   MODULE_REQUEST,
   REPOSITORY_INTERFACE,
   RESPONSE_CONFIG,
-} from 'src/module.config';
-import { CommonUtil } from 'src/utils/common.util';
-import { Network } from 'src/utils/network.utils';
+} from '../../module.config';
+import { CommonUtil } from '../../utils/common.util';
+import { Network } from '../../utils/network.utils';
 import { BaseService } from './base.service';
-import { GetMultisigWalletResponse } from 'src/dtos/responses/multisig-wallet/get-multisig-wallet.response';
+import { GetMultisigWalletResponse } from '../../dtos/responses/multisig-wallet/get-multisig-wallet.response';
 import { plainToInstance } from 'class-transformer';
-import { ListSafeByOwnerResponse } from 'src/dtos/responses/multisig-wallet/get-safe-by-owner.response';
-import { IGeneralRepository } from 'src/repositories/igeneral.repository';
-import { CustomError } from 'src/common/customError';
-import { Chain } from 'src/entities';
+import { ListSafeByOwnerResponse } from '../../dtos/responses/multisig-wallet/get-safe-by-owner.response';
+import { IGeneralRepository } from '../../repositories/igeneral.repository';
+import { CustomError } from '../../common/customError';
+import { Chain } from '../../entities';
 import { encodeSecp256k1Pubkey, pubkeyToAddress } from '@cosmjs/amino';
 import { fromBase64 } from '@cosmjs/encoding';
 import { SimplePublicKey } from '@terra-money/terra.js';
-import { pubkeyToAddressEvmos } from 'src/chains/evmos';
+import { pubkeyToAddressEvmos } from '../../chains/evmos';
 
 @Injectable()
 export class MultisigWalletService

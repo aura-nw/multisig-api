@@ -1,19 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { ErrorMap } from 'src/common/error.map';
-import { mockSafe } from 'src/mock/safe.mock';
+import { ErrorMap } from '../common/error.map';
+import { mockSafe } from '../mock/safe.mock';
 import {
   ENTITIES_CONFIG,
   MODULE_REQUEST,
   REPOSITORY_INTERFACE,
   SERVICE_INTERFACE,
-} from 'src/module.config';
-import { MultisigWalletOwnerRepository } from 'src/repositories/impls';
-import { GeneralRepository } from 'src/repositories/impls/general.repository';
-import { MultisigWalletRepository } from 'src/repositories/impls/multisig-wallet.repository';
-import { GeneralService } from 'src/services/impls/general.service';
-import { MultisigWalletService } from 'src/services/impls/multisig-wallet.service';
-import { SharedModule } from 'src/shared/shared.module';
+} from '../module.config';
+import { MultisigWalletOwnerRepository } from '../repositories/impls';
+import { GeneralRepository } from '../repositories/impls/general.repository';
+import { MultisigWalletRepository } from '../repositories/impls/multisig-wallet.repository';
+import { GeneralService } from '../services/impls/general.service';
+import { MultisigWalletService } from '../services/impls/multisig-wallet.service';
+import { SharedModule } from '../shared/shared.module';
 import { GeneralController } from './general.controller';
 
 describe(GeneralController.name, () => {

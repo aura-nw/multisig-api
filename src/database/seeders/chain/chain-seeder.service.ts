@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Chain } from 'src/entities';
-import { ChainInfo } from 'src/utils/validations/chain.validation';
+import { Chain } from '../../../entities';
+import { ChainInfo } from '../../../utils/validations/chain.validation';
 import { Repository } from 'typeorm';
 
 @Injectable()

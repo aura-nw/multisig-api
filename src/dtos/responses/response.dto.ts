@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
-import { CustomError } from 'src/common/customError';
+import { CustomError } from '../../common/customError';
 import { ErrorMap } from '../../common/error.map';
 
 export class ResponseDto {

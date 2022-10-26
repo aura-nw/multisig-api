@@ -2,8 +2,8 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   TRANSACTION_STATUS,
   TRANSFER_DIRECTION,
-} from 'src/common/constants/app.constant';
-import { MultisigConfirm } from 'src/entities/multisig-confirm.entity';
+} from '../../../common/constants/app.constant';
+import { MultisigConfirm } from '../../../entities/multisig-confirm.entity';
 import { MultisigSignatureResponse } from './multisig-signature.response';
 
 export class MultisigTransactionHistoryResponse {

@@ -1,6 +1,6 @@
 import { StargateClient } from '@cosmjs/stargate';
-import { CustomError } from 'src/common/customError';
-import { ErrorMap } from 'src/common/error.map';
+import { CustomError } from '../common/customError';
+import { ErrorMap } from '../common/error.map';
 
 export function createSignMessageByData(address: string, data: string) {
   const signDoc = {

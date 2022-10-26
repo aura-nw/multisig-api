@@ -22,13 +22,13 @@ import { readFile } from 'graceful-fs';
 import {
   createMultisigThresholdPubkeyEvmos,
   encodeAminoPubkeySupportEvmos,
-} from 'src/chains/evmos';
-import { PUBKEY_TYPES } from 'src/common/constants/app.constant';
-import { CustomError } from 'src/common/customError';
-import { ErrorMap } from 'src/common/error.map';
-import { UserInfo } from 'src/dtos/userInfo';
-import { MultisigTransaction, Safe } from 'src/entities';
-import { AuthService } from 'src/services/impls/auth.service';
+} from '../chains/evmos';
+import { PUBKEY_TYPES } from '../common/constants/app.constant';
+import { CustomError } from '../common/customError';
+import { ErrorMap } from '../common/error.map';
+import { UserInfo } from '../dtos/userInfo';
+import { MultisigTransaction, Safe } from '../entities';
+import { AuthService } from '../services/impls/auth.service';
 import { ConfigService } from '../shared/services/config.service';
 
 export class CommonUtil {

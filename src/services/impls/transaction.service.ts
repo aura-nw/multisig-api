@@ -2,26 +2,25 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import {
   MULTISIG_CONFIRM_STATUS,
   TRANSFER_DIRECTION,
-} from 'src/common/constants/app.constant';
-import { CustomError } from 'src/common/customError';
-import { ErrorMap } from 'src/common/error.map';
-import { ResponseDto } from 'src/dtos/responses';
-import { TxDetailResponse } from 'src/dtos/responses/multisig-transaction/tx-detail.response';
-import { MODULE_REQUEST, REPOSITORY_INTERFACE } from 'src/module.config';
-import { IMessageRepository } from 'src/repositories';
-import { IMultisigConfirmRepository } from 'src/repositories/imultisig-confirm.repository';
-import { IMultisigTransactionsRepository } from 'src/repositories/imultisig-transaction.repository';
-import { IMultisigWalletOwnerRepository } from 'src/repositories/imultisig-wallet-owner.repository';
-import { IMultisigWalletRepository } from 'src/repositories/imultisig-wallet.repository';
-import { ITransactionRepository } from 'src/repositories/itransaction.repository';
+} from '../../common/constants/app.constant';
+import { CustomError } from '../../common/customError';
+import { ErrorMap } from '../../common/error.map';
+import { ResponseDto } from '../../dtos/responses';
+import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
+import { IMessageRepository } from '../../repositories';
+import { IMultisigConfirmRepository } from '../../repositories/imultisig-confirm.repository';
+import { IMultisigTransactionsRepository } from '../../repositories/imultisig-transaction.repository';
+import { IMultisigWalletOwnerRepository } from '../../repositories/imultisig-wallet-owner.repository';
+import { IMultisigWalletRepository } from '../../repositories/imultisig-wallet.repository';
+import { ITransactionRepository } from '../../repositories/itransaction.repository';
+import { ITxMessageRepository } from '../../repositories/itx-message.repository';
 import { ITransactionService } from '../transaction.service';
 import { BaseService } from './base.service';
 
 @Injectable()
 export class TransactionService
   extends BaseService
-  implements ITransactionService
-{
+  implements ITransactionService {
   private readonly _logger = new Logger(TransactionService.name);
 
   constructor(
@@ -37,6 +36,8 @@ export class TransactionService
     private safeOwnerRepos: IMultisigWalletOwnerRepository,
     @Inject(REPOSITORY_INTERFACE.IMESSAGE_REPOSITORY)
     private messageRepos: IMessageRepository,
+    @Inject(REPOSITORY_INTERFACE.ITX_MESSAGE_REPOSITORY)
+    private txMessageRepos: ITxMessageRepository,
   ) {
     super(transRepos);
     this._logger.log(
@@ -90,6 +91,13 @@ export class TransactionService
           pageIndex,
           pageSize,
         );
+      let txIds = result.map(res => res.Id);
+      let txMessages = await this.txMessageRepos.getTxMessagesFromTxIds(txIds);
+      result.map(res => {
+        let tm = txMessages.find(tm => tm.TxId = res.Id);
+        res.Amount = tm.Amount;
+        res.Denom = tm.Denom;
+      });
       // Loop to get Status based on Code and get Multisig Confirm of Multisig Tx
       for (const tx of result) {
         // continue if tx is not multisig
@@ -165,6 +173,15 @@ export class TransactionService
         txDetail = await this.transRepos.getTransactionDetailsAuraTx(
           internalTxHash,
         );
+        const txMessages = await this.txMessageRepos.getDetailTxMessagesByTxId(txDetail.Id);
+        txDetail.TxMessages = txMessages.map(tm => {
+          return {
+            fromAddress: tm.FromAddress,
+            toAddress: tm.ToAddress,
+            amount: tm.Amount,
+            denom: tm.Denom
+          }
+        });
       }
 
       return ResponseDto.response(ErrorMap.SUCCESSFUL, txDetail);
@@ -176,10 +193,10 @@ export class TransactionService
   private calculateCondition(internalTxHash: string) {
     return isNaN(Number(internalTxHash))
       ? {
-          txHash: internalTxHash,
-        }
+        txHash: internalTxHash,
+      }
       : {
-          id: internalTxHash,
-        };
+        id: internalTxHash,
+      };
   }
 }

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { CommonUtil } from 'src/utils/common.util';
-import { validateChainInfo } from 'src/utils/validations/chain.validation';
+import { CommonUtil } from '../../utils/common.util';
+import { validateChainInfo } from '../../utils/validations/chain.validation';
 import { ChainSeederService } from './chain/chain-seeder.service';
 import * as path from 'path';
 

@@ -1,7 +1,7 @@
 import { Registry } from '@cosmjs/proto-signing';
 import { AuthInfo, TxBody, TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ResponseDto } from 'src/dtos/responses/response.dto';
+import { ResponseDto } from '../../dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
 import { IMultisigTransactionService } from '../multisig-transaction.service';
@@ -16,13 +16,13 @@ import {
 } from '@cosmjs/stargate';
 import { fromBase64 } from '@cosmjs/encoding';
 import { BaseService } from './base.service';
-import { MultisigTransaction } from 'src/entities';
+import { MultisigTransaction } from '../../entities';
 import {
   MULTISIG_CONFIRM_STATUS,
   REGISTRY_GENERATED_TYPES,
   TRANSACTION_STATUS,
-} from 'src/common/constants/app.constant';
-import { CustomError } from 'src/common/customError';
+} from '../../common/constants/app.constant';
+import { CustomError } from '../../common/customError';
 import {
   IGeneralRepository,
   IMessageRepository,
@@ -30,16 +30,16 @@ import {
   IMultisigTransactionsRepository,
   IMultisigWalletOwnerRepository,
   IMultisigWalletRepository,
-} from 'src/repositories';
-import { ConfirmTransactionRequest } from 'src/dtos/requests';
+} from '../../repositories';
+import { ConfirmTransactionRequest } from '../../dtos/requests';
 import {
   getEvmosAccount,
   makeMultisignedTxEvmos,
   verifyEvmosSig,
-} from 'src/chains/evmos';
-import { CommonUtil } from 'src/utils/common.util';
+} from '../../chains/evmos';
+import { CommonUtil } from '../../utils/common.util';
 import { makeSignDoc } from '@cosmjs/amino';
-import { checkAccountBalance, verifyCosmosSig } from 'src/chains';
+import { checkAccountBalance, verifyCosmosSig } from '../../chains';
 
 @Injectable()
 export class MultisigTransactionService

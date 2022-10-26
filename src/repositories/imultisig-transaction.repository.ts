@@ -1,6 +1,6 @@
-import { MultisigTransactionHistoryResponse } from 'src/dtos/responses';
-import { TxDetailResponse } from 'src/dtos/responses/multisig-transaction/tx-detail.response';
-import { MultisigTransaction } from 'src/entities';
+import { MultisigTransactionHistoryResponse } from '../dtos/responses';
+import { TxDetailResponse } from '../dtos/responses/multisig-transaction/tx-detail.response';
+import { MultisigTransaction } from '../entities';
 import { IBaseRepository } from './ibase.repository';
 
 export interface IMultisigTransactionsRepository extends IBaseRepository {

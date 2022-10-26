@@ -3,19 +3,19 @@ import { ApiTags } from '@nestjs/swagger';
 import {
   CONTROLLER_CONSTANTS,
   URL_CONSTANTS,
-} from 'src/common/constants/api.constant';
+} from '../common/constants/api.constant';
 import {
   CommonAuthDelete,
   CommonAuthPost,
   CommonGet,
-} from 'src/decorators/common.decorator';
-import { SwaggerBaseApiResponse } from 'src/dtos/responses';
+} from '../decorators/common.decorator';
+import { SwaggerBaseApiResponse } from '../dtos/responses';
 import {
   MODULE_REQUEST,
   MODULE_RESPONSE,
   SERVICE_INTERFACE,
-} from 'src/module.config';
-import { IMultisigWalletService } from 'src/services/imultisig-wallet.service';
+} from '../module.config';
+import { IMultisigWalletService } from '../services/imultisig-wallet.service';
 @Controller(CONTROLLER_CONSTANTS.MULTISIG_WALLET)
 @ApiTags(CONTROLLER_CONSTANTS.MULTISIG_WALLET)
 export class MultisigWalletController {

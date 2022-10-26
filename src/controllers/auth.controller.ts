@@ -8,9 +8,9 @@ import {
   Body,
 } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CONTROLLER_CONSTANTS } from 'src/common/constants/api.constant';
-import { MODULE_REQUEST, SERVICE_INTERFACE } from 'src/module.config';
-import { IAuthService } from 'src/services/iauth.service';
+import { CONTROLLER_CONSTANTS } from '../common/constants/api.constant';
+import { MODULE_REQUEST, SERVICE_INTERFACE } from '../module.config';
+import { IAuthService } from '../services/iauth.service';
 
 @Controller(CONTROLLER_CONSTANTS.AUTH)
 @ApiTags(CONTROLLER_CONSTANTS.AUTH)
