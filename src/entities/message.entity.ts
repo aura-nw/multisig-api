@@ -9,6 +9,10 @@ export class Message extends BaseEntityAutoId {
   txId: number;
 
   @Expose()
+  @Column({ name: 'AuraTxId' })
+  auraTxId: number;
+
+  @Expose()
   @Column({ name: 'TypeUrl' })
   typeUrl: string;
 

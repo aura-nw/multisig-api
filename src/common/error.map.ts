@@ -163,9 +163,9 @@ export const ErrorMap = {
     Code: 'E039',
     Message: 'Request to server error',
   },
-  TX_MESSAGE_NOT_EXIST: {
+  MESSAGE_NOT_EXIST: {
     Code: 'E040',
-    Message: 'These tx message(s) is not exist!',
+    Message: 'These message(s) is not exist!',
   },
   C001: {
     Code: 'C001',
