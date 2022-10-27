@@ -115,7 +115,7 @@ export class MultisigTransactionService
       const aminoTypes = new AminoTypes({
         ...createBankAminoConverters(),
         ...createStakingAminoConverters(chain.prefix),
-        ...createDistributionAminoConverters()
+        ...createDistributionAminoConverters(),
       });
       const msgs = messages.map((msg: any) => {
         const decoder = registry.lookupType(msg.typeUrl);
@@ -183,13 +183,14 @@ export class MultisigTransactionService
         await this.multisigTransactionRepos.insertMultisigTransaction(
           transaction,
         );
-      
+
       // save msgs
       await this.messageRepos.saveMsgs(transactionResult.id, messages);
 
       const requestSign = new ConfirmTransactionRequest();
       requestSign.transactionId = transactionResult.id;
       requestSign.bodyBytes = bodyBytes;
+      requestSign.authInfoBytes = authInfoBytes;
       requestSign.signature = signature;
       requestSign.internalChainId = internalChainId;
 
@@ -278,8 +279,91 @@ export class MultisigTransactionService
   ): Promise<ResponseDto> {
     const res = new ResponseDto();
     try {
+      const {
+        transactionId,
+        bodyBytes,
+        signature,
+        authInfoBytes,
+        internalChainId,
+      } = request;
       const authInfo = this._commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
+
+      // Connect to chain
+      const chain = await this.chainRepos.findChain(internalChainId);
+      const client = await StargateClient.connect(chain.rpc);
+
+      // get tx
+      const pendingTx =
+        await this.multisigTransactionRepos.getTransactionDetailsMultisigTransaction(
+          {
+            id: transactionId,
+          },
+        );
+
+      // decode data
+      const authInfoEncode = fromBase64(authInfoBytes);
+      const decodedAuthInfo = AuthInfo.decode(authInfoEncode);
+      const bodyBytesEncode = fromBase64(bodyBytes);
+      const { memo, messages } = TxBody.decode(bodyBytesEncode);
+
+      // get accountNumber, sequence from chain
+      let sequence: number, accountNumber: number;
+      if (chain.chainId.startsWith('evmos_')) {
+        const accountInfo = await getEvmosAccount(
+          chain.rest,
+          pendingTx.FromAddress,
+        );
+        sequence = accountInfo.sequence;
+        accountNumber = accountInfo.accountNumber;
+      } else {
+        const accountInfo = await client.getAccount(pendingTx.FromAddress);
+        sequence = accountInfo.sequence;
+        accountNumber = accountInfo.accountNumber;
+      }
+
+      // build stdSignDoc for verify signature
+      const registry = new Registry(REGISTRY_GENERATED_TYPES);
+
+      // stargate@0.28.11
+      const aminoTypes = new AminoTypes({
+        ...createBankAminoConverters(),
+        ...createStakingAminoConverters(chain.prefix),
+        ...createDistributionAminoConverters(),
+      });
+      const msgs = messages.map((msg: any) => {
+        const decoder = registry.lookupType(msg.typeUrl);
+        msg.value = decoder.decode(msg.value);
+        return aminoTypes.toAmino(msg);
+      });
+      const stdFee = {
+        amount: decodedAuthInfo.fee.amount,
+        gas: decodedAuthInfo.fee.gasLimit.toString(),
+      };
+      const signDoc = makeSignDoc(
+        msgs,
+        stdFee,
+        chain.chainId,
+        memo,
+        accountNumber,
+        sequence,
+      );
+
+      // verify signature; if verify fail, throw error
+      let resultVerify = false;
+      if (chain.chainId.startsWith('evmos_')) {
+        resultVerify = await verifyEvmosSig(signature, signDoc, creatorAddress);
+      } else {
+        resultVerify = await verifyCosmosSig(
+          signature,
+          signDoc,
+          fromBase64(authInfo.pubkey),
+        );
+      }
+      if (!resultVerify) {
+        throw new CustomError(ErrorMap.SIGNATURE_VERIFICATION_FAILED);
+      }
+
       const transaction =
         await this.multisigTransactionRepos.checkExistMultisigTransaction(
           request.transactionId,

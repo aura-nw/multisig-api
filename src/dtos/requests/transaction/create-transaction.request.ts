@@ -27,20 +27,6 @@ export class CreateTransactionRequest {
 
   @IsNumber()
   @ApiProperty({
-    description: 'Transaction fee',
-    example: 0.01,
-  })
-  fee: number;
-
-  @IsNumber()
-  @ApiProperty({
-    description: 'Transaction gas limit',
-    example: 100000,
-  })
-  gasLimit: number;
-
-  @IsNumber()
-  @ApiProperty({
     description: 'Offline Chain Id',
     example: 4,
   })
@@ -64,5 +50,12 @@ export class CreateTransactionRequest {
   })
   signature: string;
 
+  @IsString()
+  @ApiProperty({
+    description:
+      'Auth info of transaction. Owner who create transaction must sign transaction via wallet first. Then get authInfo of result.',
+    example:
+      'Dj8pEXMADBGCjaRSAQwT1/7s+6fRrf985UZL2ujo0YMe+M2VEqYLERkc5tsrg8HAWuqzKVq5CV6a7KcOSgjNtw==',
+  })
   authInfoBytes: string;
 }
