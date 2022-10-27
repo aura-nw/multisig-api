@@ -4,15 +4,10 @@ export class TxMessageHistoryResponse {
   @ApiProperty({
     example: 1,
   })
-  TxId: number;
+  AuraTxId: number;
 
   @ApiProperty({
     example: 100,
   })
   Amount: number;
-
-  @ApiProperty({
-    example: 'uaura',
-  })
-  Denom: string;
 }

@@ -93,6 +93,7 @@ export class TransactionRepository
         'auraTx.gasUsed as GasUsed',
         'auraTx.gasWanted as GasWanted',
         'auraTx.fee as GasPrice',
+        'auraTx.denom as Denom',
         'chain.chainId as ChainId',
       ])
       .getRawOne();

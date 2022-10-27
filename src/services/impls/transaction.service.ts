@@ -13,7 +13,6 @@ import { IMultisigTransactionsRepository } from '../../repositories/imultisig-tr
 import { IMultisigWalletOwnerRepository } from '../../repositories/imultisig-wallet-owner.repository';
 import { IMultisigWalletRepository } from '../../repositories/imultisig-wallet.repository';
 import { ITransactionRepository } from '../../repositories/itransaction.repository';
-import { ITxMessageRepository } from '../../repositories/itx-message.repository';
 import { ITransactionService } from '../transaction.service';
 import { BaseService } from './base.service';
 
@@ -36,8 +35,6 @@ export class TransactionService
     private safeOwnerRepos: IMultisigWalletOwnerRepository,
     @Inject(REPOSITORY_INTERFACE.IMESSAGE_REPOSITORY)
     private messageRepos: IMessageRepository,
-    @Inject(REPOSITORY_INTERFACE.ITX_MESSAGE_REPOSITORY)
-    private txMessageRepos: ITxMessageRepository,
   ) {
     super(transRepos);
     this._logger.log(
@@ -92,11 +89,10 @@ export class TransactionService
           pageSize,
         );
       let txIds = result.map(res => res.Id);
-      let txMessages = await this.txMessageRepos.getTxMessagesFromTxIds(txIds);
+      let txMessages = await this.messageRepos.getMessagesFromTxIds(txIds);
       result.map(res => {
-        let tm = txMessages.find(tm => tm.TxId = res.Id);
+        let tm = txMessages.find(tm => tm.AuraTxId = res.Id);
         res.Amount = tm.Amount;
-        res.Denom = tm.Denom;
       });
       // Loop to get Status based on Code and get Multisig Confirm of Multisig Tx
       for (const tx of result) {
@@ -173,13 +169,17 @@ export class TransactionService
         txDetail = await this.transRepos.getTransactionDetailsAuraTx(
           internalTxHash,
         );
-        const txMessages = await this.txMessageRepos.getDetailTxMessagesByTxId(txDetail.Id);
-        txDetail.TxMessages = txMessages.map(tm => {
+        const txMessages = await this.messageRepos.getMsgsByAuraTxId(txDetail.Id);
+        txDetail.Messages = txMessages.map(tm => {
           return {
-            fromAddress: tm.FromAddress,
-            toAddress: tm.ToAddress,
-            amount: tm.Amount,
-            denom: tm.Denom
+            typeUrl: tm.typeUrl,
+            fromAddress: tm.fromAddress,
+            toAddress: tm.toAddress,
+            amount: tm.amount,
+            delegatorAddress: null,
+            validatorAddress: null,
+            validatorSrcAddress: null,
+            validatorDstAddress: null
           }
         });
       }
