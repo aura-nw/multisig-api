@@ -265,7 +265,7 @@ export class DistributionService implements IDistributionService {
         const result: GetDelegationsDelegation = {
           operatorAddress: delegation.delegation.validator_address,
           balance: delegation.balance,
-          reward: reward.reward,
+          reward: reward ? reward.reward : [],
           // name:
         };
         results.delegations.push(result);
