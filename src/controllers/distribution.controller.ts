@@ -39,6 +39,20 @@ export class DistributionController {
   }
 
   @CommonGet({
+    url: URL_CONSTANTS.GET_VALIDATOR,
+    summary: 'Queries a validator.',
+    apiOkResponseOptions: {
+      status: 200,
+      type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetValidatorDetailResponse),
+      description: 'Validator detail',
+      schema: {},
+    },
+  })
+  async getValidator(@Param() param: MODULE_REQUEST.GetValidatorPathParams) {
+    return this.distributionService.getValidatorInfo(param);
+  }
+
+  @CommonGet({
     url: URL_CONSTANTS.GET_DELEGATIONS,
     summary: 'Queries all delegations of a user.',
     apiOkResponseOptions: {

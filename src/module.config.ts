@@ -48,6 +48,7 @@ import {
   GetUndelegationsResponse,
   GetDelegationResponse,
 } from './dtos/responses';
+import { GetValidatorDetail } from './dtos/responses/distribution/get-validator.request';
 import {
   AuraTx,
   Chain,
@@ -104,6 +105,7 @@ export const REQUEST_CONFIG = {
   GET_PROPOSAL_PARAM: GetProposalParam,
   GET_TX_DETAIL_QUERY: GetTxDetailQuery,
   GET_USER_PATH_PARAMS: GetUserPathParam,
+  GET_VALIDATOR_PATH_PARAMS: GetValidatorDetail,
 };
 
 export const RESPONSE_CONFIG = {
@@ -126,6 +128,7 @@ export const RESPONSE_CONFIG = {
   GET_VOTES_BY_PROPOSAL_ID_RESPONSE: GetVotesByProposalIdResponse,
   GET_VALIDATOR_VOTES_BY_PROPOSAL_ID_RESPONSE:
     GetValidatorVotesByProposalIdResponse,
+  GET_VALIDATOR_DETAIL_RESPONSE: GetValidatorDetail,
 };
 
 export namespace MODULE_REQUEST {
@@ -162,6 +165,7 @@ export namespace MODULE_REQUEST {
   export abstract class GetVotesByProposalIdParams extends REQUEST_CONFIG.GET_VOTES_BY_PROPOSAL_ID_PARAM {}
   export abstract class GetVotesByProposalIdQuery extends REQUEST_CONFIG.GET_VOTES_BY_PROPOSAL_ID_QUERY {}
   export abstract class GetUserPathParams extends REQUEST_CONFIG.GET_USER_PATH_PARAMS {}
+  export abstract class GetValidatorPathParams extends REQUEST_CONFIG.GET_VALIDATOR_PATH_PARAMS {}
 }
 
 export namespace MODULE_RESPONSE {
@@ -182,6 +186,7 @@ export namespace MODULE_RESPONSE {
   export abstract class GetProposalResponse extends RESPONSE_CONFIG.GET_PROPOSAL_RESPONSE {}
   export abstract class GetVotesByProposalIdResponse extends RESPONSE_CONFIG.GET_VOTES_BY_PROPOSAL_ID_RESPONSE {}
   export abstract class GetValidatorVotesByProposalIdResponse extends RESPONSE_CONFIG.GET_VALIDATOR_VOTES_BY_PROPOSAL_ID_RESPONSE {}
+  export abstract class GetValidatorDetailResponse extends RESPONSE_CONFIG.GET_VALIDATOR_DETAIL_RESPONSE {}
 }
 
 export const SERVICE_INTERFACE = {

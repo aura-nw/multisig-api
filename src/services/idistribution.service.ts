@@ -13,4 +13,8 @@ export interface IDistributionService {
   getUndelegations(
     param: MODULE_REQUEST.GetUndelegationsParam,
   ): Promise<ResponseDto>;
+
+  getValidatorInfo(
+    param: MODULE_REQUEST.GetValidatorPathParams,
+  ): Promise<ResponseDto>;
 }

@@ -36,6 +36,7 @@ export const URL_CONSTANTS = {
   AUTH: 'auth',
   LIST_VALIDATORS: '/network/:internalChainId/validators',
   GET_VALIDATORS: '/:internalChainId/validators',
+  GET_VALIDATOR: '/:internalChainId/validators/:operatorAddress',
   GET_DELEGATIONS: '/:internalChainId/:delegatorAddress/delegations',
   GET_DELEGATION: '/delegation',
   GET_UNDELEGATIONS: '/:internalChainId/:delegatorAddress/undelegations',
