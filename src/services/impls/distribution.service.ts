@@ -4,19 +4,16 @@ import { GetDelegationResponse, ResponseDto } from 'src/dtos/responses';
 import {
   GetDelegationsDelegation,
   GetDelegationsResponse,
-} from 'src/dtos/responses/distribution/get-delegations.response';
-import {
   GetUndelegationsResponse,
   GetUnDelegationsUndelegation,
-} from 'src/dtos/responses/distribution/get-undelegations.response';
-import {
   GetValidatorsResponse,
   GetValidatorsValidator,
-} from 'src/dtos/responses/distribution/get-validators.response';
+} from 'src/dtos/responses/distribution/';
 import { Chain } from 'src/entities';
 import { MODULE_REQUEST, REPOSITORY_INTERFACE } from 'src/module.config';
 import { IGeneralRepository } from 'src/repositories';
 import { ConfigService } from 'src/shared/services/config.service';
+import { IndexerAPI } from 'src/utils/apis/IndexerAPI';
 import { CommonUtil } from 'src/utils/common.util';
 import { IDistributionService } from '../idistribution.service';
 
@@ -25,6 +22,7 @@ export class DistributionService implements IDistributionService {
   private readonly _logger = new Logger(DistributionService.name);
   private _commonUtil: CommonUtil = new CommonUtil();
   private _chains = new Map<string, Chain>();
+  private _indexer = new IndexerAPI(this.configService.get('INDEXER_URL'));
 
   private _validatorPicture = new Map<string, string>();
   indexerUrl: string;
@@ -36,7 +34,6 @@ export class DistributionService implements IDistributionService {
     this._logger.log(
       '============== Constructor Distribution Service ==============',
     );
-    this.indexerUrl = this.configService.get('INDEXER_URL');
   }
 
   private async getChain(internalChainId: number): Promise<Chain> {
@@ -80,84 +77,30 @@ export class DistributionService implements IDistributionService {
     const { internalChainId } = param;
     const { status } = query;
     try {
+      // Get chain
       const chain = await this.getChain(internalChainId);
-      let url = `api/v1/validator?chainid=${chain.chainId}`;
-      if (status) {
-        url += `&status=${status}`;
-      }
-      const validatorsRes = await this._commonUtil.request(
-        new URL(url, this.indexerUrl).href,
-      );
-      const networkRes = await this._commonUtil.request(
-        new URL(
-          `api/v1/network/status?chainid=${chain.chainId}`,
-          this.indexerUrl,
-        ).href,
-      );
 
-      const validators = validatorsRes.data.validators;
-      const bondedTokens = networkRes.data.pool.bonded_tokens;
+      // Get all validators from indexer which status is active
+      const validators = await this._indexer.getValidators(
+        chain.chainId,
+        status,
+      );
+      // Get network info
+      const networkRes = await this._indexer.getNetwork(chain.chainId);
+
+      const bondedTokens = networkRes.pool.bonded_tokens;
+
+      // Build response
+      const validatorsResponse = await Promise.all(
+        validators.map((validator) => this.formatValidator(validator)),
+      );
       const results: GetValidatorsResponse = {
-        validators: [],
+        validators: validatorsResponse,
       };
-      for (const validator of validators) {
-        const picture = await this.getValidatorPicture(
-          validator.description.identity,
-        );
-        const result: GetValidatorsValidator = {
-          validator: validator.description.moniker,
-          operatorAddress: validator.operator_address,
-          status: validator.status,
-          commission: {
-            commission_rates: {
-              rate: String(
-                Number(validator.commission.commission_rates.rate) * 100,
-              ),
-            },
-          },
-          description: {
-            moniker: validator.description.moniker,
-            picture: picture,
-          },
-          votingPower: {
-            number: (+validator.tokens / 10 ** 6).toFixed(3),
-            percentage: String(
-              Math.round(Number(validator.percent_voting_power) * 100) / 100,
-            ),
-          },
-          uptime: validator.uptime,
-        };
-        results.validators.push(result);
-      }
       return ResponseDto.response(ErrorMap.SUCCESSFUL, results);
     } catch (e) {
       return ResponseDto.responseError(DistributionService.name, e);
     }
-  }
-
-  private async getValidatorPicture(identity: string): Promise<string> {
-    let pictureUrl = this.configService.get('DEFAULT_VALIDATOR_IMG');
-    try {
-      if (!identity) return pictureUrl;
-      // get picture in cache
-      if (this._validatorPicture.has(identity)) {
-        pictureUrl = this._validatorPicture.get(identity);
-      } else {
-        // get picture from keybase
-        const keybaseUrl = this.configService.get('KEYBASE');
-        const res = await this._commonUtil.request(
-          new URL(keybaseUrl + identity).href,
-        );
-        pictureUrl = res.them[0].pictures.primary.url;
-        if (pictureUrl) {
-          // save picture to cache
-          this._validatorPicture.set(identity, pictureUrl);
-        }
-      }
-    } catch (e) {
-      this._logger.error(e);
-    }
-    return pictureUrl;
   }
 
   async getDelegation(
@@ -165,23 +108,21 @@ export class DistributionService implements IDistributionService {
   ): Promise<ResponseDto> {
     const { internalChainId, delegatorAddress, operatorAddress } = query;
     try {
-      const chain = await this.chainRepo.findChain(internalChainId);
-      //get delegation info from account
-      const delegationRes = await this._commonUtil.request(
-        new URL(
-          `api/v1/account-info?address=${delegatorAddress}&chainId=${chain.chainId}`,
-          this.indexerUrl,
-        ).href,
+      // Get chain
+      const chain = await this.getChain(internalChainId);
+
+      //get acccount info
+      const accountInfo = await this._indexer.getAccountInfo(
+        chain.chainId,
+        delegatorAddress,
       );
-      const accountInfo = delegationRes.data;
+
       //get validator info
-      const validatorRes = await this._commonUtil.request(
-        new URL(
-          `api/v1/validator?operatorAddress=${operatorAddress}&chainid=${chain.chainId}`,
-          this.indexerUrl,
-        ).href,
+      const validator = await this._indexer.getValidatorByOperatorAddress(
+        chain.chainId,
+        operatorAddress,
       );
-      const validator = validatorRes.data.validators[0];
+
       // combine info from two api
       const claimedReward = accountInfo.account_claimed_rewards.find(
         (r) => r.validator_address === validator.operator_address,
@@ -192,18 +133,22 @@ export class DistributionService implements IDistributionService {
       const pendingReward = accountInfo.account_delegate_rewards.rewards.find(
         (r) => r.validator_address === validator.operator_address,
       )?.reward[0];
-      ///
+
+      // Build response
       const result: GetDelegationResponse = {
         validator: {
           operatorAddress: validator.operator_address,
           votingPower: {
-            percent_voting_power: validator.percent_voting_power,
+            percent_voting_power:
+              Math.round(Number(validator.percent_voting_power) * 100) / 100,
             tokens: {
               amount: validator.tokens,
               denom: chain.symbol,
             },
           },
-          commission: validator.commission.commission_rates.rate,
+          commission: String(
+            Number(validator.commission.commission_rates.rate) * 100,
+          ),
           delegators: validator.number_delegators,
         },
         delegation: {
@@ -234,19 +179,24 @@ export class DistributionService implements IDistributionService {
   ): Promise<ResponseDto> {
     const { internalChainId, delegatorAddress } = param;
     try {
-      const chain = await this.chainRepo.findChain(internalChainId);
-      const delegationRes = await this._commonUtil.request(
-        new URL(
-          `api/v1/account-info?address=${delegatorAddress}&chainId=${chain.chainId}`,
-          this.indexerUrl,
-        ).href,
+      // Get chain
+      const chain = await this.getChain(internalChainId);
+
+      // Get account info
+      const accountInfo = await this._indexer.getAccountInfo(
+        chain.chainId,
+        delegatorAddress,
       );
-      const delegations = delegationRes.data?.account_delegations;
-      const rewards: any[] =
-        delegationRes.data.account_delegate_rewards?.rewards;
+
+      // Get delegate info
+      const delegations = accountInfo.account_delegations;
+      const delegateRewards = accountInfo.account_delegate_rewards;
+      const rewards: any[] = delegateRewards.rewards;
+
+      // Build response
       const results: GetDelegationsResponse = {
-        availableBalance: delegationRes.data?.account_balances[0]
-          ? delegationRes.data.account_balances[0]
+        availableBalance: accountInfo.account_balances[0]
+          ? accountInfo.account_balances[0]
           : null,
         delegations: [],
         total: {
@@ -254,9 +204,11 @@ export class DistributionService implements IDistributionService {
             delegations.length > 0
               ? this.calculateTotalStaked(delegations)
               : null,
-          reward: delegationRes.data.account_delegate_rewards?.total,
+          reward: delegateRewards.total,
         },
       };
+
+      // Build delegations
       for (const delegation of delegations) {
         const reward = rewards.find(
           (r) =>
@@ -266,25 +218,14 @@ export class DistributionService implements IDistributionService {
           operatorAddress: delegation.delegation.validator_address,
           balance: delegation.balance,
           reward: reward ? reward.reward : [],
-          // name:
         };
         results.delegations.push(result);
       }
+
       return ResponseDto.response(ErrorMap.SUCCESSFUL, results);
     } catch (e) {
       return ResponseDto.responseError(DistributionService.name, e);
     }
-  }
-
-  calculateTotalStaked(delegations: any) {
-    let total = 0;
-    for (const delegation of delegations) {
-      total += +delegation.balance.amount;
-    }
-    return {
-      amount: total.toString(),
-      denom: delegations[0].balance.denom,
-    };
   }
 
   async getUndelegations(
@@ -292,14 +233,16 @@ export class DistributionService implements IDistributionService {
   ): Promise<ResponseDto> {
     const { internalChainId, delegatorAddress } = param;
     try {
-      const chain = await this.chainRepo.findChain(internalChainId);
-      const undelegationRes = await this._commonUtil.request(
-        new URL(
-          `api/v1/account-unbonds?address=${delegatorAddress}&chainid=${chain.chainId}`,
-          this.indexerUrl,
-        ).href,
+      // Get chain
+      const chain = await this.getChain(internalChainId);
+
+      // Get account undelegations
+      const accountUnbonding = await this._indexer.getAccountUnBonds(
+        chain.chainId,
+        delegatorAddress,
       );
-      const accountUnbonding = undelegationRes.data.account_unbonding;
+
+      // Build response
       const results: GetUndelegationsResponse = {
         undelegations: [],
       };
@@ -318,5 +261,70 @@ export class DistributionService implements IDistributionService {
     } catch (e) {
       return ResponseDto.responseError(DistributionService.name, e);
     }
+  }
+
+  private async formatValidator(
+    validator: any,
+  ): Promise<GetValidatorsValidator> {
+    const picture = await this.getValidatorPicture(
+      validator.description.identity,
+    );
+    return {
+      validator: validator.description.moniker,
+      operatorAddress: validator.operator_address,
+      status: validator.status,
+      commission: {
+        commission_rates: {
+          rate: Number(validator.commission.commission_rates.rate) * 100,
+        },
+      },
+      description: {
+        moniker: validator.description.moniker,
+        picture: picture,
+      },
+      votingPower: {
+        number: (+validator.tokens / 10 ** 6).toFixed(3),
+        percentage: String(
+          Math.round(Number(validator.percent_voting_power) * 100) / 100,
+        ),
+      },
+      uptime: validator.uptime,
+    };
+  }
+
+  private async getValidatorPicture(identity: string): Promise<string> {
+    let pictureUrl = this.configService.get('DEFAULT_VALIDATOR_IMG');
+    try {
+      if (!identity) return pictureUrl;
+      // get picture in cache
+      if (this._validatorPicture.has(identity)) {
+        pictureUrl = this._validatorPicture.get(identity);
+      } else {
+        // get picture from keybase
+        const keybaseUrl = this.configService.get('KEYBASE');
+        const res = await this._commonUtil.request(
+          new URL(keybaseUrl + identity).href,
+        );
+        pictureUrl = res.them[0].pictures.primary.url;
+        if (pictureUrl) {
+          // save picture to cache
+          this._validatorPicture.set(identity, pictureUrl);
+        }
+      }
+    } catch (e) {
+      this._logger.error(e);
+    }
+    return pictureUrl;
+  }
+
+  calculateTotalStaked(delegations: any) {
+    let total = 0;
+    for (const delegation of delegations) {
+      total += +delegation.balance.amount;
+    }
+    return {
+      amount: total.toString(),
+      denom: delegations[0].balance.denom,
+    };
   }
 }
