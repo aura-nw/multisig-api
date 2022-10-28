@@ -1,5 +1,5 @@
 import { GeneratedType } from '@cosmjs/proto-signing';
-import { MsgSend } from 'cosmjs-types/cosmos/bank/v1beta1/tx';
+import { MsgSend, MsgMultiSend } from 'cosmjs-types/cosmos/bank/v1beta1/tx';
 import { MsgWithdrawDelegatorReward } from 'cosmjs-types/cosmos/distribution/v1beta1/tx';
 import { MsgVote } from 'cosmjs-types/cosmos/gov/v1beta1/tx';
 import {
@@ -64,6 +64,7 @@ export enum NETWORK_URL_TYPE {
 
 export const REGISTRY_GENERATED_TYPES: Iterable<[string, GeneratedType]> = [
   ['/cosmos.bank.v1beta1.MsgSend', MsgSend],
+  ['/cosmos.bank.v1beta1.MsgMultiSend', MsgMultiSend],
   ['/cosmos.staking.v1beta1.MsgDelegate', MsgDelegate],
   ['/cosmos.staking.v1beta1.MsgBeginRedelegate', MsgBeginRedelegate],
   ['/cosmos.staking.v1beta1.MsgUndelegate', MsgUndelegate],
