@@ -2,21 +2,24 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BaseRepository } from './base.repository';
 import { In, ObjectLiteral, Repository } from 'typeorm';
-import { ENTITIES_CONFIG, REPOSITORY_INTERFACE } from 'src/module.config';
+import { ENTITIES_CONFIG, REPOSITORY_INTERFACE } from '../../module.config';
 import { IMultisigTransactionsRepository } from '../imultisig-transaction.repository';
-import { Chain, MultisigTransaction } from 'src/entities';
+import { AuraTx, Chain, MultisigTransaction } from '../../entities';
 import {
   MULTISIG_CONFIRM_STATUS,
   TRANSACTION_STATUS,
   TRANSFER_DIRECTION,
-} from 'src/common/constants/app.constant';
+} from '../../common/constants/app.constant';
 import { IMultisigConfirmRepository } from '../imultisig-confirm.repository';
 import { IMultisigWalletRepository } from '../imultisig-wallet.repository';
-import { CustomError } from 'src/common/customError';
-import { ErrorMap } from 'src/common/error.map';
+import { CustomError } from '../../common/customError';
+import { ErrorMap } from '../../common/error.map';
 import { plainToInstance } from 'class-transformer';
-import { MultisigTransactionHistoryResponse } from 'src/dtos/responses';
-import { TxDetailResponse } from 'src/dtos/responses/multisig-transaction/tx-detail.response';
+import { MultisigTransactionHistoryResponse } from '../../dtos/responses';
+import {
+  MultisigTxDetail,
+  TxDetailResponse,
+} from '../../dtos/responses/multisig-transaction/tx-detail.response';
 
 @Injectable()
 export class MultisigTransactionRepository
@@ -140,6 +143,46 @@ export class MultisigTransactionRepository
     return sqlQuerry.getRawOne();
   }
 
+  async getMultisigTxDetail(
+    multisigTxId: number,
+    auraTxId: number,
+  ): Promise<MultisigTxDetail> {
+    const select = [
+      'AT.Id as AuraTxId',
+      'MT.Id as MultisigTxId',
+      'AT.TxHash as TxHash',
+    ];
+
+    const sqlQuerry = this.repos
+      .createQueryBuilder('MT')
+      .leftJoin(AuraTx, 'AT', 'MT.TxHash = AT.TxHash');
+
+    if (multisigTxId) {
+      select.push(
+        ...[
+          'MT.Status as Status',
+          'MT.CreatedAt as CreatedAt',
+          'MT.UpdatedAt as UpdatedAt',
+        ],
+      );
+      sqlQuerry.where('MT.Id = :multisigTxId', { multisigTxId });
+    } else {
+      select.push(
+        ...[
+          'AT.Code as Status',
+          'AT.CreatedAt as CreatedAt',
+          'AT.UpdatedAt as UpdatedAt',
+        ],
+      );
+      sqlQuerry.where('AT.Id = :auraTxId', { auraTxId });
+    }
+
+    sqlQuerry.select(select);
+
+    const tx = await sqlQuerry.getRawOne();
+    return plainToInstance(MultisigTxDetail, tx);
+  }
+
   async getTransactionDetailsMultisigTransaction(
     condition: any,
   ): Promise<TxDetailResponse> {
@@ -180,7 +223,7 @@ export class MultisigTransactionRepository
     if (result) {
       const txDetail = plainToInstance(TxDetailResponse, result);
       txDetail.Direction = TRANSFER_DIRECTION.OUTGOING;
-  
+
       return txDetail;
     }
     // throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
@@ -196,7 +239,7 @@ export class MultisigTransactionRepository
     const offset = limit * (pageIndex - 1);
     const result: any[] = await this.repos.query(
       `
-      SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, TypeUrl, Status, ? AS Direction
+      SELECT Id, CreatedAt, UpdatedAt, Amount, Denom, TypeUrl, Status, ? AS Direction
       FROM MultisigTransaction
       WHERE FromAddress = ?
       AND (Status = ? OR Status = ? OR Status = ?)

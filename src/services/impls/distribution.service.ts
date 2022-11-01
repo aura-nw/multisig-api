@@ -1,21 +1,25 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ErrorMap } from 'src/common/error.map';
-import { GetDelegationResponse, ResponseDto } from 'src/dtos/responses';
+import { ErrorMap } from '../../common/error.map';
+import { GetDelegationResponse, ResponseDto } from '../../dtos/responses';
 import {
   GetDelegationsDelegation,
   GetDelegationsResponse,
+} from '../../dtos/responses/distribution/get-delegations.response';
+import {
   GetUndelegationsResponse,
   GetUnDelegationsUndelegation,
+} from '../../dtos/responses/distribution/get-undelegations.response';
+import {
   GetValidatorsResponse,
   GetValidatorsValidator,
-} from 'src/dtos/responses/distribution/';
-import { Chain } from 'src/entities';
-import { MODULE_REQUEST, REPOSITORY_INTERFACE } from 'src/module.config';
-import { IGeneralRepository } from 'src/repositories';
-import { ConfigService } from 'src/shared/services/config.service';
-import { IndexerAPI } from 'src/utils/apis/IndexerAPI';
-import { CommonUtil } from 'src/utils/common.util';
+} from '../../dtos/responses/distribution/get-validators.response';
+import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
+import { IGeneralRepository } from '../../repositories';
+import { ConfigService } from '../../shared/services/config.service';
+import { CommonUtil } from '../../utils/common.util';
+import { Chain } from '../../entities';
 import { IDistributionService } from '../idistribution.service';
+import { IndexerAPI } from 'src/utils/apis/IndexerAPI';
 
 @Injectable()
 export class DistributionService implements IDistributionService {

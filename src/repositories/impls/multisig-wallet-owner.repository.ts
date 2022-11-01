@@ -3,10 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { BaseRepository } from './base.repository';
 import { ObjectLiteral, Repository } from 'typeorm';
 import { IMultisigWalletOwnerRepository } from '../imultisig-wallet-owner.repository';
-import { ENTITIES_CONFIG } from 'src/module.config';
-import { Safe, SafeOwner } from 'src/entities';
-import { CustomError } from 'src/common/customError';
-import { ErrorMap } from 'src/common/error.map';
+import { ENTITIES_CONFIG } from '../../module.config';
+import { Safe, SafeOwner } from '../../entities';
+import { CustomError } from '../../common/customError';
+import { ErrorMap } from '../../common/error.map';
 
 @Injectable()
 export class MultisigWalletOwnerRepository

@@ -1,6 +1,9 @@
-import { MultisigTransactionHistoryResponse } from 'src/dtos/responses';
-import { TxDetailResponse } from 'src/dtos/responses/multisig-transaction/tx-detail.response';
-import { MultisigTransaction } from 'src/entities';
+import { MultisigTransactionHistoryResponse } from '../dtos/responses';
+import {
+  MultisigTxDetail,
+  TxDetailResponse,
+} from '../dtos/responses/multisig-transaction/tx-detail.response';
+import { MultisigTransaction } from '../entities';
 import { IBaseRepository } from './ibase.repository';
 
 export interface IMultisigTransactionsRepository extends IBaseRepository {
@@ -9,6 +12,11 @@ export interface IMultisigTransactionsRepository extends IBaseRepository {
    * @param internalTxHash
    */
   getMultisigTxId(internalTxHash: string): any;
+
+  getMultisigTxDetail(
+    multisigTxId: number,
+    auraTxId: number,
+  ): Promise<MultisigTxDetail>;
 
   /**
    * Get details of a transaction from MultisigTransaction table

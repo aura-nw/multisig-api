@@ -8,20 +8,27 @@ export class GetTransactionDetailsParam {
   })
   @IsString()
   internalTxHash: string;
+}
 
+export class GetTxDetailQuery {
   @ApiProperty({
     description: 'Safe Address correspond to Transaction',
     type: String,
   })
   @IsString()
   safeAddress: string;
-}
 
-export class GetTxDetailQuery {
   @ApiPropertyOptional({
-    description: 'Direction of Transaction',
-    type: String,
+    description: 'Id of Multisig Transaction',
+    type: Number,
   })
   @IsString()
-  direction: string;
+  multisigTxId: number;
+
+  @ApiPropertyOptional({
+    description: 'Id of Aura Transaction',
+    type: Number,
+  })
+  @IsString()
+  auraTxId: number;
 }

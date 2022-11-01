@@ -1,13 +1,13 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ResponseDto } from 'src/dtos/responses/response.dto';
+import { ResponseDto } from '../../dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import {
   MODULE_REQUEST,
   REPOSITORY_INTERFACE,
-} from 'src/module.config';
-import { Chain } from 'src/entities';
+} from '../../module.config';
+import { Chain } from '../../entities';
 import { IUserService } from '../iuser.service';
-import { IUserRepository } from 'src/repositories/iuser.repository';
+import { IUserRepository } from '../../repositories/iuser.repository';
 
 @Injectable()
 export class UserService implements IUserService {

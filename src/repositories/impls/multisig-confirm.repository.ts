@@ -1,15 +1,15 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MULTISIG_CONFIRM_STATUS } from 'src/common/constants/app.constant';
-import { CustomError } from 'src/common/customError';
-import { ErrorMap } from 'src/common/error.map';
+import { MULTISIG_CONFIRM_STATUS } from '../../common/constants/app.constant';
+import { CustomError } from '../../common/customError';
+import { ErrorMap } from '../../common/error.map';
 import {
   MultisigConfirm,
   MultisigTransaction,
   Safe,
   SafeOwner,
-} from 'src/entities';
-import { ENTITIES_CONFIG, REPOSITORY_INTERFACE } from 'src/module.config';
+} from '../../entities';
+import { ENTITIES_CONFIG, REPOSITORY_INTERFACE } from '../../module.config';
 import { ObjectLiteral, Repository } from 'typeorm';
 import { IMultisigConfirmRepository } from '../imultisig-confirm.repository';
 import { IMultisigWalletRepository } from '../imultisig-wallet.repository';

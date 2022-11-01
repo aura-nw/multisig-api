@@ -1,12 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass, plainToInstance } from 'class-transformer';
-import { TxMessageResponse } from 'src/dtos/responses/message/tx-msg.response';
-import { Message } from 'src/entities';
-import { ENTITIES_CONFIG } from 'src/module.config';
+import { TxMessageResponse } from '../../dtos/responses/message/tx-msg.response';
+import { Message } from '../../entities';
+import { ENTITIES_CONFIG } from '../../module.config';
 import { Repository } from 'typeorm';
 import { IMessageRepository } from '../imessage.repository';
 import { BaseRepository } from './base.repository';
+import { TxMessageHistoryResponse } from '../../dtos/responses';
+import { CustomError } from '../../common/customError';
+import { ErrorMap } from '../../common/error.map';
 
 @Injectable()
 export class MessageRepository
@@ -45,5 +48,28 @@ export class MessageRepository
     return plainToInstance(TxMessageResponse, result, {
       excludeExtraneousValues: true,
     });
+  }
+
+  async getMsgsByAuraTxId(auraTxId: number): Promise<TxMessageResponse[]> {
+    const result = await this.repos.find({
+      where: { auraTxId },
+    });
+    return plainToInstance(TxMessageResponse, result, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  async getMessagesFromTxIds(txIds: number[]): Promise<TxMessageHistoryResponse[]> {
+    const result = await this.repos
+      .createQueryBuilder('message')
+      .where('message.auraTxID IN (:txIds)', { txIds })
+      .select([
+        'message.auraTxID as AuraTxID',
+        'sum(message.amount) as Amount',
+      ])
+      .groupBy('message.auraTxID')
+      .getRawMany();
+    if (!result) throw new CustomError(ErrorMap.MESSAGE_NOT_EXIST);
+    return result;
   }
 }

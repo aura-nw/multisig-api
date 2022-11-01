@@ -12,9 +12,9 @@ import { ApiBadRequestResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   CONTROLLER_CONSTANTS,
   URL_CONSTANTS,
-} from 'src/common/constants/api.constant';
-import { MODULE_REQUEST, SERVICE_INTERFACE } from 'src/module.config';
-import { IMultisigWalletService } from 'src/services/imultisig-wallet.service';
+} from '../common/constants/api.constant';
+import { MODULE_REQUEST, SERVICE_INTERFACE } from '../module.config';
+import { IMultisigWalletService } from '../services/imultisig-wallet.service';
 @Controller(CONTROLLER_CONSTANTS.OWNER)
 @ApiTags(CONTROLLER_CONSTANTS.OWNER)
 export class OwnerController {

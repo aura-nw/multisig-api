@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { Cache } from 'cache-manager';
 import { Reflector } from '@nestjs/core';
-import { CommonUtil } from 'src/utils/common.util';
+import { CommonUtil } from '../utils/common.util';
 @Injectable()
 export class GroupsGuard implements CanActivate {
   private _commonUtil: CommonUtil = new CommonUtil();

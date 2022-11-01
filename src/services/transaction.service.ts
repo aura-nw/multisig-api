@@ -1,5 +1,5 @@
-import { ResponseDto } from 'src/dtos/responses';
-import { MODULE_REQUEST } from 'src/module.config';
+import { ResponseDto } from '../dtos/responses';
+import { MODULE_REQUEST } from '../module.config';
 
 export interface ITransactionService {
   // /**
@@ -30,7 +30,7 @@ export interface ITransactionService {
    * Get detail of a transaction
    */
   getTransactionDetails(
-    param: MODULE_REQUEST.GetTransactionDetailsParam,
+    // param: MODULE_REQUEST.GetTransactionDetailsParam,
     query: MODULE_REQUEST.GetTxDetailQuery,
   ): Promise<ResponseDto>;
 }

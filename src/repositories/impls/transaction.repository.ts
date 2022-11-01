@@ -4,13 +4,13 @@ import { plainToInstance } from 'class-transformer';
 import {
   TRANSACTION_STATUS,
   TRANSFER_DIRECTION,
-} from 'src/common/constants/app.constant';
-import { CustomError } from 'src/common/customError';
-import { ErrorMap } from 'src/common/error.map';
-import { MultisigTransactionHistoryResponse } from 'src/dtos/responses';
-import { TxDetailResponse } from 'src/dtos/responses/multisig-transaction/tx-detail.response';
-import { Chain } from 'src/entities';
-import { ENTITIES_CONFIG } from 'src/module.config';
+} from '../../common/constants/app.constant';
+import { CustomError } from '../../common/customError';
+import { ErrorMap } from '../../common/error.map';
+import { MultisigTransactionHistoryResponse } from '../../dtos/responses';
+import { TxDetailResponse } from '../../dtos/responses/multisig-transaction/tx-detail.response';
+import { Chain } from '../../entities';
+import { ENTITIES_CONFIG } from '../../module.config';
 import { ObjectLiteral, Repository } from 'typeorm';
 import { ITransactionRepository } from '../itransaction.repository';
 import { BaseRepository } from './base.repository';
@@ -40,43 +40,73 @@ export class TransactionRepository
     const offset = limit * (pageIndex - 1);
     // query transactions from aura_tx
     // set direction of transaction
+
     const result: any[] = await this.repos.query(
       `
-                SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, "Receive" as TypeUrl, Code as Status, ? AS Direction
-                FROM AuraTx
-                WHERE ToAddress = ?
-                AND InternalChainId = ?
-                UNION
-                SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, TypeUrl, Status, ? AS Direction
-                FROM MultisigTransaction
-                WHERE FromAddress = ?
-                AND (Status = ? OR Status = ? OR Status = ?)
-                AND InternalChainId = ?
-                ORDER BY UpdatedAt DESC
-                LIMIT ? OFFSET ?;
-            `,
+      SELECT AT.Id as AuraTxId, MT.Id as MultisigTxId, AT.TxHash as TxHash, MT.TypeUrl as TypeUrl, AT.Amount as AuraTxAmount, MT.Amount as MultisigTxAmount, AT.Code as Status, AT.UpdatedAt as UpdatedAt FROM AuraTx AT
+        LEFT JOIN MultisigTransaction MT on AT.TxHash = MT.TxHash
+        WHERE AT.InternalChainId = ?
+        AND  (AT.FromAddress = ? OR AT.ToAddress = ?)
+      UNION
+      SELECT NULL as AuraTxId,  MT.ID as MultisigTxId, MT.TxHash as TxHash, MT.TypeUrl as TypeUrl, NULL as AuraTxAmount, MT.Amount as MultisigTxAmount, MT.Status, MT.UpdatedAt as UpdateAt  FROM MultisigTransaction MT
+        WHERE MT.InternalChainId = ?
+        AND MT.FromAddress = ?
+        AND (Status = ? OR Status = ? OR Status = ?)
+        AND TxHash IS NULL
+      ORDER BY UpdatedAt DESC
+      LIMIT ? OFFSET ?;
+      `,
       [
-        TRANSFER_DIRECTION.INCOMING,
+        internalChainId,
+        safeAddress,
         safeAddress,
         internalChainId,
-        TRANSFER_DIRECTION.OUTGOING,
         safeAddress,
-        TRANSACTION_STATUS.SUCCESS,
         TRANSACTION_STATUS.CANCELLED,
+        TRANSACTION_STATUS.SUCCESS,
         TRANSACTION_STATUS.FAILED,
-        internalChainId,
         limit,
         offset,
       ],
     );
+
+    // const result: any[] = await this.repos.query(
+    //   `
+    //             SELECT Id, CreatedAt, UpdatedAt, TxHash, Amount, Denom, "Receive" as TypeUrl, Code as Status, ? AS Direction
+    //             FROM AuraTx
+    //             WHERE ToAddress = ?
+    //             AND InternalChainId = ?
+    //             UNION
+    //             SELECT Id, CreatedAt, UpdatedAt, TxHash, Amount, Denom, TypeUrl, Status, ? AS Direction
+    //             FROM MultisigTransaction
+    //             WHERE FromAddress = ?
+    //             AND (Status = ? OR Status = ? OR Status = ?)
+    //             AND InternalChainId = ?
+    //             ORDER BY UpdatedAt DESC
+    //             LIMIT ? OFFSET ?;
+    //         `,
+    //   [
+    //     TRANSFER_DIRECTION.INCOMING,
+    //     safeAddress,
+    //     internalChainId,
+    //     TRANSFER_DIRECTION.OUTGOING,
+    //     safeAddress,
+    //     TRANSACTION_STATUS.SUCCESS,
+    //     TRANSACTION_STATUS.CANCELLED,
+    //     TRANSACTION_STATUS.FAILED,
+    //     internalChainId,
+    //     limit,
+    //     offset,
+    //   ],
+    // );
     const txs = plainToInstance(MultisigTransactionHistoryResponse, result);
-    for (const tx of txs) {
-      // Set status of transaction
-      if (typeof tx.Status === 'number') {
-        if (Number(tx.Status) === 0) tx.Status = TRANSACTION_STATUS.SUCCESS;
-        else tx.Status = TRANSACTION_STATUS.FAILED;
-      }
-    }
+    // for (const tx of txs) {
+    //   // Set status of transaction
+    //   if (typeof tx.Status === 'number') {
+    //     if (Number(tx.Status) === 0) tx.Status = TRANSACTION_STATUS.SUCCESS;
+    //     else tx.Status = TRANSACTION_STATUS.FAILED;
+    //   }
+    // }
     return txs;
   }
 
@@ -90,14 +120,11 @@ export class TransactionRepository
         'auraTx.code as Code',
         'auraTx.createdAt as CreatedAt',
         'auraTx.updatedAt as UpdatedAt',
-        'auraTx.fromAddress as FromAddress',
-        'auraTx.toAddress as ToAddress',
         'auraTx.txHash as TxHash',
-        'auraTx.amount as Amount',
-        'auraTx.denom as Denom',
         'auraTx.gasUsed as GasUsed',
         'auraTx.gasWanted as GasWanted',
         'auraTx.fee as GasPrice',
+        'auraTx.denom as Denom',
         'chain.chainId as ChainId',
       ])
       .getRawOne();
