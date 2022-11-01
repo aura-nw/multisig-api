@@ -189,7 +189,11 @@ export class DistributionService implements IDistributionService {
       );
 
       // Get delegate info
-      const delegations = accountInfo.account_delegations;
+      const delegations = accountInfo.account_delegations.filter(
+        (delegation) => {
+          return Number(delegation.balance.amount) > 0;
+        },
+      );
       const delegateRewards = accountInfo.account_delegate_rewards;
       const rewards: any[] = delegateRewards.rewards;
 
