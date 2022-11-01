@@ -239,7 +239,7 @@ export class MultisigTransactionRepository
     const offset = limit * (pageIndex - 1);
     const result: any[] = await this.repos.query(
       `
-      SELECT Id, CreatedAt, UpdatedAt, Amount, Denom, TypeUrl, Status, ? AS Direction
+      SELECT Id as MultisigTxId, CreatedAt, UpdatedAt, Amount as MultisigTxAmount, TypeUrl, Status
       FROM MultisigTransaction
       WHERE FromAddress = ?
       AND (Status = ? OR Status = ? OR Status = ?)
@@ -248,7 +248,6 @@ export class MultisigTransactionRepository
       LIMIT ? OFFSET ?
     `,
       [
-        TRANSFER_DIRECTION.OUTGOING,
         safeAddress,
         TRANSACTION_STATUS.AWAITING_CONFIRMATIONS,
         TRANSACTION_STATUS.AWAITING_EXECUTION,
