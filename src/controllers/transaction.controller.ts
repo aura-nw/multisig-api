@@ -140,11 +140,8 @@ export class TransactionController {
   })
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
   @HttpCode(HttpStatus.OK)
-  async getTransactionDetails(
-    @Param() param: MODULE_REQUEST.GetTransactionDetailsParam,
-    @Query() query: MODULE_REQUEST.GetTxDetailQuery,
-  ) {
+  async getTransactionDetails(@Query() query: MODULE_REQUEST.GetTxDetailQuery) {
     this._logger.log('========== Get details of a Transaction ==========');
-    return this.transactionService.getTransactionDetails(param, query);
+    return this.transactionService.getTransactionDetails(query);
   }
 }

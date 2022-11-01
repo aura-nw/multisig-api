@@ -57,8 +57,17 @@ export enum TRANSFER_DIRECTION {
   UNKNOWN = 'UNKNOWN',
 }
 
-export enum NETWORK_URL_TYPE {
-  COSMOS = '/cosmos.bank.v1beta1.MsgSend',
+export enum PUBKEY_TYPES {
+  SECP256K1 = 'tendermint/PubKeySecp256k1',
+}
+export enum TX_TYPE_URL {
+  SEND = '/cosmos.bank.v1beta1.MsgSend',
+  MULTI_SEND = '/cosmos.bank.v1beta1.MsgMultiSend',
+  DELEGATE = '/cosmos.staking.v1beta1.MsgDelegate',
+  REDELEGATE = '/cosmos.staking.v1beta1.MsgBeginRedelegate',
+  UNDELEGATE = '/cosmos.staking.v1beta1.MsgUndelegate',
+  WITHDRAW_REWARD = '/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward',
+  VOTE = '/cosmos.gov.v1beta1.MsgVote',
   EXECUTE_CONTRACT = '/cosmwasm.wasm.v1.MsgExecuteContract',
 }
 

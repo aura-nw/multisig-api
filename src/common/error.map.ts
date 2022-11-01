@@ -167,6 +167,10 @@ export const ErrorMap = {
     Code: 'E040',
     Message: 'These message(s) is not exist!',
   },
+  INVALID_REQUEST: {
+    Code: 'E041',
+    Message: 'Invalid request!',
+  },
   C001: {
     Code: 'C001',
     Message: `Missing result from Chaincode`,
