@@ -10,6 +10,7 @@ import {
   coins,
   createBankAminoConverters,
   createDistributionAminoConverters,
+  createGovAminoConverters,
   createStakingAminoConverters,
   makeMultisignedTx,
   StargateClient,
@@ -116,6 +117,7 @@ export class MultisigTransactionService
         ...createBankAminoConverters(),
         ...createStakingAminoConverters(chain.prefix),
         ...createDistributionAminoConverters(),
+        ...createGovAminoConverters(),
       });
       const msgs = messages.map((msg: any) => {
         const decoder = registry.lookupType(msg.typeUrl);
@@ -330,6 +332,7 @@ export class MultisigTransactionService
         ...createBankAminoConverters(),
         ...createStakingAminoConverters(chain.prefix),
         ...createDistributionAminoConverters(),
+        ...createGovAminoConverters(),
       });
       const msgs = messages.map((msg: any) => {
         const decoder = registry.lookupType(msg.typeUrl);
