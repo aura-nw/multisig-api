@@ -18,7 +18,8 @@ import { BaseRepository } from './base.repository';
 @Injectable()
 export class TransactionRepository
   extends BaseRepository
-  implements ITransactionRepository {
+  implements ITransactionRepository
+{
   private readonly _logger = new Logger(TransactionRepository.name);
   constructor(
     @InjectRepository(ENTITIES_CONFIG.AURA_TX)
@@ -39,43 +40,73 @@ export class TransactionRepository
     const offset = limit * (pageIndex - 1);
     // query transactions from aura_tx
     // set direction of transaction
+
     const result: any[] = await this.repos.query(
       `
-                SELECT Id, CreatedAt, UpdatedAt, TxHash, Amount, Denom, "Receive" as TypeUrl, Code as Status, ? AS Direction
-                FROM AuraTx
-                WHERE ToAddress = ?
-                AND InternalChainId = ?
-                UNION
-                SELECT Id, CreatedAt, UpdatedAt, TxHash, Amount, Denom, TypeUrl, Status, ? AS Direction
-                FROM MultisigTransaction
-                WHERE FromAddress = ?
-                AND (Status = ? OR Status = ? OR Status = ?)
-                AND InternalChainId = ?
-                ORDER BY UpdatedAt DESC
-                LIMIT ? OFFSET ?;
-            `,
+      SELECT AT.Id as AuraTxId, MT.Id as MultisigTxId, AT.TxHash as TxHash, MT.TypeUrl as TypeUrl, AT.Amount as AuraTxAmount, MT.Amount as MultisigTxAmount, AT.Code as Status, AT.UpdatedAt as UpdatedAt FROM AuraTx AT
+        LEFT JOIN MultisigTransaction MT on AT.TxHash = MT.TxHash
+        WHERE AT.InternalChainId = ?
+        AND  (AT.FromAddress = ? OR AT.ToAddress = ?)
+      UNION
+      SELECT NULL as AuraTxId,  MT.ID as MultisigTxId, MT.TxHash as TxHash, MT.TypeUrl as TypeUrl, NULL as AuraTxAmount, MT.Amount as MultisigTxAmount, MT.Status, MT.UpdatedAt as UpdateAt  FROM MultisigTransaction MT
+        WHERE MT.InternalChainId = ?
+        AND MT.FromAddress = ?
+        AND (Status = ? OR Status = ? OR Status = ?)
+        AND TxHash IS NULL
+      ORDER BY UpdatedAt DESC
+      LIMIT ? OFFSET ?;
+      `,
       [
-        TRANSFER_DIRECTION.INCOMING,
+        internalChainId,
+        safeAddress,
         safeAddress,
         internalChainId,
-        TRANSFER_DIRECTION.OUTGOING,
         safeAddress,
-        TRANSACTION_STATUS.SUCCESS,
         TRANSACTION_STATUS.CANCELLED,
+        TRANSACTION_STATUS.SUCCESS,
         TRANSACTION_STATUS.FAILED,
-        internalChainId,
         limit,
         offset,
       ],
     );
+
+    // const result: any[] = await this.repos.query(
+    //   `
+    //             SELECT Id, CreatedAt, UpdatedAt, TxHash, Amount, Denom, "Receive" as TypeUrl, Code as Status, ? AS Direction
+    //             FROM AuraTx
+    //             WHERE ToAddress = ?
+    //             AND InternalChainId = ?
+    //             UNION
+    //             SELECT Id, CreatedAt, UpdatedAt, TxHash, Amount, Denom, TypeUrl, Status, ? AS Direction
+    //             FROM MultisigTransaction
+    //             WHERE FromAddress = ?
+    //             AND (Status = ? OR Status = ? OR Status = ?)
+    //             AND InternalChainId = ?
+    //             ORDER BY UpdatedAt DESC
+    //             LIMIT ? OFFSET ?;
+    //         `,
+    //   [
+    //     TRANSFER_DIRECTION.INCOMING,
+    //     safeAddress,
+    //     internalChainId,
+    //     TRANSFER_DIRECTION.OUTGOING,
+    //     safeAddress,
+    //     TRANSACTION_STATUS.SUCCESS,
+    //     TRANSACTION_STATUS.CANCELLED,
+    //     TRANSACTION_STATUS.FAILED,
+    //     internalChainId,
+    //     limit,
+    //     offset,
+    //   ],
+    // );
     const txs = plainToInstance(MultisigTransactionHistoryResponse, result);
-    for (const tx of txs) {
-      // Set status of transaction
-      if (typeof tx.Status === 'number') {
-        if (Number(tx.Status) === 0) tx.Status = TRANSACTION_STATUS.SUCCESS;
-        else tx.Status = TRANSACTION_STATUS.FAILED;
-      }
-    }
+    // for (const tx of txs) {
+    //   // Set status of transaction
+    //   if (typeof tx.Status === 'number') {
+    //     if (Number(tx.Status) === 0) tx.Status = TRANSACTION_STATUS.SUCCESS;
+    //     else tx.Status = TRANSACTION_STATUS.FAILED;
+    //   }
+    // }
     return txs;
   }
 
