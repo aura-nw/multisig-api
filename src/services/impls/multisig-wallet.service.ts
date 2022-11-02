@@ -26,6 +26,8 @@ import { encodeSecp256k1Pubkey, pubkeyToAddress } from '@cosmjs/amino';
 import { fromBase64 } from '@cosmjs/encoding';
 import { SimplePublicKey } from '@terra-money/terra.js';
 import { pubkeyToAddressEvmos } from '../../chains/evmos';
+import { IndexerAPI } from 'src/utils/apis/IndexerAPI';
+import { ConfigService } from 'src/shared/services/config.service';
 
 @Injectable()
 export class MultisigWalletService
@@ -34,8 +36,10 @@ export class MultisigWalletService
 {
   private readonly _logger = new Logger(MultisigWalletService.name);
   private _commonUtil: CommonUtil = new CommonUtil();
+  private _indexer = new IndexerAPI(this.configService.get('INDEXER_URL'));
 
   constructor(
+    private configService: ConfigService,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_REPOSITORY)
     private safeRepo: IMultisigWalletRepository,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_OWNER_REPOSITORY)
@@ -139,13 +143,9 @@ export class MultisigWalletService
       // if safe created => Get balance
       if (safeInfo.address !== null) {
         try {
-          const network = new Network(chainInfo.rpc);
-          await network.init();
-          const balance = await network.client.getBalance(
-            safeInfo.address,
-            chainInfo.denom,
-          );
-          safeInfo.balance = [balance];
+          const accountInfo = await this._indexer.getAccountInfo(chainInfo.chainId, safeInfo.address);
+          safeInfo.balance = accountInfo.account_balances;
+
         } catch (error) {
           msgError = error.message;
           this._logger.error(error.message);
