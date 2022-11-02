@@ -3,8 +3,6 @@ import {
   TRANSACTION_STATUS,
   TRANSFER_DIRECTION,
 } from '../../../common/constants/app.constant';
-import { MultisigConfirm } from '../../../entities/multisig-confirm.entity';
-import { MultisigSignatureResponse } from './multisig-signature.response';
 
 export class MultisigTransactionHistoryResponse {
   @ApiProperty({
@@ -26,6 +24,11 @@ export class MultisigTransactionHistoryResponse {
     example: '/cosmos.bank.v1beta1.MsgSend',
   })
   TypeUrl: string;
+
+  @ApiProperty({
+    example: 'aura1522aavcagyrahayuspe47ndje7s694dkzcup6x',
+  })
+  FromAddress: string;
 
   @ApiProperty({
     example: 100,
@@ -56,10 +59,4 @@ export class MultisigTransactionHistoryResponse {
     example: TRANSFER_DIRECTION.OUTGOING,
   })
   Direction: string;
-
-  // @ApiProperty({
-  //   type: [MultisigSignatureResponse],
-  //   example: MultisigSignatureResponse,
-  // })
-  // Signatures: MultisigConfirm[];
 }
