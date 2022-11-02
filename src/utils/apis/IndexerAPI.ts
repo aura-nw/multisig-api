@@ -38,14 +38,14 @@ export class IndexerAPI {
     return networkRes.data;
   }
 
-  async getAccountInfo(chainId: string, delegatorAddress: string) {
-    const delegationRes = await this._commonUtil.request(
+  async getAccountInfo(chainId: string, address: string) {
+    const accountInfo = await this._commonUtil.request(
       new URL(
-        `api/v1/account-info?address=${delegatorAddress}&chainId=${chainId}`,
+        `api/v1/account-info?address=${address}&chainId=${chainId}`,
         this.indexerUrl,
       ).href,
     );
-    return delegationRes.data;
+    return accountInfo.data;
   }
 
   async getAccountUnBonds(chainId: string, delegatorAddress: string) {
