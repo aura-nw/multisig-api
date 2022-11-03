@@ -40,7 +40,9 @@ import {
 } from '../../chains/evmos';
 import { CommonUtil } from '../../utils/common.util';
 import { makeSignDoc } from '@cosmjs/amino';
-import { checkAccountBalance, verifyCosmosSig } from '../../chains';
+import { verifyCosmosSig } from '../../chains';
+import { IndexerAPI } from 'src/utils/apis/IndexerAPI';
+import { ConfigService } from 'src/shared/services/config.service';
 
 @Injectable()
 export class MultisigTransactionService
@@ -49,8 +51,10 @@ export class MultisigTransactionService
 {
   private readonly _logger = new Logger(MultisigTransactionService.name);
   private readonly _commonUtil: CommonUtil = new CommonUtil();
+  private _indexer = new IndexerAPI(this.configService.get('INDEXER_URL'));
 
   constructor(
+    private configService: ConfigService,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_TRANSACTION_REPOSITORY)
     private multisigTransactionRepos: IMultisigTransactionsRepository,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_CONFIRM_REPOSITORY)
@@ -153,7 +157,7 @@ export class MultisigTransactionService
       }
 
       // check account balance; if balance is not enough, throw error
-      await checkAccountBalance(client, from, chain.denom, amount);
+      await this.checkAccountBalance(chain.chainId, from, chain.denom, amount);
 
       // get Safe info
       const safe = await this.safeRepos.getSafe(from, internalChainId);
@@ -205,6 +209,22 @@ export class MultisigTransactionService
     } catch (error) {
       return ResponseDto.responseError(MultisigTransactionService.name, error);
     }
+  }
+
+  async checkAccountBalance(
+    chainId: string,
+    address: string,
+    denom: string,
+    expectedBalance: number,
+  ): Promise<boolean> {
+    const accountInfo = await this._indexer.getAccountInfo(chainId, address);
+    const balance = accountInfo.account_balances.filter((item) => {
+      return item.denom === denom;
+    });
+    if (Number(balance.amount) < expectedBalance) {
+      throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
+    }
+    return true;
   }
 
   async sendTransaction(
