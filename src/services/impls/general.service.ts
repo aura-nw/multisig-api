@@ -51,17 +51,20 @@ export class GeneralService extends BaseService implements IGeneralService {
   async showNetworkList(): Promise<ResponseDto> {
     try {
       const chains = await this.chainRepo.showNetworkList();
-      for (const chain of chains) {
-        const gas = await this.gasRepo.findByCondition(
-          {
-            chainId: chain.chainId,
-          },
-          undefined,
-          ['typeUrl', 'gasAmount', 'multiplier'],
-        );
-        chain.defaultGas = gas;
-      }
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, chains);
+      const result = await Promise.all(
+        chains.map(async (chain) => {
+          const gas = await this.gasRepo.findByCondition(
+            {
+              chainId: chain.chainId,
+            },
+            undefined,
+            ['typeUrl', 'gasAmount', 'multiplier'],
+          );
+          chain.defaultGas = gas;
+          return chain;
+        }),
+      );
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
     } catch (error) {
       return ResponseDto.responseError(GeneralService.name, error);
     }
