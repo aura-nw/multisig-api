@@ -349,7 +349,7 @@ export class MultisigWalletRepository
       const safeId = result.id;
 
       // insert safe owner
-      let promises = [];
+      const promises = [];
       for (let i = 0; i < ownersAddresses.length; i++) {
         promises.push(
           this.safeOwnerRepo.recoverSafeOwner(

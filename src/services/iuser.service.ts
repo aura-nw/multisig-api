@@ -4,7 +4,9 @@ import { MODULE_REQUEST } from '../module.config';
 export interface IUserService {
   /**
    * getUserByAddress
-   * @param address 
+   * @param address
    */
-  getUserByAddress(param: MODULE_REQUEST.GetUserPathParams): Promise<ResponseDto>;
+  getUserByAddress(
+    param: MODULE_REQUEST.GetUserPathParams,
+  ): Promise<ResponseDto>;
 }

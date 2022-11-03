@@ -1,11 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ResponseDto } from '../../dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
-import {
-  MODULE_REQUEST,
-  REPOSITORY_INTERFACE,
-  RESPONSE_CONFIG,
-} from '../../module.config';
+import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
 import { CommonUtil } from '../../utils/common.util';
 import { IGovService } from '../igov.service';
 import { IGeneralRepository } from '../../repositories';

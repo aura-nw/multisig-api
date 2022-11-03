@@ -90,9 +90,9 @@ export class DistributionService implements IDistributionService {
         status,
       );
       // Get network info
-      const networkRes = await this._indexer.getNetwork(chain.chainId);
+      // const networkRes = await this._indexer.getNetwork(chain.chainId);
 
-      const bondedTokens = networkRes.pool.bonded_tokens;
+      // const bondedTokens = networkRes.pool.bonded_tokens;
 
       // Build response
       const validatorsResponse = await Promise.all(
