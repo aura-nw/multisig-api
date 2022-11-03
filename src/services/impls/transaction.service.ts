@@ -84,14 +84,15 @@ export class TransactionService
           pageIndex,
           pageSize,
         );
-      else
+      else {
         result = await this.multisigTransactionRepos.getQueueTransaction(
           safeAddress,
           internalChainId,
           pageIndex,
           pageSize,
         );
-
+        result = await this.getConfirmationStatus(result, safe[0].threshold);
+      }
       const response = result.map((item) => {
         item.Direction = this.getDirection(
           item.TypeUrl,
@@ -113,6 +114,29 @@ export class TransactionService
     } catch (error) {
       return ResponseDto.responseError(TransactionService.name, error);
     }
+  }
+
+  async getConfirmationStatus(
+    txs: MultisigTransactionHistoryResponse[],
+    threshold: number,
+  ) {
+    const result = await Promise.all(
+      txs.map(async (tx) => {
+        const confirmations: any[] =
+          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+            tx.MultisigTxId,
+            tx.TxHash,
+          );
+        tx.Confirmations = confirmations.filter(
+          (x) => x.status === MULTISIG_CONFIRM_STATUS.CONFIRM,
+        ).length;
+        tx.Rejections = confirmations.length - tx.Confirmations;
+
+        tx.ConfirmationsRequired = threshold;
+        return tx;
+      }),
+    );
+    return result;
   }
 
   getDirection(typeUrl: string, from: string, safeAddress: string): string {
