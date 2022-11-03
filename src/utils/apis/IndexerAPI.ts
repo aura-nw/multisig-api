@@ -1,3 +1,5 @@
+import { CustomError } from 'src/common/customError';
+import { ErrorMap } from 'src/common/error.map';
 import { CommonUtil } from '../common.util';
 
 export class IndexerAPI {
@@ -47,6 +49,27 @@ export class IndexerAPI {
     );
     return accountInfo.data;
   }
+
+  async getAccountNumberAndSequence(chainId: string, address: string) {
+    const accountInfo = await this.getAccountInfo(chainId, address);
+    if (!accountInfo.account_auth) {
+      throw new CustomError(ErrorMap.MISSING_ACCOUNT_AUTH);
+    }
+    return {
+      accountNumber: Number(
+        accountInfo.account_auth.result.value.account_number,
+      ),
+      sequence: Number(accountInfo.account_auth.result.value.sequence),
+    };
+  }
+
+  // async getAccountBalance(chainId: string, address: string) {
+  //   const accountInfo = await this.getAccountInfo(chainId, address);
+  //   if (!accountInfo.account_auth) {
+  //     throw new CustomError(ErrorMap.MISSING_ACCOUNT_AUTH);
+  //   }
+  //   return accountInfo.account_auth.result.value.coins;
+  // }
 
   async getAccountUnBonds(chainId: string, delegatorAddress: string) {
     const undelegationRes = await this._commonUtil.request(

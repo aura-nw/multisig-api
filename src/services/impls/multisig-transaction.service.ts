@@ -93,7 +93,6 @@ export class MultisigTransactionService
 
       // Connect to chain
       const chain = await this.chainRepos.findChain(internalChainId);
-      const client = await StargateClient.connect(chain.rpc);
 
       // decode data
       const authInfoEncode = fromBase64(authInfoBytes);
@@ -102,16 +101,8 @@ export class MultisigTransactionService
       const { memo, messages } = TxBody.decode(bodyBytesEncode);
 
       // get accountNumber, sequence from chain
-      let sequence: number, accountNumber: number;
-      if (chain.chainId.startsWith('evmos_')) {
-        const accountInfo = await getEvmosAccount(chain.rest, from);
-        sequence = accountInfo.sequence;
-        accountNumber = accountInfo.accountNumber;
-      } else {
-        const accountInfo = await client.getAccount(from);
-        sequence = accountInfo.sequence;
-        accountNumber = accountInfo.accountNumber;
-      }
+      const { accountNumber, sequence } =
+        await this._indexer.getAccountNumberAndSequence(chain.chainId, from);
 
       // build stdSignDoc for verify signature
       const registry = new Registry(REGISTRY_GENERATED_TYPES);
@@ -313,7 +304,6 @@ export class MultisigTransactionService
 
       // Connect to chain
       const chain = await this.chainRepos.findChain(internalChainId);
-      const client = await StargateClient.connect(chain.rpc);
 
       // get tx
       const pendingTx =
@@ -330,19 +320,11 @@ export class MultisigTransactionService
       const { memo, messages } = TxBody.decode(bodyBytesEncode);
 
       // get accountNumber, sequence from chain
-      let sequence: number, accountNumber: number;
-      if (chain.chainId.startsWith('evmos_')) {
-        const accountInfo = await getEvmosAccount(
-          chain.rest,
+      const { accountNumber, sequence } =
+        await this._indexer.getAccountNumberAndSequence(
+          chain.chainId,
           pendingTx.FromAddress,
         );
-        sequence = accountInfo.sequence;
-        accountNumber = accountInfo.accountNumber;
-      } else {
-        const accountInfo = await client.getAccount(pendingTx.FromAddress);
-        sequence = accountInfo.sequence;
-        accountNumber = accountInfo.accountNumber;
-      }
 
       // build stdSignDoc for verify signature
       const registry = new Registry(REGISTRY_GENERATED_TYPES);
@@ -493,27 +475,20 @@ export class MultisigTransactionService
     amount: number,
   ): Promise<any> {
     const chain = await this.chainRepos.findChain(internalChainId);
-    const client = await StargateClient.connect(chain.rpc);
 
-    const balance = await client.getBalance(sendAddress, chain.denom);
-    if (Number(balance.amount) < amount) {
-      throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
-    }
+    await this.checkAccountBalance(
+      chain.chainId,
+      sendAddress,
+      chain.denom,
+      amount,
+    );
 
     //Check account
-    let sequence: number, accountNumber: number;
-    if (chain.chainId.startsWith('evmos_')) {
-      const accountInfo = await getEvmosAccount(chain.rest, sendAddress);
-      sequence = accountInfo.sequence;
-      accountNumber = accountInfo.accountNumber;
-    } else {
-      const accountOnChain = await client.getAccount(sendAddress);
-      if (!accountOnChain) {
-        throw new CustomError(ErrorMap.E001);
-      }
-      sequence = accountOnChain.sequence;
-      accountNumber = accountOnChain.accountNumber;
-    }
+    const { accountNumber, sequence } =
+      await this._indexer.getAccountNumberAndSequence(
+        chain.chainId,
+        sendAddress,
+      );
     return {
       accountNumber,
       sequence,
