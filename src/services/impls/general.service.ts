@@ -13,12 +13,16 @@ import { getEvmosAccount } from '../../chains/evmos';
 import * as axios from 'axios';
 import { IGasRepository } from '../../repositories/igas.repository';
 import { CustomError } from '../../common/customError';
+import { IndexerAPI } from 'src/utils/apis/IndexerAPI';
+import { ConfigService } from 'src/shared/services/config.service';
 
 export class GeneralService extends BaseService implements IGeneralService {
   private readonly _logger = new Logger(GeneralService.name);
   private _commonUtil: CommonUtil = new CommonUtil();
+  private _indexer = new IndexerAPI(this.configService.get('INDEXER_URL'));
+
   constructor(
-    // private configService: ConfigService,
+    private configService: ConfigService,
     @Inject(REPOSITORY_INTERFACE.IGENERAL_REPOSITORY)
     private chainRepo: IGeneralRepository,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_REPOSITORY)
@@ -71,42 +75,22 @@ export class GeneralService extends BaseService implements IGeneralService {
     param: MODULE_REQUEST.GetAccountOnchainParam,
   ): Promise<ResponseDto> {
     try {
-      const safeAddress = { safeAddress: param.safeAddress };
-      const safe = await this.safeRepo.findByCondition(safeAddress);
-      if (safe.length === 0) throw new CustomError(ErrorMap.NO_SAFES_FOUND);
+      const { safeAddress, internalChainId } = param;
 
-      const condition = { id: param.internalChainId };
-      const chain = await this.chainRepo.findByCondition(condition);
-      if (chain.length === 0)
-        throw new CustomError(ErrorMap.CHAIN_ID_NOT_EXIST);
+      const chainInfo = await this.chainRepo.findChain(internalChainId);
+      const accountInfo = await this._indexer.getAccountInfo(
+        chainInfo.chainId,
+        safeAddress,
+      );
+      if (!accountInfo.account_auth)
+        throw new CustomError(ErrorMap.NO_SAFES_FOUND);
+      const account = accountInfo.account_auth.result.value;
 
-      let client, accountOnChain;
-      switch (chain[0].chainId) {
-        case 'evmos_9000-4':
-          const { sequence, accountNumber } = await getEvmosAccount(
-            chain[0].rest,
-            param.safeAddress,
-          );
-          accountOnChain = {
-            accountNumber,
-            sequence,
-            address: param.safeAddress,
-            pubkey: safe[0].safePubkey ? JSON.parse(safe[0].safePubkey) : null,
-          };
-          break;
-        case 'terra':
-          client = new LCDClient({
-            chainID: chain[0].chainId,
-            URL: chain[0].rest,
-          });
-          accountOnChain = await client.auth.accountInfo(param.safeAddress);
-          break;
-        default:
-          client = await StargateClient.connect(chain[0].rpc);
-          accountOnChain = await client.getAccount(param.safeAddress);
-          break;
-      }
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, accountOnChain);
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, {
+        accountNumber: account.account_number,
+        sequence: account.sequence,
+        address: accountInfo.address,
+      });
     } catch (error) {
       return ResponseDto.responseError(GeneralService.name, error);
     }
