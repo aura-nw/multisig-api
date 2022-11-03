@@ -62,26 +62,6 @@ export class MultisigWalletController {
     return this.multisigWalletService.getMultisigWallet(param, query);
   }
 
-  @CommonGet({
-    url: URL_CONSTANTS.GET_SAFE_BALANCE,
-    summary: 'Get balance of the multisig wallet by safeId',
-    apiOkResponseOptions: {
-      status: 200,
-      type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetSafeBalanceResponse),
-      description: 'Status of multisig wallet',
-      schema: {},
-    },
-  })
-  async getBalance(
-    @Param() param: MODULE_REQUEST.GetSafeBalancePathParams,
-    @Query() query: MODULE_REQUEST.GetSafeBalanceQuery,
-  ) {
-    this._logger.log(
-      '========== Get status of the multisig wallet by safeId ==========',
-    );
-    return this.multisigWalletService.getBalance(param, query);
-  }
-
   @CommonAuthPost({
     url: URL_CONSTANTS.CONFIRM_SAFE,
     summary: 'Confirm multisig wallet',

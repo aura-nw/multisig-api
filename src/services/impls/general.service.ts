@@ -1,5 +1,4 @@
 import { Inject, Logger } from '@nestjs/common';
-import { StargateClient } from '@cosmjs/stargate';
 import { ResponseDto } from '../../dtos/responses/response.dto';
 import { IGeneralService } from '../igeneral.service';
 import { BaseService } from './base.service';
@@ -8,8 +7,6 @@ import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
 import { IGeneralRepository } from '../../repositories/igeneral.repository';
 import { ErrorMap } from '../../common/error.map';
 import { IMultisigWalletRepository } from '../../repositories';
-import { LCDClient } from '@terra-money/terra.js';
-import { getEvmosAccount } from '../../chains/evmos';
 import * as axios from 'axios';
 import { IGasRepository } from '../../repositories/igas.repository';
 import { CustomError } from '../../common/customError';
@@ -78,18 +75,14 @@ export class GeneralService extends BaseService implements IGeneralService {
       const { safeAddress, internalChainId } = param;
 
       const chainInfo = await this.chainRepo.findChain(internalChainId);
-      const accountInfo = await this._indexer.getAccountInfo(
+      const account = await this._indexer.getAccountNumberAndSequence(
         chainInfo.chainId,
         safeAddress,
       );
-      if (!accountInfo.account_auth)
-        throw new CustomError(ErrorMap.NO_SAFES_FOUND);
-      const account = accountInfo.account_auth.result.value;
 
       return ResponseDto.response(ErrorMap.SUCCESSFUL, {
-        accountNumber: account.account_number,
+        accountNumber: account.accountNumber,
         sequence: account.sequence,
-        address: accountInfo.address,
       });
     } catch (error) {
       return ResponseDto.responseError(GeneralService.name, error);

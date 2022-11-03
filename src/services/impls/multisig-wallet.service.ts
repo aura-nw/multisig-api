@@ -15,7 +15,6 @@ import {
   RESPONSE_CONFIG,
 } from '../../module.config';
 import { CommonUtil } from '../../utils/common.util';
-import { Network } from '../../utils/network.utils';
 import { BaseService } from './base.service';
 import { GetMultisigWalletResponse } from '../../dtos/responses/multisig-wallet/get-multisig-wallet.response';
 import { plainToInstance } from 'class-transformer';
@@ -144,9 +143,11 @@ export class MultisigWalletService
       // if safe created => Get balance
       if (safeInfo.address !== null) {
         try {
-          const accountInfo = await this._indexer.getAccountInfo(chainInfo.chainId, safeInfo.address);
+          const accountInfo = await this._indexer.getAccountInfo(
+            chainInfo.chainId,
+            safeInfo.address,
+          );
           safeInfo.balance = accountInfo.account_balances;
-
         } catch (error) {
           msgError = error.message;
           this._logger.error(error.message);
@@ -159,35 +160,6 @@ export class MultisigWalletService
         }
       }
       return ResponseDto.response(ErrorMap.SUCCESSFUL, safeInfo, msgError);
-    } catch (error) {
-      return ResponseDto.responseError(MultisigWalletService.name, error);
-    }
-  }
-
-  async getBalance(
-    param: MODULE_REQUEST.GetSafeBalancePathParams,
-    query: MODULE_REQUEST.GetSafeBalanceQuery,
-  ): Promise<ResponseDto> {
-    try {
-      const { safeId } = param;
-      const { internalChainId } = query;
-      // find safes
-      const safe = await this.safeRepo.getCreatedSafe(safeId, internalChainId);
-      // get chainInfo
-      const chainInfo = await this.generalRepo.findChain(safe.internalChainId);
-      try {
-        const network = new Network(chainInfo.rpc);
-        await network.init();
-        const balance = await network.client.getBalance(
-          safe.safeAddress,
-          chainInfo.denom,
-        );
-        const response = new RESPONSE_CONFIG.GET_SAFE_BALANCE();
-        response.balances = [balance];
-        return ResponseDto.response(ErrorMap.SUCCESSFUL, response);
-      } catch (error) {
-        throw new CustomError(ErrorMap.GET_BALANCE_FAILED, error.message);
-      }
     } catch (error) {
       return ResponseDto.responseError(MultisigWalletService.name, error);
     }

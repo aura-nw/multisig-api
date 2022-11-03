@@ -171,6 +171,10 @@ export const ErrorMap = {
     Code: 'E041',
     Message: 'Invalid request!',
   },
+  MISSING_ACCOUNT_AUTH: {
+    Code: 'E042',
+    Message: 'Missing account_auth when call indexer account info!',
+  },
   C001: {
     Code: 'C001',
     Message: `Missing result from Chaincode`,
