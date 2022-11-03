@@ -51,7 +51,7 @@ export class TransactionController {
     @Body() request: MODULE_REQUEST.CreateTransactionRequest,
   ) {
     this._logger.log('========== Create multisig transaction ==========');
-    return this.multisigTransactionService.createTransaction(request);
+    return this.multisigTransactionService.createMultisigTransaction(request);
   }
 
   @CommonAuthPost({
@@ -62,7 +62,7 @@ export class TransactionController {
   async confirmTransaction(
     @Body() request: MODULE_REQUEST.ConfirmTransactionRequest,
   ) {
-    return this.multisigTransactionService.confirmTransaction(request);
+    return this.multisigTransactionService.confirmMultisigTransaction(request);
   }
 
   @CommonAuthPost({
@@ -73,7 +73,7 @@ export class TransactionController {
   async rejectTransaction(
     @Body() request: MODULE_REQUEST.RejectTransactionParam,
   ) {
-    return this.multisigTransactionService.rejectTransaction(request);
+    return this.multisigTransactionService.rejectMultisigTransaction(request);
   }
 
   @Post(URL_CONSTANTS.GET_ALL_TXS)
@@ -125,7 +125,7 @@ export class TransactionController {
     @Body() request: MODULE_REQUEST.SendTransactionRequest,
   ) {
     this._logger.log('========== Send transaction to AURA ==========');
-    return this.multisigTransactionService.sendTransaction(request);
+    return this.multisigTransactionService.sendMultisigTransaction(request);
   }
 
   @Get(URL_CONSTANTS.TRANSACTION_DETAILS)

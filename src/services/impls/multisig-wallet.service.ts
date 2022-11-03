@@ -8,11 +8,7 @@ import {
   SAFE_OWNER_STATUS,
   SAFE_STATUS,
 } from '../../common/constants/app.constant';
-import {
-  MODULE_REQUEST,
-  REPOSITORY_INTERFACE,
-  RESPONSE_CONFIG,
-} from '../../module.config';
+import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
 import { CommonUtil } from '../../utils/common.util';
 import { BaseService } from './base.service';
 import { GetMultisigWalletResponse } from '../../dtos/responses/multisig-wallet/get-multisig-wallet.response';

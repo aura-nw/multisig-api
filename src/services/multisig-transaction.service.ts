@@ -3,34 +3,34 @@ import { MODULE_REQUEST } from '../module.config';
 
 export interface IMultisigTransactionService {
   /**
-   * create transaction
+   * Create multisig transaction
    * @param request
    */
-  createTransaction(
+  createMultisigTransaction(
     request: MODULE_REQUEST.CreateTransactionRequest,
   ): Promise<ResponseDto>;
 
   /**
-   * send transaction
+   * Confirm multisig transaction
    * @param request
    */
-  sendTransaction(
-    request: MODULE_REQUEST.SendTransactionRequest,
-  ): Promise<ResponseDto>;
-
-  /**
-   * confirm transaction
-   * @param request
-   */
-  confirmTransaction(
+  confirmMultisigTransaction(
     request: MODULE_REQUEST.ConfirmTransactionRequest,
   ): Promise<ResponseDto>;
 
   /**
-   * reject transaction
+   * Send multisig transaction
    * @param request
    */
-  rejectTransaction(
+  sendMultisigTransaction(
+    request: MODULE_REQUEST.SendTransactionRequest,
+  ): Promise<ResponseDto>;
+
+  /**
+   * Reject multisig transaction
+   * @param request
+   */
+  rejectMultisigTransaction(
     request: MODULE_REQUEST.RejectTransactionParam,
   ): Promise<ResponseDto>;
 }
