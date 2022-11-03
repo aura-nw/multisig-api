@@ -46,6 +46,21 @@ export class MultisigTransactionHistoryResponse {
   FinalAmount: number;
 
   @ApiProperty({
+    example: 2,
+  })
+  Confirmations: number;
+
+  @ApiProperty({
+    example: 2,
+  })
+  Rejections: number;
+
+  @ApiProperty({
+    example: 2,
+  })
+  ConfirmationsRequired: number;
+
+  @ApiProperty({
     example: TRANSACTION_STATUS.SUCCESS,
   })
   Status: string;
