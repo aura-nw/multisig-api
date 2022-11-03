@@ -9,7 +9,6 @@ import { ErrorMap } from '../../common/error.map';
 import { IMultisigWalletRepository } from '../../repositories';
 import * as axios from 'axios';
 import { IGasRepository } from '../../repositories/igas.repository';
-import { CustomError } from '../../common/customError';
 import { IndexerAPI } from 'src/utils/apis/IndexerAPI';
 import { ConfigService } from 'src/shared/services/config.service';
 

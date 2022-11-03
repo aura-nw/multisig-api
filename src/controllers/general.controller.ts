@@ -6,7 +6,6 @@ import {
   Inject,
   Param,
   Post,
-  Query,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,

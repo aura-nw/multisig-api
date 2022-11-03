@@ -4,7 +4,7 @@ import { CustomError } from '../../common/customError';
 import { ErrorMap } from '../../common/error.map';
 import { User } from '../../entities/user.entity';
 import { ENTITIES_CONFIG } from '../../module.config';
-import { ObjectLiteral, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { IUserRepository } from '../iuser.repository';
 import { BaseRepository } from './base.repository';
 

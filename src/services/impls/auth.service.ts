@@ -7,7 +7,6 @@ import { fromBase64 } from '@cosmjs/encoding';
 import { JwtService } from '@nestjs/jwt';
 import { CustomError } from '../../common/customError';
 import { encodeSecp256k1Pubkey, pubkeyToAddress } from '@cosmjs/amino';
-import { isNumberString } from 'class-validator';
 import {
   AppConstants,
   COMMON_CONSTANTS,

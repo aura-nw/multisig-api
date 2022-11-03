@@ -32,12 +32,7 @@ import {
   IMultisigWalletOwnerRepository,
   IMultisigWalletRepository,
 } from '../../repositories';
-import { ConfirmTransactionRequest } from '../../dtos/requests';
-import {
-  getEvmosAccount,
-  makeMultisignedTxEvmos,
-  verifyEvmosSig,
-} from '../../chains/evmos';
+import { makeMultisignedTxEvmos, verifyEvmosSig } from '../../chains/evmos';
 import { CommonUtil } from '../../utils/common.util';
 import { makeSignDoc } from '@cosmjs/amino';
 import { verifyCosmosSig } from '../../chains';

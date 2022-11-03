@@ -1,4 +1,4 @@
-import { Controller, Query, Inject, Body, Logger, Param } from '@nestjs/common';
+import { Controller, Query, Inject, Logger, Param } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import {
   CONTROLLER_CONSTANTS,
