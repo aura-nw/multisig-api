@@ -63,7 +63,7 @@ export class MultisigTransactionRepository
     return true;
   }
 
-  async updateTxBroadcastSucces(
+  async updateTxBroadcastSuccess(
     transactionId: number,
     txHash: string,
   ): Promise<any> {
@@ -78,7 +78,7 @@ export class MultisigTransactionRepository
     await this.update(multisigTransaction);
   }
 
-  async validateTxBroadcast(transactionId: number): Promise<any> {
+  async getBroadcastableTx(transactionId: number): Promise<any> {
     const multisigTransaction = await this.findOne({
       where: { id: transactionId },
     });
@@ -93,7 +93,9 @@ export class MultisigTransactionRepository
     return multisigTransaction;
   }
 
-  async checkExistMultisigTransaction(transactionId: number): Promise<any> {
+  async getTransactionById(
+    transactionId: number,
+  ): Promise<MultisigTransaction> {
     const transaction = await this.findOne({
       where: { id: transactionId },
     });
@@ -111,8 +113,12 @@ export class MultisigTransactionRepository
     return this.create(transaction);
   }
 
-  async validateTransaction(transactionId: number, internalChainId: number) {
-    //Check transaction available
+  async updateTxStatusIfSatisfied(
+    transactionId: number,
+    safeId: number,
+    internalChainId: number,
+  ) {
+    // get list confirm
     const listConfirmAfterSign =
       await this.multisigConfirmRepos.findByCondition({
         multisigTransactionId: transactionId,
@@ -120,15 +126,14 @@ export class MultisigTransactionRepository
         internalChainId: internalChainId,
       });
 
-    const transaction = await this.findOne({
-      where: { id: transactionId, internalChainId: internalChainId },
-    });
+    const safe = await this.safeRepos.getSafe(String(safeId));
 
-    const safe = await this.safeRepos.findOne({
-      where: { id: transaction.safeId },
-    });
-
+    // check if list confirm >= threshold
+    // update status of multisig transaction
     if (listConfirmAfterSign.length >= safe.threshold) {
+      const transaction = await this.findOne({
+        where: { id: transactionId },
+      });
       transaction.status = TRANSACTION_STATUS.AWAITING_EXECUTION;
 
       await this.update(transaction);
