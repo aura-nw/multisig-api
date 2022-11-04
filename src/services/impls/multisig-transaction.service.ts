@@ -101,6 +101,7 @@ export class MultisigTransactionService
         authInfo.pubkey,
         accountNumber,
         sequence,
+        from,
       );
 
       // check account balance; if balance is not enough, throw error
@@ -193,6 +194,7 @@ export class MultisigTransactionService
         authInfo.pubkey,
         accountNumber,
         sequence,
+        pendingTx.fromAddress,
       );
 
       await this.multisigConfirmRepos.validateSafeOwner(
@@ -349,12 +351,21 @@ export class MultisigTransactionService
     creatorPubkey: string,
     accountNumber: number,
     sequence: number,
+    safeAddress: string,
   ) {
     const authInfoEncode = fromBase64(authInfoBytes);
     const decodedAuthInfo = AuthInfo.decode(authInfoEncode);
     const bodyBytesEncode = fromBase64(bodyBytes);
     const { memo, messages } = TxBody.decode(bodyBytesEncode);
 
+    if (!accountNumber || !sequence) {
+      const account = await this._indexer.getAccountNumberAndSequence(
+        chainId,
+        safeAddress,
+      );
+      accountNumber = account.accountNumber;
+      sequence = account.sequence;
+    }
     // get accountNumber, sequence from chain
     // const { accountNumber, sequence } =
     //   await this._indexer.getAccountNumberAndSequence(chainId, safeAddress);
