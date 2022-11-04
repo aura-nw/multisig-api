@@ -80,6 +80,8 @@ export class MultisigTransactionService
       signature,
       amount,
       internalChainId,
+      accountNumber,
+      sequence,
     } = request;
     try {
       const authInfo = this._commonUtil.getAuthInfo();
@@ -89,17 +91,17 @@ export class MultisigTransactionService
       const chain = await this.chainRepos.findChain(internalChainId);
 
       // decode data
-      const { accountNumber, sequence, decodedAuthInfo, messages } =
-        await this.decodeAndVerifyTxInfo(
-          authInfoBytes,
-          bodyBytes,
-          signature,
-          chain.chainId,
-          chain.prefix,
-          from,
-          authInfo.address,
-          authInfo.pubkey,
-        );
+      const { decodedAuthInfo, messages } = await this.decodeAndVerifyTxInfo(
+        authInfoBytes,
+        bodyBytes,
+        signature,
+        chain.chainId,
+        chain.prefix,
+        authInfo.address,
+        authInfo.pubkey,
+        accountNumber,
+        sequence,
+      );
 
       // check account balance; if balance is not enough, throw error
       await this.checkAccountBalance(chain.chainId, from, chain.denom, amount);
@@ -166,6 +168,8 @@ export class MultisigTransactionService
         signature,
         authInfoBytes,
         internalChainId,
+        accountNumber,
+        sequence,
       } = request;
       const authInfo = this._commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
@@ -185,9 +189,10 @@ export class MultisigTransactionService
         signature,
         chain.chainId,
         chain.prefix,
-        pendingTx.fromAddress,
         authInfo.address,
         authInfo.pubkey,
+        accountNumber,
+        sequence,
       );
 
       await this.multisigConfirmRepos.validateSafeOwner(
@@ -340,9 +345,10 @@ export class MultisigTransactionService
     signature: string,
     chainId: string,
     prefix: string,
-    safeAddress: string,
     creatorAddress: string,
     creatorPubkey: string,
+    accountNumber: number,
+    sequence: number,
   ) {
     const authInfoEncode = fromBase64(authInfoBytes);
     const decodedAuthInfo = AuthInfo.decode(authInfoEncode);
@@ -350,8 +356,8 @@ export class MultisigTransactionService
     const { memo, messages } = TxBody.decode(bodyBytesEncode);
 
     // get accountNumber, sequence from chain
-    const { accountNumber, sequence } =
-      await this._indexer.getAccountNumberAndSequence(chainId, safeAddress);
+    // const { accountNumber, sequence } =
+    //   await this._indexer.getAccountNumberAndSequence(chainId, safeAddress);
 
     // build stdSignDoc for verify signature
     const registry = new Registry(REGISTRY_GENERATED_TYPES);
@@ -397,8 +403,6 @@ export class MultisigTransactionService
     }
 
     return {
-      accountNumber,
-      sequence,
       decodedAuthInfo,
       messages,
     };
@@ -455,33 +459,33 @@ export class MultisigTransactionService
     await this.safeRepos.updateQueuedTag(safeId);
   }
 
-  async signingInstruction(
-    internalChainId: number,
-    sendAddress: string,
-    amount: number,
-  ): Promise<any> {
-    const chain = await this.chainRepos.findChain(internalChainId);
+  // async signingInstruction(
+  //   internalChainId: number,
+  //   sendAddress: string,
+  //   amount: number,
+  // ): Promise<any> {
+  //   const chain = await this.chainRepos.findChain(internalChainId);
 
-    await this.checkAccountBalance(
-      chain.chainId,
-      sendAddress,
-      chain.denom,
-      amount,
-    );
+  //   await this.checkAccountBalance(
+  //     chain.chainId,
+  //     sendAddress,
+  //     chain.denom,
+  //     amount,
+  //   );
 
-    //Check account
-    const { accountNumber, sequence } =
-      await this._indexer.getAccountNumberAndSequence(
-        chain.chainId,
-        sendAddress,
-      );
-    return {
-      accountNumber,
-      sequence,
-      chainId: chain.chainId,
-      denom: chain.denom,
-    };
-  }
+  //   //Check account
+  //   const { accountNumber, sequence } =
+  //     await this._indexer.getAccountNumberAndSequence(
+  //       chain.chainId,
+  //       sendAddress,
+  //     );
+  //   return {
+  //     accountNumber,
+  //     sequence,
+  //     chainId: chain.chainId,
+  //     denom: chain.denom,
+  //   };
+  // }
 
   async makeTx(
     safeInfo: Safe,
