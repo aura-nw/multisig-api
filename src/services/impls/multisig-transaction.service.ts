@@ -119,7 +119,7 @@ export class MultisigTransactionService
       // save tx
       const transaction = new MultisigTransaction();
       transaction.fromAddress = from;
-      transaction.toAddress = to;
+      transaction.toAddress = to || '';
       transaction.amount = amount;
       transaction.gas = decodedAuthInfo.fee.gasLimit.toNumber();
       transaction.fee = Number(decodedAuthInfo.fee.amount[0].amount);
