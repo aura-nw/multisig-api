@@ -133,7 +133,9 @@ export class MultisigWalletRepository
       .createQueryBuilder('safe')
       .where('safe.safeAddress = :safeAddress', { safeAddress })
       .select(['safe.threshold as ConfirmationsRequired']);
-    return sqlQuerry.getRawOne();
+    const result = await sqlQuerry.getRawOne();
+    if (!result) throw new CustomError(ErrorMap.NO_SAFES_FOUND);
+    return result;
   }
 
   async deletePendingSafe(safeId: string, myAddress: string) {
