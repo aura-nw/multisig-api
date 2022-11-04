@@ -36,6 +36,9 @@ export class MessageRepository
       newMsg.typeUrl = msg.typeUrl;
       newMsg.amount = msg.value.amount ? msg.value.amount?.amount : null;
       newMsg.voteOption = msg.value.option ? msg.value.option : null;
+      newMsg.proposalId = msg.value.proposalId
+        ? Number(msg.value.proposalId)
+        : null;
       return newMsg;
     });
     const result = await this.repos.save(newMsgs);
