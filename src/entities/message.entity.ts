@@ -43,4 +43,16 @@ export class Message extends BaseEntityAutoId {
   @Expose()
   @Column({ name: 'ValidatorDstAddress' })
   validatorDstAddress: string;
+
+  @Expose()
+  @Column({ name: 'VoteOption' })
+  voteOption: number;
+
+  @Expose()
+  @Column({ name: 'ProposalId' })
+  proposalId: number;
+
+  @Expose()
+  @Column({ name: 'Voter' })
+  voter: string;
 }

@@ -34,7 +34,8 @@ export class MessageRepository
       });
       newMsg.txId = txId;
       newMsg.typeUrl = msg.typeUrl;
-      newMsg.amount = msg.value.amount ? msg.value.amount[0]?.amount : null;
+      newMsg.amount = msg.value.amount ? msg.value.amount?.amount : null;
+      newMsg.voteOption = msg.value.option ? msg.value.option : null;
       return newMsg;
     });
     const result = await this.repos.save(newMsgs);
