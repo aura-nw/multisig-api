@@ -358,7 +358,7 @@ export class MultisigTransactionService
     const bodyBytesEncode = fromBase64(bodyBytes);
     const { memo, messages } = TxBody.decode(bodyBytesEncode);
 
-    if (!accountNumber || !sequence) {
+    if (accountNumber === undefined || sequence === undefined) {
       const account = await this._indexer.getAccountNumberAndSequence(
         chainId,
         safeAddress,
