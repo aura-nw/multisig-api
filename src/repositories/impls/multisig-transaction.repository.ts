@@ -156,6 +156,7 @@ export class MultisigTransactionRepository
       'AT.Id as AuraTxId',
       'MT.Id as MultisigTxId',
       'AT.TxHash as TxHash',
+      'MT.Fee as Fee',
     ];
 
     const sqlQuerry = this.repos

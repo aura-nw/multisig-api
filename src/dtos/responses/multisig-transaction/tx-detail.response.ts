@@ -18,6 +18,11 @@ export class MultisigTxDetail {
   TxHash: string;
 
   @ApiProperty({
+    example: '50',
+  })
+  Fee: string;
+
+  @ApiProperty({
     example: 'SUCCESS',
   })
   Status: string;
