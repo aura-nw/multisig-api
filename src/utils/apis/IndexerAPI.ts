@@ -87,7 +87,7 @@ export class IndexerAPI {
         this.indexerUrl,
       ).href,
     );
-    return proposalRes.data.proposal[0];
+    return proposalRes.data.proposals[0];
   }
 
   async getVotesByProposalId(
