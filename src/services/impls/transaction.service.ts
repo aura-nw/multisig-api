@@ -205,7 +205,7 @@ export class TransactionService
       const messages = await this.messageRepos.getMsgsByTxId(
         multisigTxDetail.MultisigTxId,
       );
-      const autoClaimAmount = await this.messageRepos.getMsgsByTxId(
+      const autoClaimAmount = await this.messageRepos.getMsgsByAuraTxId(
         multisigTxDetail.AuraTxId,
       );
       multisigTxDetail.Messages = messages;
