@@ -94,6 +94,8 @@ export class TransactionService
         result = await this.getConfirmationStatus(result, safe[0].threshold);
       }
       const response = result.map((item) => {
+        if (item.TypeUrl === null) item.TypeUrl = TX_TYPE_URL.RECEIVE;
+
         item.Direction = this.getDirection(
           item.TypeUrl,
           item.FromAddress,

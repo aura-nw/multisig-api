@@ -69,6 +69,7 @@ export enum TX_TYPE_URL {
   WITHDRAW_REWARD = '/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward',
   VOTE = '/cosmos.gov.v1beta1.MsgVote',
   EXECUTE_CONTRACT = '/cosmwasm.wasm.v1.MsgExecuteContract',
+  RECEIVE = 'Receive',
 }
 
 export const REGISTRY_GENERATED_TYPES: Iterable<[string, GeneratedType]> = [
