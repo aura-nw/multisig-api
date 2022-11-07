@@ -175,6 +175,10 @@ export const ErrorMap = {
     Code: 'E042',
     Message: 'Missing account_auth when call indexer account info!',
   },
+  CANNOT_GET_ACCOUNT_NUMBER_OR_SEQUENCE: {
+    Code: 'E042',
+    Message: 'Can not get account number or sequence from indexer!',
+  },
   C001: {
     Code: 'C001',
     Message: `Missing result from Chaincode`,

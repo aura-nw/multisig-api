@@ -55,11 +55,18 @@ export class IndexerAPI {
     if (!accountInfo.account_auth) {
       throw new CustomError(ErrorMap.MISSING_ACCOUNT_AUTH);
     }
+    const accountNumber = Number(
+      accountInfo.account_auth.result.value.account_number,
+    );
+
+    const sequence = Number(accountInfo.account_auth.result.value.sequence);
+
+    if (isNaN(accountNumber) || isNaN(sequence)) {
+      throw new CustomError(ErrorMap.CANNOT_GET_ACCOUNT_NUMBER_OR_SEQUENCE);
+    }
     return {
-      accountNumber: Number(
-        accountInfo.account_auth.result.value.account_number,
-      ),
-      sequence: Number(accountInfo.account_auth.result.value.sequence),
+      accountNumber,
+      sequence,
     };
   }
 
