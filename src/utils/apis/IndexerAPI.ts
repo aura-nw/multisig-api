@@ -12,6 +12,7 @@ export class IndexerAPI {
     if (status) {
       url += `&status=${status}`;
     }
+    url += `&pageOffset=0&pageLimit=1000`;
     const validatorsRes = await this._commonUtil.request(
       new URL(url, this.indexerUrl).href,
     );

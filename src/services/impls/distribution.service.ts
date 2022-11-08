@@ -309,14 +309,15 @@ export class DistributionService implements IDistributionService {
         const res = await this._commonUtil.request(
           new URL(keybaseUrl + identity).href,
         );
-        pictureUrl = res.them[0].pictures.primary.url;
+        if (res.them && res.them.length > 0 && res.them[0].pictures.primary)
+          pictureUrl = res.them[0].pictures.primary.url;
         if (pictureUrl) {
           // save picture to cache
           this._validatorPicture.set(identity, pictureUrl);
         }
       }
     } catch (e) {
-      this._logger.error(e);
+      this._logger.debug(e);
     }
     return pictureUrl;
   }
