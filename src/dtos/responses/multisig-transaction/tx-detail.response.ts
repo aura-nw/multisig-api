@@ -23,6 +23,11 @@ export class MultisigTxDetail {
   Fee: string;
 
   @ApiProperty({
+    example: '282500',
+  })
+  Gas: string;
+
+  @ApiProperty({
     example: 'SUCCESS',
   })
   Status: string;
