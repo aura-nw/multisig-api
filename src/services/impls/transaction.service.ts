@@ -205,9 +205,10 @@ export class TransactionService
       const messages = await this.messageRepos.getMsgsByTxId(
         multisigTxDetail.MultisigTxId,
       );
-      const autoClaimAmount = await this.messageRepos.getMsgsByAuraTxId(
-        multisigTxDetail.AuraTxId,
-      );
+
+      const autoClaimAmount = multisigTxDetail.AuraTxId
+        ? await this.messageRepos.getMsgsByAuraTxId(multisigTxDetail.AuraTxId)
+        : [];
 
       messages.map((msg) => {
         // get amount from auraTx tbl when msg type is withdraw reward

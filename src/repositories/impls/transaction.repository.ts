@@ -43,12 +43,12 @@ export class TransactionRepository
 
     const result: any[] = await this.repos.query(
       `
-      SELECT AT.Id as AuraTxId, MT.Id as MultisigTxId, AT.TxHash as TxHash, MT.TypeUrl as TypeUrl, AT.FromAddress as FromAddress, AT.Amount as AuraTxAmount, MT.Amount as MultisigTxAmount, AT.Code as Status, AT.UpdatedAt as UpdatedAt FROM AuraTx AT
+      SELECT AT.Id as AuraTxId, MT.Id as MultisigTxId, AT.TxHash as TxHash, MT.TypeUrl as TypeUrl, AT.FromAddress as FromAddress, AT.Amount as AuraTxAmount, MT.Amount as MultisigTxAmount, AT.Code as Status, AT.CreatedAt as CreatedAt, AT.UpdatedAt as UpdatedAt FROM AuraTx AT
         LEFT JOIN MultisigTransaction MT on AT.TxHash = MT.TxHash
         WHERE AT.InternalChainId = ?
         AND  (AT.FromAddress = ? OR AT.ToAddress = ?)
       UNION
-      SELECT NULL as AuraTxId,  MT.ID as MultisigTxId, MT.TxHash as TxHash, MT.TypeUrl as TypeUrl, MT.FromAddress as FromAddress, NULL as AuraTxAmount, MT.Amount as MultisigTxAmount, MT.Status, MT.UpdatedAt as UpdateAt  FROM MultisigTransaction MT
+      SELECT NULL as AuraTxId,  MT.ID as MultisigTxId, MT.TxHash as TxHash, MT.TypeUrl as TypeUrl, MT.FromAddress as FromAddress, NULL as AuraTxAmount, MT.Amount as MultisigTxAmount, MT.Status, MT.CreatedAt as CreatedAt, MT.UpdatedAt as UpdateAt  FROM MultisigTransaction MT
         WHERE MT.InternalChainId = ?
         AND MT.FromAddress = ?
         AND (Status = ? OR Status = ? OR Status = ?)
