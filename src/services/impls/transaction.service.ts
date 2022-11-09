@@ -228,6 +228,7 @@ export class TransactionService
           const ignoreTypeUrl = [
             TX_TYPE_URL.SEND.toString(),
             TX_TYPE_URL.MULTI_SEND.toString(),
+            TX_TYPE_URL.WITHDRAW_REWARD.toString(),
           ];
           if (ignoreTypeUrl.includes(item.typeUrl)) {
             return totalAmount;
