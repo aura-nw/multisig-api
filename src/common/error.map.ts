@@ -163,6 +163,22 @@ export const ErrorMap = {
     Code: 'E039',
     Message: 'Request to server error',
   },
+  MESSAGE_NOT_EXIST: {
+    Code: 'E040',
+    Message: 'These message(s) is not exist!',
+  },
+  INVALID_REQUEST: {
+    Code: 'E041',
+    Message: 'Invalid request!',
+  },
+  MISSING_ACCOUNT_AUTH: {
+    Code: 'E042',
+    Message: 'Missing account_auth when call indexer account info!',
+  },
+  CANNOT_GET_ACCOUNT_NUMBER_OR_SEQUENCE: {
+    Code: 'E042',
+    Message: 'Can not get account number or sequence from indexer!',
+  },
   C001: {
     Code: 'C001',
     Message: `Missing result from Chaincode`,

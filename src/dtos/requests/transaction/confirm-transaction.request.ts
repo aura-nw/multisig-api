@@ -40,4 +40,18 @@ export class ConfirmTransactionRequest {
       'Dj8pEXMADBGCjaRSAQwT1/7s+6fRrf985UZL2ujo0YMe+M2VEqYLERkc5tsrg8HAWuqzKVq5CV6a7KcOSgjNtw==',
   })
   authInfoBytes: string;
+
+  @IsNumber()
+  @ApiProperty({
+    description: 'Account number of pyxis safe',
+    example: 41,
+  })
+  accountNumber: number;
+
+  @IsNumber()
+  @ApiProperty({
+    description: 'Sequence of pyxis safe',
+    example: 48,
+  })
+  sequence: number;
 }

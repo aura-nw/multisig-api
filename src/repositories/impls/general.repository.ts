@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CustomError } from 'src/common/customError';
-import { ErrorMap } from 'src/common/error.map';
-import { Chain } from 'src/entities';
-import { ENTITIES_CONFIG } from 'src/module.config';
+import { CustomError } from '../../common/customError';
+import { ErrorMap } from '../../common/error.map';
+import { Chain } from '../../entities';
+import { ENTITIES_CONFIG } from '../../module.config';
 import { ObjectLiteral, Repository } from 'typeorm';
 import { IGeneralRepository } from '../igeneral.repository';
 import { BaseRepository } from './base.repository';

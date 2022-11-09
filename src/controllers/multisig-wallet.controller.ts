@@ -3,19 +3,19 @@ import { ApiTags } from '@nestjs/swagger';
 import {
   CONTROLLER_CONSTANTS,
   URL_CONSTANTS,
-} from 'src/common/constants/api.constant';
+} from '../common/constants/api.constant';
 import {
   CommonAuthDelete,
   CommonAuthPost,
   CommonGet,
-} from 'src/decorators/common.decorator';
-import { SwaggerBaseApiResponse } from 'src/dtos/responses';
+} from '../decorators/common.decorator';
+import { SwaggerBaseApiResponse } from '../dtos/responses';
 import {
   MODULE_REQUEST,
   MODULE_RESPONSE,
   SERVICE_INTERFACE,
-} from 'src/module.config';
-import { IMultisigWalletService } from 'src/services/imultisig-wallet.service';
+} from '../module.config';
+import { IMultisigWalletService } from '../services/imultisig-wallet.service';
 @Controller(CONTROLLER_CONSTANTS.MULTISIG_WALLET)
 @ApiTags(CONTROLLER_CONSTANTS.MULTISIG_WALLET)
 export class MultisigWalletController {
@@ -60,26 +60,6 @@ export class MultisigWalletController {
       '========== Get status of the multisig wallet by safeId ==========',
     );
     return this.multisigWalletService.getMultisigWallet(param, query);
-  }
-
-  @CommonGet({
-    url: URL_CONSTANTS.GET_SAFE_BALANCE,
-    summary: 'Get balance of the multisig wallet by safeId',
-    apiOkResponseOptions: {
-      status: 200,
-      type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetSafeBalanceResponse),
-      description: 'Status of multisig wallet',
-      schema: {},
-    },
-  })
-  async getBalance(
-    @Param() param: MODULE_REQUEST.GetSafeBalancePathParams,
-    @Query() query: MODULE_REQUEST.GetSafeBalanceQuery,
-  ) {
-    this._logger.log(
-      '========== Get status of the multisig wallet by safeId ==========',
-    );
-    return this.multisigWalletService.getBalance(param, query);
   }
 
   @CommonAuthPost({

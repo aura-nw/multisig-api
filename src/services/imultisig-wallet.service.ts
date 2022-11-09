@@ -1,5 +1,5 @@
-import { ResponseDto } from 'src/dtos/responses/response.dto';
-import { MODULE_REQUEST } from 'src/module.config';
+import { ResponseDto } from '../dtos/responses/response.dto';
+import { MODULE_REQUEST } from '../module.config';
 
 export interface IMultisigWalletService {
   /**
@@ -18,15 +18,6 @@ export interface IMultisigWalletService {
   getMultisigWallet(
     param: MODULE_REQUEST.GetSafePathParams,
     query: MODULE_REQUEST.GetSafeQuery,
-  ): Promise<ResponseDto>;
-
-  /**
-   * get balance of multisig wallet
-   * @param safeId string - id/address of safe
-   */
-  getBalance(
-    param: MODULE_REQUEST.GetSafeBalancePathParams,
-    query: MODULE_REQUEST.GetSafeBalanceQuery,
   ): Promise<ResponseDto>;
 
   /**

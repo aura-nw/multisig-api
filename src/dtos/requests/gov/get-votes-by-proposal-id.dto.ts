@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { VOTE_ANSWER } from 'src/common/constants/app.constant';
+import { VOTE_ANSWER } from '../../../common/constants/app.constant';
 
 export class GetVotesByProposalIdParams {
   @ApiProperty({

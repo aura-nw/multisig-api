@@ -1,6 +1,9 @@
-import { MultisigTransactionHistoryResponse } from 'src/dtos/responses';
-import { TxDetailResponse } from 'src/dtos/responses/multisig-transaction/tx-detail.response';
-import { MultisigTransaction } from 'src/entities';
+import { MultisigTransactionHistoryResponse } from '../dtos/responses';
+import {
+  MultisigTxDetail,
+  TxDetailResponse,
+} from '../dtos/responses/multisig-transaction/tx-detail.response';
+import { MultisigTransaction } from '../entities';
 import { IBaseRepository } from './ibase.repository';
 
 export interface IMultisigTransactionsRepository extends IBaseRepository {
@@ -9,6 +12,11 @@ export interface IMultisigTransactionsRepository extends IBaseRepository {
    * @param internalTxHash
    */
   getMultisigTxId(internalTxHash: string): any;
+
+  getMultisigTxDetail(
+    multisigTxId: number,
+    auraTxId: number,
+  ): Promise<MultisigTxDetail>;
 
   /**
    * Get details of a transaction from MultisigTransaction table
@@ -29,9 +37,16 @@ export interface IMultisigTransactionsRepository extends IBaseRepository {
   ): Promise<MultisigTransactionHistoryResponse[]>;
 
   /**
-   * Validate transaction
+   * Update status of a transaction if it satisfies the threshold
+   * @param transactionId
+   * @param safeId
+   * @param internalChainId
    */
-  validateTransaction(transactionId: number, internalChainId: number): any;
+  updateTxStatusIfSatisfied(
+    transactionId: number,
+    safeId: number,
+    internalChainId: number,
+  );
 
   /**
    * Insert data into table multisig transaction
@@ -39,19 +54,21 @@ export interface IMultisigTransactionsRepository extends IBaseRepository {
   insertMultisigTransaction(transaction: MultisigTransaction);
 
   /**
-   * Check exist multisig transaction
+   * Get multisig transaction by id
+   * @param transactionId
    */
-  checkExistMultisigTransaction(transactionId: number): Promise<any>;
+  getTransactionById(transactionId: number): Promise<MultisigTransaction>;
 
   /**
-   * Validate when send tx
+   * Get broadcastable transaction by txId
+   * @param transactionId
    */
-  validateTxBroadcast(transactionId: number): Promise<any>;
+  getBroadcastableTx(transactionId: number): Promise<any>;
 
   /**
    * Update tx when broadcasted success
    */
-  updateTxBroadcastSucces(transactionId: number, txHash: string): Promise<any>;
+  updateTxBroadcastSuccess(transactionId: number, txHash: string): Promise<any>;
 
   /**
    * Validate safe don't have pending tx

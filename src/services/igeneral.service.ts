@@ -1,5 +1,5 @@
-import { ResponseDto } from 'src/dtos/responses/response.dto';
-import { MODULE_REQUEST } from 'src/module.config';
+import { ResponseDto } from '../dtos/responses/response.dto';
+import { MODULE_REQUEST } from '../module.config';
 
 export interface IGeneralService {
   /**

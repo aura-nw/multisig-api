@@ -1,21 +1,25 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ErrorMap } from 'src/common/error.map';
-import { GetDelegationResponse, ResponseDto } from 'src/dtos/responses';
+import { ErrorMap } from '../../common/error.map';
+import { GetDelegationResponse, ResponseDto } from '../../dtos/responses';
 import {
   GetDelegationsDelegation,
   GetDelegationsResponse,
+} from '../../dtos/responses/distribution/get-delegations.response';
+import {
   GetUndelegationsResponse,
   GetUnDelegationsUndelegation,
+} from '../../dtos/responses/distribution/get-undelegations.response';
+import {
   GetValidatorsResponse,
   GetValidatorsValidator,
-} from 'src/dtos/responses/distribution/';
-import { Chain } from 'src/entities';
-import { MODULE_REQUEST, REPOSITORY_INTERFACE } from 'src/module.config';
-import { IGeneralRepository } from 'src/repositories';
-import { ConfigService } from 'src/shared/services/config.service';
-import { IndexerAPI } from 'src/utils/apis/IndexerAPI';
-import { CommonUtil } from 'src/utils/common.util';
+} from '../../dtos/responses/distribution/get-validators.response';
+import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
+import { IGeneralRepository } from '../../repositories';
+import { ConfigService } from '../../shared/services/config.service';
+import { CommonUtil } from '../../utils/common.util';
+import { Chain } from '../../entities';
 import { IDistributionService } from '../idistribution.service';
+import { IndexerAPI } from 'src/utils/apis/IndexerAPI';
 
 @Injectable()
 export class DistributionService implements IDistributionService {
@@ -86,9 +90,9 @@ export class DistributionService implements IDistributionService {
         status,
       );
       // Get network info
-      const networkRes = await this._indexer.getNetwork(chain.chainId);
+      // const networkRes = await this._indexer.getNetwork(chain.chainId);
 
-      const bondedTokens = networkRes.pool.bonded_tokens;
+      // const bondedTokens = networkRes.pool.bonded_tokens;
 
       // Build response
       const validatorsResponse = await Promise.all(
@@ -309,14 +313,15 @@ export class DistributionService implements IDistributionService {
         const res = await this._commonUtil.request(
           new URL(keybaseUrl + identity).href,
         );
-        pictureUrl = res.them[0].pictures.primary.url;
+        if (res.them && res.them.length > 0 && res.them[0].pictures.primary)
+          pictureUrl = res.them[0].pictures.primary.url;
         if (pictureUrl) {
           // save picture to cache
           this._validatorPicture.set(identity, pictureUrl);
         }
       }
     } catch (e) {
-      this._logger.error(e);
+      this._logger.debug(e);
     }
     return pictureUrl;
   }

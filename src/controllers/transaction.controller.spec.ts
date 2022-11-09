@@ -1,29 +1,29 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { ErrorMap } from 'src/common/error.map';
+import { ErrorMap } from '../common/error.map';
 import {
   mockChain,
   mockCreateTransactionRequest,
-} from 'src/mock/transaction.mock';
+} from '../mock/transaction.mock';
 import {
   ENTITIES_CONFIG,
   MODULE_REQUEST,
   REPOSITORY_INTERFACE,
   SERVICE_INTERFACE,
-} from 'src/module.config';
+} from '../module.config';
 import {
   MultisigConfirmRepository,
   MultisigTransactionRepository,
   TransactionRepository,
-} from 'src/repositories/impls';
-import { GeneralRepository } from 'src/repositories/impls/general.repository';
-import { MultisigWalletOwnerRepository } from 'src/repositories/impls/multisig-wallet-owner.repository';
-import { MultisigWalletRepository } from 'src/repositories/impls/multisig-wallet.repository';
-import { GeneralService } from 'src/services/impls/general.service';
-import { MultisigTransactionService } from 'src/services/impls/multisig-transaction.service';
-import { MultisigWalletService } from 'src/services/impls/multisig-wallet.service';
-import { TransactionService } from 'src/services/impls/transaction.service';
-import { SharedModule } from 'src/shared/shared.module';
+} from '../repositories/impls';
+import { GeneralRepository } from '../repositories/impls/general.repository';
+import { MultisigWalletOwnerRepository } from '../repositories/impls/multisig-wallet-owner.repository';
+import { MultisigWalletRepository } from '../repositories/impls/multisig-wallet.repository';
+import { GeneralService } from '../services/impls/general.service';
+import { MultisigTransactionService } from '../services/impls/multisig-transaction.service';
+import { MultisigWalletService } from '../services/impls/multisig-wallet.service';
+import { TransactionService } from '../services/impls/transaction.service';
+import { SharedModule } from '../shared/shared.module';
 import { TransactionController } from './transaction.controller';
 
 describe(TransactionController.name, () => {

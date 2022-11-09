@@ -1,13 +1,10 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ResponseDto } from 'src/dtos/responses/response.dto';
+import { ResponseDto } from '../../dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
-import {
-  MODULE_REQUEST,
-  REPOSITORY_INTERFACE,
-} from 'src/module.config';
-import { Chain } from 'src/entities';
+import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
+import { Chain } from '../../entities';
 import { IUserService } from '../iuser.service';
-import { IUserRepository } from 'src/repositories/iuser.repository';
+import { IUserRepository } from '../../repositories/iuser.repository';
 
 @Injectable()
 export class UserService implements IUserService {
@@ -19,18 +16,18 @@ export class UserService implements IUserService {
     @Inject(REPOSITORY_INTERFACE.IUSER_REPOSITORY)
     private userRepo: IUserRepository,
   ) {
-    this._logger.log(
-      '============== Constructor User Service ==============',
-    );
+    this._logger.log('============== Constructor User Service ==============');
   }
-  
-  async getUserByAddress(param: MODULE_REQUEST.GetUserPathParams): Promise<ResponseDto> {
-      const { address } = param;
-      try {
-        const user = await this.userRepo.getUserByAddress(address);
-        return ResponseDto.response(ErrorMap.SUCCESSFUL, user);
-      } catch (e) {
-        return ResponseDto.responseError(UserService.name, e);
-      }
+
+  async getUserByAddress(
+    param: MODULE_REQUEST.GetUserPathParams,
+  ): Promise<ResponseDto> {
+    const { address } = param;
+    try {
+      const user = await this.userRepo.getUserByAddress(address);
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, user);
+    } catch (e) {
+      return ResponseDto.responseError(UserService.name, e);
+    }
   }
 }

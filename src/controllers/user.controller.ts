@@ -3,15 +3,15 @@ import { ApiTags } from '@nestjs/swagger';
 import {
   CONTROLLER_CONSTANTS,
   URL_CONSTANTS,
-} from 'src/common/constants/api.constant';
-import { CommonGet } from 'src/decorators/common.decorator';
-import { SwaggerBaseApiResponse } from 'src/dtos/responses';
+} from '../common/constants/api.constant';
+import { CommonGet } from '../decorators/common.decorator';
+import { SwaggerBaseApiResponse } from '../dtos/responses';
 import {
   MODULE_REQUEST,
   MODULE_RESPONSE,
   SERVICE_INTERFACE,
-} from 'src/module.config';
-import { IUserService } from 'src/services/iuser.service';
+} from '../module.config';
+import { IUserService } from '../services/iuser.service';
 @Controller(CONTROLLER_CONSTANTS.USER)
 @ApiTags(CONTROLLER_CONSTANTS.USER)
 export class UserController {

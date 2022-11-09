@@ -3,16 +3,17 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { BaseRepository } from './base.repository';
 import { In, Not, ObjectLiteral, Repository } from 'typeorm';
 import { IMultisigWalletRepository } from '../imultisig-wallet.repository';
-import { ENTITIES_CONFIG, REPOSITORY_INTERFACE } from 'src/module.config';
-import { Safe, SafeOwner } from 'src/entities';
-import { CustomError } from 'src/common/customError';
-import { ErrorMap } from 'src/common/error.map';
-import { SAFE_STATUS } from 'src/common/constants/app.constant';
+import { ENTITIES_CONFIG, REPOSITORY_INTERFACE } from '../../module.config';
+import { Safe, SafeOwner } from '../../entities';
+import { CustomError } from '../../common/customError';
+import { ErrorMap } from '../../common/error.map';
+import { SAFE_STATUS } from '../../common/constants/app.constant';
 import { createHash } from 'crypto';
 import { pubkeyToAddress } from '@cosmjs/amino';
-import { StargateClient } from '@cosmjs/stargate';
 import { IGeneralRepository } from '../igeneral.repository';
 import { IMultisigWalletOwnerRepository } from '../imultisig-wallet-owner.repository';
+import { ConfigService } from 'src/shared/services/config.service';
+import { IndexerAPI } from 'src/utils/apis/IndexerAPI';
 
 @Injectable()
 export class MultisigWalletRepository
@@ -20,7 +21,10 @@ export class MultisigWalletRepository
   implements IMultisigWalletRepository
 {
   private readonly _logger = new Logger(MultisigWalletRepository.name);
+  private _indexer = new IndexerAPI(this.configService.get('INDEXER_URL'));
+
   constructor(
+    private configService: ConfigService,
     @InjectRepository(ENTITIES_CONFIG.SAFE)
     private readonly repos: Repository<ObjectLiteral>,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_OWNER_REPOSITORY)
@@ -129,7 +133,9 @@ export class MultisigWalletRepository
       .createQueryBuilder('safe')
       .where('safe.safeAddress = :safeAddress', { safeAddress })
       .select(['safe.threshold as ConfirmationsRequired']);
-    return sqlQuerry.getRawOne();
+    const result = await sqlQuerry.getRawOne();
+    if (!result) throw new CustomError(ErrorMap.NO_SAFES_FOUND);
+    return result;
   }
 
   async deletePendingSafe(safeId: string, myAddress: string) {
@@ -312,64 +318,51 @@ export class MultisigWalletRepository
     });
     if (!chainInfo) throw new CustomError(ErrorMap.CHAIN_NOT_FOUND);
 
-    const client = await StargateClient.connect(chainInfo.rpc);
-
     try {
-      const accountOnChain = await client.getAccount(accountAddress);
-      if (accountOnChain.pubkey == null)
+      const accountInfo = await this._indexer.getAccountInfo(
+        chainInfo.chainId,
+        accountAddress,
+      );
+
+      if (!accountInfo.account_auth)
         throw new CustomError(ErrorMap.NO_SAFES_FOUND);
-      const otherOwnersAddress = [];
-      for (let i = 1; i < accountOnChain.pubkey.value.pubkeys.length; i++) {
-        const ownerAddress = pubkeyToAddress(
-          accountOnChain.pubkey.value.pubkeys[i],
-          chainInfo.prefix,
-        );
-        otherOwnersAddress.push(ownerAddress);
-      }
+
+      const pubkeyInfo = accountInfo.account_auth.result.value.public_key;
+      const ownersAddresses: string[] = pubkeyInfo.value.pubkeys.map(
+        (pubkey) => {
+          return pubkeyToAddress(pubkey, chainInfo.prefix);
+        },
+      );
 
       // insert safe
       const newSafe = new Safe();
-      newSafe.creatorAddress = pubkeyToAddress(
-        accountOnChain.pubkey.value.pubkeys[0],
-        chainInfo.prefix,
-      );
-      newSafe.creatorPubkey = accountOnChain.pubkey.value.pubkeys[0].value;
-      newSafe.threshold = accountOnChain.pubkey.value.threshold;
-      newSafe.safeAddress = accountOnChain.address;
-      newSafe.safePubkey = JSON.stringify(accountOnChain.pubkey);
+      newSafe.creatorAddress = ownersAddresses[0];
+      newSafe.creatorPubkey = pubkeyInfo.value.pubkeys[0];
+      newSafe.threshold = pubkeyInfo.value.threshold;
+      newSafe.safeAddress = accountInfo.address;
+      newSafe.safePubkey = JSON.stringify(pubkeyInfo);
       newSafe.internalChainId = internalChainId;
 
       const result = await this.recoverSafe(
         newSafe,
-        otherOwnersAddress,
+        ownersAddresses.slice(1),
         chainInfo.prefix,
       );
       const safeId = result.id;
 
-      // insert safe_creator
-      await this.safeOwnerRepo.insertOwners(
-        safeId,
-        internalChainId,
-        pubkeyToAddress(
-          accountOnChain.pubkey.value.pubkeys[0],
-          chainInfo.prefix,
-        ),
-        accountOnChain.pubkey.value.pubkeys[0].value,
-        otherOwnersAddress,
-      );
-
       // insert safe owner
-      for (let i = 1; i < accountOnChain.pubkey.value.pubkeys.length; i++) {
-        await this.safeOwnerRepo.recoverSafeOwner(
-          safeId,
-          pubkeyToAddress(
-            accountOnChain.pubkey.value.pubkeys[i],
-            chainInfo.prefix,
+      const promises = [];
+      for (let i = 0; i < ownersAddresses.length; i++) {
+        promises.push(
+          this.safeOwnerRepo.recoverSafeOwner(
+            safeId,
+            ownersAddresses[i],
+            pubkeyInfo.value.pubkeys[i].value,
+            internalChainId,
           ),
-          accountOnChain.pubkey.value.pubkeys[i].value,
-          internalChainId,
         );
       }
+      await Promise.all(promises);
     } catch (error) {
       throw new CustomError(ErrorMap.NO_SAFES_FOUND);
     }

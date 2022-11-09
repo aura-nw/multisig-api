@@ -19,15 +19,15 @@ import {
 import {
   CONTROLLER_CONSTANTS,
   URL_CONSTANTS,
-} from 'src/common/constants/api.constant';
-import { CommonAuthPost } from 'src/decorators/common.decorator';
+} from '../common/constants/api.constant';
+import { CommonAuthPost } from '../decorators/common.decorator';
 import {
   MODULE_REQUEST,
   MODULE_RESPONSE,
   SERVICE_INTERFACE,
-} from 'src/module.config';
-import { TransactionService } from 'src/services/impls/transaction.service';
-import { IMultisigTransactionService } from 'src/services/multisig-transaction.service';
+} from '../module.config';
+import { TransactionService } from '../services/impls/transaction.service';
+import { IMultisigTransactionService } from '../services/multisig-transaction.service';
 
 @Controller(CONTROLLER_CONSTANTS.TRANSACTION)
 @ApiTags(CONTROLLER_CONSTANTS.TRANSACTION)
@@ -51,7 +51,7 @@ export class TransactionController {
     @Body() request: MODULE_REQUEST.CreateTransactionRequest,
   ) {
     this._logger.log('========== Create multisig transaction ==========');
-    return this.multisigTransactionService.createTransaction(request);
+    return this.multisigTransactionService.createMultisigTransaction(request);
   }
 
   @CommonAuthPost({
@@ -62,7 +62,7 @@ export class TransactionController {
   async confirmTransaction(
     @Body() request: MODULE_REQUEST.ConfirmTransactionRequest,
   ) {
-    return this.multisigTransactionService.confirmTransaction(request);
+    return this.multisigTransactionService.confirmMultisigTransaction(request);
   }
 
   @CommonAuthPost({
@@ -73,7 +73,7 @@ export class TransactionController {
   async rejectTransaction(
     @Body() request: MODULE_REQUEST.RejectTransactionParam,
   ) {
-    return this.multisigTransactionService.rejectTransaction(request);
+    return this.multisigTransactionService.rejectMultisigTransaction(request);
   }
 
   @Post(URL_CONSTANTS.GET_ALL_TXS)
@@ -125,7 +125,7 @@ export class TransactionController {
     @Body() request: MODULE_REQUEST.SendTransactionRequest,
   ) {
     this._logger.log('========== Send transaction to AURA ==========');
-    return this.multisigTransactionService.sendTransaction(request);
+    return this.multisigTransactionService.sendMultisigTransaction(request);
   }
 
   @Get(URL_CONSTANTS.TRANSACTION_DETAILS)
@@ -140,11 +140,8 @@ export class TransactionController {
   })
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
   @HttpCode(HttpStatus.OK)
-  async getTransactionDetails(
-    @Param() param: MODULE_REQUEST.GetTransactionDetailsParam,
-    @Query() query: MODULE_REQUEST.GetTxDetailQuery,
-  ) {
+  async getTransactionDetails(@Query() query: MODULE_REQUEST.GetTxDetailQuery) {
     this._logger.log('========== Get details of a Transaction ==========');
-    return this.transactionService.getTransactionDetails(param, query);
+    return this.transactionService.getTransactionDetails(query);
   }
 }

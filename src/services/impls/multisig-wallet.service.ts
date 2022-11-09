@@ -1,31 +1,28 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ResponseDto } from 'src/dtos/responses/response.dto';
+import { ResponseDto } from '../../dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { IMultisigWalletService } from '../imultisig-wallet.service';
-import { IMultisigWalletRepository } from 'src/repositories/imultisig-wallet.repository';
-import { IMultisigWalletOwnerRepository } from 'src/repositories/imultisig-wallet-owner.repository';
+import { IMultisigWalletRepository } from '../../repositories/imultisig-wallet.repository';
+import { IMultisigWalletOwnerRepository } from '../../repositories/imultisig-wallet-owner.repository';
 import {
   SAFE_OWNER_STATUS,
   SAFE_STATUS,
-} from 'src/common/constants/app.constant';
-import {
-  MODULE_REQUEST,
-  REPOSITORY_INTERFACE,
-  RESPONSE_CONFIG,
-} from 'src/module.config';
-import { CommonUtil } from 'src/utils/common.util';
-import { Network } from 'src/utils/network.utils';
+} from '../../common/constants/app.constant';
+import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
+import { CommonUtil } from '../../utils/common.util';
 import { BaseService } from './base.service';
-import { GetMultisigWalletResponse } from 'src/dtos/responses/multisig-wallet/get-multisig-wallet.response';
+import { GetMultisigWalletResponse } from '../../dtos/responses/multisig-wallet/get-multisig-wallet.response';
 import { plainToInstance } from 'class-transformer';
-import { ListSafeByOwnerResponse } from 'src/dtos/responses/multisig-wallet/get-safe-by-owner.response';
-import { IGeneralRepository } from 'src/repositories/igeneral.repository';
-import { CustomError } from 'src/common/customError';
-import { Chain } from 'src/entities';
+import { ListSafeByOwnerResponse } from '../../dtos/responses/multisig-wallet/get-safe-by-owner.response';
+import { IGeneralRepository } from '../../repositories/igeneral.repository';
+import { CustomError } from '../../common/customError';
+import { Chain } from '../../entities';
 import { encodeSecp256k1Pubkey, pubkeyToAddress } from '@cosmjs/amino';
 import { fromBase64 } from '@cosmjs/encoding';
 import { SimplePublicKey } from '@terra-money/terra.js';
-import { pubkeyToAddressEvmos } from 'src/chains/evmos';
+import { pubkeyToAddressEvmos } from '../../chains/evmos';
+import { IndexerAPI } from 'src/utils/apis/IndexerAPI';
+import { ConfigService } from 'src/shared/services/config.service';
 
 @Injectable()
 export class MultisigWalletService
@@ -34,8 +31,10 @@ export class MultisigWalletService
 {
   private readonly _logger = new Logger(MultisigWalletService.name);
   private _commonUtil: CommonUtil = new CommonUtil();
+  private _indexer = new IndexerAPI(this.configService.get('INDEXER_URL'));
 
   constructor(
+    private configService: ConfigService,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_REPOSITORY)
     private safeRepo: IMultisigWalletRepository,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_OWNER_REPOSITORY)
@@ -139,13 +138,11 @@ export class MultisigWalletService
       // if safe created => Get balance
       if (safeInfo.address !== null) {
         try {
-          const network = new Network(chainInfo.rpc);
-          await network.init();
-          const balance = await network.client.getBalance(
+          const accountInfo = await this._indexer.getAccountInfo(
+            chainInfo.chainId,
             safeInfo.address,
-            chainInfo.denom,
           );
-          safeInfo.balance = [balance];
+          safeInfo.balance = accountInfo.account_balances;
         } catch (error) {
           msgError = error.message;
           this._logger.error(error.message);
@@ -158,35 +155,6 @@ export class MultisigWalletService
         }
       }
       return ResponseDto.response(ErrorMap.SUCCESSFUL, safeInfo, msgError);
-    } catch (error) {
-      return ResponseDto.responseError(MultisigWalletService.name, error);
-    }
-  }
-
-  async getBalance(
-    param: MODULE_REQUEST.GetSafeBalancePathParams,
-    query: MODULE_REQUEST.GetSafeBalanceQuery,
-  ): Promise<ResponseDto> {
-    try {
-      const { safeId } = param;
-      const { internalChainId } = query;
-      // find safes
-      const safe = await this.safeRepo.getCreatedSafe(safeId, internalChainId);
-      // get chainInfo
-      const chainInfo = await this.generalRepo.findChain(safe.internalChainId);
-      try {
-        const network = new Network(chainInfo.rpc);
-        await network.init();
-        const balance = await network.client.getBalance(
-          safe.safeAddress,
-          chainInfo.denom,
-        );
-        const response = new RESPONSE_CONFIG.GET_SAFE_BALANCE();
-        response.balances = [balance];
-        return ResponseDto.response(ErrorMap.SUCCESSFUL, response);
-      } catch (error) {
-        throw new CustomError(ErrorMap.GET_BALANCE_FAILED, error.message);
-      }
     } catch (error) {
       return ResponseDto.responseError(MultisigWalletService.name, error);
     }

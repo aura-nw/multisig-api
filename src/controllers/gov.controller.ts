@@ -1,17 +1,17 @@
-import { Controller, Query, Inject, Body, Logger, Param } from '@nestjs/common';
+import { Controller, Query, Inject, Logger, Param } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import {
   CONTROLLER_CONSTANTS,
   URL_CONSTANTS,
-} from 'src/common/constants/api.constant';
-import { CommonGet } from 'src/decorators/common.decorator';
-import { SwaggerBaseApiResponse } from 'src/dtos/responses';
+} from '../common/constants/api.constant';
+import { CommonGet } from '../decorators/common.decorator';
+import { SwaggerBaseApiResponse } from '../dtos/responses';
 import {
   MODULE_REQUEST,
   MODULE_RESPONSE,
   SERVICE_INTERFACE,
-} from 'src/module.config';
-import { IGovService } from 'src/services/igov.service';
+} from '../module.config';
+import { IGovService } from '../services/igov.service';
 @Controller(CONTROLLER_CONSTANTS.GOV)
 @ApiTags(CONTROLLER_CONSTANTS.GOV)
 export class GovController {

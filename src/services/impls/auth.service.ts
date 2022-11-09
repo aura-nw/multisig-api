@@ -1,28 +1,26 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ResponseDto } from 'src/dtos/responses/response.dto';
+import { ResponseDto } from '../../dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
-import { MODULE_REQUEST, REPOSITORY_INTERFACE } from 'src/module.config';
-import { ConfigService } from 'src/shared/services/config.service';
+import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
 import { IAuthService } from '../iauth.service';
 import { fromBase64 } from '@cosmjs/encoding';
 import { JwtService } from '@nestjs/jwt';
-import { CustomError } from 'src/common/customError';
+import { CustomError } from '../../common/customError';
 import { encodeSecp256k1Pubkey, pubkeyToAddress } from '@cosmjs/amino';
-import { isNumberString } from 'class-validator';
 import {
   AppConstants,
   COMMON_CONSTANTS,
-} from 'src/common/constants/app.constant';
-import { ContextService } from 'providers/context.service';
-import { IGeneralRepository } from 'src/repositories';
+} from '../../common/constants/app.constant';
+import { ContextService } from '../../../providers/context.service';
+import { IGeneralRepository } from '../../repositories';
 import {
   createSignMessageByData,
   pubkeyToAddressEvmos,
   verifyCosmosSig,
   verifyEvmosSig,
-} from 'src/chains';
-import { UserInfo } from 'src/dtos/userInfo';
-import { IUserRepository } from 'src/repositories/iuser.repository';
+} from '../../chains';
+import { UserInfo } from '../../dtos/userInfo';
+import { IUserRepository } from '../../repositories/iuser.repository';
 @Injectable()
 export class AuthService implements IAuthService {
   private readonly _logger = new Logger(AuthService.name);

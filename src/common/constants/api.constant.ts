@@ -22,7 +22,7 @@ export const URL_CONSTANTS = {
   ACCOUNT_ONCHAIN: 'get-account-onchain/:safeAddress/:internalChainId',
   GET_ALL_TXS: 'get-all-txs',
   SIGNATURES: 'multisig/:id/signatures',
-  TRANSACTION_DETAILS: 'transaction-details/:internalTxHash/:safeAddress',
+  TRANSACTION_DETAILS: 'transaction-details',
   GET_SAFE: ':safeId',
   GET_SAFE_BALANCE: ':safeId/balance',
   CONFIRM_SAFE: ':safeId',

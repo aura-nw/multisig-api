@@ -2,21 +2,24 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BaseRepository } from './base.repository';
 import { In, ObjectLiteral, Repository } from 'typeorm';
-import { ENTITIES_CONFIG, REPOSITORY_INTERFACE } from 'src/module.config';
+import { ENTITIES_CONFIG, REPOSITORY_INTERFACE } from '../../module.config';
 import { IMultisigTransactionsRepository } from '../imultisig-transaction.repository';
-import { Chain, MultisigTransaction } from 'src/entities';
+import { AuraTx, Chain, MultisigTransaction } from '../../entities';
 import {
   MULTISIG_CONFIRM_STATUS,
   TRANSACTION_STATUS,
   TRANSFER_DIRECTION,
-} from 'src/common/constants/app.constant';
+} from '../../common/constants/app.constant';
 import { IMultisigConfirmRepository } from '../imultisig-confirm.repository';
 import { IMultisigWalletRepository } from '../imultisig-wallet.repository';
-import { CustomError } from 'src/common/customError';
-import { ErrorMap } from 'src/common/error.map';
+import { CustomError } from '../../common/customError';
+import { ErrorMap } from '../../common/error.map';
 import { plainToInstance } from 'class-transformer';
-import { MultisigTransactionHistoryResponse } from 'src/dtos/responses';
-import { TxDetailResponse } from 'src/dtos/responses/multisig-transaction/tx-detail.response';
+import { MultisigTransactionHistoryResponse } from '../../dtos/responses';
+import {
+  MultisigTxDetail,
+  TxDetailResponse,
+} from '../../dtos/responses/multisig-transaction/tx-detail.response';
 
 @Injectable()
 export class MultisigTransactionRepository
@@ -60,7 +63,7 @@ export class MultisigTransactionRepository
     return true;
   }
 
-  async updateTxBroadcastSucces(
+  async updateTxBroadcastSuccess(
     transactionId: number,
     txHash: string,
   ): Promise<any> {
@@ -75,7 +78,7 @@ export class MultisigTransactionRepository
     await this.update(multisigTransaction);
   }
 
-  async validateTxBroadcast(transactionId: number): Promise<any> {
+  async getBroadcastableTx(transactionId: number): Promise<any> {
     const multisigTransaction = await this.findOne({
       where: { id: transactionId },
     });
@@ -90,7 +93,9 @@ export class MultisigTransactionRepository
     return multisigTransaction;
   }
 
-  async checkExistMultisigTransaction(transactionId: number): Promise<any> {
+  async getTransactionById(
+    transactionId: number,
+  ): Promise<MultisigTransaction> {
     const transaction = await this.findOne({
       where: { id: transactionId },
     });
@@ -108,8 +113,12 @@ export class MultisigTransactionRepository
     return this.create(transaction);
   }
 
-  async validateTransaction(transactionId: number, internalChainId: number) {
-    //Check transaction available
+  async updateTxStatusIfSatisfied(
+    transactionId: number,
+    safeId: number,
+    internalChainId: number,
+  ) {
+    // get list confirm
     const listConfirmAfterSign =
       await this.multisigConfirmRepos.findByCondition({
         multisigTransactionId: transactionId,
@@ -117,15 +126,14 @@ export class MultisigTransactionRepository
         internalChainId: internalChainId,
       });
 
-    const transaction = await this.findOne({
-      where: { id: transactionId, internalChainId: internalChainId },
-    });
+    const safe = await this.safeRepos.getSafe(String(safeId));
 
-    const safe = await this.safeRepos.findOne({
-      where: { id: transaction.safeId },
-    });
-
+    // check if list confirm >= threshold
+    // update status of multisig transaction
     if (listConfirmAfterSign.length >= safe.threshold) {
+      const transaction = await this.findOne({
+        where: { id: transactionId },
+      });
       transaction.status = TRANSACTION_STATUS.AWAITING_EXECUTION;
 
       await this.update(transaction);
@@ -138,6 +146,48 @@ export class MultisigTransactionRepository
       .where('multisigTransaction.txHash = :internalTxHash', { internalTxHash })
       .select(['multisigTransaction.id as id']);
     return sqlQuerry.getRawOne();
+  }
+
+  async getMultisigTxDetail(
+    multisigTxId: number,
+    auraTxId: number,
+  ): Promise<MultisigTxDetail> {
+    const select = [
+      'AT.Id as AuraTxId',
+      'MT.Id as MultisigTxId',
+      'AT.TxHash as TxHash',
+      'MT.Fee as Fee',
+      'MT.Gas as Gas',
+    ];
+
+    const sqlQuerry = this.repos
+      .createQueryBuilder('MT')
+      .leftJoin(AuraTx, 'AT', 'MT.TxHash = AT.TxHash');
+
+    if (multisigTxId) {
+      select.push(
+        ...[
+          'MT.Status as Status',
+          'MT.CreatedAt as CreatedAt',
+          'MT.UpdatedAt as UpdatedAt',
+        ],
+      );
+      sqlQuerry.where('MT.Id = :multisigTxId', { multisigTxId });
+    } else {
+      select.push(
+        ...[
+          'AT.Code as Status',
+          'AT.CreatedAt as CreatedAt',
+          'AT.UpdatedAt as UpdatedAt',
+        ],
+      );
+      sqlQuerry.where('AT.Id = :auraTxId', { auraTxId });
+    }
+
+    sqlQuerry.select(select);
+
+    const tx = await sqlQuerry.getRawOne();
+    return plainToInstance(MultisigTxDetail, tx);
   }
 
   async getTransactionDetailsMultisigTransaction(
@@ -180,7 +230,7 @@ export class MultisigTransactionRepository
     if (result) {
       const txDetail = plainToInstance(TxDetailResponse, result);
       txDetail.Direction = TRANSFER_DIRECTION.OUTGOING;
-  
+
       return txDetail;
     }
     // throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
@@ -196,7 +246,7 @@ export class MultisigTransactionRepository
     const offset = limit * (pageIndex - 1);
     const result: any[] = await this.repos.query(
       `
-      SELECT Id, CreatedAt, UpdatedAt, FromAddress, ToAddress, TxHash, Amount, Denom, TypeUrl, Status, ? AS Direction
+      SELECT Id as MultisigTxId, NULL as AuraTxId, CreatedAt, UpdatedAt, Amount as MultisigTxAmount, TypeUrl, FromAddress as FromAddress, Status
       FROM MultisigTransaction
       WHERE FromAddress = ?
       AND (Status = ? OR Status = ? OR Status = ?)
@@ -205,7 +255,6 @@ export class MultisigTransactionRepository
       LIMIT ? OFFSET ?
     `,
       [
-        TRANSFER_DIRECTION.OUTGOING,
         safeAddress,
         TRANSACTION_STATUS.AWAITING_CONFIRMATIONS,
         TRANSACTION_STATUS.AWAITING_EXECUTION,

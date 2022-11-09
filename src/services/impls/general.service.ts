@@ -1,24 +1,24 @@
 import { Inject, Logger } from '@nestjs/common';
-import { StargateClient } from '@cosmjs/stargate';
-import { ResponseDto } from 'src/dtos/responses/response.dto';
+import { ResponseDto } from '../../dtos/responses/response.dto';
 import { IGeneralService } from '../igeneral.service';
 import { BaseService } from './base.service';
-import { CommonUtil } from 'src/utils/common.util';
-import { MODULE_REQUEST, REPOSITORY_INTERFACE } from 'src/module.config';
-import { IGeneralRepository } from 'src/repositories/igeneral.repository';
-import { ErrorMap } from 'src/common/error.map';
-import { IMultisigWalletRepository } from 'src/repositories';
-import { LCDClient } from '@terra-money/terra.js';
-import { getEvmosAccount } from 'src/chains/evmos';
+import { CommonUtil } from '../../utils/common.util';
+import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
+import { IGeneralRepository } from '../../repositories/igeneral.repository';
+import { ErrorMap } from '../../common/error.map';
+import { IMultisigWalletRepository } from '../../repositories';
 import * as axios from 'axios';
-import { IGasRepository } from 'src/repositories/igas.repository';
-import { CustomError } from 'src/common/customError';
+import { IGasRepository } from '../../repositories/igas.repository';
+import { IndexerAPI } from 'src/utils/apis/IndexerAPI';
+import { ConfigService } from 'src/shared/services/config.service';
 
 export class GeneralService extends BaseService implements IGeneralService {
   private readonly _logger = new Logger(GeneralService.name);
   private _commonUtil: CommonUtil = new CommonUtil();
+  private _indexer = new IndexerAPI(this.configService.get('INDEXER_URL'));
+
   constructor(
-    // private configService: ConfigService,
+    private configService: ConfigService,
     @Inject(REPOSITORY_INTERFACE.IGENERAL_REPOSITORY)
     private chainRepo: IGeneralRepository,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_REPOSITORY)
@@ -51,17 +51,20 @@ export class GeneralService extends BaseService implements IGeneralService {
   async showNetworkList(): Promise<ResponseDto> {
     try {
       const chains = await this.chainRepo.showNetworkList();
-      for (const chain of chains) {
-        const gas = await this.gasRepo.findByCondition(
-          {
-            chainId: chain.chainId,
-          },
-          undefined,
-          ['typeUrl', 'gasAmount', 'multiplier'],
-        );
-        chain.defaultGas = gas;
-      }
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, chains);
+      const result = await Promise.all(
+        chains.map(async (chain) => {
+          const gas = await this.gasRepo.findByCondition(
+            {
+              chainId: chain.chainId,
+            },
+            undefined,
+            ['typeUrl', 'gasAmount', 'multiplier'],
+          );
+          chain.defaultGas = gas;
+          return chain;
+        }),
+      );
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
     } catch (error) {
       return ResponseDto.responseError(GeneralService.name, error);
     }
@@ -71,42 +74,18 @@ export class GeneralService extends BaseService implements IGeneralService {
     param: MODULE_REQUEST.GetAccountOnchainParam,
   ): Promise<ResponseDto> {
     try {
-      const safeAddress = { safeAddress: param.safeAddress };
-      const safe = await this.safeRepo.findByCondition(safeAddress);
-      if (safe.length === 0) throw new CustomError(ErrorMap.NO_SAFES_FOUND);
+      const { safeAddress, internalChainId } = param;
 
-      const condition = { id: param.internalChainId };
-      const chain = await this.chainRepo.findByCondition(condition);
-      if (chain.length === 0)
-        throw new CustomError(ErrorMap.CHAIN_ID_NOT_EXIST);
+      const chainInfo = await this.chainRepo.findChain(internalChainId);
+      const account = await this._indexer.getAccountNumberAndSequence(
+        chainInfo.chainId,
+        safeAddress,
+      );
 
-      let client, accountOnChain;
-      switch (chain[0].chainId) {
-        case 'evmos_9000-4':
-          const { sequence, accountNumber } = await getEvmosAccount(
-            chain[0].rest,
-            param.safeAddress,
-          );
-          accountOnChain = {
-            accountNumber,
-            sequence,
-            address: param.safeAddress,
-            pubkey: safe[0].safePubkey ? JSON.parse(safe[0].safePubkey) : null,
-          };
-          break;
-        case 'terra':
-          client = new LCDClient({
-            chainID: chain[0].chainId,
-            URL: chain[0].rest,
-          });
-          accountOnChain = await client.auth.accountInfo(param.safeAddress);
-          break;
-        default:
-          client = await StargateClient.connect(chain[0].rpc);
-          accountOnChain = await client.getAccount(param.safeAddress);
-          break;
-      }
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, accountOnChain);
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, {
+        accountNumber: account.accountNumber,
+        sequence: account.sequence,
+      });
     } catch (error) {
       return ResponseDto.responseError(GeneralService.name, error);
     }
