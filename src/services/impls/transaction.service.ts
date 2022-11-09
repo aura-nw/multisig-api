@@ -208,6 +208,19 @@ export class TransactionService
       const autoClaimAmount = await this.messageRepos.getMsgsByAuraTxId(
         multisigTxDetail.AuraTxId,
       );
+
+      messages.map((msg) => {
+        // get amount from auraTx tbl when msg type is withdraw reward
+        // TODO: Need mapping msg of auraTx with msg of multisigTx
+        if (msg.typeUrl === TX_TYPE_URL.WITHDRAW_REWARD) {
+          const withdrawMsg = autoClaimAmount.filter(
+            (x) =>
+              x.typeUrl === TX_TYPE_URL.WITHDRAW_REWARD &&
+              x.fromAddress === msg.validatorAddress,
+          );
+          if (withdrawMsg.length > 0) msg.amount = withdrawMsg[0].amount;
+        }
+      });
       multisigTxDetail.Messages = messages;
 
       multisigTxDetail.AutoClaimAmount = autoClaimAmount.reduce(
