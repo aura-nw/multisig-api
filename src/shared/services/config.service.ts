@@ -58,6 +58,7 @@ export class ConfigService {
       username: this.get('DB_USERNAME'),
       password: this.get('DB_PASSWORD'),
       database: this.get('DB_DATABASE'),
+      timezone: 'utc',
       migrationsRun: true,
       connectTimeout: 1000,
       synchronize: false,
