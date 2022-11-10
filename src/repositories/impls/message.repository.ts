@@ -10,6 +10,7 @@ import { BaseRepository } from './base.repository';
 import { TxMessageHistoryResponse } from '../../dtos/responses';
 import { CustomError } from '../../common/customError';
 import { ErrorMap } from '../../common/error.map';
+import { TX_TYPE_URL } from 'src/common/constants/app.constant';
 
 @Injectable()
 export class MessageRepository
@@ -34,7 +35,16 @@ export class MessageRepository
       });
       newMsg.txId = txId;
       newMsg.typeUrl = msg.typeUrl;
-      newMsg.amount = msg.value.amount ? msg.value.amount?.amount : null;
+      switch (msg.typeUrl) {
+        case TX_TYPE_URL.SEND:
+          newMsg.amount = msg.value.amount ? msg.value.amount[0].amount : null;
+          break;
+        case TX_TYPE_URL.DELEGATE:
+        case TX_TYPE_URL.REDELEGATE:
+        case TX_TYPE_URL.UNDELEGATE:
+          newMsg.amount = msg.value.amount ? msg.value.amount?.amount : null;
+          break;
+      }
       newMsg.voteOption = msg.value.option ? msg.value.option : null;
       newMsg.proposalId = msg.value.proposalId
         ? Number(msg.value.proposalId)
