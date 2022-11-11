@@ -57,10 +57,10 @@ export class IndexerAPI {
       throw new CustomError(ErrorMap.MISSING_ACCOUNT_AUTH);
     }
     const accountNumber = Number(
-      accountInfo.account_auth.result.value.account_number,
+      accountInfo.account_auth.account.account_number,
     );
 
-    const sequence = Number(accountInfo.account_auth.result.value.sequence);
+    const sequence = Number(accountInfo.account_auth.account.sequence);
 
     if (isNaN(accountNumber) || isNaN(sequence)) {
       throw new CustomError(ErrorMap.CANNOT_GET_ACCOUNT_NUMBER_OR_SEQUENCE);
@@ -69,6 +69,16 @@ export class IndexerAPI {
       accountNumber,
       sequence,
     };
+  }
+
+  async getAccountPubkey(chainId: string, address: string) {
+    const accountInfo = await this.getAccountInfo(chainId, address);
+
+    if (!accountInfo.account_auth)
+      throw new CustomError(ErrorMap.MISSING_ACCOUNT_AUTH);
+
+    const pubkeyInfo = accountInfo.account_auth.account.pub_key;
+    return pubkeyInfo;
   }
 
   async getAccountUnBonds(chainId: string, delegatorAddress: string) {
