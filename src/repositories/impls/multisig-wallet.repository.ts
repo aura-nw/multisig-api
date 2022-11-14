@@ -319,27 +319,21 @@ export class MultisigWalletRepository
     if (!chainInfo) throw new CustomError(ErrorMap.CHAIN_NOT_FOUND);
 
     try {
-      const accountInfo = await this._indexer.getAccountInfo(
+      const pubkeyInfo = await this._indexer.getAccountPubkey(
         chainInfo.chainId,
         accountAddress,
       );
 
-      if (!accountInfo.account_auth)
-        throw new CustomError(ErrorMap.NO_SAFES_FOUND);
-
-      const pubkeyInfo = accountInfo.account_auth.result.value.public_key;
-      const ownersAddresses: string[] = pubkeyInfo.value.pubkeys.map(
-        (pubkey) => {
-          return pubkeyToAddress(pubkey, chainInfo.prefix);
-        },
-      );
+      const ownersAddresses: string[] = pubkeyInfo.public_keys.map((pubkey) => {
+        return pubkeyToAddress(pubkey.key, chainInfo.prefix);
+      });
 
       // insert safe
       const newSafe = new Safe();
       newSafe.creatorAddress = ownersAddresses[0];
       newSafe.creatorPubkey = pubkeyInfo.value.pubkeys[0];
       newSafe.threshold = pubkeyInfo.value.threshold;
-      newSafe.safeAddress = accountInfo.address;
+      newSafe.safeAddress = accountAddress;
       newSafe.safePubkey = JSON.stringify(pubkeyInfo);
       newSafe.internalChainId = internalChainId;
 
