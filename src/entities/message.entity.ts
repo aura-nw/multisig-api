@@ -1,6 +1,7 @@
 import { BaseEntityAutoId } from './base/base.entity';
 import { Column, Entity } from 'typeorm';
 import { Expose } from 'class-transformer';
+import { Input, Output } from 'cosmjs-types/cosmos/bank/v1beta1/bank';
 
 @Entity({ name: 'Message' })
 export class Message extends BaseEntityAutoId {
@@ -27,6 +28,18 @@ export class Message extends BaseEntityAutoId {
   @Expose()
   @Column({ name: 'Amount' })
   amount: string;
+
+  @Expose()
+  @Column({ name: 'Denom' })
+  denom: string;
+
+  @Expose()
+  @Column({ name: 'Inputs' })
+  inputs: string;
+
+  @Expose()
+  @Column({ name: 'Outputs' })
+  outputs: string;
 
   @Expose()
   @Column({ name: 'DelegatorAddress' })

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Expose } from 'class-transformer';
+import { Expose, Transform } from 'class-transformer';
 import { IsNumber, IsString } from 'class-validator';
 
 export class TxMessageResponse {
@@ -73,4 +73,25 @@ export class TxMessageResponse {
   @IsString()
   @ApiProperty({ example: 'aura1uyzpt9r0lmxwrrd73swnlxtqa8dj4jjy4qe2gy' })
   voter: string;
+
+  @Expose()
+  // @IsString()
+  @Transform(({ value }) => JSON.parse(value))
+  @ApiProperty({ example: [
+    {
+      "address": "aura1qc4y4awjmx9zjzqapucr66tdzf34zq0uxjraf7",
+      "coins": [
+        {
+          "denom": "utaura",
+          "amount": "50000"
+        }
+      ]
+    }
+  ] })
+  inputs: any;
+
+  @Expose()
+  @Transform(({ value }) => JSON.parse(value))
+  @ApiProperty({ example: '' })
+  outputs: string;
 }

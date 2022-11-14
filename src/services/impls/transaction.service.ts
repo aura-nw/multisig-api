@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import {
   MULTISIG_CONFIRM_STATUS,
@@ -210,7 +211,11 @@ export class TransactionService
         ? await this.messageRepos.getMsgsByAuraTxId(multisigTxDetail.AuraTxId)
         : [];
 
-      messages.map((msg) => {
+      
+      multisigTxDetail.Messages = messages.map((msg) => {
+        // Remove a null or undefined value
+        msg = _.omitBy(msg, _.isNil);
+        
         // get amount from auraTx tbl when msg type is withdraw reward
         // TODO: Need mapping msg of auraTx with msg of multisigTx
         if (msg.typeUrl === TX_TYPE_URL.WITHDRAW_REWARD) {
@@ -221,8 +226,8 @@ export class TransactionService
           );
           if (withdrawMsg.length > 0) msg.amount = withdrawMsg[0].amount;
         }
+        return msg;
       });
-      multisigTxDetail.Messages = messages;
 
       multisigTxDetail.AutoClaimAmount = autoClaimAmount.reduce(
         (totalAmount, item) => {
