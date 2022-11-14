@@ -29,6 +29,7 @@ export class MessageRepository
   }
 
   async saveMsgs(txId: number, msgs: any[]): Promise<Message[]> {
+
     const newMsgs = msgs.map((msg) => {
       const newMsg = plainToClass(Message, msg.value, {
         excludeExtraneousValues: true,
@@ -38,6 +39,10 @@ export class MessageRepository
       switch (msg.typeUrl) {
         case TX_TYPE_URL.SEND:
           newMsg.amount = msg.value.amount ? msg.value.amount[0].amount : null;
+          break;
+        case TX_TYPE_URL.MULTI_SEND:
+          newMsg.inputs = JSON.stringify(msg.value.inputs);
+          newMsg.outputs = JSON.stringify(msg.value.outputs);
           break;
         case TX_TYPE_URL.DELEGATE:
         case TX_TYPE_URL.REDELEGATE:
