@@ -8,8 +8,11 @@ import {
 import { CustomError } from '../../common/customError';
 import { ErrorMap } from '../../common/error.map';
 import { MultisigTransactionHistoryResponse } from '../../dtos/responses';
-import { TxDetailResponse } from '../../dtos/responses/multisig-transaction/tx-detail.response';
-import { Chain } from '../../entities';
+import {
+  TxDetail,
+  TxDetailResponse,
+} from '../../dtos/responses/multisig-transaction/tx-detail.response';
+import { Chain, MultisigTransaction } from '../../entities';
 import { ENTITIES_CONFIG } from '../../module.config';
 import { ObjectLiteral, Repository } from 'typeorm';
 import { ITransactionRepository } from '../itransaction.repository';
@@ -72,6 +75,34 @@ export class TransactionRepository
 
     const txs = plainToInstance(MultisigTransactionHistoryResponse, result);
     return txs;
+  }
+
+  async getMultisigTxId(internalTxHash: string) {
+    const sqlQuerry = this.repos
+      .createQueryBuilder('multisigTransaction')
+      .where('multisigTransaction.txHash = :internalTxHash', { internalTxHash })
+      .select(['multisigTransaction.id as id']);
+    return sqlQuerry.getRawOne();
+  }
+
+  async getAuraTxDetail(auraTxId: number): Promise<TxDetail> {
+
+    const tx = await this.repos
+      .createQueryBuilder('AT')
+      .leftJoin(MultisigTransaction, 'MT', 'AT.TxHash = MT.TxHash')
+      .where('AT.Id = :auraTxId', { auraTxId })
+      .select([
+        'AT.Id as AuraTxId',
+        'MT.Id as MultisigTxId',
+        'AT.TxHash as TxHash',
+        'AT.Fee as Fee',
+        'AT.GasWanted as Gas',
+        'AT.Code as Status',
+        'AT.CreatedAt as CreatedAt',
+        'AT.UpdatedAt as UpdatedAt',
+      ]).getRawOne()
+
+    return plainToInstance(TxDetail, tx);
   }
 
   async getTransactionDetailsAuraTx(txHash: string): Promise<TxDetailResponse> {
