@@ -1,5 +1,5 @@
 import { MultisigTransactionHistoryResponse } from '../dtos/responses';
-import { TxDetailResponse } from '../dtos/responses/multisig-transaction/tx-detail.response';
+import { TxDetail, TxDetailResponse } from '../dtos/responses/multisig-transaction/tx-detail.response';
 import { IBaseRepository } from './ibase.repository';
 
 export interface ITransactionRepository extends IBaseRepository {
@@ -18,4 +18,6 @@ export interface ITransactionRepository extends IBaseRepository {
    * Get details of a transaction from AuraTx table
    */
   getTransactionDetailsAuraTx(txHash: string): Promise<TxDetailResponse>;
+
+  getAuraTxDetail(auraTxId: number): Promise<TxDetail>;
 }

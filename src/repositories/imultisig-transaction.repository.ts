@@ -1,6 +1,6 @@
 import { MultisigTransactionHistoryResponse } from '../dtos/responses';
 import {
-  MultisigTxDetail,
+  TxDetail,
   TxDetailResponse,
 } from '../dtos/responses/multisig-transaction/tx-detail.response';
 import { MultisigTransaction } from '../entities';
@@ -15,8 +15,7 @@ export interface IMultisigTransactionsRepository extends IBaseRepository {
 
   getMultisigTxDetail(
     multisigTxId: number,
-    auraTxId: number,
-  ): Promise<MultisigTxDetail>;
+  ): Promise<TxDetail>;
 
   /**
    * Get details of a transaction from MultisigTransaction table

@@ -166,85 +166,102 @@ export class TransactionService
   ): Promise<ResponseDto> {
     const { multisigTxId, auraTxId, safeAddress } = query;
     try {
-      const multisigTxDetail =
-        await this.multisigTransactionRepos.getMultisigTxDetail(
-          multisigTxId,
-          auraTxId,
-        );
-      if (!multisigTxDetail)
-        throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
+      const txDetail = multisigTxId
+        ? await this.multisigTransactionRepos.getMultisigTxDetail(multisigTxId)
+        : await this.transRepos.getAuraTxDetail(auraTxId);
+      if (!txDetail) throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
 
       // get signed info
       const threshold = await this.safeRepos.getThreshold(safeAddress);
       // const owner = await this.safeOwnerRepos.getOwners(safeAddress);
-      const confirmations =
-        await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-          multisigTxDetail.MultisigTxId,
-          null,
-          MULTISIG_CONFIRM_STATUS.CONFIRM,
-        );
-      const rejections =
-        await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-          multisigTxDetail.MultisigTxId,
-          null,
-          MULTISIG_CONFIRM_STATUS.REJECT,
-        );
-      const executors =
-        await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-          multisigTxDetail.MultisigTxId,
-          null,
-          MULTISIG_CONFIRM_STATUS.SEND,
-        );
-
-      multisigTxDetail.ConfirmationsRequired = threshold.ConfirmationsRequired;
-      // multisigTxDetail.Signers = owner;
-      multisigTxDetail.Confirmations = confirmations;
-      multisigTxDetail.Rejectors = rejections;
-      multisigTxDetail.Executor = executors[0];
-
-      // get messages & auto claim amount
-      const messages = await this.messageRepos.getMsgsByTxId(
-        multisigTxDetail.MultisigTxId,
-      );
-
-      const autoClaimAmount = multisigTxDetail.AuraTxId
-        ? await this.messageRepos.getMsgsByAuraTxId(multisigTxDetail.AuraTxId)
-        : [];
 
       
-      multisigTxDetail.Messages = messages.map((msg) => {
-        // Remove a null or undefined value
-        msg = _.omitBy(msg, _.isNil);
-        
-        // get amount from auraTx tbl when msg type is withdraw reward
-        // TODO: Need mapping msg of auraTx with msg of multisigTx
-        if (msg.typeUrl === TX_TYPE_URL.WITHDRAW_REWARD) {
-          const withdrawMsg = autoClaimAmount.filter(
-            (x) =>
-              x.typeUrl === TX_TYPE_URL.WITHDRAW_REWARD &&
-              x.fromAddress === msg.validatorAddress,
+      if (!txDetail.MultisigTxId) {
+        // case: receive token - msgSend tx
+        const messages = await this.messageRepos.getMsgsByAuraTxId(
+          txDetail.AuraTxId,
+        );
+        txDetail.Messages = messages.map((msg) => _.omitBy(msg, _.isNil));
+
+        txDetail.Status =
+            Number(txDetail.Status) === 0
+              ? (txDetail.Status = TRANSACTION_STATUS.SUCCESS)
+              : TRANSACTION_STATUS.FAILED;
+      } else {
+
+        // get confirmations
+        const confirmations =
+          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+            txDetail.MultisigTxId,
+            null,
+            MULTISIG_CONFIRM_STATUS.CONFIRM,
           );
-          if (withdrawMsg.length > 0) msg.amount = withdrawMsg[0].amount;
-        }
-        return msg;
-      });
 
-      multisigTxDetail.AutoClaimAmount = autoClaimAmount.reduce(
-        (totalAmount, item) => {
-          const ignoreTypeUrl = [
-            TX_TYPE_URL.SEND.toString(),
-            TX_TYPE_URL.MULTI_SEND.toString(),
-            TX_TYPE_URL.WITHDRAW_REWARD.toString(),
-          ];
-          if (ignoreTypeUrl.includes(item.typeUrl)) {
-            return totalAmount;
+        // get rejections
+        const rejections =
+          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+            txDetail.MultisigTxId,
+            null,
+            MULTISIG_CONFIRM_STATUS.REJECT,
+          );
+
+        // get execution info
+        const executors =
+          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+            txDetail.MultisigTxId,
+            null,
+            MULTISIG_CONFIRM_STATUS.SEND,
+          );
+
+        // get messages & auto claim amount
+        const messages = await this.messageRepos.getMsgsByTxId(
+          txDetail.MultisigTxId,
+        );
+        const autoClaimAmount = txDetail.AuraTxId
+          ? await this.messageRepos.getMsgsByAuraTxId(txDetail.AuraTxId)
+          : [];
+
+        // set data
+        txDetail.Messages = messages.map((msg) => {
+          // Remove a null or undefined value
+          msg = _.omitBy(msg, _.isNil);
+
+          // get amount from auraTx tbl when msg type is withdraw reward
+          // TODO: Need mapping msg of auraTx with msg of multisigTx
+          if (msg.typeUrl === TX_TYPE_URL.WITHDRAW_REWARD) {
+            const withdrawMsg = autoClaimAmount.filter(
+              (x) =>
+                x.typeUrl === TX_TYPE_URL.WITHDRAW_REWARD &&
+                x.fromAddress === msg.validatorAddress,
+            );
+            if (withdrawMsg.length > 0) msg.amount = withdrawMsg[0].amount;
           }
-          return Number(totalAmount + item.amount);
-        },
-        0,
-      );
+          return msg;
+        });
 
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, multisigTxDetail);
+        txDetail.Confirmations = confirmations;
+        txDetail.Rejectors = rejections;
+        txDetail.Executor = executors[0];
+
+        txDetail.AutoClaimAmount = autoClaimAmount.reduce(
+          (totalAmount, item) => {
+            const ignoreTypeUrl = [
+              TX_TYPE_URL.SEND.toString(),
+              TX_TYPE_URL.MULTI_SEND.toString(),
+              TX_TYPE_URL.WITHDRAW_REWARD.toString(),
+            ];
+            if (ignoreTypeUrl.includes(item.typeUrl)) {
+              return totalAmount;
+            }
+            return Number(totalAmount + item.amount);
+          },
+          0,
+        );
+      }
+
+      txDetail.ConfirmationsRequired = threshold.ConfirmationsRequired;
+
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, txDetail);
     } catch (error) {
       return ResponseDto.responseError(TransactionService.name, error);
     }

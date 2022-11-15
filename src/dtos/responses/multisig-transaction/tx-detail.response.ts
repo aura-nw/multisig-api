@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { TxMessageResponse } from '../message/tx-msg.response';
 
-export class MultisigTxDetail {
+export class TxDetail {
   @ApiProperty({
     example: 1,
   })
