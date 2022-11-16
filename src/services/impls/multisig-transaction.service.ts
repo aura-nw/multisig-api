@@ -12,6 +12,11 @@ import {
   createDistributionAminoConverters,
   createGovAminoConverters,
   createStakingAminoConverters,
+  isAminoMsgBeginRedelegate,
+  isAminoMsgDelegate,
+  isAminoMsgMultiSend,
+  isAminoMsgSend,
+  isAminoMsgUndelegate,
   makeMultisignedTx,
   StargateClient,
 } from '@cosmjs/stargate';
@@ -34,7 +39,7 @@ import {
 } from '../../repositories';
 import { makeMultisignedTxEvmos, verifyEvmosSig } from '../../chains/evmos';
 import { CommonUtil } from '../../utils/common.util';
-import { makeSignDoc } from '@cosmjs/amino';
+import { AminoMsg, makeSignDoc } from '@cosmjs/amino';
 import { verifyCosmosSig } from '../../chains';
 import { IndexerAPI } from 'src/utils/apis/IndexerAPI';
 import { ConfigService } from 'src/shared/services/config.service';
@@ -91,7 +96,7 @@ export class MultisigTransactionService
       const chain = await this.chainRepos.findChain(internalChainId);
 
       // decode data
-      const { decodedAuthInfo, messages } = await this.decodeAndVerifyTxInfo(
+      const { decodedAuthInfo, messages, aminoMsgs } = await this.decodeAndVerifyTxInfo(
         authInfoBytes,
         bodyBytes,
         signature,
@@ -103,6 +108,9 @@ export class MultisigTransactionService
         sequence,
         from,
       );
+
+      // calculate amount
+      const amount = this.calculateAmount(aminoMsgs);
 
       // check account balance; if balance is not enough, throw error
       await this.checkAccountBalance(chain.chainId, from, chain.denom, amount);
@@ -123,7 +131,7 @@ export class MultisigTransactionService
       const transaction = new MultisigTransaction();
       transaction.fromAddress = from;
       transaction.toAddress = to || '';
-      transaction.amount = amount;
+      transaction.amount = amount > 0 ? amount : undefined;
       transaction.gas = decodedAuthInfo.fee.gasLimit.toNumber();
       transaction.fee = Number(decodedAuthInfo.fee.amount[0].amount);
       transaction.accountNumber = accountNumber;
@@ -416,6 +424,7 @@ export class MultisigTransactionService
     return {
       decodedAuthInfo,
       messages,
+      aminoMsgs: msgs
     };
   }
 
@@ -553,5 +562,22 @@ export class MultisigTransactionService
       TxRaw.encode(executeTransaction).finish(),
     );
     return encodeTransaction;
+  }
+
+  calculateAmount(aminoMsgs: AminoMsg[]): number {
+    return aminoMsgs.reduce((acc, cur) => {
+      switch (true) {
+        case isAminoMsgSend(cur):
+          return acc + Number(cur.value.amount[0].amount);
+        case isAminoMsgMultiSend(cur):
+          return acc + cur.value.outputs.reduce((acc, cur) => acc + Number(cur.coins[0].amount), 0);
+        case isAminoMsgDelegate(cur):
+        case isAminoMsgBeginRedelegate(cur):
+        case isAminoMsgUndelegate(cur):
+          return acc + Number(cur.value.amount.amount);
+        default:
+          return acc;
+      }
+    }, 0)
   }
 }
