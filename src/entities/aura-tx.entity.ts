@@ -42,6 +42,9 @@ export class AuraTx extends BaseEntityAutoId {
   @Column({ name: 'Amount', type: 'float' })
   amount: number;
 
+  @Column({ name: 'RewardAmount', type: 'float' })
+  rewardAmount: number;
+
   @Column({ name: 'Denom' })
   denom: string;
 
