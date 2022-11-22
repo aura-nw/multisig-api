@@ -38,6 +38,11 @@ export class MultisigTransactionHistoryResponse {
   @ApiProperty({
     example: 100,
   })
+  AuraTxRewardAmount: number;
+
+  @ApiProperty({
+    example: 100,
+  })
   MultisigTxAmount: number;
 
   @ApiProperty({
