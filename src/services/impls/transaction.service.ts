@@ -103,7 +103,7 @@ export class TransactionService
           safeAddress,
         );
 
-        item.FinalAmount = item.MultisigTxAmount || item.AuraTxAmount;
+        item.FinalAmount = item.MultisigTxAmount || item.AuraTxAmount || item.AuraTxRewardAmount;
 
         if (!Number.isNaN(Number(item.Status))) {
           item.Status =
