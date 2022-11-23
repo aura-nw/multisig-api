@@ -96,7 +96,7 @@ export class DistributionService implements IDistributionService {
 
       // Build response
       const validatorsResponse = await Promise.all(
-        validators.map((validator) => this.formatValidator(validator)),
+        validators.filter((validator) => validator.description).map((validator) => this.formatValidator(validator)),
       );
       const results: GetValidatorsResponse = {
         validators: validatorsResponse,
