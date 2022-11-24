@@ -235,7 +235,12 @@ export class MultisigTransactionService
       const creatorAddress = authInfo.address;
 
       const chain = await this.chainRepos.findChain(internalChainId);
-      const client = await StargateClient.connect(chain.rpc);
+      let client: StargateClient;
+      try {
+        client = await StargateClient.connect(chain.rpc);
+      } catch (error) {
+        throw new CustomError(ErrorMap.CANNOT_CONNECT_TO_CHAIN, error.message);
+      }
 
       // get tx
       const multisigTransaction =
