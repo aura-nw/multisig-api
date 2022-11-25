@@ -20,6 +20,8 @@ import { IMultisigWalletRepository } from '../../repositories/imultisig-wallet.r
 import { ITransactionRepository } from '../../repositories/itransaction.repository';
 import { ITransactionService } from '../transaction.service';
 import { BaseService } from './base.service';
+import { TxDetail } from 'src/dtos/responses/multisig-transaction/tx-detail.response';
+import { TxMessageResponse } from 'src/dtos/responses/message/tx-msg.response';
 
 @Injectable()
 export class TransactionService
@@ -103,13 +105,11 @@ export class TransactionService
           safeAddress,
         );
 
-        item.FinalAmount = item.MultisigTxAmount || item.AuraTxAmount || item.AuraTxRewardAmount;
+        item.FinalAmount =
+          item.MultisigTxAmount || item.AuraTxAmount || item.AuraTxRewardAmount;
 
         if (!Number.isNaN(Number(item.Status))) {
-          item.Status =
-            Number(item.Status) === 0
-              ? (item.Status = TRANSACTION_STATUS.SUCCESS)
-              : TRANSACTION_STATUS.FAILED;
+          item.Status = this.parseStatus(item.Status);
         }
         return item;
       });
@@ -142,53 +142,23 @@ export class TransactionService
     return result;
   }
 
-  getDirection(typeUrl: string, from: string, safeAddress: string): string {
-    switch (typeUrl) {
-      case TX_TYPE_URL.SEND:
-        return from === safeAddress
-          ? TRANSFER_DIRECTION.OUTGOING
-          : TRANSFER_DIRECTION.INCOMING;
-      case TX_TYPE_URL.MULTI_SEND:
-      case TX_TYPE_URL.DELEGATE:
-      case TX_TYPE_URL.REDELEGATE:
-      case TX_TYPE_URL.VOTE:
-        return TRANSFER_DIRECTION.OUTGOING;
-      case TX_TYPE_URL.UNDELEGATE:
-      case TX_TYPE_URL.WITHDRAW_REWARD:
-      default:
-        return TRANSFER_DIRECTION.INCOMING;
-    }
-  }
-
   async getTransactionDetails(
-    // param: MODULE_REQUEST.GetTransactionDetailsParam,
     query: MODULE_REQUEST.GetTxDetailQuery,
   ): Promise<ResponseDto> {
     const { multisigTxId, auraTxId, safeAddress } = query;
     try {
-      const txDetail = multisigTxId
-        ? await this.multisigTransactionRepos.getMultisigTxDetail(multisigTxId)
-        : await this.transRepos.getAuraTxDetail(auraTxId);
-      if (!txDetail) throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
+      // get multisig tx from db
+      const txDetail = await this.getTxFromDB(multisigTxId, auraTxId);
 
-      // get signed info
-      const threshold = await this.safeRepos.getThreshold(safeAddress);
-      // const owner = await this.safeOwnerRepos.getOwners(safeAddress);
-
-      
       if (!txDetail.MultisigTxId) {
-        // case: receive token - msgSend tx
+        // case: receive token from other wallet
         const messages = await this.messageRepos.getMsgsByAuraTxId(
           txDetail.AuraTxId,
         );
         txDetail.Messages = messages.map((msg) => _.omitBy(msg, _.isNil));
 
-        txDetail.Status =
-            Number(txDetail.Status) === 0
-              ? (txDetail.Status = TRANSACTION_STATUS.SUCCESS)
-              : TRANSACTION_STATUS.FAILED;
+        txDetail.Status = this.parseStatus(txDetail.Status);
       } else {
-
         // get confirmations
         const confirmations =
           await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
@@ -214,56 +184,97 @@ export class TransactionService
           );
 
         // get messages & auto claim amount
-        const messages = await this.messageRepos.getMsgsByTxId(
+        const multisigMsgs = await this.messageRepos.getMsgsByTxId(
           txDetail.MultisigTxId,
         );
-        const autoClaimAmount = txDetail.AuraTxId
-          ? await this.messageRepos.getMsgsByAuraTxId(txDetail.AuraTxId)
-          : [];
+        const autoClaimMsgs = await this.messageRepos.getMsgsByAuraTxId(
+          txDetail.AuraTxId,
+        );
 
         // set data
-        txDetail.Messages = messages.map((msg) => {
-          // Remove a null or undefined value
-          msg = _.omitBy(msg, _.isNil);
-
-          // get amount from auraTx tbl when msg type is withdraw reward
-          // TODO: Need mapping msg of auraTx with msg of multisigTx
-          if (msg.typeUrl === TX_TYPE_URL.WITHDRAW_REWARD) {
-            const withdrawMsg = autoClaimAmount.filter(
-              (x) =>
-                x.typeUrl === TX_TYPE_URL.WITHDRAW_REWARD &&
-                x.fromAddress === msg.validatorAddress,
-            );
-            if (withdrawMsg.length > 0) msg.amount = withdrawMsg[0].amount;
-          }
-          return msg;
-        });
+        txDetail.Messages = this.buildMessages(multisigMsgs, autoClaimMsgs);
 
         txDetail.Confirmations = confirmations;
         txDetail.Rejectors = rejections;
         txDetail.Executor = executors[0];
 
-        txDetail.AutoClaimAmount = autoClaimAmount.reduce(
-          (totalAmount, item) => {
-            const ignoreTypeUrl = [
-              TX_TYPE_URL.SEND.toString(),
-              TX_TYPE_URL.MULTI_SEND.toString(),
-              TX_TYPE_URL.WITHDRAW_REWARD.toString(),
-            ];
-            if (ignoreTypeUrl.includes(item.typeUrl)) {
-              return totalAmount;
-            }
-            return Number(totalAmount + item.amount);
-          },
-          0,
-        );
+        txDetail.AutoClaimAmount = this.calculateAutoClaimAmount(autoClaimMsgs);
       }
 
+      // get signed info
+      const threshold = await this.safeRepos.getThreshold(safeAddress);
       txDetail.ConfirmationsRequired = threshold.ConfirmationsRequired;
 
       return ResponseDto.response(ErrorMap.SUCCESSFUL, txDetail);
     } catch (error) {
       return ResponseDto.responseError(TransactionService.name, error);
     }
+  }
+
+  getDirection(typeUrl: string, from: string, safeAddress: string): string {
+    switch (typeUrl) {
+      case TX_TYPE_URL.SEND:
+        return from === safeAddress
+          ? TRANSFER_DIRECTION.OUTGOING
+          : TRANSFER_DIRECTION.INCOMING;
+      case TX_TYPE_URL.MULTI_SEND:
+      case TX_TYPE_URL.DELEGATE:
+      case TX_TYPE_URL.REDELEGATE:
+      case TX_TYPE_URL.VOTE:
+        return TRANSFER_DIRECTION.OUTGOING;
+      case TX_TYPE_URL.UNDELEGATE:
+      case TX_TYPE_URL.WITHDRAW_REWARD:
+      default:
+        return TRANSFER_DIRECTION.INCOMING;
+    }
+  }
+
+  async getTxFromDB(multisigTxId: number, auraTxId: number): Promise<TxDetail> {
+    const txDetail = multisigTxId
+      ? await this.multisigTransactionRepos.getMultisigTxDetail(multisigTxId)
+      : await this.transRepos.getAuraTxDetail(auraTxId);
+    if (!txDetail) throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
+    return txDetail;
+  }
+
+  buildMessages(
+    multisigMsgs: TxMessageResponse[],
+    autoClaimMsgs: TxMessageResponse[],
+  ) {
+    return multisigMsgs.map((msg) => {
+      // Remove a null or undefined value
+      msg = _.omitBy(msg, _.isNil);
+
+      // get amount from auraTx tbl when msg type is withdraw reward
+      if (msg.typeUrl === TX_TYPE_URL.WITHDRAW_REWARD) {
+        const withdrawMsg = autoClaimMsgs.filter(
+          (x) =>
+            x.typeUrl === TX_TYPE_URL.WITHDRAW_REWARD &&
+            x.fromAddress === msg.validatorAddress,
+        );
+        if (withdrawMsg.length > 0) msg.amount = withdrawMsg[0].amount;
+      }
+      return msg;
+    });
+  }
+
+  calculateAutoClaimAmount(autoClaimMsgs: TxMessageResponse[]): number {
+    return autoClaimMsgs.reduce((totalAmount, item) => {
+      const ignoreTypeUrl = [
+        TX_TYPE_URL.SEND.toString(),
+        TX_TYPE_URL.MULTI_SEND.toString(),
+        TX_TYPE_URL.WITHDRAW_REWARD.toString(),
+      ];
+      if (ignoreTypeUrl.includes(item.typeUrl)) {
+        return totalAmount;
+      }
+      return Number(totalAmount + item.amount);
+    }, 0);
+  }
+
+  parseStatus(status: string): string {
+    return Number(status) === 0
+      ? TRANSACTION_STATUS.SUCCESS
+      : TRANSACTION_STATUS.FAILED;
   }
 }

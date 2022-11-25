@@ -87,14 +87,12 @@ export class DistributionService implements IDistributionService {
         chain.chainId,
         status,
       );
-      // Get network info
-      // const networkRes = await this._indexer.getNetwork(chain.chainId);
-
-      // const bondedTokens = networkRes.pool.bonded_tokens;
 
       // Build response
       const validatorsResponse = await Promise.all(
-        validators.filter((validator) => validator.description).map((validator) => this.formatValidator(validator)),
+        validators
+          .filter((validator) => validator.description)
+          .map((validator) => this.formatValidator(validator)),
       );
       const results: GetValidatorsResponse = {
         validators: validatorsResponse,

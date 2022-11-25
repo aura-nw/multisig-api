@@ -43,6 +43,8 @@ import { AminoMsg, makeSignDoc } from '@cosmjs/amino';
 import { verifyCosmosSig } from '../../chains';
 import { IndexerAPI } from 'src/utils/apis/IndexerAPI';
 import { ConfigService } from 'src/shared/services/config.service';
+import { AccountInfo, TxRawInfo } from 'src/dtos/requests';
+import { UserInfo } from 'src/dtos/userInfo';
 
 @Injectable()
 export class MultisigTransactionService
@@ -83,7 +85,6 @@ export class MultisigTransactionService
       authInfoBytes,
       bodyBytes,
       signature,
-      amount,
       internalChainId,
       accountNumber,
       sequence,
@@ -95,19 +96,26 @@ export class MultisigTransactionService
       // get chain info
       const chain = await this.chainRepos.findChain(internalChainId);
 
-      // decode data
-      const { decodedAuthInfo, messages, aminoMsgs } = await this.decodeAndVerifyTxInfo(
+      const accountInfo: AccountInfo = {
+        accountNumber,
+        sequence,
+      };
+
+      const txRawInfo: TxRawInfo = {
         authInfoBytes,
         bodyBytes,
         signature,
-        chain.chainId,
-        chain.prefix,
-        authInfo.address,
-        authInfo.pubkey,
-        accountNumber,
-        sequence,
-        from,
-      );
+      };
+
+      // decode data
+      const { decodedAuthInfo, messages, aminoMsgs } =
+        await this.decodeAndVerifyTxInfo(
+          txRawInfo,
+          accountInfo,
+          chain,
+          authInfo,
+          from,
+        );
 
       // calculate amount
       const amount = this.calculateAmount(aminoMsgs);
@@ -191,17 +199,23 @@ export class MultisigTransactionService
         transactionId,
       );
 
-      // verify data
-      await this.decodeAndVerifyTxInfo(
+      const accountInfo: AccountInfo = {
+        accountNumber,
+        sequence,
+      };
+
+      const txRawInfo: TxRawInfo = {
         authInfoBytes,
         bodyBytes,
         signature,
-        chain.chainId,
-        chain.prefix,
-        authInfo.address,
-        authInfo.pubkey,
-        accountNumber,
-        sequence,
+      };
+
+      // verify data
+      await this.decodeAndVerifyTxInfo(
+        txRawInfo,
+        accountInfo,
+        chain,
+        authInfo,
         pendingTx.fromAddress,
       );
 
@@ -355,23 +369,22 @@ export class MultisigTransactionService
   }
 
   private async decodeAndVerifyTxInfo(
-    authInfoBytes: string,
-    bodyBytes: string,
-    signature: string,
-    chainId: string,
-    prefix: string,
-    creatorAddress: string,
-    creatorPubkey: string,
-    accountNumber: number,
-    sequence: number,
+    txRawInfo: TxRawInfo,
+    accountInfo: AccountInfo,
+    chain: Chain,
+    creatorInfo: UserInfo,
     safeAddress: string,
   ) {
-    const authInfoEncode = fromBase64(authInfoBytes);
+    const { chainId, prefix } = chain;
+    const { address: creatorAddress, pubkey: creatorPubkey } = creatorInfo;
+
+    const authInfoEncode = fromBase64(txRawInfo.authInfoBytes);
     const decodedAuthInfo = AuthInfo.decode(authInfoEncode);
-    const bodyBytesEncode = fromBase64(bodyBytes);
+    const bodyBytesEncode = fromBase64(txRawInfo.bodyBytes);
     const { memo, messages } = TxBody.decode(bodyBytesEncode);
 
-    if (accountNumber === undefined || sequence === undefined) {
+    let { accountNumber, sequence } = accountInfo;
+    if (accountInfo.accountNumber === undefined || sequence === undefined) {
       const account = await this._indexer.getAccountNumberAndSequence(
         chainId,
         safeAddress,
@@ -379,9 +392,6 @@ export class MultisigTransactionService
       accountNumber = account.accountNumber;
       sequence = account.sequence;
     }
-    // get accountNumber, sequence from chain
-    // const { accountNumber, sequence } =
-    //   await this._indexer.getAccountNumberAndSequence(chainId, safeAddress);
 
     // build stdSignDoc for verify signature
     const registry = new Registry(REGISTRY_GENERATED_TYPES);
@@ -414,10 +424,14 @@ export class MultisigTransactionService
     // verify signature; if verify fail, throw error
     let resultVerify = false;
     if (chainId.startsWith('evmos_')) {
-      resultVerify = await verifyEvmosSig(signature, signDoc, creatorAddress);
+      resultVerify = await verifyEvmosSig(
+        txRawInfo.signature,
+        signDoc,
+        creatorAddress,
+      );
     } else {
       resultVerify = await verifyCosmosSig(
-        signature,
+        txRawInfo.signature,
         signDoc,
         fromBase64(creatorPubkey),
       );
@@ -429,7 +443,7 @@ export class MultisigTransactionService
     return {
       decodedAuthInfo,
       messages,
-      aminoMsgs: msgs
+      aminoMsgs: msgs,
     };
   }
 
@@ -483,34 +497,6 @@ export class MultisigTransactionService
     // update queued tag
     await this.safeRepos.updateQueuedTag(safeId);
   }
-
-  // async signingInstruction(
-  //   internalChainId: number,
-  //   sendAddress: string,
-  //   amount: number,
-  // ): Promise<any> {
-  //   const chain = await this.chainRepos.findChain(internalChainId);
-
-  //   await this.checkAccountBalance(
-  //     chain.chainId,
-  //     sendAddress,
-  //     chain.denom,
-  //     amount,
-  //   );
-
-  //   //Check account
-  //   const { accountNumber, sequence } =
-  //     await this._indexer.getAccountNumberAndSequence(
-  //       chain.chainId,
-  //       sendAddress,
-  //     );
-  //   return {
-  //     accountNumber,
-  //     sequence,
-  //     chainId: chain.chainId,
-  //     denom: chain.denom,
-  //   };
-  // }
 
   async makeTx(
     safeInfo: Safe,
@@ -575,7 +561,13 @@ export class MultisigTransactionService
         case isAminoMsgSend(cur):
           return acc + Number(cur.value.amount[0].amount);
         case isAminoMsgMultiSend(cur):
-          return acc + cur.value.outputs.reduce((acc, cur) => acc + Number(cur.coins[0].amount), 0);
+          return (
+            acc +
+            cur.value.outputs.reduce(
+              (acc, cur) => acc + Number(cur.coins[0].amount),
+              0,
+            )
+          );
         case isAminoMsgDelegate(cur):
         case isAminoMsgBeginRedelegate(cur):
         case isAminoMsgUndelegate(cur):
@@ -583,6 +575,6 @@ export class MultisigTransactionService
         default:
           return acc;
       }
-    }, 0)
+    }, 0);
   }
 }

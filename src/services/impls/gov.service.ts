@@ -14,10 +14,7 @@ import {
   GetProposalsTally,
   GetProposalsTurnout,
 } from '../../dtos/responses/gov/get-proposals.response';
-import {
-  GetVotesByProposalIdResponse,
-  GetVotesVote,
-} from '../../dtos/responses/gov/get-votes-by-proposal-id.response';
+import { GetVotesByProposalIdResponse } from '../../dtos/responses/gov/get-votes-by-proposal-id.response';
 import { IndexerAPI } from 'src/utils/apis/IndexerAPI';
 
 @Injectable()

@@ -1,7 +1,6 @@
 import { BaseEntityAutoId } from './base/base.entity';
 import { Column, Entity } from 'typeorm';
 import { Expose } from 'class-transformer';
-import { Input, Output } from 'cosmjs-types/cosmos/bank/v1beta1/bank';
 
 @Entity({ name: 'Message' })
 export class Message extends BaseEntityAutoId {

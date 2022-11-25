@@ -13,9 +13,7 @@ export interface IMultisigTransactionsRepository extends IBaseRepository {
    */
   getMultisigTxId(internalTxHash: string): any;
 
-  getMultisigTxDetail(
-    multisigTxId: number,
-  ): Promise<TxDetail>;
+  getMultisigTxDetail(multisigTxId: number): Promise<TxDetail>;
 
   /**
    * Get details of a transaction from MultisigTransaction table

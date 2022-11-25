@@ -179,11 +179,6 @@ export class MultisigTransactionRepository
         'chain',
         'multisigTransaction.internalChainId = chain.id',
       )
-      // .innerJoin(
-      //   Safe,
-      //   'safe',
-      //   'multisigTransaction.fromAddress = safe.safeAddress',
-      // )
       .select([
         'multisigTransaction.id as Id',
         'multisigTransaction.createdAt as CreatedAt',
@@ -196,8 +191,6 @@ export class MultisigTransactionRepository
         'multisigTransaction.status as Status',
         'multisigTransaction.gas as GasWanted',
         'multisigTransaction.fee as GasPrice',
-        // 'safe.threshold as ConfirmationsRequired',
-        // 'safe.creatorAddress as Signer',
         'chain.chainId as ChainId',
       ]);
     if (condition.txHash)
@@ -211,7 +204,6 @@ export class MultisigTransactionRepository
 
       return txDetail;
     }
-    // throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
     return result;
   }
 
