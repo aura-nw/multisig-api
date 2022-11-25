@@ -77,17 +77,19 @@ export class TxMessageResponse {
   @Expose()
   // @IsString()
   @Transform(({ value }) => JSON.parse(value))
-  @ApiProperty({ example: [
-    {
-      "address": "aura1qc4y4awjmx9zjzqapucr66tdzf34zq0uxjraf7",
-      "coins": [
-        {
-          "denom": "utaura",
-          "amount": "50000"
-        }
-      ]
-    }
-  ] })
+  @ApiProperty({
+    example: [
+      {
+        address: 'aura1qc4y4awjmx9zjzqapucr66tdzf34zq0uxjraf7',
+        coins: [
+          {
+            denom: 'utaura',
+            amount: '50000',
+          },
+        ],
+      },
+    ],
+  })
   inputs: any;
 
   @Expose()

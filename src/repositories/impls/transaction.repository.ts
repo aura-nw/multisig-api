@@ -86,7 +86,6 @@ export class TransactionRepository
   }
 
   async getAuraTxDetail(auraTxId: number): Promise<TxDetail> {
-
     const tx = await this.repos
       .createQueryBuilder('AT')
       .leftJoin(MultisigTransaction, 'MT', 'AT.TxHash = MT.TxHash')
@@ -100,7 +99,8 @@ export class TransactionRepository
         'AT.Code as Status',
         'AT.CreatedAt as CreatedAt',
         'AT.UpdatedAt as UpdatedAt',
-      ]).getRawOne()
+      ])
+      .getRawOne();
 
     return plainToInstance(TxDetail, tx);
   }

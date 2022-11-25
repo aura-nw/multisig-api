@@ -29,7 +29,6 @@ export class MessageRepository
   }
 
   async saveMsgs(txId: number, msgs: any[]): Promise<Message[]> {
-
     const newMsgs = msgs.map((msg) => {
       const newMsg = plainToClass(Message, msg.value, {
         excludeExtraneousValues: true,
@@ -70,6 +69,7 @@ export class MessageRepository
   }
 
   async getMsgsByAuraTxId(auraTxId: number): Promise<TxMessageResponse[]> {
+    if (!auraTxId) return [];
     const result = await this.repos.find({
       where: { auraTxId },
     });
