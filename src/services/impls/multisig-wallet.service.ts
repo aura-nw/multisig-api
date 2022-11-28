@@ -142,7 +142,16 @@ export class MultisigWalletService
             chainInfo.chainId,
             safeInfo.address,
           );
-          safeInfo.balance = accountInfo.account_balances;
+          safeInfo.balance =
+            accountInfo.account_balances &&
+            accountInfo.account_balances.length > 0
+              ? accountInfo.account_balances
+              : [
+                  {
+                    amount: '0',
+                    denom: chainInfo.denom,
+                  },
+                ];
         } catch (error) {
           msgError = error.message;
           this._logger.error(error.message);
