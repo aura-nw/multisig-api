@@ -22,6 +22,7 @@ import { ITransactionService } from '../transaction.service';
 import { BaseService } from './base.service';
 import { TxDetail } from 'src/dtos/responses/multisig-transaction/tx-detail.response';
 import { TxMessageResponse } from 'src/dtos/responses/message/tx-msg.response';
+import { coin } from '@cosmjs/amino';
 
 @Injectable()
 export class TransactionService

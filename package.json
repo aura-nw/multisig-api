@@ -27,7 +27,7 @@
     "migration:revert": "ts-node node_modules/typeorm/cli.js -f ormconfig migration:revert"
   },
   "dependencies": {
-    "@cosmjs/amino": "^0.26.5",
+    "@cosmjs/amino": "^0.28.1",
     "@cosmjs/cosmwasm": "^0.25.6",
     "@cosmjs/cosmwasm-stargate": "^0.28.1",
     "@cosmjs/crypto": "^0.28.1",

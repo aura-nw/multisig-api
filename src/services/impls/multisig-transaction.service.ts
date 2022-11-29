@@ -4,7 +4,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ResponseDto } from '../../dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
-import { IMultisigTransactionService } from '../multisig-transaction.service';
+import { IMultisigTransactionService } from '../imultisig-transaction.service';
 import {
   AminoTypes,
   coins,
@@ -39,12 +39,13 @@ import {
 } from '../../repositories';
 import { makeMultisignedTxEvmos, verifyEvmosSig } from '../../chains/evmos';
 import { CommonUtil } from '../../utils/common.util';
-import { AminoMsg, makeSignDoc } from '@cosmjs/amino';
+import { AminoMsg, coin, makeSignDoc } from '@cosmjs/amino';
 import { verifyCosmosSig } from '../../chains';
 import { IndexerAPI } from 'src/utils/apis/IndexerAPI';
 import { ConfigService } from 'src/shared/services/config.service';
 import { AccountInfo, TxRawInfo } from 'src/dtos/requests';
 import { UserInfo } from 'src/dtos/userInfo';
+import { Simulate } from 'src/utils/Simulate';
 
 @Injectable()
 export class MultisigTransactionService
@@ -54,6 +55,7 @@ export class MultisigTransactionService
   private readonly _logger = new Logger(MultisigTransactionService.name);
   private readonly _commonUtil: CommonUtil = new CommonUtil();
   private _indexer = new IndexerAPI(this.configService.get('INDEXER_URL'));
+  private _simulate: Simulate;
 
   constructor(
     private configService: ConfigService,
@@ -73,6 +75,48 @@ export class MultisigTransactionService
     super(multisigTransactionRepos);
     this._logger.log(
       '============== Constructor Multisig Transaction Service ==============',
+    );
+
+    this._simulate = new Simulate(
+      'hat pumpkin huge clog similar trend poverty wrist initial bag joke diet jewel myself rhythm kick stumble strong always filter frown hour private between',
+      // 'random divorce caution scrap give amazing iron mask talent twin snap sure donate tragic ecology suffer loyal logic goddess average sand clarify script pencil',
+      'aura',
+    );
+  }
+
+  async simulate(body: any) {
+    // const {
+    //   msgs,
+    //   ownerNumber,
+    //   internalChainId
+    // } = body;
+
+    const msgs = [
+      {
+        typeUrl: '/cosmos.staking.v1beta1.MsgDelegate',
+        value: {
+          delegatorAddress: 'aura1v95xsen3dyq5uu4r8qx9y5m26lkuaat07xazpf',
+          validatorAddress:
+            'auravaloper1edw4lwcz3esnlgzcw60ra8m38k3zygz2xtl2qh',
+          amount: coin(1, 'utaura'),
+        },
+      },
+    ];
+
+    const totalOwner = 2;
+    const accountNumber = 1582;
+    const sequence = 0;
+    await this._simulate.simulate(msgs, totalOwner);
+  }
+
+  async getSimulateAddresses(): Promise<ResponseDto> {
+    // const signature = await this._simulate.getSignatures(2);
+    await this.simulate({});
+    return ResponseDto.response(
+      ErrorMap.SUCCESSFUL,
+      // signature,
+      // this._simulate.getAllOwnerAddresses(),
+      // this._simulate.getAddresses(),
     );
   }
 

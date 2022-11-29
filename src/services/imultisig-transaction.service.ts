@@ -3,6 +3,11 @@ import { MODULE_REQUEST } from '../module.config';
 
 export interface IMultisigTransactionService {
   /**
+   * getSimulateAddresses
+   */
+  getSimulateAddresses(): Promise<ResponseDto>;
+
+  /**
    * Create multisig transaction
    * @param request
    */

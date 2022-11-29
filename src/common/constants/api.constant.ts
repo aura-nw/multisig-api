@@ -11,6 +11,7 @@ export const CONTROLLER_CONSTANTS = {
   USER: 'user',
 };
 export const URL_CONSTANTS = {
+  simulate: 'simulate',
   broadcasting: 'broadcasting',
   signing: 'signing',
   CONNECT_WALLET: 'connect_wallet',
