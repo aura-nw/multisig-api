@@ -20,11 +20,7 @@ import {
   CONTROLLER_CONSTANTS,
   URL_CONSTANTS,
 } from '../common/constants/api.constant';
-import {
-  CommonAuthPost,
-  CommonGet,
-  CommonPost,
-} from '../decorators/common.decorator';
+import { CommonAuthPost, CommonGet } from '../decorators/common.decorator';
 import {
   MODULE_REQUEST,
   MODULE_RESPONSE,
@@ -44,6 +40,16 @@ export class TransactionController {
     @Inject(SERVICE_INTERFACE.IMULTISIG_TRANSACTION_SERVICE)
     private multisigTransactionService: IMultisigTransactionService,
   ) {}
+
+  @CommonGet({
+    url: URL_CONSTANTS.simulate,
+    summary: 'Get simulate addresses',
+    description: 'Get simulate addresses',
+  })
+  async getSimulateAddresses() {
+    this._logger.log('========== Get simulate addresses ==========');
+    return this.multisigTransactionService.getSimulateAddresses();
+  }
 
   @CommonAuthPost({
     url: URL_CONSTANTS.CREATE,

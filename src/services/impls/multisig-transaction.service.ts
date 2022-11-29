@@ -45,7 +45,7 @@ import { IndexerClient } from 'src/utils/apis/IndexerClient';
 import { ConfigService } from 'src/shared/services/config.service';
 import { AccountInfo, TxRawInfo } from 'src/dtos/requests';
 import { UserInfo } from 'src/dtos/userInfo';
-import { Simulate } from 'src/simulate';
+import { Simulate } from 'src/utils/Simulate';
 
 @Injectable()
 export class MultisigTransactionService
@@ -54,7 +54,7 @@ export class MultisigTransactionService
 {
   private readonly _logger = new Logger(MultisigTransactionService.name);
   private readonly _commonUtil: CommonUtil = new CommonUtil();
-  private _indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
+  private _indexer = new IndexerAPI(this.configService.get('INDEXER_URL'));
   private _simulate: Simulate;
 
   constructor(
@@ -77,38 +77,47 @@ export class MultisigTransactionService
       '============== Constructor Multisig Transaction Service ==============',
     );
 
-    this._simulate = new Simulate(this.configService.get('SYS_MNEMONIC'));
+    this._simulate = new Simulate(
+      'hat pumpkin huge clog similar trend poverty wrist initial bag joke diet jewel myself rhythm kick stumble strong always filter frown hour private between',
+      // 'random divorce caution scrap give amazing iron mask talent twin snap sure donate tragic ecology suffer loyal logic goddess average sand clarify script pencil',
+      'aura',
+    );
   }
 
-  async simulate(
-    request: MODULE_REQUEST.SimulateTxRequest,
-  ): Promise<ResponseDto> {
-    try {
-      const { encodedMsgs, totalOwner, internalChainId } = request;
-      try {
-        const messages = JSON.parse(
-          Buffer.from(encodedMsgs, 'base64').toString('binary'),
-        );
-        // get chain info
-        const chain = await this.chainRepos.findChain(internalChainId);
-        const wallet = await this._simulate.simulateWithChain(chain);
-        const result = await wallet.simulate(messages, totalOwner);
-        return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
-      } catch (error) {
-        throw new CustomError(ErrorMap.TX_SIMULATION_FAILED, error.message);
-      }
-    } catch (error) {
-      return ResponseDto.responseError(MultisigTransactionService.name, error);
-    }
+  async simulate(body: any) {
+    // const {
+    //   msgs,
+    //   ownerNumber,
+    //   internalChainId
+    // } = body;
+
+    const msgs = [
+      {
+        typeUrl: '/cosmos.staking.v1beta1.MsgDelegate',
+        value: {
+          delegatorAddress: 'aura1v95xsen3dyq5uu4r8qx9y5m26lkuaat07xazpf',
+          validatorAddress:
+            'auravaloper1edw4lwcz3esnlgzcw60ra8m38k3zygz2xtl2qh',
+          amount: coin(1, 'utaura'),
+        },
+      },
+    ];
+
+    const totalOwner = 2;
+    const accountNumber = 1582;
+    const sequence = 0;
+    await this._simulate.simulate(msgs, totalOwner);
   }
 
-  async getSimulateAddresses(
-    request: MODULE_REQUEST.GetSimulateAddressQuery,
-  ): Promise<ResponseDto> {
-    const { internalChainId } = request;
-    const chain = await this.chainRepos.findChain(internalChainId);
-    const wallet = await this._simulate.simulateWithChain(chain);
-    return ResponseDto.response(ErrorMap.SUCCESSFUL, wallet.getAddresses());
+  async getSimulateAddresses(): Promise<ResponseDto> {
+    // const signature = await this._simulate.getSignatures(2);
+    await this.simulate({});
+    return ResponseDto.response(
+      ErrorMap.SUCCESSFUL,
+      // signature,
+      // this._simulate.getAllOwnerAddresses(),
+      // this._simulate.getAddresses(),
+    );
   }
 
   async createMultisigTransaction(
