@@ -208,7 +208,7 @@ export class CommonUtil {
     });
   }
 
-  public async request(url: string, method = 'GET', body?: any) {
+  public static async requestAPI(url: string, method = 'GET', body?: any) {
     const options = {
       method,
       headers: {

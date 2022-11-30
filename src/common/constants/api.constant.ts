@@ -10,6 +10,8 @@ export const CONTROLLER_CONSTANTS = {
   USER: 'user',
 };
 export const URL_CONSTANTS = {
+  GET_ADDRESS_SIMULATE: 'simulate/address',
+  SIMULATE_TX: 'simulate',
   broadcasting: 'broadcasting',
   signing: 'signing',
   CONNECT_WALLET: 'connect_wallet',

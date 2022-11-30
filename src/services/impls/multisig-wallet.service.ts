@@ -22,7 +22,7 @@ import { encodeSecp256k1Pubkey, pubkeyToAddress } from '@cosmjs/amino';
 import { fromBase64 } from '@cosmjs/encoding';
 import { SimplePublicKey } from '@terra-money/terra.js';
 import { pubkeyToAddressEvmos } from '../../chains/evmos';
-import { IndexerAPI } from 'src/utils/apis/IndexerAPI';
+import { IndexerClient } from 'src/utils/apis/IndexerClient';
 import { ConfigService } from 'src/shared/services/config.service';
 
 @Injectable()
@@ -32,7 +32,7 @@ export class MultisigWalletService
 {
   private readonly _logger = new Logger(MultisigWalletService.name);
   private _commonUtil: CommonUtil = new CommonUtil();
-  private _indexer = new IndexerAPI(this.configService.get('INDEXER_URL'));
+  private _indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
 
   constructor(
     private configService: ConfigService,
