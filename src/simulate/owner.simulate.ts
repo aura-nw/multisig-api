@@ -52,7 +52,6 @@ export class OwnerSimulate {
       signerData,
     );
 
-    // console.log('wallet sign: ', toBase64(signatures[0]));
     return {
       address: this.address,
       bodyBytes,

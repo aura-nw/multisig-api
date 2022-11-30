@@ -45,26 +45,6 @@ export class TransactionController {
     private multisigTransactionService: IMultisigTransactionService,
   ) {}
 
-  @CommonGet({
-    url: URL_CONSTANTS.GET_ADDRESS_SIMULATE,
-    summary: 'Get simulate addresses',
-    description: 'Get simulate addresses',
-  })
-  async getSimulateAddresses() {
-    this._logger.log('========== Get simulate addresses ==========');
-    return this.multisigTransactionService.getSimulateAddresses();
-  }
-
-  @CommonPost({
-    url: URL_CONSTANTS.SIMULATE_TX,
-    summary: 'Simulate transaction',
-    description: 'Simulate transaction',
-  })
-  async simulateTransaction(@Body() request: MODULE_REQUEST.SimulateTxRequest) {
-    this._logger.log('========== Simulate transaction ==========');
-    return this.multisigTransactionService.simulate(request);
-  }
-
   @CommonAuthPost({
     url: URL_CONSTANTS.CREATE,
     summary: 'API Create multisig transaction',
@@ -167,5 +147,27 @@ export class TransactionController {
   async getTransactionDetails(@Query() query: MODULE_REQUEST.GetTxDetailQuery) {
     this._logger.log('========== Get details of a Transaction ==========');
     return this.transactionService.getTransactionDetails(query);
+  }
+
+  @CommonGet({
+    url: URL_CONSTANTS.GET_ADDRESS_SIMULATE,
+    summary: 'Get simulate addresses',
+    description: 'Get simulate addresses',
+  })
+  async getSimulateAddresses(
+    @Query() request: MODULE_REQUEST.GetSimulateAddressQuery,
+  ) {
+    this._logger.log('========== Get simulate addresses ==========');
+    return this.multisigTransactionService.getSimulateAddresses(request);
+  }
+
+  @CommonPost({
+    url: URL_CONSTANTS.SIMULATE_TX,
+    summary: 'Simulate transaction',
+    description: 'Simulate transaction',
+  })
+  async simulateTransaction(@Body() request: MODULE_REQUEST.SimulateTxRequest) {
+    this._logger.log('========== Simulate transaction ==========');
+    return this.multisigTransactionService.simulate(request);
   }
 }

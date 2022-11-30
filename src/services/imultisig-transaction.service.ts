@@ -11,7 +11,9 @@ export interface IMultisigTransactionService {
   /**
    * getSimulateAddresses
    */
-  getSimulateAddresses(): Promise<ResponseDto>;
+  getSimulateAddresses(
+    request: MODULE_REQUEST.GetSimulateAddressQuery,
+  ): Promise<ResponseDto>;
 
   /**
    * Create multisig transaction

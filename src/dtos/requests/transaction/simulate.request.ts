@@ -18,4 +18,20 @@ export class SimulateTxRequest {
     example: 2,
   })
   totalOwner: number;
+
+  @IsNumber()
+  @ApiProperty({
+    description: 'Offchain Chain Id',
+    example: 22,
+  })
+  internalChainId: number;
+}
+
+export class GetSimulateAddressQuery {
+  @IsNumber()
+  @ApiProperty({
+    description: 'Offchain Chain Id',
+    example: 22,
+  })
+  internalChainId: number;
 }
