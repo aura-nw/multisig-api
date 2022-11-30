@@ -9,13 +9,13 @@ import { ErrorMap } from '../../common/error.map';
 import { IMultisigWalletRepository } from '../../repositories';
 import * as axios from 'axios';
 import { IGasRepository } from '../../repositories/igas.repository';
-import { IndexerAPI } from 'src/utils/apis/IndexerAPI';
+import { IndexerClient } from 'src/utils/apis/IndexerClient';
 import { ConfigService } from 'src/shared/services/config.service';
 
 export class GeneralService extends BaseService implements IGeneralService {
   private readonly _logger = new Logger(GeneralService.name);
   private _commonUtil: CommonUtil = new CommonUtil();
-  private _indexer = new IndexerAPI(this.configService.get('INDEXER_URL'));
+  private _indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
 
   constructor(
     private configService: ConfigService,

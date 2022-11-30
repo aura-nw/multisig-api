@@ -3,6 +3,19 @@ import { MODULE_REQUEST } from '../module.config';
 
 export interface IMultisigTransactionService {
   /**
+   * simulate
+   * @param request
+   */
+  simulate(request: MODULE_REQUEST.SimulateTxRequest): Promise<ResponseDto>;
+
+  /**
+   * getSimulateAddresses
+   */
+  getSimulateAddresses(
+    request: MODULE_REQUEST.GetSimulateAddressQuery,
+  ): Promise<ResponseDto>;
+
+  /**
    * Create multisig transaction
    * @param request
    */

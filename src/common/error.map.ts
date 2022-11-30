@@ -183,6 +183,10 @@ export const ErrorMap = {
     Code: 'E043',
     Message: 'Can not connect to chain!',
   },
+  TX_SIMULATION_FAILED: {
+    Code: 'E044',
+    Message: 'Tx simulation failed!',
+  },
   C001: {
     Code: 'C001',
     Message: `Missing result from Chaincode`,

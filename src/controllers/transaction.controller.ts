@@ -20,14 +20,18 @@ import {
   CONTROLLER_CONSTANTS,
   URL_CONSTANTS,
 } from '../common/constants/api.constant';
-import { CommonAuthPost } from '../decorators/common.decorator';
+import {
+  CommonAuthPost,
+  CommonGet,
+  CommonPost,
+} from '../decorators/common.decorator';
 import {
   MODULE_REQUEST,
   MODULE_RESPONSE,
   SERVICE_INTERFACE,
 } from '../module.config';
 import { TransactionService } from '../services/impls/transaction.service';
-import { IMultisigTransactionService } from '../services/multisig-transaction.service';
+import { IMultisigTransactionService } from '../services/imultisig-transaction.service';
 
 @Controller(CONTROLLER_CONSTANTS.TRANSACTION)
 @ApiTags(CONTROLLER_CONSTANTS.TRANSACTION)
@@ -143,5 +147,27 @@ export class TransactionController {
   async getTransactionDetails(@Query() query: MODULE_REQUEST.GetTxDetailQuery) {
     this._logger.log('========== Get details of a Transaction ==========');
     return this.transactionService.getTransactionDetails(query);
+  }
+
+  @CommonGet({
+    url: URL_CONSTANTS.GET_ADDRESS_SIMULATE,
+    summary: 'Get simulate addresses',
+    description: 'Get simulate addresses',
+  })
+  async getSimulateAddresses(
+    @Query() request: MODULE_REQUEST.GetSimulateAddressQuery,
+  ) {
+    this._logger.log('========== Get simulate addresses ==========');
+    return this.multisigTransactionService.getSimulateAddresses(request);
+  }
+
+  @CommonPost({
+    url: URL_CONSTANTS.SIMULATE_TX,
+    summary: 'Simulate transaction',
+    description: 'Simulate transaction',
+  })
+  async simulateTransaction(@Body() request: MODULE_REQUEST.SimulateTxRequest) {
+    this._logger.log('========== Simulate transaction ==========');
+    return this.multisigTransactionService.simulate(request);
   }
 }

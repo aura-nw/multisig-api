@@ -15,13 +15,13 @@ import {
   GetProposalsTurnout,
 } from '../../dtos/responses/gov/get-proposals.response';
 import { GetVotesByProposalIdResponse } from '../../dtos/responses/gov/get-votes-by-proposal-id.response';
-import { IndexerAPI } from 'src/utils/apis/IndexerAPI';
+import { IndexerClient } from 'src/utils/apis/IndexerClient';
 
 @Injectable()
 export class GovService implements IGovService {
   private readonly _logger = new Logger(GovService.name);
   private _commonUtil: CommonUtil = new CommonUtil();
-  private _indexer = new IndexerAPI(this.configService.get('INDEXER_URL'));
+  private _indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
   auraChain: Chain;
 
   constructor(

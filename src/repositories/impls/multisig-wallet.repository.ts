@@ -13,7 +13,7 @@ import { pubkeyToAddress } from '@cosmjs/amino';
 import { IGeneralRepository } from '../igeneral.repository';
 import { IMultisigWalletOwnerRepository } from '../imultisig-wallet-owner.repository';
 import { ConfigService } from 'src/shared/services/config.service';
-import { IndexerAPI } from 'src/utils/apis/IndexerAPI';
+import { IndexerClient } from 'src/utils/apis/IndexerClient';
 
 @Injectable()
 export class MultisigWalletRepository
@@ -21,7 +21,7 @@ export class MultisigWalletRepository
   implements IMultisigWalletRepository
 {
   private readonly _logger = new Logger(MultisigWalletRepository.name);
-  private _indexer = new IndexerAPI(this.configService.get('INDEXER_URL'));
+  private _indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
 
   constructor(
     private configService: ConfigService,
