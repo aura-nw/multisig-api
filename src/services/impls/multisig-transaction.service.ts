@@ -77,23 +77,22 @@ export class MultisigTransactionService
       '============== Constructor Multisig Transaction Service ==============',
     );
 
-    this._simulate = new Simulate(
-      'hat pumpkin huge clog similar trend poverty wrist initial bag joke diet jewel myself rhythm kick stumble strong always filter frown hour private between',
-      // 'random divorce caution scrap give amazing iron mask talent twin snap sure donate tragic ecology suffer loyal logic goddess average sand clarify script pencil',
-      'aura',
-    );
+    this._simulate = new Simulate(this.configService.get('SYS_MNEMONIC'));
   }
 
   async simulate(
     request: MODULE_REQUEST.SimulateTxRequest,
   ): Promise<ResponseDto> {
     try {
-      const { encodedMsgs, totalOwner } = request;
+      const { encodedMsgs, totalOwner, internalChainId } = request;
       try {
         const messages = JSON.parse(
           Buffer.from(encodedMsgs, 'base64').toString('binary'),
         );
-        const result = await this._simulate.simulate(messages, totalOwner);
+        // get chain info
+        const chain = await this.chainRepos.findChain(internalChainId);
+        const wallet = await this._simulate.simulateWithChain(chain);
+        const result = await wallet.simulate(messages, totalOwner);
         return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
       } catch (error) {
         throw new CustomError(ErrorMap.TX_SIMULATION_FAILED, error.message);
@@ -103,15 +102,13 @@ export class MultisigTransactionService
     }
   }
 
-  async getSimulateAddresses(): Promise<ResponseDto> {
-    // const signature = await this._simulate.getSignatures(2);
-    // await this.simulate({});
-    return ResponseDto.response(
-      ErrorMap.SUCCESSFUL,
-      // signature,
-      // this._simulate.getAllOwnerAddresses(),
-      this._simulate.getAddresses(),
-    );
+  async getSimulateAddresses(
+    request: MODULE_REQUEST.GetSimulateAddressQuery,
+  ): Promise<ResponseDto> {
+    const { internalChainId } = request;
+    const chain = await this.chainRepos.findChain(internalChainId);
+    const wallet = await this._simulate.simulateWithChain(chain);
+    return ResponseDto.response(ErrorMap.SUCCESSFUL, wallet.getAddresses());
   }
 
   async createMultisigTransaction(
