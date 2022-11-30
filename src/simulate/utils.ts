@@ -1,3 +1,8 @@
+import * as Long from 'long';
+import { AuthInfo, SignerInfo } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
+import { encodePubkey, makeAuthInfoBytes } from '@cosmjs/proto-signing';
+import { SignMode } from 'cosmjs-types/cosmos/tx/signing/v1beta1/signing';
+import { makeCompactBitArray } from '@cosmjs/stargate/build/multisignature';
 import { MsgSend } from 'cosmjs-types/cosmos/bank/v1beta1/tx';
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { Registry, TxBodyEncodeObject } from '@cosmjs/proto-signing';
@@ -12,6 +17,7 @@ import {
 } from '@cosmjs/stargate';
 import { REGISTRY_GENERATED_TYPES } from 'src/common/constants/app.constant';
 import { coins } from '@cosmjs/amino';
+import { IndexerClient } from 'src/utils/apis/IndexerClient';
 
 export class SimulateUtils {
   public static makeBodyBytes(messages: any[]): Uint8Array {
@@ -34,6 +40,44 @@ export class SimulateUtils {
     };
     const registry = new Registry(REGISTRY_GENERATED_TYPES);
     return registry.encode(signedTxBodyEncodeObject);
+  }
+
+  static async makeAuthInfoBytes(
+    chainId: string,
+    safeAddress: string,
+    safePubkey: any,
+    totalOwner: number,
+  ): Promise<Uint8Array> {
+    const indexerClient = new IndexerClient();
+    const { sequence } = await indexerClient.getAccountNumberAndSequence(
+      chainId,
+      safeAddress,
+    );
+    const defaultFee = SimulateUtils.getDefaultFee();
+
+    const signers: boolean[] = Array(totalOwner).fill(false);
+
+    const signerInfo: SignerInfo = {
+      publicKey: encodePubkey(safePubkey),
+      modeInfo: {
+        multi: {
+          bitarray: makeCompactBitArray(signers),
+          modeInfos: safePubkey.value.pubkeys.map((_) => ({
+            single: { mode: SignMode.SIGN_MODE_LEGACY_AMINO_JSON },
+          })),
+        },
+      },
+      sequence: Long.fromNumber(sequence),
+    };
+
+    const authInfo = AuthInfo.fromPartial({
+      signerInfos: [signerInfo],
+      fee: {
+        amount: [...defaultFee.amount],
+        gasLimit: Long.fromString(defaultFee.gas),
+      },
+    });
+    return AuthInfo.encode(authInfo).finish();
   }
 
   public static makeTxBytes(
