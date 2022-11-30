@@ -39,7 +39,7 @@ import {
 } from '../../repositories';
 import { makeMultisignedTxEvmos, verifyEvmosSig } from '../../chains/evmos';
 import { CommonUtil } from '../../utils/common.util';
-import { AminoMsg, coin, makeSignDoc } from '@cosmjs/amino';
+import { AminoMsg, makeSignDoc } from '@cosmjs/amino';
 import { verifyCosmosSig } from '../../chains';
 import { IndexerClient } from 'src/utils/apis/IndexerClient';
 import { ConfigService } from 'src/shared/services/config.service';
@@ -83,23 +83,29 @@ export class MultisigTransactionService
   async simulate(
     request: MODULE_REQUEST.SimulateTxRequest,
   ): Promise<ResponseDto> {
-    try {
-      const { encodedMsgs, totalOwner, internalChainId } = request;
-      try {
-        const messages = JSON.parse(
-          Buffer.from(encodedMsgs, 'base64').toString('binary'),
-        );
-        // get chain info
-        const chain = await this.chainRepos.findChain(internalChainId);
-        const wallet = await this._simulate.simulateWithChain(chain);
-        const result = await wallet.simulate(messages, totalOwner);
-        return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
-      } catch (error) {
-        throw new CustomError(ErrorMap.TX_SIMULATION_FAILED, error.message);
-      }
-    } catch (error) {
-      return ResponseDto.responseError(MultisigTransactionService.name, error);
-    }
+    // try {
+    const { encodedMsgs, safeId } = request;
+    // try {
+    const messages = JSON.parse(
+      Buffer.from(encodedMsgs, 'base64').toString('binary'),
+    );
+
+    // get safe info
+    // TODO: verify safe
+    const safeInfo = await this.safeRepos.getSafe(safeId);
+
+    // get chain info
+    const chain = await this.chainRepos.findChain(safeInfo.internalChainId);
+    const wallet = await this._simulate.simulateWithChain(chain);
+
+    const result = await wallet.simulate(messages, safeInfo);
+    return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
+    //   } catch (error) {
+    //     throw new CustomError(ErrorMap.TX_SIMULATION_FAILED, error.message);
+    //   }
+    // } catch (error) {
+    //   return ResponseDto.responseError(MultisigTransactionService.name, error);
+    // }
   }
 
   async getSimulateAddresses(

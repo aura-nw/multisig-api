@@ -11,20 +11,13 @@ export class SimulateTxRequest {
   })
   encodedMsgs: string;
 
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
   @ApiProperty({
-    description: 'Total Owner',
-    example: 2,
+    description: 'SafeId',
+    example: '336',
   })
-  totalOwner: number;
-
-  @IsNumber()
-  @ApiProperty({
-    description: 'Offchain Chain Id',
-    example: 22,
-  })
-  internalChainId: number;
+  safeId: string;
 }
 
 export class GetSimulateAddressQuery {

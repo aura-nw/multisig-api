@@ -5,7 +5,7 @@ import { OwnerSimulate } from './owner.simulate';
 import { SimulateUtils } from './utils';
 import { LcdClient } from 'src/utils/apis/LcdClient';
 import { SimulateResponse } from 'src/dtos/responses/simulate';
-import { Chain } from 'src/entities';
+import { Chain, Safe } from 'src/entities';
 
 export class WalletSimulate {
   safeOwnerMap = new Map<number, SafeSimulate>();
@@ -55,27 +55,35 @@ export class WalletSimulate {
    * @param messages
    * @param totalOwner
    */
-  async simulate(
-    messages: any[],
-    totalOwner: number,
-  ): Promise<SimulateResponse> {
+  async simulate(messages: any[], safeInfo: Safe): Promise<SimulateResponse> {
+    const safePubkey = JSON.parse(safeInfo.safePubkey);
+    const totalOwner = safePubkey.value.pubkeys.length;
+
     // get safe from map
-    const safe = this.safeOwnerMap.get(totalOwner);
-    if (!safe) {
+    const safeSimulate = this.safeOwnerMap.get(totalOwner);
+    if (!safeSimulate) {
       throw new Error('safe not found');
     }
 
     // initialize system safe to generate auth info, signature
-    await safe.initialize();
+    await safeSimulate.initialize();
 
     // build bodyByte
     const bodyBytes = SimulateUtils.makeBodyBytes(messages);
 
+    // build authInfoBytes
+    const authInfoBytes = await SimulateUtils.makeAuthInfoBytes(
+      this.chain.chainId,
+      safeInfo.safeAddress,
+      safePubkey,
+      totalOwner,
+    );
+
     // build txBytes
     const txBytes = SimulateUtils.makeTxBytes(
       bodyBytes,
-      fromBase64(safe.authInfo),
-      fromBase64(safe.signature),
+      authInfoBytes,
+      fromBase64(safeSimulate.signature),
     );
 
     // call simulate api
