@@ -45,7 +45,7 @@ import { IndexerClient } from 'src/utils/apis/IndexerClient';
 import { ConfigService } from 'src/shared/services/config.service';
 import { AccountInfo, TxRawInfo } from 'src/dtos/requests';
 import { UserInfo } from 'src/dtos/userInfo';
-import { Simulate } from 'src/utils/Simulate';
+import { Simulate } from 'src/simulate';
 
 @Injectable()
 export class MultisigTransactionService
@@ -54,7 +54,7 @@ export class MultisigTransactionService
 {
   private readonly _logger = new Logger(MultisigTransactionService.name);
   private readonly _commonUtil: CommonUtil = new CommonUtil();
-  private _indexer = new IndexerAPI(this.configService.get('INDEXER_URL'));
+  private _indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
   private _simulate: Simulate;
 
   constructor(
@@ -84,39 +84,33 @@ export class MultisigTransactionService
     );
   }
 
-  async simulate(body: any) {
-    // const {
-    //   msgs,
-    //   ownerNumber,
-    //   internalChainId
-    // } = body;
-
-    const msgs = [
-      {
-        typeUrl: '/cosmos.staking.v1beta1.MsgDelegate',
-        value: {
-          delegatorAddress: 'aura1v95xsen3dyq5uu4r8qx9y5m26lkuaat07xazpf',
-          validatorAddress:
-            'auravaloper1edw4lwcz3esnlgzcw60ra8m38k3zygz2xtl2qh',
-          amount: coin(1, 'utaura'),
-        },
-      },
-    ];
-
-    const totalOwner = 2;
-    const accountNumber = 1582;
-    const sequence = 0;
-    await this._simulate.simulate(msgs, totalOwner);
+  async simulate(
+    request: MODULE_REQUEST.SimulateTxRequest,
+  ): Promise<ResponseDto> {
+    try {
+      const { encodedMsgs, totalOwner } = request;
+      try {
+        const messages = JSON.parse(
+          Buffer.from(encodedMsgs, 'base64').toString('binary'),
+        );
+        const result = await this._simulate.simulate(messages, totalOwner);
+        return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
+      } catch (error) {
+        throw new CustomError(ErrorMap.TX_SIMULATION_FAILED, error.message);
+      }
+    } catch (error) {
+      return ResponseDto.responseError(MultisigTransactionService.name, error);
+    }
   }
 
   async getSimulateAddresses(): Promise<ResponseDto> {
     // const signature = await this._simulate.getSignatures(2);
-    await this.simulate({});
+    // await this.simulate({});
     return ResponseDto.response(
       ErrorMap.SUCCESSFUL,
       // signature,
       // this._simulate.getAllOwnerAddresses(),
-      // this._simulate.getAddresses(),
+      this._simulate.getAddresses(),
     );
   }
 
