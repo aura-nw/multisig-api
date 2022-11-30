@@ -1,11 +1,15 @@
 import { CustomError } from 'src/common/customError';
 import { ErrorMap } from 'src/common/error.map';
+import { ConfigService } from 'src/shared/services/config.service';
 import { CommonUtil } from '../common.util';
 
-export class IndexerAPI {
-  private _commonUtil: CommonUtil = new CommonUtil();
+export class IndexerClient {
+  private configService: ConfigService = new ConfigService();
+  indexerUrl: string;
 
-  constructor(public indexerUrl: string) {}
+  constructor(indexerUrl?: string) {
+    this.indexerUrl = indexerUrl || this.configService.get('INDEXER_URL');
+  }
 
   async getValidators(chainId: string, status: string) {
     let url = `api/v1/validator?chainid=${chainId}`;
@@ -13,7 +17,7 @@ export class IndexerAPI {
       url += `&status=${status}`;
     }
     url += `&pageOffset=0&pageLimit=1000`;
-    const validatorsRes = await this._commonUtil.request(
+    const validatorsRes = await CommonUtil.requestAPI(
       new URL(url, this.indexerUrl).href,
     );
     return validatorsRes.data.validators;
@@ -23,7 +27,7 @@ export class IndexerAPI {
     chainId: string,
     operatorAddress: string,
   ) {
-    const validatorRes = await this._commonUtil.request(
+    const validatorRes = await CommonUtil.requestAPI(
       new URL(
         `api/v1/validator?operatorAddress=${operatorAddress}&chainid=${chainId}`,
         this.indexerUrl,
@@ -35,14 +39,14 @@ export class IndexerAPI {
 
   async getNetwork(chainId: string) {
     const url = `api/v1/network/status?chainid=${chainId}`;
-    const networkRes = await this._commonUtil.request(
+    const networkRes = await CommonUtil.requestAPI(
       new URL(url, this.indexerUrl).href,
     );
     return networkRes.data;
   }
 
   async getAccountInfo(chainId: string, address: string) {
-    const accountInfo = await this._commonUtil.request(
+    const accountInfo = await CommonUtil.requestAPI(
       new URL(
         `api/v1/account-info?address=${address}&chainId=${chainId}`,
         this.indexerUrl,
@@ -82,7 +86,7 @@ export class IndexerAPI {
   }
 
   async getAccountUnBonds(chainId: string, delegatorAddress: string) {
-    const undelegationRes = await this._commonUtil.request(
+    const undelegationRes = await CommonUtil.requestAPI(
       new URL(
         `api/v1/account-unbonds?address=${delegatorAddress}&chainid=${chainId}`,
         this.indexerUrl,
@@ -92,14 +96,14 @@ export class IndexerAPI {
   }
 
   async getProposals(chainId: string) {
-    const proposalsRes = await this._commonUtil.request(
+    const proposalsRes = await CommonUtil.requestAPI(
       new URL(`api/v1/proposal?chainid=${chainId}`, this.indexerUrl).href,
     );
     return proposalsRes.data.proposals;
   }
 
   async getProposal(chainId: string, proposalId: number) {
-    const proposalRes = await this._commonUtil.request(
+    const proposalRes = await CommonUtil.requestAPI(
       new URL(
         `api/v1/proposal?chainid=${chainId}&proposalId=${proposalId}`,
         this.indexerUrl,
@@ -125,7 +129,7 @@ export class IndexerAPI {
     url += `&pageLimit=${pageLimit}`; //optional
     url += `&reverse=${reverse}`; //optional
 
-    const response = await this._commonUtil.request(
+    const response = await CommonUtil.requestAPI(
       new URL(url, this.indexerUrl).href,
     );
     return {
@@ -136,7 +140,7 @@ export class IndexerAPI {
 
   async getValidatorVotesByProposalId(chainId: string, proposalId: number) {
     const url = `api/v1/votes/validators?chainid=${chainId}&proposalid=${proposalId}`;
-    const response = await this._commonUtil.request(
+    const response = await CommonUtil.requestAPI(
       new URL(url, this.indexerUrl).href,
     );
     return response.data;
@@ -147,7 +151,7 @@ export class IndexerAPI {
       `api/v1/transaction?chainid=${chainId}&searchType=proposal_deposit&searchKey=proposal_id&searchValue=${proposalId}&pageOffset=0&pageLimit=10&countTotal=false&reverse=false`,
       this.indexerUrl,
     ).href;
-    const response = await this._commonUtil.request(getProposalDepositsURL);
+    const response = await CommonUtil.requestAPI(getProposalDepositsURL);
     return response.data.transactions;
   }
 }

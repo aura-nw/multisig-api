@@ -19,14 +19,14 @@ import { ConfigService } from '../../shared/services/config.service';
 import { CommonUtil } from '../../utils/common.util';
 import { Chain } from '../../entities';
 import { IDistributionService } from '../idistribution.service';
-import { IndexerAPI } from 'src/utils/apis/IndexerAPI';
+import { IndexerClient } from 'src/utils/apis/IndexerClient';
 
 @Injectable()
 export class DistributionService implements IDistributionService {
   private readonly _logger = new Logger(DistributionService.name);
   private _commonUtil: CommonUtil = new CommonUtil();
   private _chains = new Map<string, Chain>();
-  private _indexer = new IndexerAPI(this.configService.get('INDEXER_URL'));
+  private _indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
 
   private _validatorPicture = new Map<string, string>();
   indexerUrl: string;
@@ -57,7 +57,7 @@ export class DistributionService implements IDistributionService {
       `api/v1/validator?operatorAddress=${operatorAddress}&chainid=${chain.chainId}`,
       this.indexerUrl,
     );
-    const validatorRes = await this._commonUtil.request(
+    const validatorRes = await CommonUtil.requestAPI(
       new URL(url, this.indexerUrl).href,
     );
 
@@ -308,7 +308,7 @@ export class DistributionService implements IDistributionService {
       } else {
         // get picture from keybase
         const keybaseUrl = this.configService.get('KEYBASE');
-        const res = await this._commonUtil.request(
+        const res = await CommonUtil.requestAPI(
           new URL(keybaseUrl + identity).href,
         );
         if (res.them && res.them.length > 0 && res.them[0].pictures.primary)
