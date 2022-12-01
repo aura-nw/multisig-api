@@ -187,6 +187,10 @@ export const ErrorMap = {
     Code: 'E044',
     Message: 'Tx simulation failed!',
   },
+  INVALID_SAFE: {
+    Code: 'E045',
+    Message: 'Invalid safe!',
+  },
   C001: {
     Code: 'C001',
     Message: `Missing result from Chaincode`,
