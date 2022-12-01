@@ -26,6 +26,7 @@ import { Chain, MultisigTransaction, Safe } from '../../entities';
 import {
   MULTISIG_CONFIRM_STATUS,
   REGISTRY_GENERATED_TYPES,
+  SAFE_STATUS,
   TRANSACTION_STATUS,
 } from '../../common/constants/app.constant';
 import { CustomError } from '../../common/customError';
@@ -90,8 +91,9 @@ export class MultisigTransactionService
       );
 
       // get safe info
-      // TODO: verify safe
       const safeInfo = await this.safeRepos.getSafe(safeId);
+      if (safeInfo.status !== SAFE_STATUS.CREATED)
+        throw new CustomError(ErrorMap.INVALID_SAFE);
 
       // get chain info
       const chain = await this.chainRepos.findChain(safeInfo.internalChainId);
