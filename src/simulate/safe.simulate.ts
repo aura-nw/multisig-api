@@ -12,6 +12,7 @@ import { fromBase64, toBase64 } from '@cosmjs/encoding';
 import { SimulateUtils } from './utils';
 import { IndexerClient } from 'src/utils/apis/IndexerClient';
 import { TX_TYPE_URL } from 'src/common/constants/app.constant';
+import { Chain } from 'src/entities';
 
 export class SafeSimulate {
   signature: string;
@@ -22,16 +23,14 @@ export class SafeSimulate {
   constructor(
     public ownerSimulates: OwnerSimulate[],
     public threshold: number,
-    public prefix: string,
-    public chainId: string = 'aura-testnet-2',
-    public tendermintUrl: string = 'https://rpc.dev.aura.network/',
+    public chain: Chain,
   ) {
     // create pubkey and address
     this.pubkey = createMultisigThresholdPubkey(
       ownerSimulates.map((owner) => owner.pubkey),
       threshold,
     );
-    this.address = pubkeyToAddress(this.pubkey, this.prefix);
+    this.address = pubkeyToAddress(this.pubkey, this.chain.prefix);
   }
 
   /**
@@ -43,21 +42,27 @@ export class SafeSimulate {
     if (this.signature) return;
 
     // create simple msgs, fee
-    const msgs = SimulateUtils.getDefaultMsgs(this.address);
-    const fee = SimulateUtils.getDefaultFee();
+    const msgs = SimulateUtils.getDefaultMsgs(this.address, this.chain.denom);
+    const fee = SimulateUtils.getDefaultFee(this.chain.denom);
 
     // get account number and sequence
     const indexerClient = new IndexerClient();
     const { accountNumber, sequence } =
       await indexerClient.getAccountNumberAndSequence(
-        this.chainId,
+        this.chain.chainId,
         this.address,
       );
 
     // sign with all owners
     const result = await Promise.all(
       this.ownerSimulates.map(async (ownerSimulate) =>
-        ownerSimulate.sign(msgs, fee, accountNumber, sequence, this.chainId),
+        ownerSimulate.sign(
+          msgs,
+          fee,
+          accountNumber,
+          sequence,
+          this.chain.chainId,
+        ),
       ),
     );
 
@@ -86,11 +91,12 @@ export class SafeSimulate {
     messages: any[],
     safeAddress: string,
     safePubkey: any,
+    prefix: string,
   ) {
     let simulateAuthInfo;
 
     // get simulate msgs base typeUrl and the messages given by user
-    const encodeMsgs = SimulateUtils.anyToEncodeMsgs(messages);
+    const encodeMsgs = SimulateUtils.anyToEncodeMsgs(messages, prefix);
     encodeMsgs.map((msg) => {
       switch (msg.typeUrl) {
         case TX_TYPE_URL.SEND:
@@ -110,12 +116,16 @@ export class SafeSimulate {
     const authInfoBytes = simulateAuthInfo
       ? fromBase64(simulateAuthInfo)
       : await SimulateUtils.makeAuthInfoBytes(
-          this.chainId,
+          this.chain.chainId,
           safeAddress,
           safePubkey,
           this.threshold,
+          this.chain.denom,
         );
-    const bodyBytes = SimulateUtils.makeBodyBytes(encodeMsgs);
+    const bodyBytes = SimulateUtils.makeBodyBytes(
+      encodeMsgs,
+      this.chain.prefix,
+    );
     return {
       authInfoBytes,
       bodyBytes,

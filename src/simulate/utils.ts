@@ -20,9 +20,9 @@ import { coins } from '@cosmjs/amino';
 import { IndexerClient } from 'src/utils/apis/IndexerClient';
 
 export class SimulateUtils {
-  public static makeBodyBytes(messages: any[]): Uint8Array {
+  public static makeBodyBytes(messages: any[], prefix: string): Uint8Array {
     const signedTxBody = {
-      messages: this.anyToEncodeMsgs(messages),
+      messages: this.anyToEncodeMsgs(messages, prefix),
       memo: '',
     };
     const signedTxBodyEncodeObject: TxBodyEncodeObject = {
@@ -38,6 +38,7 @@ export class SimulateUtils {
     safeAddress: string,
     safePubkey: any,
     totalOwner: number,
+    denom: string,
   ): Promise<Uint8Array> {
     const indexerClient = new IndexerClient();
     let sequence = 0;
@@ -49,7 +50,7 @@ export class SimulateUtils {
       console.log(error);
     }
 
-    const defaultFee = SimulateUtils.getDefaultFee();
+    const defaultFee = SimulateUtils.getDefaultFee(denom);
     const signers: boolean[] = Array(totalOwner).fill(false);
 
     const signerInfo: SignerInfo = {
@@ -88,11 +89,14 @@ export class SimulateUtils {
     return Uint8Array.from(TxRaw.encode(newTxRaw).finish());
   }
 
-  public static getDefaultMsgs(safeAddress: string): MsgSendEncodeObject[] {
+  public static getDefaultMsgs(
+    safeAddress: string,
+    denom: string,
+  ): MsgSendEncodeObject[] {
     const msgSend: MsgSend = {
       fromAddress: safeAddress,
-      toAddress: 'aura1522aavcagyrahayuspe47ndje7s694dkzcup6x',
-      amount: coins(1, 'utaura'),
+      toAddress: safeAddress,
+      amount: coins(1, denom),
     };
     const msg: MsgSendEncodeObject = {
       typeUrl: '/cosmos.bank.v1beta1.MsgSend',
@@ -101,7 +105,7 @@ export class SimulateUtils {
     return [msg];
   }
 
-  static getDefaultFee(denom = 'utaura'): StdFee {
+  static getDefaultFee(denom): StdFee {
     return {
       amount: coins(1, denom),
       gas: '200000',
@@ -126,10 +130,10 @@ export class SimulateUtils {
       },
     ]
    */
-  static anyToEncodeMsgs(messages: any[]): EncodeObject[] {
+  static anyToEncodeMsgs(messages: any[], prefix: string): EncodeObject[] {
     const aminoTypes = new AminoTypes({
       ...createBankAminoConverters(),
-      ...createStakingAminoConverters('aura'),
+      ...createStakingAminoConverters(prefix),
       ...createDistributionAminoConverters(),
       ...createGovAminoConverters(),
     });
