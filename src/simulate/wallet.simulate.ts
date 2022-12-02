@@ -68,16 +68,13 @@ export class WalletSimulate {
     // initialize system safe to generate auth info, signature
     await safeSimulate.initialize();
 
-    // build bodyByte
-    const bodyBytes = SimulateUtils.makeBodyBytes(messages);
-
-    // build authInfoBytes
-    const authInfoBytes = await SimulateUtils.makeAuthInfoBytes(
-      this.chain.chainId,
-      safeInfo.safeAddress,
-      safePubkey,
-      totalOwner,
-    );
+    // build bodyByte & authInfoBytes
+    const { bodyBytes, authInfoBytes } =
+      await safeSimulate.makeSimulateBodyBytesAndAuthInfo(
+        messages,
+        safeInfo.safeAddress,
+        safePubkey,
+      );
 
     // build txBytes
     const txBytes = SimulateUtils.makeTxBytes(
