@@ -1,6 +1,6 @@
 import * as Long from 'long';
 import { AuthInfo, SignerInfo } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
-import { encodePubkey, makeAuthInfoBytes } from '@cosmjs/proto-signing';
+import { EncodeObject, encodePubkey } from '@cosmjs/proto-signing';
 import { SignMode } from 'cosmjs-types/cosmos/tx/signing/v1beta1/signing';
 import { makeCompactBitArray } from '@cosmjs/stargate/build/multisignature';
 import { MsgSend } from 'cosmjs-types/cosmos/bank/v1beta1/tx';
@@ -21,17 +21,8 @@ import { IndexerClient } from 'src/utils/apis/IndexerClient';
 
 export class SimulateUtils {
   public static makeBodyBytes(messages: any[]): Uint8Array {
-    const aminoTypes = new AminoTypes({
-      ...createBankAminoConverters(),
-      ...createStakingAminoConverters('aura'),
-      ...createDistributionAminoConverters(),
-      ...createGovAminoConverters(),
-    });
-
-    const msgs = messages.map((msg) => aminoTypes.toAmino(msg));
-
     const signedTxBody = {
-      messages: msgs.map((msg) => aminoTypes.fromAmino(msg)),
+      messages: this.anyToEncodeMsgs(messages),
       memo: '',
     };
     const signedTxBodyEncodeObject: TxBodyEncodeObject = {
@@ -49,12 +40,16 @@ export class SimulateUtils {
     totalOwner: number,
   ): Promise<Uint8Array> {
     const indexerClient = new IndexerClient();
-    const { sequence } = await indexerClient.getAccountNumberAndSequence(
-      chainId,
-      safeAddress,
-    );
-    const defaultFee = SimulateUtils.getDefaultFee();
+    let sequence = 0;
+    try {
+      sequence = (
+        await indexerClient.getAccountNumberAndSequence(chainId, safeAddress)
+      ).sequence;
+    } catch (error) {
+      console.log(error);
+    }
 
+    const defaultFee = SimulateUtils.getDefaultFee();
     const signers: boolean[] = Array(totalOwner).fill(false);
 
     const signerInfo: SignerInfo = {
@@ -111,5 +106,34 @@ export class SimulateUtils {
       amount: coins(1, denom),
       gas: '200000',
     };
+  }
+
+  /**
+   * 
+   * @param messages 
+   * @returns 
+    [
+      {
+        typeUrl: "/cosmos.staking.v1beta1.MsgDelegate",
+        value: {
+          delegatorAddress: "aura1p60cjssaceu0q8f8t99e809gh2nxrq9rmp5kam",
+          validatorAddress: "auravaloper1edw4lwcz3esnlgzcw60ra8m38k3zygz2xtl2qh",
+          amount: {
+            amount: "1",
+            denom: "utaura",
+          },
+        },
+      },
+    ]
+   */
+  static anyToEncodeMsgs(messages: any[]): EncodeObject[] {
+    const aminoTypes = new AminoTypes({
+      ...createBankAminoConverters(),
+      ...createStakingAminoConverters('aura'),
+      ...createDistributionAminoConverters(),
+      ...createGovAminoConverters(),
+    });
+    const msgs = messages.map((msg) => aminoTypes.toAmino(msg));
+    return msgs.map((msg) => aminoTypes.fromAmino(msg));
   }
 }

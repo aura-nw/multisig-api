@@ -23,7 +23,10 @@ export class LcdClient {
         gasUsed: simulateRes.gas_info?.gas_used || 0,
       };
     } catch (error) {
-      throw new CustomError(ErrorMap.TX_SIMULATION_FAILED, error.message);
+      throw new CustomError(
+        ErrorMap.TX_SIMULATION_FAILED,
+        error.message + ' ' + error.msg,
+      );
     }
   }
 }

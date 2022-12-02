@@ -219,13 +219,16 @@ export class CommonUtil {
       options['body'] = JSON.stringify(body);
     }
     const result = await fetch(url, options);
+
+    const data = await result.json();
     if (result.status !== 200) {
       throw new CustomError(
         ErrorMap.REQUEST_ERROR,
-        `${new URL(url).host} ${result.status} ${result.statusText} `,
+        `${new URL(url).host} ${result.status} ${data.message} `,
       );
     }
-    return result.json();
+
+    return data;
   }
 
   getPercentage(number: any, sum: any): string {

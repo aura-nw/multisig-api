@@ -1,4 +1,5 @@
 import {
+  coins,
   createMultisigThresholdPubkey,
   MultisigThresholdPubkey,
   pubkeyToAddress,
@@ -7,9 +8,10 @@ import {
 import { makeMultisignedTx } from '@cosmjs/stargate';
 
 import { OwnerSimulate } from './owner.simulate';
-import { toBase64 } from '@cosmjs/encoding';
+import { fromBase64, toBase64 } from '@cosmjs/encoding';
 import { SimulateUtils } from './utils';
 import { IndexerClient } from 'src/utils/apis/IndexerClient';
+import { TX_TYPE_URL } from 'src/common/constants/app.constant';
 
 export class SafeSimulate {
   signature: string;
@@ -78,5 +80,45 @@ export class SafeSimulate {
 
     this.signature = toBase64(multisignedTx.signatures[0]);
     this.authInfo = toBase64(multisignedTx.authInfoBytes);
+  }
+
+  public async makeSimulateBodyBytesAndAuthInfo(
+    messages: any[],
+    safeAddress: string,
+    safePubkey: any,
+  ) {
+    let simulateAuthInfo;
+
+    // get simulate msgs base typeUrl and the messages given by user
+    const encodeMsgs = SimulateUtils.anyToEncodeMsgs(messages);
+    encodeMsgs.map((msg) => {
+      switch (msg.typeUrl) {
+        case TX_TYPE_URL.SEND:
+          simulateAuthInfo = this.authInfo;
+          msg.value.fromAddress = this.address;
+          msg.value.amount = coins(1, msg.value.amount[0].denom);
+          break;
+        case TX_TYPE_URL.VOTE:
+          simulateAuthInfo = this.authInfo;
+          msg.value.voter = this.address;
+          break;
+        default:
+          break;
+      }
+    });
+
+    const authInfoBytes = simulateAuthInfo
+      ? fromBase64(simulateAuthInfo)
+      : await SimulateUtils.makeAuthInfoBytes(
+          this.chainId,
+          safeAddress,
+          safePubkey,
+          this.threshold,
+        );
+    const bodyBytes = SimulateUtils.makeBodyBytes(encodeMsgs);
+    return {
+      authInfoBytes,
+      bodyBytes,
+    };
   }
 }
