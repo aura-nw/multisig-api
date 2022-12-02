@@ -42,7 +42,7 @@ export class WalletSimulate {
       const safe = new SafeSimulate(
         this.ownerWallets.slice(0, i),
         i,
-        this.chain.prefix,
+        this.chain,
       );
 
       // save to map
@@ -74,6 +74,7 @@ export class WalletSimulate {
         messages,
         safeInfo.safeAddress,
         safePubkey,
+        this.chain.prefix,
       );
 
     // build txBytes
