@@ -176,19 +176,19 @@ export const ErrorMap = {
     Message: 'Missing account_auth when call indexer account info!',
   },
   CANNOT_GET_ACCOUNT_NUMBER_OR_SEQUENCE: {
-    Code: 'E042',
+    Code: 'E043',
     Message: 'Can not get account number or sequence from indexer!',
   },
   CANNOT_CONNECT_TO_CHAIN: {
-    Code: 'E043',
+    Code: 'E044',
     Message: 'Can not connect to chain!',
   },
   TX_SIMULATION_FAILED: {
-    Code: 'E044',
+    Code: 'E045',
     Message: 'Tx simulation failed!',
   },
   INVALID_SAFE: {
-    Code: 'E045',
+    Code: 'E046',
     Message: 'Invalid safe!',
   },
   C001: {
