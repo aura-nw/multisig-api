@@ -18,6 +18,7 @@ import {
 import { REGISTRY_GENERATED_TYPES } from 'src/common/constants/app.constant';
 import { coins } from '@cosmjs/amino';
 import { IndexerClient } from 'src/utils/apis/IndexerClient';
+import { encodePubkeyEvmos } from 'src/chains';
 
 export class SimulateUtils {
   public static makeBodyBytes(messages: any[], prefix: string): Uint8Array {
@@ -53,8 +54,12 @@ export class SimulateUtils {
     const defaultFee = SimulateUtils.getDefaultFee(denom);
     const signers: boolean[] = Array(totalOwner).fill(false);
 
+    const encodedPubkey = chainId.startsWith('evmos')
+      ? encodePubkeyEvmos(safePubkey)
+      : encodePubkey(safePubkey);
+
     const signerInfo: SignerInfo = {
-      publicKey: encodePubkey(safePubkey),
+      publicKey: encodedPubkey,
       modeInfo: {
         multi: {
           bitarray: makeCompactBitArray(signers),
