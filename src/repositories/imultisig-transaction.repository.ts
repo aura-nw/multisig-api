@@ -7,6 +7,7 @@ import { MultisigTransaction } from '../entities';
 import { IBaseRepository } from './ibase.repository';
 
 export interface IMultisigTransactionsRepository extends IBaseRepository {
+  findSequenceInQueue(safeId: number): Promise<number[]>;
   /**
    * Get Id of a Multisig Transaction
    * @param internalTxHash

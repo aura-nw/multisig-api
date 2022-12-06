@@ -41,6 +41,26 @@ export class MultisigTransactionRepository
     );
   }
 
+  /**
+   * Find, remove duplicate and sort sequence of queue tx.
+   * @param safeId
+   * @returns
+   */
+  async findSequenceInQueue(safeId: number): Promise<number[]> {
+    const result = await this.repos.find({
+      where: {
+        safeId: safeId,
+        status: In([
+          TRANSACTION_STATUS.AWAITING_CONFIRMATIONS,
+          TRANSACTION_STATUS.AWAITING_EXECUTION,
+        ]),
+      },
+      select: ['Sequence'],
+    });
+    const sequence = result.map((item) => Number(item['Sequence']));
+    return [...new Set(sequence)].sort();
+  }
+
   async validateCreateTx(
     safeAddress: string,
     internalChainId: number,

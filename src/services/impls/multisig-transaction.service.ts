@@ -132,13 +132,18 @@ export class MultisigTransactionService
       const authInfo = this._commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
 
+      // get safe info
+      const safe = await this.safeRepos.getSafe(from, internalChainId);
+
       // get chain info
       const chain = await this.chainRepos.findChain(internalChainId);
 
-      const accountInfo: AccountInfo = {
-        accountNumber,
+      // get safe account info
+      const accountInfo: AccountInfo = await this.getAccountInfo(
         sequence,
-      };
+        safe,
+        chain.chainId,
+      );
 
       const txRawInfo: TxRawInfo = {
         authInfoBytes,
@@ -153,7 +158,6 @@ export class MultisigTransactionService
           accountInfo,
           chain,
           authInfo,
-          from,
         );
 
       // calculate amount
@@ -161,9 +165,6 @@ export class MultisigTransactionService
 
       // check account balance; if balance is not enough, throw error
       await this.checkAccountBalance(chain.chainId, from, chain.denom, amount);
-
-      // get safe info
-      const safe = await this.safeRepos.getSafe(from, internalChainId);
 
       // is owner of safe
       await this.safeOwnerRepo.isSafeOwner(creatorAddress, safe.id);
@@ -181,12 +182,12 @@ export class MultisigTransactionService
       transaction.amount = amount > 0 ? amount : undefined;
       transaction.gas = decodedAuthInfo.fee.gasLimit.toNumber();
       transaction.fee = Number(decodedAuthInfo.fee.amount[0].amount);
-      transaction.accountNumber = accountNumber;
+      transaction.accountNumber = accountInfo.accountNumber;
       transaction.typeUrl = messages[0].typeUrl;
       transaction.denom = chain.denom;
       transaction.status = TRANSACTION_STATUS.AWAITING_CONFIRMATIONS;
       transaction.internalChainId = internalChainId;
-      transaction.sequence = sequence.toString();
+      transaction.sequence = accountInfo.sequence.toString();
       transaction.safeId = safe.id;
       const transactionResult =
         await this.multisigTransactionRepos.insertMultisigTransaction(
@@ -205,6 +206,13 @@ export class MultisigTransactionService
         internalChainId,
         transaction.safeId,
       );
+
+      // save account number & sequence
+      safe.sequence = (
+        await this.calculateNextSeq(safe.id, accountInfo.sequence)
+      ).toString();
+      safe.accountNumber = accountInfo.accountNumber.toString();
+      await this.safeRepos.updateSafe(safe);
 
       return ResponseDto.response(ErrorMap.SUCCESSFUL, {
         transactionId: transactionResult.id,
@@ -238,10 +246,17 @@ export class MultisigTransactionService
         transactionId,
       );
 
-      const accountInfo: AccountInfo = {
-        accountNumber,
+      // get safe info
+      const safe = await this.safeRepos.getSafe(
+        pendingTx.fromAddress,
+        internalChainId,
+      );
+
+      const accountInfo: AccountInfo = await this.getAccountInfo(
         sequence,
-      };
+        safe,
+        chain.chainId,
+      );
 
       const txRawInfo: TxRawInfo = {
         authInfoBytes,
@@ -250,13 +265,7 @@ export class MultisigTransactionService
       };
 
       // verify data
-      await this.decodeAndVerifyTxInfo(
-        txRawInfo,
-        accountInfo,
-        chain,
-        authInfo,
-        pendingTx.fromAddress,
-      );
+      await this.decodeAndVerifyTxInfo(txRawInfo, accountInfo, chain, authInfo);
 
       await this.multisigConfirmRepos.validateSafeOwner(
         creatorAddress,
@@ -412,7 +421,6 @@ export class MultisigTransactionService
     accountInfo: AccountInfo,
     chain: Chain,
     creatorInfo: UserInfo,
-    safeAddress: string,
   ) {
     const { chainId, prefix } = chain;
     const { address: creatorAddress, pubkey: creatorPubkey } = creatorInfo;
@@ -422,15 +430,7 @@ export class MultisigTransactionService
     const bodyBytesEncode = fromBase64(txRawInfo.bodyBytes);
     const { memo, messages } = TxBody.decode(bodyBytesEncode);
 
-    let { accountNumber, sequence } = accountInfo;
-    if (accountInfo.accountNumber === undefined || sequence === undefined) {
-      const account = await this._indexer.getAccountNumberAndSequence(
-        chainId,
-        safeAddress,
-      );
-      accountNumber = account.accountNumber;
-      sequence = account.sequence;
-    }
+    const { accountNumber, sequence } = accountInfo;
 
     // build stdSignDoc for verify signature
     const registry = new Registry(REGISTRY_GENERATED_TYPES);
@@ -615,5 +615,48 @@ export class MultisigTransactionService
           return acc;
       }
     }, 0);
+  }
+
+  /**
+   * Get account number & seq from db if not provided; if db not found, get from indexer
+   *
+   * @param sequence
+   * @param safe
+   * @param chainId
+   * @returns
+   */
+  async getAccountInfo(
+    sequence: number,
+    safe: Safe,
+    chainId: string,
+  ): Promise<AccountInfo> {
+    let accountInfo: AccountInfo = {
+      accountNumber: Number(safe.accountNumber),
+      sequence: sequence || Number(safe.sequence),
+    };
+
+    if (accountInfo.accountNumber === NaN) {
+      const account = await this._indexer.getAccountNumberAndSequence(
+        chainId,
+        safe.safeAddress,
+      );
+      accountInfo.accountNumber = account.accountNumber;
+      accountInfo.sequence = account.sequence;
+    }
+    return accountInfo;
+  }
+
+  async calculateNextSeq(safeId: number, sequence: number): Promise<number> {
+    const queueSequences =
+      await this.multisigTransactionRepos.findSequenceInQueue(safeId);
+
+    let nextSeq = sequence + 1;
+    for (let i = 0; i < queueSequences.length; i++) {
+      if (queueSequences[i] !== nextSeq) {
+        break;
+      }
+      nextSeq++;
+    }
+    return nextSeq;
   }
 }

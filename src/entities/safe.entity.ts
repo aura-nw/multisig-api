@@ -6,6 +6,9 @@ export class Safe extends BaseEntityAutoId {
   @Column({ name: 'SafeAddress', unique: true, nullable: true })
   safeAddress: string;
 
+  @Column({ name: 'AccountNumber', unique: true, nullable: true })
+  accountNumber: string;
+
   @Column('varchar', { name: 'SafePubkey', nullable: true, length: 800 })
   safePubkey: string;
 
@@ -20,6 +23,12 @@ export class Safe extends BaseEntityAutoId {
 
   @Column({ name: 'Status' })
   status: string;
+
+  @Column({ name: 'Sequence', nullable: true })
+  sequence: string;
+
+  @Column({ name: 'NextSequence', nullable: true })
+  nextSequence: string;
 
   @Column({ name: 'AddressHash' })
   addressHash: string;

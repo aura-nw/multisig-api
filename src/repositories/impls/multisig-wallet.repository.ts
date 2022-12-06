@@ -361,4 +361,8 @@ export class MultisigWalletRepository
       throw new CustomError(ErrorMap.NO_SAFES_FOUND);
     }
   }
+
+  async updateSafe(safe: Safe): Promise<void> {
+    await this.repos.save(safe);
+  }
 }
