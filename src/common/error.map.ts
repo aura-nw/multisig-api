@@ -191,6 +191,10 @@ export const ErrorMap = {
     Code: 'E045',
     Message: 'Invalid safe!',
   },
+  CANNOT_DELETE_TX: {
+    Code: 'E046',
+    Message: 'Can not delete this transaction because the status is invalid!',
+  },
   C001: {
     Code: 'C001',
     Message: `Missing result from Chaincode`,

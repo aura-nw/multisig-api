@@ -22,6 +22,7 @@ import {
 } from '../common/constants/api.constant';
 import {
   CommonAuthPost,
+  CommonDelete,
   CommonGet,
   CommonPost,
 } from '../decorators/common.decorator';
@@ -169,5 +170,15 @@ export class TransactionController {
   async simulateTransaction(@Body() request: MODULE_REQUEST.SimulateTxRequest) {
     this._logger.log('========== Simulate transaction ==========');
     return this.multisigTransactionService.simulate(request);
+  }
+
+  @CommonDelete({
+    url: URL_CONSTANTS.DELETE_TX,
+    summary: 'Delete transaction',
+    description: 'Delete transaction',
+  })
+  async deleteTransaction(@Body() request: MODULE_REQUEST.DeleteTxRequest) {
+    this._logger.log('========== Delete transaction ==========');
+    return this.multisigTransactionService.deleteTransaction(request);
   }
 }

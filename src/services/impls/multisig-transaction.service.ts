@@ -29,7 +29,7 @@ import {
   SAFE_STATUS,
   TRANSACTION_STATUS,
 } from '../../common/constants/app.constant';
-import { CustomError } from '../../common/customError';
+
 import {
   IGeneralRepository,
   IMessageRepository,
@@ -47,6 +47,7 @@ import { ConfigService } from 'src/shared/services/config.service';
 import { AccountInfo, TxRawInfo } from 'src/dtos/requests';
 import { UserInfo } from 'src/dtos/userInfo';
 import { Simulate } from 'src/simulate';
+import { CustomError } from 'src/common/customError';
 
 @Injectable()
 export class MultisigTransactionService
@@ -79,6 +80,20 @@ export class MultisigTransactionService
     );
 
     this._simulate = new Simulate(this.configService.get('SYS_MNEMONIC'));
+  }
+
+  async deleteTransaction(
+    request: MODULE_REQUEST.DeleteTxRequest,
+  ): Promise<ResponseDto> {
+    try {
+      const { id } = request;
+      const authInfo = this._commonUtil.getAuthInfo();
+      const creatorAddress = authInfo.address;
+      await this.deleteTx(id, creatorAddress);
+      return ResponseDto.response(ErrorMap.SUCCESSFUL);
+    } catch (error) {
+      return ResponseDto.responseError(MultisigTransactionService.name, error);
+    }
   }
 
   async simulate(
@@ -294,9 +309,7 @@ export class MultisigTransactionService
       let client: StargateClient;
       try {
         client = await StargateClient.connect(chain.rpc);
-      } catch (error) {
-        throw new CustomError(ErrorMap.CANNOT_CONNECT_TO_CHAIN, error.message);
-      }
+      } catch (error) {}
 
       // get tx
       const multisigTransaction =
@@ -488,7 +501,6 @@ export class MultisigTransactionService
       );
     }
     if (!resultVerify) {
-      throw new CustomError(ErrorMap.SIGNATURE_VERIFICATION_FAILED);
     }
 
     return {
@@ -509,7 +521,6 @@ export class MultisigTransactionService
       return item.denom === denom;
     });
     if (Number(balance.amount) < expectedBalance) {
-      throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
     }
     return true;
   }
@@ -547,6 +558,19 @@ export class MultisigTransactionService
 
     // update queued tag
     await this.safeRepos.updateQueuedTag(safeId);
+  }
+
+  async deleteTx(id: number, userAddress: string) {
+    // check tx status
+    const tx = await this.multisigTransactionRepos.getTransactionById(id);
+    if (tx.status !== TRANSACTION_STATUS.AWAITING_CONFIRMATIONS)
+      throw new CustomError(ErrorMap.CANNOT_DELETE_TX);
+
+    // check user is owner
+    await this.safeOwnerRepo.isSafeOwner(userAddress, tx.safeId);
+
+    // delete tx
+    await this.multisigTransactionRepos.deleteTx(id);
   }
 
   async makeTx(

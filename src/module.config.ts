@@ -36,6 +36,7 @@ import {
   SimulateTxRequest,
   GetSimulateAddressQuery,
 } from './dtos/requests';
+import { DeleteTxRequest } from './dtos/requests/transaction/delete-tx.request';
 import {
   GetMultisigWalletResponse,
   MultisigSignatureResponse,
@@ -118,6 +119,7 @@ export const REQUEST_CONFIG = {
   GET_VALIDATOR_PATH_PARAMS: GetValidatorDetail,
   SIMULATE_TX_REQUEST: SimulateTxRequest,
   GET_SIMULATE_ADDRESS_QUERY: GetSimulateAddressQuery,
+  DELETE_TX_REQUEST: DeleteTxRequest,
 };
 
 export const RESPONSE_CONFIG = {
@@ -179,6 +181,7 @@ export namespace MODULE_REQUEST {
   export abstract class GetValidatorPathParams extends REQUEST_CONFIG.GET_VALIDATOR_PATH_PARAMS {}
   export abstract class SimulateTxRequest extends REQUEST_CONFIG.SIMULATE_TX_REQUEST {}
   export abstract class GetSimulateAddressQuery extends REQUEST_CONFIG.GET_SIMULATE_ADDRESS_QUERY {}
+  export abstract class DeleteTxRequest extends REQUEST_CONFIG.DELETE_TX_REQUEST {}
 }
 
 export namespace MODULE_RESPONSE {

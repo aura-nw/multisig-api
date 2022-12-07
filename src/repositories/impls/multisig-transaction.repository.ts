@@ -41,6 +41,17 @@ export class MultisigTransactionRepository
     );
   }
 
+  async deleteTx(id: number): Promise<void> {
+    await this.repos
+      .createQueryBuilder()
+      .update(MultisigTransaction)
+      .set({
+        status: TRANSACTION_STATUS.DELETED,
+      })
+      .where('Id = :id', { id })
+      .execute();
+  }
+
   async updateQueueTxToReplaced(safeId: number, sequence: number) {
     await this.repos
       .createQueryBuilder()

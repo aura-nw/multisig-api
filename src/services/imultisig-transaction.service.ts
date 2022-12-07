@@ -3,6 +3,13 @@ import { MODULE_REQUEST } from '../module.config';
 
 export interface IMultisigTransactionService {
   /**
+   * deleteTransaction
+   * @param request
+   */
+  deleteTransaction(
+    request: MODULE_REQUEST.DeleteTxRequest,
+  ): Promise<ResponseDto>;
+  /**
    * simulate
    * @param request
    */

@@ -8,6 +8,12 @@ import { IBaseRepository } from './ibase.repository';
 
 export interface IMultisigTransactionsRepository extends IBaseRepository {
   /**
+   * deleteTx by update status to DELETED
+   * @param id
+   */
+  deleteTx(id: number): Promise<void>;
+
+  /**
    * updateQueueTxToReplaced
    * @param safeId
    * @param sequence
