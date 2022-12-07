@@ -41,6 +41,27 @@ export class MultisigTransactionRepository
     );
   }
 
+  async updateQueueTxToReplaced(safeId: number, sequence: number) {
+    await this.repos
+      .createQueryBuilder()
+      .update(MultisigTransaction)
+      .set({
+        status: TRANSACTION_STATUS.REPLACED,
+      })
+      .where(
+        'SafeId = :safeId and Sequence = :sequence and Status IN (:...status)',
+        {
+          safeId,
+          sequence,
+          status: [
+            TRANSACTION_STATUS.AWAITING_CONFIRMATIONS,
+            TRANSACTION_STATUS.AWAITING_EXECUTION,
+          ],
+        },
+      )
+      .execute();
+  }
+
   /**
    * Find, remove duplicate and sort sequence of queue tx.
    * @param safeId
@@ -55,32 +76,10 @@ export class MultisigTransactionRepository
           TRANSACTION_STATUS.AWAITING_EXECUTION,
         ]),
       },
-      select: ['Sequence'],
+      select: ['sequence'],
     });
-    const sequence = result.map((item) => Number(item['Sequence']));
+    const sequence = result.map((item) => Number(item['sequence']));
     return [...new Set(sequence)].sort();
-  }
-
-  async validateCreateTx(
-    safeAddress: string,
-    internalChainId: number,
-  ): Promise<boolean> {
-    const count = (
-      await this.repos.findAndCount({
-        where: {
-          internalChainId,
-          fromAddress: safeAddress,
-          status: In([
-            TRANSACTION_STATUS.AWAITING_CONFIRMATIONS,
-            TRANSACTION_STATUS.AWAITING_EXECUTION,
-          ]),
-        },
-        select: ['id'],
-      })
-    )[1];
-
-    if (count > 0) throw new CustomError(ErrorMap.SAFE_HAS_PENDING_TX);
-    return true;
   }
 
   async updateTxBroadcastSuccess(
@@ -98,7 +97,9 @@ export class MultisigTransactionRepository
     await this.update(multisigTransaction);
   }
 
-  async getBroadcastableTx(transactionId: number): Promise<any> {
+  async getBroadcastableTx(
+    transactionId: number,
+  ): Promise<MultisigTransaction> {
     const multisigTransaction = await this.findOne({
       where: { id: transactionId },
     });

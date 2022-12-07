@@ -169,12 +169,6 @@ export class MultisigTransactionService
       // is owner of safe
       await this.safeOwnerRepo.isSafeOwner(creatorAddress, safe.id);
 
-      //Validate safe don't have tx pending
-      await this.multisigTransactionRepos.validateCreateTx(
-        from,
-        internalChainId,
-      );
-
       // save tx
       const transaction = new MultisigTransaction();
       transaction.fromAddress = from;
@@ -207,8 +201,8 @@ export class MultisigTransactionService
         transaction.safeId,
       );
 
-      // save account number & sequence
-      safe.sequence = (
+      // save account number & next queue sequence
+      safe.nextQueueSeq = (
         await this.calculateNextSeq(safe.id, accountInfo.sequence)
       ).toString();
       safe.accountNumber = accountInfo.accountNumber.toString();
@@ -343,10 +337,28 @@ export class MultisigTransactionService
             error,
           );
         } else {
+          // update tx status to "pending"
           await this.multisigTransactionRepos.updateTxBroadcastSuccess(
             multisigTransaction.id,
             error.txId,
           );
+
+          // update queue tx have same sequence to "replaced"
+          await this.multisigTransactionRepos.updateQueueTxToReplaced(
+            multisigTransaction.safeId,
+            Number(multisigTransaction.sequence),
+          );
+
+          // update safe next queue sequence
+          safe.sequence = (Number(multisigTransaction.sequence) + 1).toString();
+          safe.nextQueueSeq = (
+            await this.calculateNextSeq(
+              safe.id,
+              Number(multisigTransaction.sequence),
+            )
+          ).toString();
+          await this.safeRepos.updateSafe(safe);
+
           return ResponseDto.response(ErrorMap.SUCCESSFUL, {
             TxHash: error.txId,
           });
@@ -631,26 +643,31 @@ export class MultisigTransactionService
     chainId: string,
   ): Promise<AccountInfo> {
     let accountInfo: AccountInfo = {
-      accountNumber: Number(safe.accountNumber),
-      sequence: sequence || Number(safe.sequence),
+      accountNumber: 0,
+      sequence: 0,
     };
 
-    if (accountInfo.accountNumber === NaN) {
-      const account = await this._indexer.getAccountNumberAndSequence(
-        chainId,
-        safe.safeAddress,
-      );
-      accountInfo.accountNumber = account.accountNumber;
-      accountInfo.sequence = account.sequence;
+    if (safe.accountNumber !== null && safe.nextQueueSeq !== null) {
+      accountInfo.accountNumber = Number(safe.accountNumber);
+      accountInfo.sequence = sequence || Number(safe.nextQueueSeq);
+      return accountInfo;
     }
+
+    const account = await this._indexer.getAccountNumberAndSequence(
+      chainId,
+      safe.safeAddress,
+    );
+    accountInfo.accountNumber = account.accountNumber;
+    accountInfo.sequence = account.sequence;
+
     return accountInfo;
   }
 
-  async calculateNextSeq(safeId: number, sequence: number): Promise<number> {
+  async calculateNextSeq(safeId: number, executedSeq: number): Promise<number> {
     const queueSequences =
       await this.multisigTransactionRepos.findSequenceInQueue(safeId);
 
-    let nextSeq = sequence + 1;
+    let nextSeq = executedSeq + 1;
     for (let i = 0; i < queueSequences.length; i++) {
       if (queueSequences[i] !== nextSeq) {
         break;

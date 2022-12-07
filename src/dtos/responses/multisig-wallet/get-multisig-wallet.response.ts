@@ -17,6 +17,24 @@ export class GetMultisigWalletResponse {
 
   @Expose()
   @ApiProperty({
+    example: '41',
+  })
+  accountNumber: string;
+
+  @Expose()
+  @ApiProperty({
+    example: '94',
+  })
+  sequence: string;
+
+  @Expose()
+  @ApiProperty({
+    example: '95',
+  })
+  nextQueueSeq: string;
+
+  @Expose()
+  @ApiProperty({
     example: '1659946207',
   })
   txHistoryTag: string;

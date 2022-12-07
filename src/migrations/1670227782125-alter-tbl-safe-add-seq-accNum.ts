@@ -7,7 +7,7 @@ export class alterTblSafeAddSeqAccNum1670227782125
     await queryRunner.query(`
         ALTER TABLE Safe ADD COLUMN AccountNumber VARCHAR(255) NULL AFTER SafeAddress;
         ALTER TABLE Safe ADD COLUMN Sequence varchar(255) NULL AFTER Status;
-        ALTER TABLE Safe ADD COLUMN NextSequence varchar(255) NULL AFTER Status;
+        ALTER TABLE Safe ADD COLUMN NextQueueSeq varchar(255) NULL AFTER Status;
         `);
   }
 
