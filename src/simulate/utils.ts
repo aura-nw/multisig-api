@@ -1,11 +1,14 @@
 import * as Long from 'long';
-import { AuthInfo, SignerInfo } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
-import { EncodeObject, encodePubkey } from '@cosmjs/proto-signing';
+import { AuthInfo, SignerInfo, TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
+import {
+  EncodeObject,
+  encodePubkey,
+  Registry,
+  TxBodyEncodeObject,
+} from '@cosmjs/proto-signing';
 import { SignMode } from 'cosmjs-types/cosmos/tx/signing/v1beta1/signing';
 import { makeCompactBitArray } from '@cosmjs/stargate/build/multisignature';
 import { MsgSend } from 'cosmjs-types/cosmos/bank/v1beta1/tx';
-import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
-import { Registry, TxBodyEncodeObject } from '@cosmjs/proto-signing';
 import {
   AminoTypes,
   createBankAminoConverters,
