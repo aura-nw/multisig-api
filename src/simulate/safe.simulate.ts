@@ -97,7 +97,7 @@ export class SafeSimulate {
 
     // get simulate msgs base typeUrl and the messages given by user
     const encodeMsgs = SimulateUtils.anyToEncodeMsgs(messages, prefix);
-    encodeMsgs.map((msg) => {
+    encodeMsgs.forEach((msg) => {
       switch (msg.typeUrl) {
         case TX_TYPE_URL.SEND:
           simulateAuthInfo = this.authInfo;
