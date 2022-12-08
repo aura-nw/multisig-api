@@ -82,6 +82,48 @@ export class MultisigTransactionService
     this._simulate = new Simulate(this.configService.get('SYS_MNEMONIC'));
   }
 
+  async changeSequence(
+    request: MODULE_REQUEST.ChangeSequenceTransactionRequest,
+  ): Promise<ResponseDto> {
+    const {
+      from,
+      to,
+      authInfoBytes,
+      bodyBytes,
+      signature,
+      internalChainId,
+      accountNumber,
+      sequence,
+      oldTxId,
+    } = request;
+
+    // delete old tx
+    const requestDeleteTx: MODULE_REQUEST.DeleteTxRequest = {
+      id: oldTxId,
+    };
+    const deleted = await this.deleteTransaction(requestDeleteTx);
+    if (deleted.ErrorCode !== ErrorMap.SUCCESSFUL.Code) {
+      return deleted;
+    }
+
+    // create new tx
+    const requestCreateTx: MODULE_REQUEST.CreateTransactionRequest = {
+      from,
+      to,
+      authInfoBytes,
+      bodyBytes,
+      signature,
+      internalChainId,
+      accountNumber,
+      sequence,
+    };
+    const created = await this.createMultisigTransaction(requestCreateTx);
+    if (deleted.ErrorCode !== ErrorMap.SUCCESSFUL.Code) {
+      throw new CustomError(ErrorMap[deleted.ErrorCode], deleted.Data);
+    }
+    return created;
+  }
+
   async deleteTransaction(
     request: MODULE_REQUEST.DeleteTxRequest,
   ): Promise<ResponseDto> {

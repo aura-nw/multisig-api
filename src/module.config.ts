@@ -35,6 +35,7 @@ import {
   GetDelegationsParam,
   SimulateTxRequest,
   GetSimulateAddressQuery,
+  ChangeSequenceTransactionRequest,
 } from './dtos/requests';
 import { DeleteTxRequest } from './dtos/requests/transaction/delete-tx.request';
 import {
@@ -84,6 +85,7 @@ export const ENTITIES_CONFIG = {
 export const REQUEST_CONFIG = {
   CREATE_MULTISIG_WALLET_REQUEST: CreateMultisigWalletRequest,
   CREATE_TRANSACTION_REQUEST: CreateTransactionRequest,
+  CHANGE_SEQUENCE_TRANSACTION_REQUEST: ChangeSequenceTransactionRequest,
   SEND_TRANSACTION_REQUEST: SendTransactionRequest,
   CONFIRM_TRANSACTION_REQUEST: ConfirmTransactionRequest,
   CONNECT_WALLET_TO_GET_INFORMATION: ConnectMultisigWalletRequest,
@@ -147,6 +149,7 @@ export const RESPONSE_CONFIG = {
 export namespace MODULE_REQUEST {
   export abstract class CreateMultisigWalletRequest extends REQUEST_CONFIG.CREATE_MULTISIG_WALLET_REQUEST {}
   export abstract class CreateTransactionRequest extends REQUEST_CONFIG.CREATE_TRANSACTION_REQUEST {}
+  export abstract class ChangeSequenceTransactionRequest extends REQUEST_CONFIG.CHANGE_SEQUENCE_TRANSACTION_REQUEST {}
   export abstract class SendTransactionRequest extends REQUEST_CONFIG.SEND_TRANSACTION_REQUEST {}
   export abstract class ConfirmTransactionRequest extends REQUEST_CONFIG.CONFIRM_TRANSACTION_REQUEST {}
   export abstract class ConnectMultisigWalletRequest extends REQUEST_CONFIG.CONNECT_WALLET_TO_GET_INFORMATION {}

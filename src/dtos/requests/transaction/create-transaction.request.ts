@@ -20,13 +20,6 @@ export class CreateTransactionRequest {
 
   @IsNumber()
   @ApiProperty({
-    description: 'Transaction amount',
-    example: 3000000,
-  })
-  amount: number;
-
-  @IsNumber()
-  @ApiProperty({
     description: 'Offline Chain Id',
     example: 4,
   })

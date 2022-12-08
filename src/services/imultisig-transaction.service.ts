@@ -3,6 +3,14 @@ import { MODULE_REQUEST } from '../module.config';
 
 export interface IMultisigTransactionService {
   /**
+   * changeSequence
+   * @param request
+   */
+  changeSequence(
+    request: MODULE_REQUEST.ChangeSequenceTransactionRequest,
+  ): Promise<ResponseDto>;
+
+  /**
    * deleteTransaction
    * @param request
    */

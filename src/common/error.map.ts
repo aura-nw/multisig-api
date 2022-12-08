@@ -193,7 +193,8 @@ export const ErrorMap = {
   },
   CANNOT_DELETE_TX: {
     Code: 'E046',
-    Message: 'Can not delete this transaction because the status is invalid!',
+    Message:
+      'Can not delete because the status of this transaction is invalid!',
   },
   C001: {
     Code: 'C001',

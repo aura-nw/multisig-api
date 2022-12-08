@@ -61,6 +61,19 @@ export class TransactionController {
   }
 
   @CommonAuthPost({
+    url: URL_CONSTANTS.CHANGE_SEQ,
+    summary: 'API Change sequence of multisig transaction',
+  })
+  async changeSeqTransaction(
+    @Body() request: MODULE_REQUEST.ChangeSequenceTransactionRequest,
+  ) {
+    this._logger.log(
+      '========== Change sequence of multisig transaction ==========',
+    );
+    return this.multisigTransactionService.changeSequence(request);
+  }
+
+  @CommonAuthPost({
     url: URL_CONSTANTS.CONFIRM_TRANSACTION,
     summary: 'API Owner confirm their transaction. ',
     description: `It is used to owner of safe sign transaction. When transaction meet threshold, it changes to status AWAITING_EXECUTION ready to broadcast to network.`,
