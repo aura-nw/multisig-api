@@ -13,10 +13,4 @@ export interface IGeneralService {
   getAccountOnchain(
     param: MODULE_REQUEST.GetAccountOnchainParam,
   ): Promise<ResponseDto>;
-
-  /**
-   * getValidators
-   * @param param
-   */
-  getValidators(param: MODULE_REQUEST.GetValidatorsParam);
 }

@@ -16,7 +16,6 @@ import {
   StdFee,
   StdSignDoc,
 } from '@cosmjs/amino';
-import * as axios from 'axios';
 import {
   keccak256,
   Keccak256,
@@ -165,42 +164,6 @@ export function createMultisigThresholdPubkeyEvmos(
       threshold: uintThreshold.toString(),
       pubkeys: outPubkeys,
     },
-  };
-}
-
-export async function getEvmosAccount(
-  rest: string,
-  address: string,
-): Promise<{
-  sequence: number;
-  accountNumber: number;
-}> {
-  // Query the node
-  const result = await axios.default.get(
-    `${rest}cosmos/auth/v1beta1/accounts/${address}`,
-  );
-  // NOTE: the node returns status code 400 if the wallet doesn't exist, catch that error
-
-  const addrData = await result.data.account;
-  // Response format at @tharsis/provider/rest/account/AccountResponse
-  /*
-  account: {
-    '@type': string
-    base_account: {
-      address: string
-      pub_key?: {
-        '@type': string
-        key: string
-      }
-      account_number: string
-      sequence: string
-    }
-    code_hash: string
-  }
-*/
-  return {
-    sequence: Number(addrData.base_account.sequence),
-    accountNumber: Number(addrData.base_account.account_number),
   };
 }
 

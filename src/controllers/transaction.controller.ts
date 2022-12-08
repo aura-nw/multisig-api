@@ -21,6 +21,7 @@ import {
   URL_CONSTANTS,
 } from '../common/constants/api.constant';
 import {
+  CommonAuthDelete,
   CommonAuthPost,
   CommonGet,
   CommonPost,
@@ -56,6 +57,19 @@ export class TransactionController {
   ) {
     this._logger.log('========== Create multisig transaction ==========');
     return this.multisigTransactionService.createMultisigTransaction(request);
+  }
+
+  @CommonAuthPost({
+    url: URL_CONSTANTS.CHANGE_SEQ,
+    summary: 'API Change sequence of multisig transaction',
+  })
+  async changeSeqTransaction(
+    @Body() request: MODULE_REQUEST.ChangeSequenceTransactionRequest,
+  ) {
+    this._logger.log(
+      '========== Change sequence of multisig transaction ==========',
+    );
+    return this.multisigTransactionService.changeSequence(request);
   }
 
   @CommonAuthPost({
@@ -169,5 +183,15 @@ export class TransactionController {
   async simulateTransaction(@Body() request: MODULE_REQUEST.SimulateTxRequest) {
     this._logger.log('========== Simulate transaction ==========');
     return this.multisigTransactionService.simulate(request);
+  }
+
+  @CommonAuthDelete({
+    url: URL_CONSTANTS.DELETE_TX,
+    summary: 'Delete transaction',
+    description: 'Delete transaction',
+  })
+  async deleteTransaction(@Body() request: MODULE_REQUEST.DeleteTxRequest) {
+    this._logger.log('========== Delete transaction ==========');
+    return this.multisigTransactionService.deleteTransaction(request);
   }
 }

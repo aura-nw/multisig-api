@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BaseRepository } from './base.repository';
-import { In, Not, ObjectLiteral, Repository } from 'typeorm';
+import { In, Not, Repository } from 'typeorm';
 import { IMultisigWalletRepository } from '../imultisig-wallet.repository';
 import { ENTITIES_CONFIG, REPOSITORY_INTERFACE } from '../../module.config';
 import { Safe, SafeOwner } from '../../entities';
@@ -26,7 +26,7 @@ export class MultisigWalletRepository
   constructor(
     private configService: ConfigService,
     @InjectRepository(ENTITIES_CONFIG.SAFE)
-    private readonly repos: Repository<ObjectLiteral>,
+    private readonly repos: Repository<Safe>,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_OWNER_REPOSITORY)
     private safeOwnerRepo: IMultisigWalletOwnerRepository,
     @Inject(REPOSITORY_INTERFACE.IGENERAL_REPOSITORY)
@@ -46,6 +46,18 @@ export class MultisigWalletRepository
   async updateQueuedTag(safeId: number): Promise<any> {
     return this.repos.update(
       { id: safeId },
+      { txQueuedTag: () => Date.now().toString() },
+    );
+  }
+
+  /**
+   * updateQueuedTagByAddress
+   * @param safeId
+   * @returns
+   */
+  async updateQueuedTagByAddress(safeAddress: string): Promise<void> {
+    await this.repos.update(
+      { safeAddress: safeAddress },
       { txQueuedTag: () => Date.now().toString() },
     );
   }
@@ -360,5 +372,9 @@ export class MultisigWalletRepository
     } catch (error) {
       throw new CustomError(ErrorMap.NO_SAFES_FOUND);
     }
+  }
+
+  async updateSafe(safe: Safe): Promise<void> {
+    await this.repos.save(safe);
   }
 }
