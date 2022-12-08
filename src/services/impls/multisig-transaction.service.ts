@@ -183,7 +183,6 @@ export class MultisigTransactionService
       bodyBytes,
       signature,
       internalChainId,
-      accountNumber,
       sequence,
     } = request;
     try {
@@ -284,7 +283,6 @@ export class MultisigTransactionService
         signature,
         authInfoBytes,
         internalChainId,
-        accountNumber,
         sequence,
       } = request;
       const authInfo = this._commonUtil.getAuthInfo();
@@ -712,7 +710,7 @@ export class MultisigTransactionService
     safe: Safe,
     chainId: string,
   ): Promise<AccountInfo> {
-    let accountInfo: AccountInfo = {
+    const accountInfo: AccountInfo = {
       accountNumber: 0,
       sequence: 0,
     };

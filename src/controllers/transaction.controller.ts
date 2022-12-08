@@ -23,7 +23,6 @@ import {
 import {
   CommonAuthDelete,
   CommonAuthPost,
-  CommonDelete,
   CommonGet,
   CommonPost,
 } from '../decorators/common.decorator';

@@ -7,7 +7,6 @@ import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
 import { IGeneralRepository } from '../../repositories/igeneral.repository';
 import { ErrorMap } from '../../common/error.map';
 import { IMultisigWalletRepository } from '../../repositories';
-import * as axios from 'axios';
 import { IGasRepository } from '../../repositories/igas.repository';
 import { IndexerClient } from 'src/utils/apis/IndexerClient';
 import { ConfigService } from 'src/shared/services/config.service';
@@ -30,22 +29,6 @@ export class GeneralService extends BaseService implements IGeneralService {
     this._logger.log(
       '============== Constructor General Service ==============',
     );
-  }
-
-  async getValidators(param: MODULE_REQUEST.GetValidatorsParam) {
-    const { internalChainId } = param;
-    try {
-      const chain = await this.chainRepo.findChain(internalChainId);
-      const result = await axios.default.get(
-        new URL(
-          '/cosmos/staking/v1beta1/validators?status=BOND_STATUS_BONDED',
-          chain.rest,
-        ).href,
-      );
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, result.data);
-    } catch (error) {
-      return ResponseDto.responseError(GeneralService.name, error);
-    }
   }
 
   async showNetworkList(): Promise<ResponseDto> {
