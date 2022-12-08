@@ -54,7 +54,7 @@ export class TransactionRepository
       SELECT NULL as AuraTxId,  MT.ID as MultisigTxId, MT.TxHash as TxHash, MT.TypeUrl as TypeUrl, MT.FromAddress as FromAddress, NULL as AuraTxAmount,NULL as AuraTxRewardAmount, MT.Amount as MultisigTxAmount, MT.Status, MT.CreatedAt as CreatedAt, MT.UpdatedAt as UpdateAt  FROM MultisigTransaction MT
         WHERE MT.InternalChainId = ?
         AND MT.FromAddress = ?
-        AND (Status = ? OR Status = ? OR Status = ?)
+        AND Status In(?,?,?,?,?)
         AND TxHash IS NULL
       ORDER BY UpdatedAt DESC
       LIMIT ? OFFSET ?;
@@ -68,6 +68,8 @@ export class TransactionRepository
         TRANSACTION_STATUS.CANCELLED,
         TRANSACTION_STATUS.SUCCESS,
         TRANSACTION_STATUS.FAILED,
+        TRANSACTION_STATUS.REPLACED,
+        TRANSACTION_STATUS.DELETED,
         limit,
         offset,
       ],
