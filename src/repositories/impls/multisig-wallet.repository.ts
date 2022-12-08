@@ -26,7 +26,7 @@ export class MultisigWalletRepository
   constructor(
     private configService: ConfigService,
     @InjectRepository(ENTITIES_CONFIG.SAFE)
-    private readonly repos: Repository<ObjectLiteral>,
+    private readonly repos: Repository<Safe>,
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_OWNER_REPOSITORY)
     private safeOwnerRepo: IMultisigWalletOwnerRepository,
     @Inject(REPOSITORY_INTERFACE.IGENERAL_REPOSITORY)
@@ -46,6 +46,18 @@ export class MultisigWalletRepository
   async updateQueuedTag(safeId: number): Promise<any> {
     return this.repos.update(
       { id: safeId },
+      { txQueuedTag: () => Date.now().toString() },
+    );
+  }
+
+  /**
+   * updateQueuedTagByAddress
+   * @param safeId
+   * @returns
+   */
+  async updateQueuedTagByAddress(safeAddress: string): Promise<void> {
+    await this.repos.update(
+      { safeAddress: safeAddress },
       { txQueuedTag: () => Date.now().toString() },
     );
   }

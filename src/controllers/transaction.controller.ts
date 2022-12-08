@@ -21,6 +21,7 @@ import {
   URL_CONSTANTS,
 } from '../common/constants/api.constant';
 import {
+  CommonAuthDelete,
   CommonAuthPost,
   CommonDelete,
   CommonGet,
@@ -172,7 +173,7 @@ export class TransactionController {
     return this.multisigTransactionService.simulate(request);
   }
 
-  @CommonDelete({
+  @CommonAuthDelete({
     url: URL_CONSTANTS.DELETE_TX,
     summary: 'Delete transaction',
     description: 'Delete transaction',

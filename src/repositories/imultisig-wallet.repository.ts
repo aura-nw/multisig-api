@@ -4,6 +4,12 @@ import { IBaseRepository } from './ibase.repository';
 export interface IMultisigWalletRepository extends IBaseRepository {
   /**
    *
+   * @param safeAddress
+   */
+  updateQueuedTagByAddress(safeAddress: string): Promise<void>;
+
+  /**
+   *
    * @param safeId
    */
   updateQueuedTag(safeId: number): Promise<any>;

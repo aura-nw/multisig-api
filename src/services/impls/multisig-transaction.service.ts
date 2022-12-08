@@ -90,6 +90,7 @@ export class MultisigTransactionService
       const authInfo = this._commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
       await this.deleteTx(id, creatorAddress);
+
       return ResponseDto.response(ErrorMap.SUCCESSFUL);
     } catch (error) {
       return ResponseDto.responseError(MultisigTransactionService.name, error);
@@ -571,6 +572,9 @@ export class MultisigTransactionService
 
     // delete tx
     await this.multisigTransactionRepos.deleteTx(id);
+
+    // update queued tag
+    await this.safeRepos.updateQueuedTagByAddress(tx.fromAddress);
   }
 
   async makeTx(
