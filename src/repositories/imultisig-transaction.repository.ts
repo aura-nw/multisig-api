@@ -8,6 +8,24 @@ import { IBaseRepository } from './ibase.repository';
 
 export interface IMultisigTransactionsRepository extends IBaseRepository {
   /**
+   * deleteTx by update status to DELETED
+   * @param id
+   */
+  deleteTx(id: number): Promise<void>;
+
+  /**
+   * updateQueueTxToReplaced
+   * @param safeId
+   * @param sequence
+   */
+  updateQueueTxToReplaced(safeId: number, sequence: number);
+
+  /**
+   * findSequenceInQueue
+   * @param safeId
+   */
+  findSequenceInQueue(safeId: number): Promise<number[]>;
+  /**
    * Get Id of a Multisig Transaction
    * @param internalTxHash
    */
@@ -60,7 +78,7 @@ export interface IMultisigTransactionsRepository extends IBaseRepository {
    * Get broadcastable transaction by txId
    * @param transactionId
    */
-  getBroadcastableTx(transactionId: number): Promise<any>;
+  getBroadcastableTx(transactionId: number): Promise<MultisigTransaction>;
 
   /**
    * Update tx when broadcasted success
@@ -70,8 +88,8 @@ export interface IMultisigTransactionsRepository extends IBaseRepository {
   /**
    * Validate safe don't have pending tx
    */
-  validateCreateTx(
-    safeAddress: string,
-    internalChainId: number,
-  ): Promise<boolean>;
+  // validateCreateTx(
+  //   safeAddress: string,
+  //   internalChainId: number,
+  // ): Promise<boolean>;
 }

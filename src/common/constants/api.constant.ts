@@ -11,6 +11,8 @@ export const CONTROLLER_CONSTANTS = {
   USER: 'user',
 };
 export const URL_CONSTANTS = {
+  CHANGE_SEQ: 'change-seq',
+  DELETE_TX: 'delete',
   GET_ADDRESS_SIMULATE: 'simulate/address',
   SIMULATE_TX: 'simulate',
   broadcasting: 'broadcasting',

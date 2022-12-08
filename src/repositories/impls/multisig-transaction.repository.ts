@@ -41,26 +41,56 @@ export class MultisigTransactionRepository
     );
   }
 
-  async validateCreateTx(
-    safeAddress: string,
-    internalChainId: number,
-  ): Promise<boolean> {
-    const count = (
-      await this.repos.findAndCount({
-        where: {
-          internalChainId,
-          fromAddress: safeAddress,
-          status: In([
+  async deleteTx(id: number): Promise<void> {
+    await this.repos
+      .createQueryBuilder()
+      .update(MultisigTransaction)
+      .set({
+        status: TRANSACTION_STATUS.DELETED,
+      })
+      .where('Id = :id', { id })
+      .execute();
+  }
+
+  async updateQueueTxToReplaced(safeId: number, sequence: number) {
+    await this.repos
+      .createQueryBuilder()
+      .update(MultisigTransaction)
+      .set({
+        status: TRANSACTION_STATUS.REPLACED,
+      })
+      .where(
+        'SafeId = :safeId and Sequence = :sequence and Status IN (:...status)',
+        {
+          safeId,
+          sequence,
+          status: [
             TRANSACTION_STATUS.AWAITING_CONFIRMATIONS,
             TRANSACTION_STATUS.AWAITING_EXECUTION,
-          ]),
+          ],
         },
-        select: ['id'],
-      })
-    )[1];
+      )
+      .execute();
+  }
 
-    if (count > 0) throw new CustomError(ErrorMap.SAFE_HAS_PENDING_TX);
-    return true;
+  /**
+   * Find, remove duplicate and sort sequence of queue tx.
+   * @param safeId
+   * @returns
+   */
+  async findSequenceInQueue(safeId: number): Promise<number[]> {
+    const result = await this.repos.find({
+      where: {
+        safeId: safeId,
+        status: In([
+          TRANSACTION_STATUS.AWAITING_CONFIRMATIONS,
+          TRANSACTION_STATUS.AWAITING_EXECUTION,
+        ]),
+      },
+      select: ['sequence'],
+    });
+    const sequence = result.map((item) => Number(item['sequence']));
+    return [...new Set(sequence)].sort();
   }
 
   async updateTxBroadcastSuccess(
@@ -78,7 +108,9 @@ export class MultisigTransactionRepository
     await this.update(multisigTransaction);
   }
 
-  async getBroadcastableTx(transactionId: number): Promise<any> {
+  async getBroadcastableTx(
+    transactionId: number,
+  ): Promise<MultisigTransaction> {
     const multisigTransaction = await this.findOne({
       where: { id: transactionId },
     });

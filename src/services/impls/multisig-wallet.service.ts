@@ -124,6 +124,9 @@ export class MultisigWalletService
       const safeInfo = new GetMultisigWalletResponse();
       safeInfo.id = safe.id;
       safeInfo.address = safe.safeAddress;
+      safeInfo.accountNumber = safe.accountNumber;
+      safeInfo.sequence = safe.sequence;
+      safeInfo.nextQueueSeq = safe.nextQueueSeq || safe.sequence;
       safeInfo.txHistoryTag = safe.txHistoryTag;
       safeInfo.txQueuedTag = safe.txQueuedTag;
       safeInfo.pubkeys = safe.safePubkey;

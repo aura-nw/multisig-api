@@ -61,18 +61,4 @@ export class GeneralController {
   ) {
     return this.generalService.getAccountOnchain(param);
   }
-
-  @Get(URL_CONSTANTS.LIST_VALIDATORS)
-  @ApiOperation({ summary: 'Get validators' })
-  @ApiOkResponse({
-    status: 200,
-    type: MODULE_RESPONSE.GetAccountOnchainResponse,
-    description: 'Get validators',
-    schema: {},
-  })
-  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
-  @HttpCode(HttpStatus.OK)
-  async getValidators(@Param() param: MODULE_REQUEST.GetValidatorsParam) {
-    return this.generalService.getValidators(param);
-  }
 }
