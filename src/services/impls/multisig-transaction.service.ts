@@ -542,6 +542,7 @@ export class MultisigTransactionService
       );
     }
     if (!resultVerify) {
+      throw new CustomError(ErrorMap.SIGNATURE_VERIFICATION_FAILED);
     }
 
     return {
@@ -562,6 +563,7 @@ export class MultisigTransactionService
       return item.denom === denom;
     });
     if (Number(balance.amount) < expectedBalance) {
+      throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
     }
     return true;
   }
@@ -736,7 +738,7 @@ export class MultisigTransactionService
       await this.multisigTransactionRepos.findSequenceInQueue(safeId);
 
     let nextSeq = executedSeq + 1;
-    for (let i = 0; i < queueSequences.length; i++) {
+    for (let i of queueSequences) {
       if (queueSequences[i] !== nextSeq) {
         break;
       }

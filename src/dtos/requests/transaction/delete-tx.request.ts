@@ -1,8 +1,8 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber } from 'class-validator';
 
 export class DeleteTxRequest {
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: 'Id of Multisig Transaction',
     type: Number,
   })

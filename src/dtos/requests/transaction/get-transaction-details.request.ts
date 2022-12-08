@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class GetTransactionDetailsParam {
   @ApiProperty({
@@ -23,6 +23,7 @@ export class GetTxDetailQuery {
     type: Number,
   })
   @IsString()
+  @IsOptional()
   multisigTxId: number;
 
   @ApiPropertyOptional({

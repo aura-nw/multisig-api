@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateTransactionRequest {
   @IsString()
@@ -11,8 +11,8 @@ export class CreateTransactionRequest {
   from: string;
 
   @IsString()
-  @IsNotEmpty()
-  @ApiProperty({
+  @IsOptional()
+  @ApiPropertyOptional({
     description: 'Address of receiver',
     example: 'aura136v0nmlv0saryev8wqz89w80edzdu3quzm0ve9',
   })
