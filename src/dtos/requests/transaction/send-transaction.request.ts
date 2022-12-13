@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { IsNumber } from 'class-validator';
 
 export class SendTransactionRequest {
@@ -14,5 +15,6 @@ export class SendTransactionRequest {
     description: 'Offchain Chain Id',
     example: 4,
   })
+  @Type(() => Number)
   internalChainId: number;
 }

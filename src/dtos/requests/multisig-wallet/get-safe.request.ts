@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class GetSafeQuery {
@@ -8,6 +9,7 @@ export class GetSafeQuery {
   })
   @IsOptional()
   @IsNumber()
+  @Type(() => Number)
   internalChainId: number;
 }
 export class GetSafeBalanceQuery {
@@ -17,6 +19,7 @@ export class GetSafeBalanceQuery {
   })
   @IsOptional()
   @IsNumber()
+  @Type(() => Number)
   internalChainId: number;
 }
 export class GetSafePathParams {

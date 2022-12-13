@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { IsBoolean, IsNumber, IsString } from 'class-validator';
 
 export class GetAllTransactionsRequest {
@@ -30,5 +31,6 @@ export class GetAllTransactionsRequest {
   @ApiProperty({
     example: 13,
   })
+  @Type(() => Number)
   internalChainId: number;
 }

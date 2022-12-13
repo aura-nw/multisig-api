@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { IsNumber, IsString } from 'class-validator';
 
 export class ConfirmTransactionRequest {
@@ -30,6 +31,7 @@ export class ConfirmTransactionRequest {
     description: 'Offline Chain Id',
     example: 4,
   })
+  @Type(() => Number)
   internalChainId: number;
 
   @IsString()
