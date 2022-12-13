@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { IsNumber, IsString } from 'class-validator';
 
 export class GetDelegatorRewardsParam {
@@ -14,5 +15,6 @@ export class GetDelegatorRewardsParam {
     type: Number,
   })
   @IsNumber()
+  @Type(() => Number)
   internalChainId: number;
 }

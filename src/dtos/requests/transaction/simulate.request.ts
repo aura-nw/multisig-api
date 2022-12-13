@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class SimulateTxRequest {
@@ -33,5 +34,6 @@ export class GetSimulateAddressQuery {
     description: 'Offchain Chain Id',
     example: 22,
   })
+  @Type(() => Number)
   internalChainId: number;
 }
