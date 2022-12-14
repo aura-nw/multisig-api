@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 import { VALIDATOR_STATUS } from '../../../common/constants/app.constant';
 
 export class GetValidatorsParam {
@@ -16,5 +16,6 @@ export class GetValidatorsQuery {
     description: 'Status of validators',
     type: VALIDATOR_STATUS,
   })
+  @IsOptional()
   status: VALIDATOR_STATUS;
 }
