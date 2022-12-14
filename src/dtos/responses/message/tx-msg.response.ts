@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Expose, Transform } from 'class-transformer';
+import { Expose, Transform, Type } from 'class-transformer';
 import { IsNumber, IsString } from 'class-validator';
 
 export class TxMessageResponse {
@@ -61,11 +61,13 @@ export class TxMessageResponse {
 
   @Expose()
   @IsNumber()
+  @Type(() => Number)
   @ApiProperty({ example: 1 })
   voteOption: number;
 
   @Expose()
   @IsNumber()
+  @Type(() => Number)
   @ApiProperty({ example: 140 })
   proposalId: number;
 

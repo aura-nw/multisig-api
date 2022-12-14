@@ -4,6 +4,7 @@ import { IsNumber, IsString } from 'class-validator';
 
 export class ConfirmTransactionRequest {
   @IsNumber()
+  @Type(() => Number)
   @ApiProperty({
     description: 'Offchain Transaction Id',
     example: 14,
@@ -27,6 +28,7 @@ export class ConfirmTransactionRequest {
   signature: string;
 
   @IsNumber()
+  @Type(() => Number)
   @ApiProperty({
     description: 'Offline Chain Id',
     example: 4,
@@ -44,6 +46,7 @@ export class ConfirmTransactionRequest {
   authInfoBytes: string;
 
   @IsNumber()
+  @Type(() => Number)
   @ApiProperty({
     description: 'Account number of pyxis safe',
     example: 41,
@@ -51,6 +54,7 @@ export class ConfirmTransactionRequest {
   accountNumber: number;
 
   @IsNumber()
+  @Type(() => Number)
   @ApiProperty({
     description: 'Sequence of pyxis safe',
     example: 48,

@@ -8,6 +8,7 @@ export class CreateMultisigWalletRequest {
   otherOwnersAddress: string[];
 
   @IsNumber()
+  @Type(() => Number)
   @ApiProperty()
   threshold: number;
 
