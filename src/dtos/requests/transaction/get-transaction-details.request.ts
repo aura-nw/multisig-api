@@ -33,6 +33,7 @@ export class GetTxDetailQuery {
     type: Number,
   })
   @IsNumber()
+  @IsOptional()
   @Type(() => Number)
   auraTxId: number;
 }
