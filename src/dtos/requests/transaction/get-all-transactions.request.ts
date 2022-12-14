@@ -16,18 +16,21 @@ export class GetAllTransactionsRequest {
   isHistory: boolean;
 
   @IsNumber()
+  @Type(() => Number)
   @ApiProperty({
     example: 10,
   })
   pageSize: number;
 
   @IsNumber()
+  @Type(() => Number)
   @ApiProperty({
     example: 1,
   })
   pageIndex: number;
 
   @IsNumber()
+  @Type(() => Number)
   @ApiProperty({
     example: 13,
   })

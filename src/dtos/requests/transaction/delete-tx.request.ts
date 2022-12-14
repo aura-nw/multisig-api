@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { IsNumber } from 'class-validator';
 
 export class DeleteTxRequest {
@@ -7,5 +8,6 @@ export class DeleteTxRequest {
     type: Number,
   })
   @IsNumber()
+  @Type(() => Number)
   id: number;
 }

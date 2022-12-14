@@ -27,12 +27,14 @@ export class GetAccountOnchainResponse {
   pubkey: Pubkey;
 
   @IsNumber()
+  @Type(() => Number)
   @ApiProperty({
     example: 39,
   })
   accountNumber: number;
 
   @IsNumber()
+  @Type(() => Number)
   @ApiProperty({
     example: 13,
   })

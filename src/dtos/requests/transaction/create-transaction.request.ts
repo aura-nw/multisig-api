@@ -55,6 +55,7 @@ export class CreateTransactionRequest {
   authInfoBytes: string;
 
   @IsNumber()
+  @Type(() => Number)
   @ApiProperty({
     description: 'Account number of pyxis safe',
     example: 41,
@@ -62,6 +63,7 @@ export class CreateTransactionRequest {
   accountNumber: number;
 
   @IsNumber()
+  @Type(() => Number)
   @ApiProperty({
     description: 'Sequence of pyxis safe',
     example: 48,

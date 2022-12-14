@@ -4,6 +4,7 @@ import { IsNumber } from 'class-validator';
 
 export class RejectTransactionRequest {
   @IsNumber()
+  @Type(() => Number)
   @ApiProperty({
     description: 'Offchain Transaction Id',
     example: 14,
@@ -11,6 +12,7 @@ export class RejectTransactionRequest {
   transactionId: number;
 
   @IsNumber()
+  @Type(() => Number)
   @ApiProperty({
     description: 'Offchain Chain Id',
     example: 4,

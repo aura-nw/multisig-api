@@ -1,4 +1,4 @@
-import { plainToInstance } from 'class-transformer';
+import { plainToInstance, Type } from 'class-transformer';
 import { IsNumber, IsString, validate } from 'class-validator';
 
 export class ChainInfo {
@@ -21,8 +21,10 @@ export class ChainInfo {
   @IsString()
   prefix: string;
   @IsNumber()
+  @Type(() => Number)
   coinDecimals: number;
   @IsNumber()
+  @Type(() => Number)
   gasPrice: number;
   @IsString()
   tokenImg: string;
