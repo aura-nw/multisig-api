@@ -1,11 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsNumber, IsString } from 'class-validator';
 
 export class ConfirmSafePathParams {
   @ApiProperty({
     description: 'safeId',
-    type: String,
+    type: Number,
   })
-  @IsString()
-  safeId: string;
+  @IsNumber()
+  @Type(() => Number)
+  safeId: number;
 }

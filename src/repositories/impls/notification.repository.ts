@@ -49,4 +49,27 @@ export class NotificationRepository
       await this.repo.save(notifications);
     }
   }
+
+  async notifySafeCreated(
+    safeId: number,
+    safeAddress: string,
+    ownerAddresses: string[],
+  ): Promise<void> {
+    const users = await this.userRepo.find({
+      where: {
+        address: In(ownerAddresses),
+      },
+    });
+    const notifications = users.map((user) => {
+      return Notification.newSafeCreatedNotification(
+        user.id,
+        safeId,
+        safeAddress,
+      );
+    });
+
+    if (notifications.length > 0) {
+      await this.repo.save(notifications);
+    }
+  }
 }
