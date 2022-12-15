@@ -1,4 +1,4 @@
-import { SafeOwner } from '../entities';
+import { Safe, SafeOwner } from '../entities';
 import { IBaseRepository } from './ibase.repository';
 
 export interface IMultisigWalletOwnerRepository extends IBaseRepository {
@@ -9,7 +9,7 @@ export interface IMultisigWalletOwnerRepository extends IBaseRepository {
   getOwners(safeAddress: string): any;
 
   insertOwners(
-    safeId: string,
+    safeId: number,
     internalChainId: number,
     creatorAddress: string,
     creatorPubkey: string,
@@ -34,11 +34,11 @@ export interface IMultisigWalletOwnerRepository extends IBaseRepository {
    * Recover safe owner
    */
   recoverSafeOwner(
-    safeId: string,
+    safeId: number,
     ownerAddress: string,
     ownerPubkey: string,
     internalChainId: number,
-  ): Promise<any>;
+  ): Promise<Safe>;
 
   /**
    * isSafeOwner

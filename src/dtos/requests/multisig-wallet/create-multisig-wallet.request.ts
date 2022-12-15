@@ -1,9 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsNumber, IsString } from 'class-validator';
+import { IsArray, IsNumber, IsString } from 'class-validator';
 
 export class CreateMultisigWalletRequest {
-  @IsString()
+  @IsArray()
   @ApiProperty({ type: [String] })
   otherOwnersAddress: string[];
 

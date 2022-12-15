@@ -14,6 +14,21 @@ export const COMMON_CONSTANTS = {
   ),
 };
 
+export enum NotificationEventType {
+  WAIT_ALLOW_SAFE = 'WAIT_ALLOW_SAFE',
+  SAFE_CREATED = 'SAFE_CREATED',
+  WAIT_CONFIRM_TX = 'WAIT_CONFIRM_TX',
+  WAIT_EXECUTE_TX = 'WAIT_EXECUTE_TX',
+  TX_BROADCASTED = 'TX_BROADCASTED',
+  TX_DELETED = 'TX_DELETED',
+  START_VOTING_PERIOD = 'START_VOTING_PERIOD',
+}
+
+export enum NotificationStatus {
+  READ = 'READ',
+  UNREAD = 'UNREAD',
+}
+
 export enum AppConstants {
   USER_KEY = 'user_key',
 }

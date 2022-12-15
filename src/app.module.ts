@@ -37,6 +37,7 @@ import { UserController } from './controllers/user.controller';
 import { UserRepository } from './repositories/impls/user.repository';
 import { UserService } from './services/impls/user.service';
 import { MessageRepository } from './repositories/impls/message.repository';
+import { NotificationRepository } from './repositories/impls/notification.repository';
 
 const controllers = [
   MultisigWalletController,
@@ -59,6 +60,7 @@ const entities = [
   ENTITIES_CONFIG.GAS,
   ENTITIES_CONFIG.USER,
   ENTITIES_CONFIG.MESSAGE,
+  ENTITIES_CONFIG.NOTIFICATION,
 ];
 @Module({
   imports: [
@@ -123,6 +125,10 @@ const entities = [
     {
       provide: REPOSITORY_INTERFACE.IMESSAGE_REPOSITORY,
       useClass: MessageRepository,
+    },
+    {
+      provide: REPOSITORY_INTERFACE.INOTIFICATION_REPOSITORY,
+      useClass: NotificationRepository,
     },
     //service
     {
