@@ -16,7 +16,7 @@ export class MultisigWalletOwnerRepository
   private readonly _logger = new Logger(MultisigWalletOwnerRepository.name);
   constructor(
     @InjectRepository(ENTITIES_CONFIG.SAFE_OWNER)
-    private readonly repos: Repository<ObjectLiteral>,
+    private readonly repos: Repository<SafeOwner>,
   ) {
     super(repos);
     this._logger.log(
@@ -84,49 +84,48 @@ export class MultisigWalletOwnerRepository
     }
   }
 
-  async getSafeOwnersWithError(safeId: number): Promise<any> {
-    const owners = (await this.findByCondition({ safeId })) as SafeOwner[];
-    if (!owners || owners.length === 0) {
+  async getSafeOwnersWithError(safeId: number): Promise<SafeOwner[]> {
+    const owners = await this.repos.find({
+      where: { safeId },
+    });
+    if (owners.length === 0) {
       this._logger.debug(`Not found any safe owner with safeId: ${safeId}`);
       throw new CustomError(ErrorMap.NO_SAFE_OWNERS_FOUND);
     }
     return owners;
   }
 
-  async getConfirmSafeStatus(
-    safeId: string,
-    myAddress: string,
-    myPubkey: string,
-  ): Promise<{
-    safeOwner: SafeOwner;
-    fullConfirmed: boolean;
-    pubkeys: string[];
-  }> {
-    // get safe owners
-    const safeOwners = await this.getSafeOwnersWithError(Number(safeId));
+  async getConfirmationStatus(
+    safeId: number,
+    ownerAddress: string,
+  ): Promise<SafeOwner[]> {
+    // get list safe owners
+    const safeOwners = await this.getSafeOwnersWithError(safeId);
 
-    // get safe owner by address
-    const index = safeOwners.findIndex((s) => s.ownerAddress === myAddress);
-    if (index === -1)
+    // get info of owner
+    const safeOwnerInfo = safeOwners.find(
+      (s) => s.ownerAddress === ownerAddress,
+    );
+
+    // if owner not found, throw error
+    if (!safeOwnerInfo)
       throw new CustomError(ErrorMap.SAFE_OWNERS_NOT_INCLUDE_ADDRESS);
-    if (safeOwners[index].ownerPubkey !== null)
+
+    // if ownerPubkey is not empty, it means owner already confirmed, throw error
+    if (safeOwnerInfo.ownerPubkey !== null)
       throw new CustomError(ErrorMap.SAFE_OWNER_PUBKEY_NOT_EMPTY);
 
-    safeOwners[index].ownerPubkey = myPubkey;
-    // check all owner confirmed
-    const notReadyOwner = safeOwners.findIndex((s) => s.ownerPubkey === null);
-    const fullConfirmed = notReadyOwner !== -1 ? false : true;
-
-    // calculate owner pubKey array
-    const pubkeys = safeOwners.map((s) => {
-      return s.ownerAddress === myAddress ? myPubkey : s.ownerPubkey;
-    });
-    return { safeOwner: safeOwners[index], fullConfirmed, pubkeys };
+    return safeOwners;
   }
 
-  async updateSafeOwner(safeOwner: SafeOwner): Promise<void> {
-    const updateResult = await this.update(safeOwner);
+  async updateSafeOwner(
+    safeOwner: SafeOwner,
+    ownerPubkey: string,
+  ): Promise<SafeOwner> {
+    safeOwner.ownerPubkey = ownerPubkey;
+    const updateResult = await this.repos.save(safeOwner);
     if (!updateResult) throw new CustomError(ErrorMap.UPDATE_SAFE_OWNER_FAILED);
+    return updateResult;
   }
 
   async isSafeOwner(walletAddress: string, safeId: number): Promise<boolean> {

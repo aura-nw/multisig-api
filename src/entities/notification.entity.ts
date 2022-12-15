@@ -63,4 +63,18 @@ export class Notification extends BaseEntityAutoId {
       status: NotificationStatus.UNREAD,
     });
   }
+
+  static newSafeCreatedNotification(
+    userId: number,
+    safeId: number,
+    safeAddress: string,
+  ): Notification {
+    return plainToInstance(Notification, {
+      eventType: NotificationEventType.SAFE_CREATED,
+      status: NotificationStatus.UNREAD,
+      userId,
+      safeId,
+      safeAddress,
+    });
+  }
 }

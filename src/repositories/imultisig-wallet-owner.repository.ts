@@ -18,17 +18,15 @@ export interface IMultisigWalletOwnerRepository extends IBaseRepository {
 
   getSafeOwnersWithError(safeId: number): Promise<any>;
 
-  getConfirmSafeStatus(
-    safeId: string,
-    myAddress: string,
-    myPubkey: string,
-  ): Promise<{
-    safeOwner: SafeOwner;
-    fullConfirmed: boolean;
-    pubkeys: string[];
-  }>;
+  getConfirmationStatus(
+    safeId: number,
+    ownerAddress: string,
+  ): Promise<SafeOwner[]>;
 
-  updateSafeOwner(safeOwner: SafeOwner): Promise<void>;
+  updateSafeOwner(
+    safeOwner: SafeOwner,
+    ownerPubkey: string,
+  ): Promise<SafeOwner>;
 
   /**
    * Recover safe owner

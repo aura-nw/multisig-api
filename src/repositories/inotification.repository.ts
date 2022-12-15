@@ -6,4 +6,10 @@ export interface INotificationRepository extends IBaseRepository {
     creatorAddress: string,
     otherOwnersAddress: string[],
   ): Promise<void>;
+
+  notifySafeCreated(
+    safeId: number,
+    safeAddress: string,
+    ownerAddresses: string[],
+  ): Promise<void>;
 }

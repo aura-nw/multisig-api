@@ -82,7 +82,7 @@ export class MultisigWalletService
         this._commonUtil.filterEmptyInStringArray(otherOwnersAddress);
 
       // insert safe
-      const result = await this.safeRepo.insertSafe(
+      const newSafe = await this.safeRepo.insertSafe(
         creatorAddress,
         creatorPubkey,
         otherOwnersAddress,
@@ -90,7 +90,7 @@ export class MultisigWalletService
         internalChainId,
         chainInfo.prefix,
       );
-      const safeId = result.id;
+      const safeId = newSafe.id;
 
       // insert safe_creator
       await this.safeOwnerRepo.insertOwners(
@@ -101,16 +101,29 @@ export class MultisigWalletService
         otherOwnersAddress,
       );
 
-      // notification to other owners
-      await this.notificationRepo.notifyAllowSafe(
-        result.id,
-        result.creatorAddress,
-        otherOwnersAddress,
-      );
+      /**
+       * Notify
+       * 1. If safe created, notify the creator that safe created
+       * 2. If safeAddress is null, notify other owners to allow safe
+       */
+      if (newSafe.safeAddress) {
+        await this.notificationRepo.notifySafeCreated(
+          newSafe.id,
+          newSafe.safeAddress,
+          [creatorAddress],
+        );
+      } else {
+        // notification to other owners
+        await this.notificationRepo.notifyAllowSafe(
+          newSafe.id,
+          newSafe.creatorAddress,
+          otherOwnersAddress,
+        );
+      }
 
       return ResponseDto.response(
         ErrorMap.SUCCESSFUL,
-        this._commonUtil.omitByNil(result),
+        this._commonUtil.omitByNil(newSafe),
       );
     } catch (error) {
       return ResponseDto.responseError(MultisigWalletService.name, error);
@@ -195,29 +208,43 @@ export class MultisigWalletService
       const myPubkey = authInfo.pubkey;
 
       // find safe
-      const safe = await this.safeRepo.getPendingSafe(safeId);
+      const safe = await this.safeRepo.getPendingSafe(safeId.toString());
       // get chainInfo
       const chainInfo = await this.generalRepo.findChain(safe.internalChainId);
 
       await this.checkAddressPubkeyMismatch(myAddress, myPubkey, chainInfo);
-      // get confirm status
-      const { safeOwner, fullConfirmed, pubkeys } =
-        await this.safeOwnerRepo.getConfirmSafeStatus(
-          safeId,
-          myAddress,
-          myPubkey,
-        );
-      // update safe owner
-      await this.safeOwnerRepo.updateSafeOwner(safeOwner);
-      if (!fullConfirmed)
-        return ResponseDto.response(ErrorMap.SUCCESSFUL, safe);
 
-      const result = await this.safeRepo.confirmSafe(
-        safe,
-        pubkeys,
-        chainInfo.prefix,
+      // get confirm status
+      const confirmations = await this.safeOwnerRepo.getConfirmationStatus(
+        safeId,
+        myAddress,
       );
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
+
+      // update safe owner
+      await this.safeOwnerRepo.updateSafeOwner(
+        confirmations.find((item) => item.ownerAddress === myAddress),
+        myPubkey,
+      );
+
+      // if all owner confirmed => create safe
+      if (
+        confirmations.filter((item) => item.ownerPubkey === null).length === 0
+      ) {
+        safe.setAddressAndPubkey(
+          confirmations.map((item) => item.ownerPubkey),
+          chainInfo.prefix,
+        );
+        safe.status = SAFE_STATUS.CREATED;
+        await this.safeRepo.updateSafe(safe);
+
+        await this.notificationRepo.notifySafeCreated(
+          safe.id,
+          safe.safeAddress,
+          confirmations.map((c) => c.ownerAddress),
+        );
+      }
+
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, safe);
     } catch (error) {
       return ResponseDto.responseError(MultisigWalletService.name, error);
     }
@@ -282,7 +309,7 @@ export class MultisigWalletService
     if (chain.name === 'Terra Testnet') {
       const simplePubkey = new SimplePublicKey(pubkey);
       generatedAddress = simplePubkey.address();
-    } else if (chain.name === 'Evmos Testnet') {
+    } else if (chain.prefix.startsWith('evmos')) {
       generatedAddress = pubkeyToAddressEvmos(pubkey);
     } else {
       // get address from pubkey
