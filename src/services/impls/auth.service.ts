@@ -79,16 +79,17 @@ export class AuthService implements IAuthService {
         throw new CustomError(ErrorMap.SIGNATURE_VERIFICATION_FAILED);
       }
 
+      // insert user if not exist
+      const user = await this.userRepo.createUserIfNotExists(address, pubkey);
+
       const payload = {
+        userId: user.id,
         address: address,
         pubkey: pubkey,
         // data: data,
         signature: signature,
       };
       const accessToken = this.jwtService.sign(payload);
-
-      // insert user if not exist
-      const user = await this.userRepo.createUserIfNotExists(address, pubkey);
 
       return ResponseDto.response(ErrorMap.SUCCESSFUL, {
         AccessToken: `${accessToken}`,

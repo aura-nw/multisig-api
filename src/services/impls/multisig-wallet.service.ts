@@ -1,4 +1,3 @@
-import * as _ from 'lodash';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ResponseDto } from '../../dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
@@ -111,7 +110,7 @@ export class MultisigWalletService
 
       return ResponseDto.response(
         ErrorMap.SUCCESSFUL,
-        _.omitBy(result, _.isNil),
+        this._commonUtil.omitByNil(result),
       );
     } catch (error) {
       return ResponseDto.responseError(MultisigWalletService.name, error);
