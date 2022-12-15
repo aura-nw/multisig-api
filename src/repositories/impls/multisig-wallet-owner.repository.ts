@@ -25,7 +25,7 @@ export class MultisigWalletOwnerRepository
   }
 
   async recoverSafeOwner(
-    safeId: string,
+    safeId: number,
     ownerAddress: string,
     ownerPubkey: string,
     internalChainId: number,
@@ -54,7 +54,7 @@ export class MultisigWalletOwnerRepository
   }
 
   async insertOwners(
-    safeId: string,
+    safeId: number,
     internalChainId: number,
     creatorAddress: string,
     creatorPubkey: string,

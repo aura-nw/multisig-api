@@ -66,7 +66,7 @@ export class MultisigWalletRepository
     newSafe: Safe,
     otherOwnersAddress: string[],
     chainPrefix: string,
-  ): Promise<any> {
+  ): Promise<Safe> {
     // check duplicate with safe address hash
     const safeAddressHash = await this.makeAddressHash(
       newSafe.internalChainId,
@@ -208,7 +208,7 @@ export class MultisigWalletRepository
     threshold: number,
     internalChainId: number,
     chainPrefix: string,
-  ): Promise<any> {
+  ): Promise<Safe> {
     const newSafe = new ENTITIES_CONFIG.SAFE();
     newSafe.creatorAddress = creatorAddress;
     newSafe.creatorPubkey = creatorPubkey;
@@ -243,7 +243,7 @@ export class MultisigWalletRepository
       }
     }
     try {
-      const result = await this.create(newSafe);
+      const result: Safe = await this.create(newSafe);
       return result;
     } catch (err) {
       throw new CustomError(ErrorMap.INSERT_SAFE_FAILED, err.message);

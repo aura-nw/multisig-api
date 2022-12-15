@@ -1,4 +1,4 @@
-import * as axios from 'axios';
+import * as _ from 'lodash';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ResponseDto } from '../../dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
@@ -17,13 +17,14 @@ import { plainToInstance } from 'class-transformer';
 import { ListSafeByOwnerResponse } from '../../dtos/responses/multisig-wallet/get-safe-by-owner.response';
 import { IGeneralRepository } from '../../repositories/igeneral.repository';
 import { CustomError } from '../../common/customError';
-import { Chain } from '../../entities';
+import { Chain, Notification } from '../../entities';
 import { encodeSecp256k1Pubkey, pubkeyToAddress } from '@cosmjs/amino';
 import { fromBase64 } from '@cosmjs/encoding';
 import { SimplePublicKey } from '@terra-money/terra.js';
 import { pubkeyToAddressEvmos } from '../../chains/evmos';
 import { IndexerClient } from 'src/utils/apis/IndexerClient';
 import { ConfigService } from 'src/shared/services/config.service';
+import { INotificationRepository } from 'src/repositories/inotification.repository';
 
 @Injectable()
 export class MultisigWalletService
@@ -42,6 +43,8 @@ export class MultisigWalletService
     private safeOwnerRepo: IMultisigWalletOwnerRepository,
     @Inject(REPOSITORY_INTERFACE.IGENERAL_REPOSITORY)
     private generalRepo: IGeneralRepository,
+    @Inject(REPOSITORY_INTERFACE.INOTIFICATION_REPOSITORY)
+    private notificationRepo: INotificationRepository,
   ) {
     super(safeRepo);
     this._logger.log(
@@ -99,7 +102,17 @@ export class MultisigWalletService
         otherOwnersAddress,
       );
 
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
+      // notification to other owners
+      await this.notificationRepo.notifyAllowSafe(
+        result.id,
+        result.creatorAddress,
+        otherOwnersAddress,
+      );
+
+      return ResponseDto.response(
+        ErrorMap.SUCCESSFUL,
+        _.omitBy(result, _.isNil),
+      );
     } catch (error) {
       return ResponseDto.responseError(MultisigWalletService.name, error);
     }

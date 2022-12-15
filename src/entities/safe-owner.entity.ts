@@ -4,7 +4,7 @@ import { BaseEntityAutoId } from './base/base.entity';
 @Entity({ name: 'SafeOwner' })
 export class SafeOwner extends BaseEntityAutoId {
   @Column({ name: 'SafeId' })
-  safeId: string;
+  safeId: number;
 
   @Column({ name: 'OwnerAddress' })
   ownerAddress: string;

@@ -60,6 +60,7 @@ import {
   Message,
   MultisigConfirm,
   MultisigTransaction,
+  Notification,
   Safe,
   SafeOwner,
   User,
@@ -77,6 +78,7 @@ export const ENTITIES_CONFIG = {
   GAS: Gas,
   USER: User,
   MESSAGE: Message,
+  NOTIFICATION: Notification,
 };
 
 export const REQUEST_CONFIG = {
@@ -222,6 +224,7 @@ export const REPOSITORY_INTERFACE = {
   IGAS_REPOSITORY: 'IGasRepository',
   IUSER_REPOSITORY: 'IUserRepository',
   IMESSAGE_REPOSITORY: 'IMessageRepository',
+  INOTIFICATION_REPOSITORY: 'INotificationRepository',
 };
 
 export const PROVIDER_INTERFACE = {};
