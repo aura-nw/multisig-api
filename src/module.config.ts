@@ -36,6 +36,7 @@ import {
   SimulateTxRequest,
   GetSimulateAddressQuery,
   ChangeSequenceTransactionRequest,
+  GetNotificationRequest,
 } from './dtos/requests';
 import { DeleteTxRequest } from './dtos/requests/transaction/delete-tx.request';
 import {
@@ -124,6 +125,7 @@ export const REQUEST_CONFIG = {
   SIMULATE_TX_REQUEST: SimulateTxRequest,
   GET_SIMULATE_ADDRESS_QUERY: GetSimulateAddressQuery,
   DELETE_TX_REQUEST: DeleteTxRequest,
+  GET_NOTIFICATION_REQUEST: GetNotificationRequest,
 };
 
 export const RESPONSE_CONFIG = {
@@ -187,6 +189,7 @@ export namespace MODULE_REQUEST {
   export abstract class SimulateTxRequest extends REQUEST_CONFIG.SIMULATE_TX_REQUEST {}
   export abstract class GetSimulateAddressQuery extends REQUEST_CONFIG.GET_SIMULATE_ADDRESS_QUERY {}
   export abstract class DeleteTxRequest extends REQUEST_CONFIG.DELETE_TX_REQUEST {}
+  export abstract class GetNotificationRequest extends REQUEST_CONFIG.GET_NOTIFICATION_REQUEST {}
 }
 
 export namespace MODULE_RESPONSE {
@@ -220,6 +223,7 @@ export const SERVICE_INTERFACE = {
   IGOV_SERVICE: 'IGovService',
   IDISTRIBUTION_SERVICE: 'IDistributionService',
   IUSER_SERVICE: 'IUserService',
+  INOTIFICATION_SERVICE: 'INotificationService',
 };
 
 export const REPOSITORY_INTERFACE = {

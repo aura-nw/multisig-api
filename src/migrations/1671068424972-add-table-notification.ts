@@ -12,7 +12,7 @@ export class addTableNotification1671068424972 implements MigrationInterface {
             SafeId int(11) NULL,
             SafeCreatorAddress varchar(100) COLLATE utf8_unicode_ci NULL,
             SafeAddress varchar(100) COLLATE utf8_unicode_ci NULL,
-            SafeOwnerNum int(11) NULL,
+            TotalOwner int(11) NULL,
             TxId int(11) NULL,
             TxCreatorAddress varchar(100) COLLATE utf8_unicode_ci NULL,
             TxSequence int(11) NULL,

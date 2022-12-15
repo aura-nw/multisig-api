@@ -38,6 +38,9 @@ import { UserRepository } from './repositories/impls/user.repository';
 import { UserService } from './services/impls/user.service';
 import { MessageRepository } from './repositories/impls/message.repository';
 import { NotificationRepository } from './repositories/impls/notification.repository';
+import { CommonUtil } from './utils/common.util';
+import { NotificationController } from './controllers/notification.controller';
+import { NotificationService } from './services/impls/notification.service';
 
 const controllers = [
   MultisigWalletController,
@@ -48,6 +51,7 @@ const controllers = [
   GovController,
   DistributionController,
   UserController,
+  NotificationController,
   // AppController,
 ];
 const entities = [
@@ -162,6 +166,10 @@ const entities = [
     {
       provide: SERVICE_INTERFACE.IUSER_SERVICE,
       useClass: UserService,
+    },
+    {
+      provide: SERVICE_INTERFACE.INOTIFICATION_SERVICE,
+      useClass: NotificationService,
     },
   ],
 })

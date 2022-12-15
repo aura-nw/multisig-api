@@ -24,8 +24,8 @@ export class Notification extends BaseEntityAutoId {
   @Column({ name: 'SafeAddress', nullable: true })
   safeAddress: string;
 
-  @Column({ name: 'SafeOwnerNum', nullable: true })
-  safeOwnerNum: number;
+  @Column({ name: 'TotalOwner', nullable: true })
+  totalOwner: number;
 
   @Column({ name: 'TxId', nullable: true })
   txId: number;
@@ -52,14 +52,14 @@ export class Notification extends BaseEntityAutoId {
     userId: number,
     safeId: number,
     safeCreatorAddress: string,
-    safeOwnerNum: number,
+    totalOwner: number,
   ): Notification {
     return plainToInstance(Notification, {
       userId,
       eventType: NotificationEventType.WAIT_ALLOW_SAFE,
       safeId,
       safeCreatorAddress,
-      safeOwnerNum,
+      totalOwner,
       status: NotificationStatus.UNREAD,
     });
   }

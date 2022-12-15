@@ -12,6 +12,7 @@ export class AuthUserInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
     const user: UserInfo = {
+      userId: request.user.userId,
       address: request.user.address,
       pubkey: request.user.pubkey,
       // data: request.user.data,

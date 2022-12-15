@@ -30,6 +30,7 @@ import { UserInfo } from '../dtos/userInfo';
 import { MultisigTransaction, Safe } from '../entities';
 import { AuthService } from '../services/impls/auth.service';
 import { ConfigService } from '../shared/services/config.service';
+import { Injectable } from '@nestjs/common';
 
 export class CommonUtil {
   private configService: ConfigService = new ConfigService();
@@ -236,5 +237,11 @@ export class CommonUtil {
       return '0';
     }
     return ((+number * 100) / sum).toFixed(2);
+  }
+
+  omitByNil(obj: any) {
+    return Object.fromEntries(
+      Object.entries(obj).filter(([_, v]) => v != null),
+    );
   }
 }

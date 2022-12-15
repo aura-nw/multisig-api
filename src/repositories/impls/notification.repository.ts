@@ -41,7 +41,7 @@ export class NotificationRepository
         user.id,
         safeId,
         creatorAddress,
-        users.length,
+        users.length + 1,
       );
     });
 

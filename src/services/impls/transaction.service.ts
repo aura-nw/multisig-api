@@ -1,4 +1,3 @@
-import * as _ from 'lodash';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import {
   MULTISIG_CONFIRM_STATUS,
@@ -22,6 +21,8 @@ import { ITransactionService } from '../transaction.service';
 import { BaseService } from './base.service';
 import { TxDetail } from 'src/dtos/responses/multisig-transaction/tx-detail.response';
 import { TxMessageResponse } from 'src/dtos/responses/message/tx-msg.response';
+import { CommonUtil } from 'src/utils/common.util';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class TransactionService
@@ -29,6 +30,7 @@ export class TransactionService
   implements ITransactionService
 {
   private readonly _logger = new Logger(TransactionService.name);
+  private readonly utils: CommonUtil = new CommonUtil();
 
   constructor(
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_TRANSACTION_REPOSITORY)
@@ -155,7 +157,10 @@ export class TransactionService
         const messages = await this.messageRepos.getMsgsByAuraTxId(
           txDetail.AuraTxId,
         );
-        txDetail.Messages = messages.map((msg) => _.omitBy(msg, _.isNil));
+        txDetail.Messages = plainToInstance(
+          TxMessageResponse,
+          messages.map((msg) => this.utils.omitByNil(msg)),
+        );
 
         txDetail.Status = this.parseStatus(txDetail.Status);
       } else {
@@ -243,7 +248,7 @@ export class TransactionService
   ) {
     return multisigMsgs.map((msg) => {
       // Remove a null or undefined value
-      msg = _.omitBy(msg, _.isNil);
+      msg = plainToInstance(TxMessageResponse, this.utils.omitByNil(msg));
 
       // get amount from auraTx tbl when msg type is withdraw reward
       if (msg.typeUrl === TX_TYPE_URL.WITHDRAW_REWARD) {
