@@ -12,13 +12,14 @@ export class SimulateTxRequest {
   })
   encodedMsgs: string;
 
-  @IsString()
+  @IsNumber()
+  @Type(() => Number)
   @IsNotEmpty()
   @ApiProperty({
     description: 'SafeId',
-    example: '336',
+    example: 336,
   })
-  safeId: string;
+  safeId: number;
 }
 
 export class GetSimulateAddressQuery {
