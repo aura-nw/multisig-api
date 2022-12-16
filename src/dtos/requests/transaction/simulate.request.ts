@@ -12,20 +12,14 @@ export class SimulateTxRequest {
   })
   encodedMsgs: string;
 
-  @IsString()
+  @IsNumber()
+  @Type(() => Number)
   @IsNotEmpty()
   @ApiProperty({
     description: 'SafeId',
-    example: '336',
+    example: 336,
   })
-  safeId: string;
-
-  //   @IsNumber()
-  //   @ApiProperty({
-  //     description: 'Offchain Chain Id',
-  //     example: 22,
-  //   })
-  //   internalChainId: number;
+  safeId: number;
 }
 
 export class GetSimulateAddressQuery {

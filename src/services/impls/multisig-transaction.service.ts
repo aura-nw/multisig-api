@@ -149,7 +149,7 @@ export class MultisigTransactionService
       );
 
       // get safe info
-      const safeInfo = await this.safeRepos.getSafe(safeId);
+      const safeInfo = await this.safeRepos.getSafe(safeId.toString());
       if (safeInfo.status !== SAFE_STATUS.CREATED)
         throw new CustomError(ErrorMap.INVALID_SAFE);
 
