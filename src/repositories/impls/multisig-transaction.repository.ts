@@ -192,6 +192,7 @@ export class MultisigTransactionRepository
         'MT.Fee as Fee',
         'MT.Gas as Gas',
         'MT.Status as Status',
+        'MT.Sequence as Sequence',
         'MT.CreatedAt as CreatedAt',
         'MT.UpdatedAt as UpdatedAt',
       ])

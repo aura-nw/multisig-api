@@ -248,7 +248,6 @@ export class TransactionService
   ) {
     return multisigMsgs.map((msg) => {
       // Remove a null or undefined value
-      msg = plainToInstance(TxMessageResponse, this.utils.omitByNil(msg));
 
       // get amount from auraTx tbl when msg type is withdraw reward
       if (msg.typeUrl === TX_TYPE_URL.WITHDRAW_REWARD) {
@@ -259,7 +258,11 @@ export class TransactionService
         );
         if (withdrawMsg.length > 0) msg.amount = withdrawMsg[0].amount;
       }
-      return msg;
+      const formatMsg = this.utils.omitByNil(msg);
+      return plainToInstance(TxMessageResponse, formatMsg, {
+        excludeExtraneousValues: true,
+        exposeUnsetFields: false,
+      });
     });
   }
 

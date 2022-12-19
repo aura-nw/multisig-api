@@ -99,6 +99,7 @@ export class TransactionRepository
         'AT.Fee as Fee',
         'AT.GasWanted as Gas',
         'AT.Code as Status',
+        'MT.Sequence as Sequence',
         'AT.CreatedAt as CreatedAt',
         'AT.UpdatedAt as UpdatedAt',
       ])

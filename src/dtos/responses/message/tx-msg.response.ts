@@ -77,8 +77,6 @@ export class TxMessageResponse {
   voter: string;
 
   @Expose()
-  // @IsString()
-  @Transform(({ value }) => JSON.parse(value))
   @ApiProperty({
     example: [
       {
@@ -95,7 +93,6 @@ export class TxMessageResponse {
   inputs: any;
 
   @Expose()
-  @Transform(({ value }) => JSON.parse(value))
   @ApiProperty({ example: '' })
   outputs: string;
 }
