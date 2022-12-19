@@ -248,7 +248,7 @@ export class MultisigTransactionRepository
     const offset = limit * (pageIndex - 1);
     const result: any[] = await this.repos.query(
       `
-      SELECT Id as MultisigTxId, NULL as AuraTxId, CreatedAt, UpdatedAt, Amount as MultisigTxAmount, TypeUrl, FromAddress as FromAddress, Status
+      SELECT Id as MultisigTxId, NULL as AuraTxId, CreatedAt, UpdatedAt, Amount as MultisigTxAmount, TypeUrl, FromAddress as FromAddress, Status, Sequence
       FROM MultisigTransaction
       WHERE FromAddress = ?
       AND (Status = ? OR Status = ? OR Status = ?)
