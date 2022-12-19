@@ -7,3 +7,4 @@ export * from './safe.entity';
 export * from './gas.entity';
 export * from './user.entity';
 export * from './message.entity';
+export * from './notification.entity';

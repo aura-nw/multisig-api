@@ -14,6 +14,7 @@ import { IGeneralRepository } from '../igeneral.repository';
 import { IMultisigWalletOwnerRepository } from '../imultisig-wallet-owner.repository';
 import { ConfigService } from 'src/shared/services/config.service';
 import { IndexerClient } from 'src/utils/apis/IndexerClient';
+import { CommonUtil } from 'src/utils/common.util';
 
 @Injectable()
 export class MultisigWalletRepository
@@ -66,7 +67,7 @@ export class MultisigWalletRepository
     newSafe: Safe,
     otherOwnersAddress: string[],
     chainPrefix: string,
-  ): Promise<any> {
+  ): Promise<Safe> {
     // check duplicate with safe address hash
     const safeAddressHash = await this.makeAddressHash(
       newSafe.internalChainId,
@@ -79,7 +80,7 @@ export class MultisigWalletRepository
     // check if need create safe address
     if (otherOwnersAddress.length === 0) {
       try {
-        const { address, pubkey } = this._commonUtil.createSafeAddressAndPubkey(
+        const { address, pubkey } = CommonUtil.createSafeAddressAndPubkey(
           [newSafe.creatorPubkey],
           newSafe.threshold,
           chainPrefix,
@@ -208,42 +209,28 @@ export class MultisigWalletRepository
     threshold: number,
     internalChainId: number,
     chainPrefix: string,
-  ): Promise<any> {
-    const newSafe = new ENTITIES_CONFIG.SAFE();
-    newSafe.creatorAddress = creatorAddress;
-    newSafe.creatorPubkey = creatorPubkey;
-    newSafe.threshold = threshold;
-    newSafe.internalChainId = internalChainId;
-
+  ): Promise<Safe> {
     // check duplicate with safe address hash
     const safeAddressHash = await this.makeAddressHash(
-      newSafe.internalChainId,
+      internalChainId,
       [creatorAddress, ...otherOwnersAddress],
       threshold,
     );
-    newSafe.addressHash = safeAddressHash;
-    newSafe.status = SAFE_STATUS.PENDING;
 
-    // check if need create safe address
-    if (otherOwnersAddress.length === 0) {
-      try {
-        const { address, pubkey } = this._commonUtil.createSafeAddressAndPubkey(
-          [creatorPubkey],
-          threshold,
-          chainPrefix,
-        );
-        newSafe.safeAddress = address;
-        newSafe.safePubkey = pubkey;
-        newSafe.status = SAFE_STATUS.CREATED;
-      } catch (error) {
-        throw new CustomError(
-          ErrorMap.CANNOT_CREATE_SAFE_ADDRESS,
-          error.message,
-        );
-      }
-    }
+    // create safe
+    const newSafe = Safe.buildSafe(
+      [creatorPubkey],
+      otherOwnersAddress.length + 1,
+      threshold,
+      chainPrefix,
+    );
+    newSafe.creatorAddress = creatorAddress;
+    newSafe.creatorPubkey = creatorPubkey;
+    newSafe.internalChainId = internalChainId;
+    newSafe.addressHash = safeAddressHash;
+
     try {
-      const result = await this.create(newSafe);
+      const result: Safe = await this.create(newSafe);
       return result;
     } catch (err) {
       throw new CustomError(ErrorMap.INSERT_SAFE_FAILED, err.message);
@@ -268,33 +255,14 @@ export class MultisigWalletRepository
     return safe;
   }
 
-  async getPendingSafe(safeId: string, internalChainId?: number): Promise<any> {
+  async getPendingSafe(
+    safeId: string,
+    internalChainId?: number,
+  ): Promise<Safe> {
     const safe = await this.getSafe(safeId, internalChainId);
     // check safe
     if (safe.status !== SAFE_STATUS.PENDING)
       throw new CustomError(ErrorMap.SAFE_NOT_PENDING);
-    return safe;
-  }
-
-  async confirmSafe(
-    safe: Safe,
-    pubkeys: string[],
-    prefix: string,
-  ): Promise<Safe> {
-    try {
-      const safeInfo = this._commonUtil.createSafeAddressAndPubkey(
-        pubkeys,
-        safe.threshold,
-        prefix,
-      );
-      safe.safeAddress = safeInfo.address;
-      safe.safePubkey = safeInfo.pubkey;
-      safe.status = SAFE_STATUS.CREATED;
-    } catch (error) {
-      throw new CustomError(ErrorMap.CANNOT_CREATE_SAFE_ADDRESS, error.message);
-    }
-    // update safe
-    await this.update(safe);
     return safe;
   }
 

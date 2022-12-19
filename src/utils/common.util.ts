@@ -29,20 +29,14 @@ import { ErrorMap } from '../common/error.map';
 import { UserInfo } from '../dtos/userInfo';
 import { MultisigTransaction, Safe } from '../entities';
 import { AuthService } from '../services/impls/auth.service';
-import { ConfigService } from '../shared/services/config.service';
 
 export class CommonUtil {
-  private configService: ConfigService = new ConfigService();
-
   /**
    * Calculate address from public key
    * @param pubkey public key
    * @returns address string
    */
-  public pubkeyToAddress(
-    pubkey: Pubkey,
-    prefix = this.configService.get('PREFIX'),
-  ): string {
+  public static pubkeyToAddress(pubkey: Pubkey, prefix: string): string {
     if (prefix === 'evmos') {
       const pubkeyAmino = encodeAminoPubkeySupportEvmos(pubkey);
       console.log(toHex(pubkeyAmino));
@@ -80,7 +74,7 @@ export class CommonUtil {
     });
   }
 
-  createSafeAddressAndPubkey(
+  static createSafeAddressAndPubkey(
     pubKeyArrString: string[],
     threshold: number,
     prefix: string,
@@ -88,28 +82,35 @@ export class CommonUtil {
     pubkey: string;
     address: string;
   } {
-    let arrPubkeys;
-    if (prefix === 'evmos') {
-      arrPubkeys = pubKeyArrString.map(this.createPubkeyEvmos);
-    } else arrPubkeys = pubKeyArrString.map(this.createPubkeys);
+    try {
+      let arrPubkeys;
+      if (prefix === 'evmos') {
+        arrPubkeys = pubKeyArrString.map(this.createPubkeyEvmos);
+      } else arrPubkeys = pubKeyArrString.map(this.createPubkeys);
 
-    let multisigPubkey;
-    if (prefix === 'evmos') {
-      multisigPubkey = createMultisigThresholdPubkeyEvmos(
-        arrPubkeys,
-        threshold,
+      let multisigPubkey;
+      if (prefix === 'evmos') {
+        multisigPubkey = createMultisigThresholdPubkeyEvmos(
+          arrPubkeys,
+          threshold,
+        );
+      } else {
+        multisigPubkey = createMultisigThresholdPubkey(arrPubkeys, threshold);
+      }
+      const multiSigWalletAddress = this.pubkeyToAddress(
+        multisigPubkey,
+        prefix,
       );
-    } else {
-      multisigPubkey = createMultisigThresholdPubkey(arrPubkeys, threshold);
+      return {
+        pubkey: JSON.stringify(multisigPubkey),
+        address: multiSigWalletAddress,
+      };
+    } catch (error) {
+      throw new CustomError(ErrorMap.CANNOT_CREATE_SAFE_ADDRESS, error.message);
     }
-    const multiSigWalletAddress = this.pubkeyToAddress(multisigPubkey, prefix);
-    return {
-      pubkey: JSON.stringify(multisigPubkey),
-      address: multiSigWalletAddress,
-    };
   }
 
-  private createPubkeyEvmos(value: string): SinglePubkey {
+  static createPubkeyEvmos(value: string): SinglePubkey {
     const result: SinglePubkey = {
       type: 'ethermint/PubKeyEthSecp256k1',
       value: value,
@@ -117,7 +118,7 @@ export class CommonUtil {
     return result;
   }
 
-  private createPubkeys(value: string): SinglePubkey {
+  static createPubkeys(value: string): SinglePubkey {
     const result: SinglePubkey = {
       type: 'tendermint/PubKeySecp256k1',
       value,
@@ -236,5 +237,11 @@ export class CommonUtil {
       return '0';
     }
     return ((+number * 100) / sum).toFixed(2);
+  }
+
+  omitByNil(obj: any) {
+    return Object.fromEntries(
+      Object.entries(obj).filter(([_, v]) => v != null),
+    );
   }
 }

@@ -46,11 +46,10 @@ export interface IMultisigWalletRepository extends IBaseRepository {
     threshold: number,
     internalChainId: number,
     chainPrefix: string,
-  ): Promise<any>;
+  ): Promise<Safe>;
 
   getSafe(safeId: string, internalChainId?: number): Promise<Safe>;
-  getPendingSafe(safeId: string, internalChainId?: number): Promise<any>;
-  confirmSafe(safe: Safe, pubkeys: string[], prefix: string): Promise<Safe>;
+  getPendingSafe(safeId: string, internalChainId?: number): Promise<Safe>;
   getCreatedSafe(safeId: string, internalChainId?: number): Promise<Safe>;
 
   updateSafe(safe: Safe): Promise<void>;

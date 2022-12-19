@@ -36,6 +36,10 @@ export function CommonAuthDelete(options: Options) {
   return applyDecorators(CommonDelete(options), Auth());
 }
 
+export function CommonAuthGet(options: Options) {
+  return applyDecorators(CommonGet(options), Auth());
+}
+
 export function CommonPost(options: Options) {
   return applyDecorators(
     Common(options.summary, options.description, options.apiOkResponseOptions),
