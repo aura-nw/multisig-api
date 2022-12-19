@@ -71,6 +71,11 @@ export class MultisigTransactionHistoryResponse {
   Status: string;
 
   @ApiProperty({
+    example: '0',
+  })
+  Sequence: string;
+
+  @ApiProperty({
     example: '2022-02-24T09:44:52.935Z',
   })
   CreatedAt: Date;
