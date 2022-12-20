@@ -13,6 +13,7 @@ import { SimulateUtils } from './utils';
 import { IndexerClient } from 'src/utils/apis/IndexerClient';
 import { TX_TYPE_URL } from 'src/common/constants/app.constant';
 import { Chain } from 'src/entities';
+import { makeMultisignedTxEvmos } from 'src/chains';
 
 export class SafeSimulate {
   signature: string;
@@ -75,13 +76,15 @@ export class SafeSimulate {
     );
 
     // create signature and authInfo
-    const multisignedTx = makeMultisignedTx(
-      this.pubkey,
-      sequence,
-      fee,
-      bodyBytes,
-      signatures,
-    );
+    const multisignedTx = this.chain.chainId.startsWith('evmos')
+      ? makeMultisignedTxEvmos(
+          this.pubkey,
+          sequence,
+          fee,
+          bodyBytes,
+          signatures,
+        )
+      : makeMultisignedTx(this.pubkey, sequence, fee, bodyBytes, signatures);
 
     this.signature = toBase64(multisignedTx.signatures[0]);
     this.authInfo = toBase64(multisignedTx.authInfoBytes);
