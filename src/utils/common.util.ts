@@ -252,6 +252,5 @@ export class CommonUtil {
   }): Record<string, any> {
     if (options.value && typeof options.value === 'string')
       return JSON.parse(options.value);
-    return null;
   }
 }
