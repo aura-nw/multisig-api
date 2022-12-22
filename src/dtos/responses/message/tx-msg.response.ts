@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Transform, Type } from 'class-transformer';
 import { IsNumber, IsString } from 'class-validator';
+import { CommonUtil } from 'src/utils/common.util';
 
 export class TxMessageResponse {
   @Expose()
@@ -90,9 +91,11 @@ export class TxMessageResponse {
       },
     ],
   })
+  @Transform(CommonUtil.parseJson, { toClassOnly: true })
   inputs: any;
 
   @Expose()
   @ApiProperty({ example: '' })
+  @Transform(CommonUtil.parseJson, { toClassOnly: true })
   outputs: string;
 }

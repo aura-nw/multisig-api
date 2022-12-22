@@ -244,4 +244,14 @@ export class CommonUtil {
       Object.entries(obj).filter(([_, v]) => v != null),
     );
   }
+
+  static parseJson(options?: {
+    key: string;
+    value: string;
+    obj: string | Record<string, any>;
+  }): Record<string, any> {
+    if (options.value && typeof options.value === 'string')
+      return JSON.parse(options.value);
+    return null;
+  }
 }
