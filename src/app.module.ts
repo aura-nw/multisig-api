@@ -31,7 +31,6 @@ import { UserRepository } from './repositories/impls/user.repository';
 import { UserService } from './services/impls/user.service';
 import { MessageRepository } from './repositories/impls/message.repository';
 import { NotificationRepository } from './repositories/impls/notification.repository';
-import { CommonUtil } from './utils/common.util';
 import { NotificationController } from './controllers/notification.controller';
 import { NotificationService } from './services/impls/notification.service';
 

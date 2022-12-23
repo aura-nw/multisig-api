@@ -2,7 +2,6 @@ import { Controller, Inject, Logger } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CONTROLLER_CONSTANTS } from 'src/common/constants/api.constant';
 import { CommonAuthGet } from 'src/decorators/common.decorator';
-import { SwaggerBaseApiResponse } from 'src/dtos/responses';
 import { SERVICE_INTERFACE } from 'src/module.config';
 import { INotificationService } from 'src/services/inotification.service';
 

@@ -1,7 +1,7 @@
+import { Coin } from '@cosmjs/amino';
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Transform, Type } from 'class-transformer';
 import { IsNumber, IsString } from 'class-validator';
-import { CommonUtil } from 'src/utils/common.util';
 
 export class TxMessageResponse {
   @Expose()
@@ -91,11 +91,21 @@ export class TxMessageResponse {
       },
     ],
   })
-  @Transform(CommonUtil.parseJson, { toClassOnly: true })
-  inputs: any;
+  @Transform(({ value }) =>
+    typeof value === 'string' ? JSON.parse(value) : value,
+  )
+  @Type(() => MultiSendInOutput)
+  inputs: MultiSendInOutput[];
 
   @Expose()
   @ApiProperty({ example: '' })
-  @Transform(CommonUtil.parseJson, { toClassOnly: true })
-  outputs: string;
+  @Transform(({ value }) =>
+    typeof value === 'string' ? JSON.parse(value) : value,
+  )
+  outputs: MultiSendInOutput[];
+}
+
+class MultiSendInOutput {
+  address: string;
+  coins: Coin[];
 }

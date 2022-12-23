@@ -247,8 +247,6 @@ export class TransactionService
     autoClaimMsgs: TxMessageResponse[],
   ) {
     return multisigMsgs.map((msg) => {
-      // Remove a null or undefined value
-
       // get amount from auraTx tbl when msg type is withdraw reward
       if (msg.typeUrl === TX_TYPE_URL.WITHDRAW_REWARD) {
         const withdrawMsg = autoClaimMsgs.filter(
@@ -258,11 +256,8 @@ export class TransactionService
         );
         if (withdrawMsg.length > 0) msg.amount = withdrawMsg[0].amount;
       }
-      const formatMsg = this.utils.omitByNil(msg);
-      return plainToInstance(TxMessageResponse, formatMsg, {
-        excludeExtraneousValues: true,
-        exposeUnsetFields: false,
-      });
+      // return this.utils.omitByNil(msg);
+      return plainToInstance(TxMessageResponse, this.utils.omitByNil(msg));
     });
   }
 
