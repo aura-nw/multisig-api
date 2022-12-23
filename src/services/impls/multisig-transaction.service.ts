@@ -259,7 +259,11 @@ export class MultisigTransactionService
       );
 
       // save account number & next queue sequence
-      const { sequence: sequenceInIndexer } = await this._indexer.getAccountNumberAndSequence(chain.chainId, safe.safeAddress);
+      const { sequence: sequenceInIndexer } =
+        await this._indexer.getAccountNumberAndSequence(
+          chain.chainId,
+          safe.safeAddress,
+        );
       safe.nextQueueSeq = (
         await this.calculateNextSeq(safe.id, sequenceInIndexer - 1)
       ).toString();
@@ -735,12 +739,12 @@ export class MultisigTransactionService
     return accountInfo;
   }
 
-  async calculateNextSeq(safeId: number, executedSeq: number): Promise<number> {    
+  async calculateNextSeq(safeId: number, executedSeq: number): Promise<number> {
     const queueSequences =
       await this.multisigTransactionRepos.findSequenceInQueue(safeId);
 
     let nextSeq = executedSeq + 1;
-    for (let i in queueSequences) {
+    for (const i in queueSequences) {
       if (queueSequences[i] !== nextSeq) {
         break;
       }

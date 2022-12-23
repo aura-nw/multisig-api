@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Notification } from 'src/entities';
-import { ENTITIES_CONFIG, MODULE_REQUEST } from 'src/module.config';
+import { ENTITIES_CONFIG } from 'src/module.config';
 import { Repository } from 'typeorm';
 import { INotificationService } from '../inotification.service';
 import { BaseService } from './base.service';

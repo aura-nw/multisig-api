@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BaseRepository } from './base.repository';
-import { ObjectLiteral, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { IMultisigWalletOwnerRepository } from '../imultisig-wallet-owner.repository';
 import { ENTITIES_CONFIG } from '../../module.config';
 import { Safe, SafeOwner } from '../../entities';

@@ -16,7 +16,7 @@ import { plainToInstance } from 'class-transformer';
 import { ListSafeByOwnerResponse } from '../../dtos/responses/multisig-wallet/get-safe-by-owner.response';
 import { IGeneralRepository } from '../../repositories/igeneral.repository';
 import { CustomError } from '../../common/customError';
-import { Chain, Notification } from '../../entities';
+import { Chain } from '../../entities';
 import { encodeSecp256k1Pubkey, pubkeyToAddress } from '@cosmjs/amino';
 import { fromBase64 } from '@cosmjs/encoding';
 import { SimplePublicKey } from '@terra-money/terra.js';
