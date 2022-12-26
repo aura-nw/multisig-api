@@ -7,6 +7,13 @@ import { IBaseRepository } from './ibase.repository';
 
 export interface ITransactionRepository extends IBaseRepository {
   /**
+   *
+   * @param take
+   * @param skip
+   */
+  getBatchTx(take: number, skip: number): Promise<any[]>;
+
+  /**
    * Get all Transactions from AuraTx DB
    * @param safeAddress
    */

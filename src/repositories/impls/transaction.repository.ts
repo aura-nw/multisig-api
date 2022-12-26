@@ -34,6 +34,20 @@ export class TransactionRepository
     );
   }
 
+  async getBatchTx(take: number, skip: number): Promise<any> {
+    const result = await this.repos
+      .createQueryBuilder('AuraTx')
+      .take(take)
+      .skip(skip)
+      .select([
+        'AuraTx.fromAddress as fromAddress',
+        'AuraTx.toAddress as toAddress',
+        'AuraTx.txHash as txHash',
+      ])
+      .getRawMany();
+    return result;
+  }
+
   async getAuraTx(
     safeAddress: string,
     internalChainId: number,

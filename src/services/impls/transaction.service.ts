@@ -23,6 +23,7 @@ import { TxDetail } from 'src/dtos/responses/multisig-transaction/tx-detail.resp
 import { TxMessageResponse } from 'src/dtos/responses/message/tx-msg.response';
 import { CommonUtil } from 'src/utils/common.util';
 import { plainToInstance } from 'class-transformer';
+import { ITransactionHistoryRepository } from 'src/repositories/itx-history.repository';
 
 @Injectable()
 export class TransactionService
@@ -43,6 +44,8 @@ export class TransactionService
     private safeRepos: IMultisigWalletRepository,
     @Inject(REPOSITORY_INTERFACE.IMESSAGE_REPOSITORY)
     private messageRepos: IMessageRepository,
+    @Inject(REPOSITORY_INTERFACE.ITX_HISTORY_REPOSITORY)
+    private txHistoryRepo: ITransactionHistoryRepository,
   ) {
     super(transRepos);
     this._logger.log(
@@ -50,10 +53,37 @@ export class TransactionService
     );
   }
 
+  async migrateTxToTxHistory() {
+    const allSafeAddress = await this.safeRepos.getAllSafeAddress();
+
+    let skip = 0;
+    const take = 10;
+    let batchTx = await this.transRepos.getBatchTx(take, skip);
+
+    // Using job queue to process batchTx
+    while (batchTx.length > 0) {
+      await Promise.all(
+        batchTx.map((tx) => {
+          if (allSafeAddress.includes(tx.fromAddress)) {
+            return this.txHistoryRepo.saveTxHistory(tx.fromAddress, tx.txHash);
+          }
+          if (allSafeAddress.includes(tx.toAddress)) {
+            return this.txHistoryRepo.saveTxHistory(tx.toAddress, tx.txHash);
+          }
+        }),
+      );
+
+      skip += take;
+      batchTx = await this.transRepos.getBatchTx(take, skip);
+    }
+  }
+
   async getListMultisigConfirmById(
     param: MODULE_REQUEST.GetMultisigSignaturesParam,
     status?: string,
   ): Promise<ResponseDto> {
+    await this.migrateTxToTxHistory();
+    return ResponseDto.response(ErrorMap.SUCCESSFUL);
     const { id } = param;
     try {
       const multisig = await this.multisigTransactionRepos.findOne(id);
