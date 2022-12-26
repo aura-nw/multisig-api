@@ -256,7 +256,6 @@ export class TransactionService
         );
         if (withdrawMsg.length > 0) msg.amount = withdrawMsg[0].amount;
       }
-      // return this.utils.omitByNil(msg);
       return plainToInstance(TxMessageResponse, this.utils.omitByNil(msg));
     });
   }
