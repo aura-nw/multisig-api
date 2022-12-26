@@ -63,7 +63,6 @@ export class MessageRepository
     const result = await this.repos.find({
       where: { txId },
     });
-    //  const formatMsg = this._commonUtil.omitByNil(result);
     return plainToInstance(TxMessageResponse, result, {
       excludeExtraneousValues: true,
     });
