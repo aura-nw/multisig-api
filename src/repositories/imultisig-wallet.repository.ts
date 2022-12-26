@@ -3,6 +3,11 @@ import { IBaseRepository } from './ibase.repository';
 
 export interface IMultisigWalletRepository extends IBaseRepository {
   /**
+   * Get all safe address
+   */
+  getAllSafeAddress(): Promise<string[]>;
+
+  /**
    *
    * @param safeAddress
    */

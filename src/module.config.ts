@@ -71,6 +71,7 @@ import {
   SafeOwner,
   User,
 } from './entities';
+import { TransactionHistory } from './entities/transaction-history.entity';
 
 export const ENTITIES_CONFIG = {
   SAFE: Safe,
@@ -83,6 +84,7 @@ export const ENTITIES_CONFIG = {
   USER: User,
   MESSAGE: Message,
   NOTIFICATION: Notification,
+  TX_HISTORY: TransactionHistory,
 };
 
 export const REQUEST_CONFIG = {
@@ -237,6 +239,7 @@ export const REPOSITORY_INTERFACE = {
   IUSER_REPOSITORY: 'IUserRepository',
   IMESSAGE_REPOSITORY: 'IMessageRepository',
   INOTIFICATION_REPOSITORY: 'INotificationRepository',
+  ITX_HISTORY_REPOSITORY: 'ITransactionHistoryRepository',
 };
 
 export const PROVIDER_INTERFACE = {};

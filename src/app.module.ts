@@ -40,6 +40,7 @@ import { MessageRepository } from './repositories/impls/message.repository';
 import { NotificationRepository } from './repositories/impls/notification.repository';
 import { NotificationController } from './controllers/notification.controller';
 import { NotificationService } from './services/impls/notification.service';
+import { TransactionHistoryRepository } from './repositories/impls/tx-history.repository';
 
 const controllers = [
   MultisigWalletController,
@@ -64,6 +65,7 @@ const entities = [
   ENTITIES_CONFIG.USER,
   ENTITIES_CONFIG.MESSAGE,
   ENTITIES_CONFIG.NOTIFICATION,
+  ENTITIES_CONFIG.TX_HISTORY,
 ];
 @Module({
   imports: [
@@ -132,6 +134,10 @@ const entities = [
     {
       provide: REPOSITORY_INTERFACE.INOTIFICATION_REPOSITORY,
       useClass: NotificationRepository,
+    },
+    {
+      provide: REPOSITORY_INTERFACE.ITX_HISTORY_REPOSITORY,
+      useClass: TransactionHistoryRepository,
     },
     //service
     {

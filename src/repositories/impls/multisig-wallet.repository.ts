@@ -39,6 +39,15 @@ export class MultisigWalletRepository
     );
   }
 
+  async getAllSafeAddress(): Promise<string[]> {
+    const safeAddress = await this.repos
+      .createQueryBuilder('safe')
+      .select(['safe.safeAddress'])
+      .where('safe.status = :status', { status: SAFE_STATUS.CREATED })
+      .getMany();
+    return safeAddress.map((safe) => safe.safeAddress);
+  }
+
   /**
    *
    * @param safeId
