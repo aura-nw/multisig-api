@@ -41,6 +41,7 @@ import { NotificationRepository } from './repositories/impls/notification.reposi
 import { NotificationController } from './controllers/notification.controller';
 import { NotificationService } from './services/impls/notification.service';
 import { TransactionHistoryRepository } from './repositories/impls/tx-history.repository';
+import { BullModule } from '@nestjs/bull';
 
 const controllers = [
   MultisigWalletController,

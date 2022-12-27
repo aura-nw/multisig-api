@@ -57,18 +57,26 @@ export class TransactionService
     const allSafeAddress = await this.safeRepos.getAllSafeAddress();
 
     let skip = 0;
-    const take = 10;
+    const take = 50;
     let batchTx = await this.transRepos.getBatchTx(take, skip);
 
     // Using job queue to process batchTx
     while (batchTx.length > 0) {
       await Promise.all(
         batchTx.map((tx) => {
+          let safeAddress = '';
           if (allSafeAddress.includes(tx.fromAddress)) {
-            return this.txHistoryRepo.saveTxHistory(tx.fromAddress, tx.txHash);
+            safeAddress = tx.fromAddress;
           }
           if (allSafeAddress.includes(tx.toAddress)) {
-            return this.txHistoryRepo.saveTxHistory(tx.toAddress, tx.txHash);
+            safeAddress = tx.toAddress;
+          }
+          if (safeAddress !== '') {
+            return this.txHistoryRepo.saveTxHistory(
+              safeAddress,
+              tx.txHash,
+              tx.createdAt,
+            );
           }
         }),
       );
@@ -82,8 +90,8 @@ export class TransactionService
     param: MODULE_REQUEST.GetMultisigSignaturesParam,
     status?: string,
   ): Promise<ResponseDto> {
-    await this.migrateTxToTxHistory();
-    return ResponseDto.response(ErrorMap.SUCCESSFUL);
+    // await this.migrateTxToTxHistory();
+    // return ResponseDto.response(ErrorMap.SUCCESSFUL);
     const { id } = param;
     try {
       const multisig = await this.multisigTransactionRepos.findOne(id);

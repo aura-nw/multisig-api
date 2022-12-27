@@ -1,4 +1,4 @@
-import { Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity({ name: 'TransactionHistory' })
 export class TransactionHistory {
@@ -14,8 +14,15 @@ export class TransactionHistory {
   })
   txHash: string;
 
-  constructor(safeAddress: string, txHash: string) {
+  @Column({
+    name: 'CreatedAt',
+    type: Date,
+  })
+  createdAt: Date;
+
+  constructor(safeAddress: string, txHash: string, createdAt: string) {
     this.safeAddress = safeAddress;
     this.txHash = txHash;
+    this.createdAt = new Date(createdAt);
   }
 }
