@@ -14,7 +14,7 @@ import {
 } from '../../dtos/responses/multisig-transaction/tx-detail.response';
 import { Chain, MultisigTransaction } from '../../entities';
 import { ENTITIES_CONFIG } from '../../module.config';
-import { ObjectLiteral, Repository } from 'typeorm';
+import { MoreThan, ObjectLiteral, Repository } from 'typeorm';
 import { ITransactionRepository } from '../itransaction.repository';
 import { BaseRepository } from './base.repository';
 
@@ -38,11 +38,14 @@ export class TransactionRepository
     const result = await this.repos
       .createQueryBuilder('AuraTx')
       .take(take)
-      .skip(skip)
+      .where({
+        id: MoreThan(skip),
+      })
       .select([
         'AuraTx.fromAddress as fromAddress',
         'AuraTx.toAddress as toAddress',
         'AuraTx.txHash as txHash',
+        'AuraTx.createdAt as createdAt',
       ])
       .getRawMany();
     return result;

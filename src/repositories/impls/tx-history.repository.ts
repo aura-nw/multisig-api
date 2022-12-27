@@ -25,7 +25,10 @@ export class TransactionHistoryRepository
   async saveTxHistory(
     safeAddress: string,
     txHash: string,
+    createdAt: string,
   ): Promise<TransactionHistory> {
-    return this.repos.save(new TransactionHistory(safeAddress, txHash));
+    return this.repos.save(
+      new TransactionHistory(safeAddress, txHash, createdAt),
+    );
   }
 }
