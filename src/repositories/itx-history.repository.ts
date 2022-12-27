@@ -8,4 +8,11 @@ export interface ITransactionHistoryRepository extends IBaseRepository {
     txHash: string,
     createdAt: string,
   ): Promise<TransactionHistory>;
+
+  getTxHistoryBySafeAddress(
+    safeAddress: string,
+    internalChainId: number,
+    pageIndex: number,
+    limit: number,
+  );
 }
