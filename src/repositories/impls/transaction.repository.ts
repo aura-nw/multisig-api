@@ -46,6 +46,7 @@ export class TransactionRepository
         'AuraTx.toAddress as toAddress',
         'AuraTx.txHash as txHash',
         'AuraTx.createdAt as createdAt',
+        'AuraTx.internalChainId as internalChainId',
       ])
       .getRawMany();
     return result;

@@ -73,6 +73,7 @@ export class TransactionService
           }
           if (safeAddress !== '') {
             return this.txHistoryRepo.saveTxHistory(
+              tx.internalChainId,
               safeAddress,
               tx.txHash,
               tx.createdAt,
@@ -90,8 +91,8 @@ export class TransactionService
     param: MODULE_REQUEST.GetMultisigSignaturesParam,
     status?: string,
   ): Promise<ResponseDto> {
-    // await this.migrateTxToTxHistory();
-    // return ResponseDto.response(ErrorMap.SUCCESSFUL);
+    await this.migrateTxToTxHistory();
+    return ResponseDto.response(ErrorMap.SUCCESSFUL);
     const { id } = param;
     try {
       const multisig = await this.multisigTransactionRepos.findOne(id);

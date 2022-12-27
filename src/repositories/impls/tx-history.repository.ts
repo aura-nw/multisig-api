@@ -23,12 +23,15 @@ export class TransactionHistoryRepository
   }
 
   async saveTxHistory(
+    internalChainId: number,
     safeAddress: string,
     txHash: string,
     createdAt: string,
   ): Promise<TransactionHistory> {
     return this.repos.save(
-      new TransactionHistory(safeAddress, txHash, createdAt),
+      new TransactionHistory(internalChainId, safeAddress, txHash, createdAt),
     );
   }
+
+  async getTxHistoryBySafeAddress() {}
 }
