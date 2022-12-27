@@ -3,6 +3,12 @@ import { Column, Entity, PrimaryColumn } from 'typeorm';
 @Entity({ name: 'TransactionHistory' })
 export class TransactionHistory {
   @PrimaryColumn({
+    name: 'InternalChainId',
+    type: Number,
+  })
+  internalChainId: number;
+
+  @PrimaryColumn({
     name: 'SafeAddress',
     type: String,
   })
@@ -20,7 +26,13 @@ export class TransactionHistory {
   })
   createdAt: Date;
 
-  constructor(safeAddress: string, txHash: string, createdAt: string) {
+  constructor(
+    internalChainId: number,
+    safeAddress: string,
+    txHash: string,
+    createdAt: string,
+  ) {
+    this.internalChainId = internalChainId;
     this.safeAddress = safeAddress;
     this.txHash = txHash;
     this.createdAt = new Date(createdAt);
