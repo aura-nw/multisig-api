@@ -138,7 +138,8 @@ export class TransactionService
         result = await this.getConfirmationStatus(result, safe[0].threshold);
       }
       const response = result.map((item) => {
-        if (item.TypeUrl === null) item.TypeUrl = TX_TYPE_URL.RECEIVE;
+        if (item.TypeUrl === null || item.FromAddress !== safeAddress)
+          item.TypeUrl = TX_TYPE_URL.RECEIVE;
 
         item.Direction = this.getDirection(
           item.TypeUrl,
@@ -258,10 +259,10 @@ export class TransactionService
   getDirection(typeUrl: string, from: string, safeAddress: string): string {
     switch (typeUrl) {
       case TX_TYPE_URL.SEND:
+      case TX_TYPE_URL.MULTI_SEND:
         return from === safeAddress
           ? TRANSFER_DIRECTION.OUTGOING
           : TRANSFER_DIRECTION.INCOMING;
-      case TX_TYPE_URL.MULTI_SEND:
       case TX_TYPE_URL.DELEGATE:
       case TX_TYPE_URL.REDELEGATE:
       case TX_TYPE_URL.VOTE:
