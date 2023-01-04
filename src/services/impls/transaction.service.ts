@@ -91,8 +91,6 @@ export class TransactionService
     param: MODULE_REQUEST.GetMultisigSignaturesParam,
     status?: string,
   ): Promise<ResponseDto> {
-    // await this.migrateTxToTxHistory();
-    // return ResponseDto.response(ErrorMap.SUCCESSFUL);
     const { id } = param;
     try {
       const multisig = await this.multisigTransactionRepos.findOne(id);
