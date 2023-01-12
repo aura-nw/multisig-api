@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Notification } from 'src/entities';
-import { ENTITIES_CONFIG, MODULE_REQUEST } from 'src/module.config';
+import { ENTITIES_CONFIG } from 'src/module.config';
 import { Repository } from 'typeorm';
 import { INotificationService } from '../inotification.service';
 import { BaseService } from './base.service';
@@ -32,7 +32,7 @@ export class NotificationService
     const authInfo = this.utils.getAuthInfo();
     const result = await this.repo.find({
       where: { userId: authInfo.userId },
-      order: { id: 'DESC' },
+      order: { status: 'DESC', id: 'DESC' },
     });
     return ResponseDto.response(
       ErrorMap.SUCCESSFUL,

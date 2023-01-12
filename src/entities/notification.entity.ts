@@ -48,11 +48,15 @@ export class Notification extends BaseEntityAutoId {
   @Column({ name: 'Status', enum: NotificationStatus })
   status: string;
 
+  @Column({ name: 'InternalChainId' })
+  internalChainId: number;
+
   static newWaitAllowSafeNotification(
     userId: number,
     safeId: number,
     safeCreatorAddress: string,
     totalOwner: number,
+    internalChainId: number,
   ): Notification {
     return plainToInstance(Notification, {
       userId,
@@ -61,6 +65,7 @@ export class Notification extends BaseEntityAutoId {
       safeCreatorAddress,
       totalOwner,
       status: NotificationStatus.UNREAD,
+      internalChainId,
     });
   }
 
@@ -68,6 +73,7 @@ export class Notification extends BaseEntityAutoId {
     userId: number,
     safeId: number,
     safeAddress: string,
+    internalChainId: number,
   ): Notification {
     return plainToInstance(Notification, {
       eventType: NotificationEventType.SAFE_CREATED,
@@ -75,6 +81,7 @@ export class Notification extends BaseEntityAutoId {
       userId,
       safeId,
       safeAddress,
+      internalChainId,
     });
   }
 }

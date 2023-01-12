@@ -30,6 +30,7 @@ export class NotificationRepository
     safeId: number,
     creatorAddress: string,
     otherOwnersAddress: string[],
+    internalChainId: number,
   ): Promise<void> {
     const users = await this.userRepo.find({
       where: {
@@ -42,6 +43,7 @@ export class NotificationRepository
         safeId,
         creatorAddress,
         users.length + 1,
+        internalChainId,
       );
     });
 
@@ -54,6 +56,7 @@ export class NotificationRepository
     safeId: number,
     safeAddress: string,
     ownerAddresses: string[],
+    internalChainId: number,
   ): Promise<void> {
     const users = await this.userRepo.find({
       where: {
@@ -65,6 +68,7 @@ export class NotificationRepository
         user.id,
         safeId,
         safeAddress,
+        internalChainId,
       );
     });
 
