@@ -32,7 +32,7 @@ export class NotificationService
     const authInfo = this.utils.getAuthInfo();
     const result = await this.repo.find({
       where: { userId: authInfo.userId },
-      order: { id: 'DESC' },
+      order: { status: 'DESC', id: 'DESC' },
     });
     return ResponseDto.response(
       ErrorMap.SUCCESSFUL,
