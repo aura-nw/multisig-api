@@ -84,4 +84,88 @@ export class Notification extends BaseEntityAutoId {
       internalChainId,
     });
   }
+
+  static newTxNotification(
+    userId: number,
+    safeId: number,
+    multisigTxId: number,
+    sequence: number,
+    safeAddress: string,
+    txCreatorAddress: string,
+    internalChainId: number,
+  ): Notification {
+    return plainToInstance(Notification, {
+      eventType: NotificationEventType.WAIT_CONFIRM_TX,
+      status: NotificationStatus.UNREAD,
+      txId: multisigTxId,
+      sequence,
+      userId,
+      safeId,
+      safeAddress,
+      txCreatorAddress,
+      internalChainId,
+    });
+  }
+
+  static newTxExecutableNotification(
+    userId: number,
+    safeId: number,
+    multisigTxId: number,
+    sequence: number,
+    safeAddress: string,
+    internalChainId: number,
+  ): Notification {
+    return plainToInstance(Notification, {
+      eventType: NotificationEventType.WAIT_EXECUTE_TX,
+      status: NotificationStatus.UNREAD,
+      txId: multisigTxId,
+      sequence,
+      userId,
+      safeId,
+      safeAddress,
+      internalChainId,
+    });
+  }
+
+  static newTxBroadcastedNotification(
+    userId: number,
+    safeId: number,
+    multisigTxId: number,
+    sequence: number,
+    safeAddress: string,
+    internalChainId: number,
+  ): Notification {
+    return plainToInstance(Notification, {
+      eventType: NotificationEventType.TX_BROADCASTED,
+      status: NotificationStatus.UNREAD,
+      txId: multisigTxId,
+      sequence,
+      userId,
+      safeId,
+      safeAddress,
+      internalChainId,
+    });
+  }
+
+  static newDeletedTxNotification(
+    userId: number,
+    safeId: number,
+    multisigTxId: number,
+    sequence: number,
+    safeAddress: string,
+    txCreatorAddress: string,
+    internalChainId: number,
+  ): Notification {
+    return plainToInstance(Notification, {
+      eventType: NotificationEventType.TX_DELETED,
+      status: NotificationStatus.UNREAD,
+      txId: multisigTxId,
+      sequence,
+      userId,
+      safeId,
+      safeAddress,
+      txCreatorAddress,
+      internalChainId,
+    });
+  }
 }

@@ -48,6 +48,7 @@ import { AccountInfo, TxRawInfo } from 'src/dtos/requests';
 import { UserInfo } from 'src/dtos/userInfo';
 import { Simulate } from 'src/simulate';
 import { CustomError } from 'src/common/customError';
+import { INotificationRepository } from 'src/repositories/inotification.repository';
 
 @Injectable()
 export class MultisigTransactionService
@@ -73,6 +74,8 @@ export class MultisigTransactionService
     private safeOwnerRepo: IMultisigWalletOwnerRepository,
     @Inject(REPOSITORY_INTERFACE.IMESSAGE_REPOSITORY)
     private messageRepos: IMessageRepository,
+    @Inject(REPOSITORY_INTERFACE.INOTIFICATION_REPOSITORY)
+    private notificationRepo: INotificationRepository,
   ) {
     super(multisigTransactionRepos);
     this._logger.log(
@@ -131,7 +134,30 @@ export class MultisigTransactionService
       const { id } = request;
       const authInfo = this._commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
-      await this.deleteTx(id, creatorAddress);
+
+      // check tx status
+      const tx = await this.multisigTransactionRepos.getTransactionById(id);
+      if (tx.status !== TRANSACTION_STATUS.AWAITING_CONFIRMATIONS)
+        throw new CustomError(ErrorMap.CANNOT_DELETE_TX);
+
+      await this.deleteTx(tx, creatorAddress);
+
+      // notify to all owners except the one who deletes the transaction
+      const safeOwners = await this.safeOwnerRepo.getSafeOwnersWithError(
+        tx.safeId,
+      );
+      await this.notificationRepo.notifyNewTx(
+        tx.safeId,
+        tx.fromAddress,
+        tx.id,
+        Number(tx.sequence),
+        creatorAddress,
+        safeOwners.map((safeOwner) => {
+          if (safeOwner.ownerAddress !== creatorAddress)
+            return safeOwner.ownerAddress;
+        }),
+        tx.internalChainId,
+      );
 
       return ResponseDto.response(ErrorMap.SUCCESSFUL);
     } catch (error) {
@@ -250,12 +276,12 @@ export class MultisigTransactionService
 
       // confirm tx
       await this.confirmTx(
-        transactionResult.id,
+        transactionResult,
         creatorAddress,
         signature,
         bodyBytes,
         internalChainId,
-        transaction.safeId,
+        safe,
       );
 
       // save account number & next queue sequence
@@ -269,6 +295,23 @@ export class MultisigTransactionService
       ).toString();
       safe.accountNumber = accountInfo.accountNumber.toString();
       await this.safeRepos.updateSafe(safe);
+
+      // notify to another owners
+      const safeOwners = await this.safeOwnerRepo.getSafeOwnersWithError(
+        safe.id,
+      );
+      await this.notificationRepo.notifyNewTx(
+        safe.id,
+        safe.safeAddress,
+        transactionResult.id,
+        transactionResult.sequence,
+        creatorAddress,
+        safeOwners.map((safeOwner) => {
+          if (safeOwner.ownerAddress !== creatorAddress)
+            return safeOwner.ownerAddress;
+        }),
+        internalChainId,
+      );
 
       return ResponseDto.response(ErrorMap.SUCCESSFUL, {
         transactionId: transactionResult.id,
@@ -329,12 +372,12 @@ export class MultisigTransactionService
       );
 
       await this.confirmTx(
-        transactionId,
+        pendingTx,
         creatorAddress,
         signature,
         bodyBytes,
         internalChainId,
-        pendingTx.safeId,
+        safe,
       );
 
       return ResponseDto.response(ErrorMap.SUCCESSFUL);
@@ -418,6 +461,19 @@ export class MultisigTransactionService
             )
           ).toString();
           await this.safeRepos.updateSafe(safe);
+
+          // notify tx broadcasted
+          const safeOwners = await this.safeOwnerRepo.getSafeOwnersWithError(
+            safe.id,
+          );
+          await this.notificationRepo.notifyBroadcastedTx(
+            safe.id,
+            safe.safeAddress,
+            multisigTransaction.id,
+            Number(multisigTransaction.sequence),
+            safeOwners.map((safeOwner) => safeOwner.ownerAddress),
+            internalChainId,
+          );
 
           return ResponseDto.response(ErrorMap.SUCCESSFUL, {
             TxHash: error.txId,
@@ -575,22 +631,22 @@ export class MultisigTransactionService
   }
 
   private async confirmTx(
-    transactionId: number,
+    transaction: MultisigTransaction,
     ownerAddress: string,
     signature: string,
     bodyBytes: string,
     internalChainId: number,
-    safeId: number,
+    safe: Safe,
   ) {
     // if user has confirmed transaction before then return
     await this.multisigConfirmRepos.checkUserHasSigned(
-      transactionId,
+      transaction.id,
       ownerAddress,
     );
 
     // insert into multisig confirm table
     await this.multisigConfirmRepos.insertIntoMultisigConfirm(
-      transactionId,
+      transaction.id,
       ownerAddress,
       signature,
       bodyBytes,
@@ -599,27 +655,41 @@ export class MultisigTransactionService
     );
 
     // update tx status to waiting execute if all owner has confirmed
-    await this.multisigTransactionRepos.updateTxStatusIfSatisfied(
-      transactionId,
-      safeId,
+    const isExecutable = await this.multisigTransactionRepos.isExecutable(
+      transaction.id,
+      safe.id,
       internalChainId,
     );
 
+    if (isExecutable) {
+      await this.multisigTransactionRepos.updateAwaitingExecutionTx(
+        transaction.id,
+      );
+
+      // notify tx ready to execute
+      const safeOwners = await this.safeOwnerRepo.getSafeOwnersWithError(
+        safe.id,
+      );
+      await this.notificationRepo.notifyExecutableTx(
+        safe.id,
+        safe.safeAddress,
+        transaction.id,
+        Number(transaction.sequence),
+        safeOwners.map((safeOwner) => safeOwner.ownerAddress),
+        internalChainId,
+      );
+    }
+
     // update queued tag
-    await this.safeRepos.updateQueuedTag(safeId);
+    await this.safeRepos.updateQueuedTag(safe.id);
   }
 
-  async deleteTx(id: number, userAddress: string) {
-    // check tx status
-    const tx = await this.multisigTransactionRepos.getTransactionById(id);
-    if (tx.status !== TRANSACTION_STATUS.AWAITING_CONFIRMATIONS)
-      throw new CustomError(ErrorMap.CANNOT_DELETE_TX);
-
+  async deleteTx(tx: MultisigTransaction, userAddress: string) {
     // check user is owner
     await this.safeOwnerRepo.isSafeOwner(userAddress, tx.safeId);
 
     // delete tx
-    await this.multisigTransactionRepos.deleteTx(id);
+    await this.multisigTransactionRepos.deleteTx(tx.id);
 
     // update queued tag
     await this.safeRepos.updateQueuedTagByAddress(tx.fromAddress);
@@ -744,7 +814,7 @@ export class MultisigTransactionService
       await this.multisigTransactionRepos.findSequenceInQueue(safeId);
 
     let nextSeq = executedSeq + 1;
-    for (const i in queueSequences) {
+    for (const i of queueSequences) {
       if (queueSequences[i] !== nextSeq) {
         break;
       }

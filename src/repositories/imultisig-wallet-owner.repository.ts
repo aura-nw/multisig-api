@@ -16,7 +16,7 @@ export interface IMultisigWalletOwnerRepository extends IBaseRepository {
     otherOwnersAddress: string[],
   ): any;
 
-  getSafeOwnersWithError(safeId: number): Promise<any>;
+  getSafeOwnersWithError(safeId: number): Promise<SafeOwner[]>;
 
   getConfirmationStatus(
     safeId: number,
