@@ -111,6 +111,7 @@ export class MultisigWalletService
           newSafe.id,
           newSafe.safeAddress,
           [creatorAddress],
+          newSafe.internalChainId,
         );
       } else {
         // notification to other owners
@@ -118,6 +119,7 @@ export class MultisigWalletService
           newSafe.id,
           newSafe.creatorAddress,
           otherOwnersAddress,
+          newSafe.internalChainId,
         );
       }
 
@@ -241,6 +243,7 @@ export class MultisigWalletService
           safe.id,
           safe.safeAddress,
           confirmations.map((c) => c.ownerAddress),
+          safe.internalChainId,
         );
       }
 

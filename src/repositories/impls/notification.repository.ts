@@ -30,6 +30,7 @@ export class NotificationRepository
     safeId: number,
     creatorAddress: string,
     otherOwnersAddress: string[],
+    internalChainId: number,
   ): Promise<void> {
     const users = await this.userRepo.find({
       where: {
@@ -42,6 +43,7 @@ export class NotificationRepository
         safeId,
         creatorAddress,
         users.length + 1,
+        internalChainId,
       );
     });
 
@@ -54,6 +56,7 @@ export class NotificationRepository
     safeId: number,
     safeAddress: string,
     ownerAddresses: string[],
+    internalChainId: number,
   ): Promise<void> {
     const users = await this.userRepo.find({
       where: {
@@ -65,6 +68,127 @@ export class NotificationRepository
         user.id,
         safeId,
         safeAddress,
+        internalChainId,
+      );
+    });
+
+    if (notifications.length > 0) {
+      await this.repo.save(notifications);
+    }
+  }
+
+  async notifyNewTx(
+    safeId: number,
+    safeAddress: string,
+    multisigTxId: number,
+    sequence: number,
+    txCreatorAddress: string,
+    otherOwnersAddress: string[],
+    internalChainId: number,
+  ): Promise<void> {
+    const users = await this.userRepo.find({
+      where: {
+        address: In(otherOwnersAddress),
+      },
+    });
+    const notifications = users.map((user) => {
+      return Notification.newTxNotification(
+        user.id,
+        safeId,
+        multisigTxId,
+        sequence,
+        safeAddress,
+        txCreatorAddress,
+        internalChainId,
+      );
+    });
+
+    if (notifications.length > 0) {
+      await this.repo.save(notifications);
+    }
+  }
+
+  async notifyExecutableTx(
+    safeId: number,
+    safeAddress: string,
+    multisigTxId: number,
+    sequence: number,
+    ownerAddresses: string[],
+    internalChainId: number,
+  ): Promise<void> {
+    const users = await this.userRepo.find({
+      where: {
+        address: In(ownerAddresses),
+      },
+    });
+    const notifications = users.map((user) => {
+      return Notification.newTxExecutableNotification(
+        user.id,
+        safeId,
+        multisigTxId,
+        sequence,
+        safeAddress,
+        internalChainId,
+      );
+    });
+
+    if (notifications.length > 0) {
+      await this.repo.save(notifications);
+    }
+  }
+
+  async notifyBroadcastedTx(
+    safeId: number,
+    safeAddress: string,
+    multisigTxId: number,
+    sequence: number,
+    ownerAddresses: string[],
+    internalChainId: number,
+  ): Promise<void> {
+    const users = await this.userRepo.find({
+      where: {
+        address: In(ownerAddresses),
+      },
+    });
+    const notifications = users.map((user) => {
+      return Notification.newTxBroadcastedNotification(
+        user.id,
+        safeId,
+        multisigTxId,
+        sequence,
+        safeAddress,
+        internalChainId,
+      );
+    });
+
+    if (notifications.length > 0) {
+      await this.repo.save(notifications);
+    }
+  }
+
+  async notifyDeletedTx(
+    safeId: number,
+    safeAddress: string,
+    multisigTxId: number,
+    sequence: number,
+    ownerAddresses: string[],
+    txCreatorAddress: string,
+    internalChainId: number,
+  ): Promise<void> {
+    const users = await this.userRepo.find({
+      where: {
+        address: In(ownerAddresses),
+      },
+    });
+    const notifications = users.map((user) => {
+      return Notification.newDeletedTxNotification(
+        user.id,
+        safeId,
+        multisigTxId,
+        sequence,
+        safeAddress,
+        txCreatorAddress,
+        internalChainId,
       );
     });
 

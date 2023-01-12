@@ -20,6 +20,7 @@ export class addTableNotification1671068424972 implements MigrationInterface {
             ProposalName varchar(100) COLLATE utf8_unicode_ci NULL,
             ProposalEndDate timestamp,
             Status varchar(100) COLLATE utf8_unicode_ci NULL,
+            InternalChainId int not null,
             PRIMARY KEY (Id),
             INDEX (UserId ASC)
           ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;

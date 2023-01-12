@@ -52,16 +52,18 @@ export interface IMultisigTransactionsRepository extends IBaseRepository {
   ): Promise<MultisigTransactionHistoryResponse[]>;
 
   /**
-   * Update status of a transaction if it satisfies the threshold
+   * Return true if it satisfies the threshold
    * @param transactionId
    * @param safeId
    * @param internalChainId
    */
-  updateTxStatusIfSatisfied(
+  isExecutable(
     transactionId: number,
     safeId: number,
     internalChainId: number,
-  );
+  ): Promise<boolean>;
+
+  updateAwaitingExecutionTx(multisigTxId: number): Promise<MultisigTransaction>;
 
   /**
    * Insert data into table multisig transaction
