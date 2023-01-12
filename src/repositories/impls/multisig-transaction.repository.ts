@@ -145,11 +145,11 @@ export class MultisigTransactionRepository
     return this.create(transaction);
   }
 
-  async updateTxStatusIfSatisfied(
+  async isExecutable(
     transactionId: number,
     safeId: number,
     internalChainId: number,
-  ) {
+  ): Promise<boolean> {
     // get list confirm
     const listConfirmAfterSign =
       await this.multisigConfirmRepos.findByCondition({
@@ -163,13 +163,21 @@ export class MultisigTransactionRepository
     // check if list confirm >= threshold
     // update status of multisig transaction
     if (listConfirmAfterSign.length >= safe.threshold) {
-      const transaction = await this.findOne({
-        where: { id: transactionId },
-      });
-      transaction.status = TRANSACTION_STATUS.AWAITING_EXECUTION;
-
-      await this.update(transaction);
+      return true;
     }
+    return false;
+  }
+
+  async updateAwaitingExecutionTx(
+    multisigTxId: number,
+  ): Promise<MultisigTransaction> {
+    const transaction = await this.findOne({
+      where: { id: multisigTxId },
+    });
+    transaction.status = TRANSACTION_STATUS.AWAITING_EXECUTION;
+
+    const updatedTx = await this.update(transaction);
+    return updatedTx;
   }
 
   async getMultisigTxId(internalTxHash: string) {

@@ -3,7 +3,6 @@ import { Column, Entity } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
 import { CommonUtil } from 'src/utils/common.util';
 import { SAFE_STATUS } from 'src/common/constants/app.constant';
-import { SafeOwner } from './safe-owner.entity';
 
 @Entity({ name: 'Safe' })
 export class Safe extends BaseEntityAutoId {
