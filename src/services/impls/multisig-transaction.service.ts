@@ -146,16 +146,15 @@ export class MultisigTransactionService
       const safeOwners = await this.safeOwnerRepo.getSafeOwnersWithError(
         tx.safeId,
       );
-      await this.notificationRepo.notifyNewTx(
+      await this.notificationRepo.notifyDeletedTx(
         tx.safeId,
         tx.fromAddress,
         tx.id,
         Number(tx.sequence),
+        safeOwners
+          .filter((safeOwner) => safeOwner.ownerAddress !== creatorAddress)
+          .map((safeOwner) => safeOwner.ownerAddress),
         creatorAddress,
-        safeOwners.map((safeOwner) => {
-          if (safeOwner.ownerAddress !== creatorAddress)
-            return safeOwner.ownerAddress;
-        }),
         tx.internalChainId,
       );
 
@@ -306,10 +305,9 @@ export class MultisigTransactionService
         transactionResult.id,
         transactionResult.sequence,
         creatorAddress,
-        safeOwners.map((safeOwner) => {
-          if (safeOwner.ownerAddress !== creatorAddress)
-            return safeOwner.ownerAddress;
-        }),
+        safeOwners
+          .filter((safeOwner) => safeOwner.ownerAddress !== creatorAddress)
+          .map((safeOwner) => safeOwner.ownerAddress),
         internalChainId,
       );
 
