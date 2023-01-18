@@ -9,13 +9,18 @@ import { CustomError } from '../../common/customError';
 import { ErrorMap } from '../../common/error.map';
 import { SAFE_STATUS } from '../../common/constants/app.constant';
 import { createHash } from 'crypto';
-import { encodeSecp256k1Pubkey, pubkeyToAddress } from '@cosmjs/amino';
+import {
+  createMultisigThresholdPubkey,
+  encodeSecp256k1Pubkey,
+  pubkeyToAddress,
+} from '@cosmjs/amino';
 import { IGeneralRepository } from '../igeneral.repository';
 import { IMultisigWalletOwnerRepository } from '../imultisig-wallet-owner.repository';
 import { ConfigService } from 'src/shared/services/config.service';
 import { IndexerClient } from 'src/utils/apis/IndexerClient';
 import { CommonUtil } from 'src/utils/common.util';
 import { fromBase64 } from '@cosmjs/encoding';
+import { createEvmosPubkey } from 'src/chains';
 
 @Injectable()
 export class MultisigWalletRepository
@@ -322,10 +327,19 @@ export class MultisigWalletRepository
       // insert safe
       const newSafe = new Safe();
       newSafe.creatorAddress = ownersAddresses[0];
-      newSafe.creatorPubkey = JSON.stringify(pubkeyInfo.public_keys[0]);
+      newSafe.creatorPubkey = pubkeyInfo.public_keys[0].key;
       newSafe.threshold = pubkeyInfo.threshold;
       newSafe.safeAddress = accountAddress;
-      newSafe.safePubkey = JSON.stringify(pubkeyInfo);
+      newSafe.safePubkey = JSON.stringify(
+        createMultisigThresholdPubkey(
+          pubkeyInfo.public_keys.map((pubkey) => {
+            return chainInfo.prefix.startsWith('evmos')
+              ? createEvmosPubkey(pubkey.key)
+              : CommonUtil.createPubkeys(pubkey.key);
+          }),
+          pubkeyInfo.threshold,
+        ),
+      );
       newSafe.internalChainId = internalChainId;
 
       const result = await this.recoverSafe(
