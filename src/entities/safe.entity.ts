@@ -30,7 +30,7 @@ export class Safe extends BaseEntityAutoId {
   @Column({ name: 'Sequence', nullable: true })
   sequence: string;
 
-  @Column({ name: 'NextQueueSeq' })
+  @Column({ name: 'NextQueueSeq', nullable: true })
   nextQueueSeq: string;
 
   @Column({ name: 'AddressHash' })
@@ -39,10 +39,10 @@ export class Safe extends BaseEntityAutoId {
   @Column({ name: 'InternalChainId' })
   internalChainId: number;
 
-  @Column({ name: 'TxHistoryTag' })
+  @Column({ name: 'TxHistoryTag', nullable: true })
   txHistoryTag: string;
 
-  @Column({ name: 'TxQueuedTag' })
+  @Column({ name: 'TxQueuedTag', nullable: true })
   txQueuedTag: string;
 
   /**

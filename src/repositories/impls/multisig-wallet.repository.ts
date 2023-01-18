@@ -9,12 +9,18 @@ import { CustomError } from '../../common/customError';
 import { ErrorMap } from '../../common/error.map';
 import { SAFE_STATUS } from '../../common/constants/app.constant';
 import { createHash } from 'crypto';
-import { pubkeyToAddress } from '@cosmjs/amino';
+import {
+  createMultisigThresholdPubkey,
+  encodeSecp256k1Pubkey,
+  pubkeyToAddress,
+} from '@cosmjs/amino';
 import { IGeneralRepository } from '../igeneral.repository';
 import { IMultisigWalletOwnerRepository } from '../imultisig-wallet-owner.repository';
 import { ConfigService } from 'src/shared/services/config.service';
 import { IndexerClient } from 'src/utils/apis/IndexerClient';
 import { CommonUtil } from 'src/utils/common.util';
+import { fromBase64 } from '@cosmjs/encoding';
+import { createEvmosPubkey } from 'src/chains';
 
 @Injectable()
 export class MultisigWalletRepository
@@ -314,16 +320,26 @@ export class MultisigWalletRepository
       );
 
       const ownersAddresses: string[] = pubkeyInfo.public_keys.map((pubkey) => {
-        return pubkeyToAddress(pubkey.key, chainInfo.prefix);
+        const pubkeyFormated = encodeSecp256k1Pubkey(fromBase64(pubkey.key));
+        return pubkeyToAddress(pubkeyFormated, chainInfo.prefix);
       });
 
       // insert safe
       const newSafe = new Safe();
       newSafe.creatorAddress = ownersAddresses[0];
-      newSafe.creatorPubkey = pubkeyInfo.value.pubkeys[0];
-      newSafe.threshold = pubkeyInfo.value.threshold;
+      newSafe.creatorPubkey = pubkeyInfo.public_keys[0].key;
+      newSafe.threshold = pubkeyInfo.threshold;
       newSafe.safeAddress = accountAddress;
-      newSafe.safePubkey = JSON.stringify(pubkeyInfo);
+      newSafe.safePubkey = JSON.stringify(
+        createMultisigThresholdPubkey(
+          pubkeyInfo.public_keys.map((pubkey) => {
+            return chainInfo.prefix.startsWith('evmos')
+              ? createEvmosPubkey(pubkey.key)
+              : CommonUtil.createPubkeys(pubkey.key);
+          }),
+          pubkeyInfo.threshold,
+        ),
+      );
       newSafe.internalChainId = internalChainId;
 
       const result = await this.recoverSafe(
@@ -340,7 +356,7 @@ export class MultisigWalletRepository
           this.safeOwnerRepo.recoverSafeOwner(
             safeId,
             ownersAddresses[i],
-            pubkeyInfo.value.pubkeys[i].value,
+            pubkeyInfo.public_keys[i].value,
             internalChainId,
           ),
         );

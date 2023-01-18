@@ -272,7 +272,7 @@ function isEthSecp256k1Pubkey(pubkey: Pubkey): pubkey is EthSecp256k1Pubkey {
   return (pubkey as EthSecp256k1Pubkey).type === 'ethermint/PubKeyEthSecp256k1';
 }
 
-function createEvmosPubkey(value: string): SinglePubkey {
+export function createEvmosPubkey(value: string): SinglePubkey {
   const result: SinglePubkey = {
     type: 'ethermint/PubKeyEthSecp256k1',
     value,
