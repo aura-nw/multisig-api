@@ -37,6 +37,7 @@ import {
   GetSimulateAddressQuery,
   ChangeSequenceTransactionRequest,
   GetNotificationRequest,
+  MarkAsReadNotificationReq,
 } from './dtos/requests';
 import { DeleteTxRequest } from './dtos/requests/transaction/delete-tx.request';
 import {
@@ -128,6 +129,7 @@ export const REQUEST_CONFIG = {
   GET_SIMULATE_ADDRESS_QUERY: GetSimulateAddressQuery,
   DELETE_TX_REQUEST: DeleteTxRequest,
   GET_NOTIFICATION_REQUEST: GetNotificationRequest,
+  MARK_AS_READ_NOTIFICATION_REQ: MarkAsReadNotificationReq,
 };
 
 export const RESPONSE_CONFIG = {
@@ -192,6 +194,7 @@ export namespace MODULE_REQUEST {
   export abstract class GetSimulateAddressQuery extends REQUEST_CONFIG.GET_SIMULATE_ADDRESS_QUERY {}
   export abstract class DeleteTxRequest extends REQUEST_CONFIG.DELETE_TX_REQUEST {}
   export abstract class GetNotificationRequest extends REQUEST_CONFIG.GET_NOTIFICATION_REQUEST {}
+  export abstract class MarkAsReadNotificationReq extends REQUEST_CONFIG.MARK_AS_READ_NOTIFICATION_REQ {}
 }
 
 export namespace MODULE_RESPONSE {

@@ -11,3 +11,12 @@ export class GetNotificationRequest {
   @Type(() => Number)
   userId: number;
 }
+
+export class MarkAsReadNotificationReq {
+  @ApiProperty({
+    type: Number,
+    isArray: true,
+    description: 'Array of notifications id',
+  })
+  notifications: number[];
+}

@@ -1,14 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Notification } from 'src/entities';
-import { ENTITIES_CONFIG } from 'src/module.config';
-import { Repository } from 'typeorm';
+import { ENTITIES_CONFIG, MODULE_REQUEST } from 'src/module.config';
+import { In, Repository } from 'typeorm';
 import { INotificationService } from '../inotification.service';
 import { BaseService } from './base.service';
 import { plainToInstance } from 'class-transformer';
 import { CommonUtil } from 'src/utils/common.util';
 import { ResponseDto } from 'src/dtos/responses';
 import { ErrorMap } from 'src/common/error.map';
+import { NotificationStatus } from 'src/common/constants/app.constant';
 
 @Injectable()
 export class NotificationService
@@ -41,5 +42,30 @@ export class NotificationService
         result.map((item) => this.utils.omitByNil(item)),
       ),
     );
+  }
+
+  async markAsRead(
+    request: MODULE_REQUEST.MarkAsReadNotificationReq,
+  ): Promise<ResponseDto> {
+    try {
+      const authInfo = this.utils.getAuthInfo();
+
+      const { notifications } = request;
+
+      const result = await this.repo.update(
+        {
+          id: In(notifications),
+          userId: authInfo.userId,
+        },
+        {
+          status: NotificationStatus.READ,
+        },
+      );
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, {
+        affected: result.affected,
+      });
+    } catch (error) {
+      return ResponseDto.responseError(NotificationService.name, error);
+    }
   }
 }
