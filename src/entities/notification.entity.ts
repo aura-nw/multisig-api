@@ -168,4 +168,20 @@ export class Notification extends BaseEntityAutoId {
       internalChainId,
     });
   }
+
+  static newProposalNotification(
+    proposalNumber: number,
+    proposalName: string,
+    proposalEndDate: Date,
+    internalChainId: number,
+  ): Notification {
+    return plainToInstance(Notification, {
+      eventType: NotificationEventType.START_VOTING_PERIOD,
+      status: NotificationStatus.UNREAD,
+      proposalNumber,
+      proposalName,
+      proposalEndDate,
+      internalChainId,
+    });
+  }
 }

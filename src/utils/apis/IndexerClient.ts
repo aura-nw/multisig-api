@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { CustomError } from 'src/common/customError';
 import { ErrorMap } from 'src/common/error.map';
 import { ConfigService } from 'src/shared/services/config.service';
@@ -5,6 +6,7 @@ import { CommonUtil } from '../common.util';
 
 export class IndexerClient {
   private configService: ConfigService = new ConfigService();
+  private readonly _logger = new Logger(IndexerClient.name);
   indexerUrl: string;
 
   constructor(indexerUrl?: string) {
@@ -153,5 +155,19 @@ export class IndexerClient {
     ).href;
     const response = await CommonUtil.requestAPI(getProposalDepositsURL);
     return response.data.transactions;
+  }
+
+  async getProposalsByChainId(chainId: string): Promise<any[]> {
+    const getProposalByChainIdURL = new URL(
+      `api/v1/proposal?chainid=${chainId}&pageLimit=10&pageOffset=0&reverse=false`,
+      this.indexerUrl,
+    ).href;
+    try {
+      const response = await CommonUtil.requestAPI(getProposalByChainIdURL);
+      return response.data.proposals || [];
+    } catch (error) {
+      this._logger.error(error);
+      return [];
+    }
   }
 }
