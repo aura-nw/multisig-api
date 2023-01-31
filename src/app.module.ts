@@ -41,6 +41,8 @@ import { NotificationRepository } from './repositories/impls/notification.reposi
 import { NotificationController } from './controllers/notification.controller';
 import { NotificationService } from './services/impls/notification.service';
 import { TransactionHistoryRepository } from './repositories/impls/tx-history.repository';
+import { ScheduleModule } from '@nestjs/schedule';
+import { NotifyProposalJob } from './jobs/notify-proposal.jobs';
 
 const controllers = [
   MultisigWalletController,
@@ -89,9 +91,11 @@ const entities = [
       useFactory: (configService: ConfigService) => configService.jwtConfig,
       inject: [ConfigService],
     }),
+    ScheduleModule.forRoot(),
   ],
   controllers: [...controllers],
   providers: [
+    NotifyProposalJob,
     //jwt
     JwtStrategy,
     //repository
