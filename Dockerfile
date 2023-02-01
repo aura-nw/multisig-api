@@ -22,4 +22,4 @@ COPY --chown=node:node --from=build-stage dist package*.json ./
 # ✅ Clean dev packages
 RUN npm prune --production
 
-CMD [ "node", "src/main.js" ]
+CMD [ "node", "main.js" ]
