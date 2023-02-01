@@ -1,4 +1,4 @@
-FROM node:16.17-alpine as build-stage
+FROM node:16.17-alpine AS build-stage
 
 COPY --chown=node:node package*.json ./
 
@@ -9,7 +9,7 @@ COPY --chown=node:node ./* ./
 RUN npm run build
 
 # Run-time stage
-FROM node:16.17-alpine as run-stage
+FROM node:16.17-alpine AS run-stage
 USER node
 
 ARG PORT=3000
