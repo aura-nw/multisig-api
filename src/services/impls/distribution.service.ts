@@ -19,7 +19,7 @@ import { ConfigService } from '../../shared/services/config.service';
 import { CommonUtil } from '../../utils/common.util';
 import { Chain } from '../../entities';
 import { IDistributionService } from '../idistribution.service';
-import { IndexerClient } from 'src/utils/apis/IndexerClient';
+import { IndexerClient } from '../../utils/apis/IndexerClient';
 
 @Injectable()
 export class DistributionService implements IDistributionService {

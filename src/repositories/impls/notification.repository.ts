@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Notification, User } from 'src/entities';
-import { ENTITIES_CONFIG } from 'src/module.config';
 import { In, Repository } from 'typeorm';
+import { Notification, User } from '../../entities';
+import { ENTITIES_CONFIG } from '../../module.config';
 import { INotificationRepository } from '../inotification.repository';
 import { BaseRepository } from './base.repository';
 

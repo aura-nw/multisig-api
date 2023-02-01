@@ -16,11 +16,11 @@ import {
 } from '@cosmjs/amino';
 import { IGeneralRepository } from '../igeneral.repository';
 import { IMultisigWalletOwnerRepository } from '../imultisig-wallet-owner.repository';
-import { ConfigService } from 'src/shared/services/config.service';
-import { IndexerClient } from 'src/utils/apis/IndexerClient';
-import { CommonUtil } from 'src/utils/common.util';
 import { fromBase64 } from '@cosmjs/encoding';
-import { createEvmosPubkey } from 'src/chains';
+import { IndexerClient } from '../../utils/apis/IndexerClient';
+import { ConfigService } from '../../shared/services/config.service';
+import { CommonUtil } from '../../utils/common.util';
+import { createEvmosPubkey } from '../../chains';
 
 @Injectable()
 export class MultisigWalletRepository

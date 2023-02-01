@@ -2,26 +2,21 @@ import { Inject, Logger } from '@nestjs/common';
 import { ResponseDto } from '../../dtos/responses/response.dto';
 import { IGeneralService } from '../igeneral.service';
 import { BaseService } from './base.service';
-import { CommonUtil } from '../../utils/common.util';
 import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
 import { IGeneralRepository } from '../../repositories/igeneral.repository';
 import { ErrorMap } from '../../common/error.map';
-import { IMultisigWalletRepository } from '../../repositories';
 import { IGasRepository } from '../../repositories/igas.repository';
-import { IndexerClient } from 'src/utils/apis/IndexerClient';
-import { ConfigService } from 'src/shared/services/config.service';
+import { IndexerClient } from '../../utils/apis/IndexerClient';
+import { ConfigService } from '../../shared/services/config.service';
 
 export class GeneralService extends BaseService implements IGeneralService {
   private readonly _logger = new Logger(GeneralService.name);
-  private _commonUtil: CommonUtil = new CommonUtil();
   private _indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
 
   constructor(
     private configService: ConfigService,
     @Inject(REPOSITORY_INTERFACE.IGENERAL_REPOSITORY)
     private chainRepo: IGeneralRepository,
-    @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_REPOSITORY)
-    private safeRepo: IMultisigWalletRepository,
     @Inject(REPOSITORY_INTERFACE.IGAS_REPOSITORY)
     private gasRepo: IGasRepository,
   ) {

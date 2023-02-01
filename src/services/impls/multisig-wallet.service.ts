@@ -21,9 +21,9 @@ import { encodeSecp256k1Pubkey, pubkeyToAddress } from '@cosmjs/amino';
 import { fromBase64 } from '@cosmjs/encoding';
 import { SimplePublicKey } from '@terra-money/terra.js';
 import { pubkeyToAddressEvmos } from '../../chains/evmos';
-import { IndexerClient } from 'src/utils/apis/IndexerClient';
-import { ConfigService } from 'src/shared/services/config.service';
-import { INotificationRepository } from 'src/repositories/inotification.repository';
+import { IndexerClient } from '../../utils/apis/IndexerClient';
+import { ConfigService } from '../../shared/services/config.service';
+import { INotificationRepository } from '../../repositories/inotification.repository';
 
 @Injectable()
 export class MultisigWalletService

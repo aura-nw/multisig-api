@@ -10,10 +10,10 @@ import { makeMultisignedTx } from '@cosmjs/stargate';
 import { OwnerSimulate } from './owner.simulate';
 import { fromBase64, toBase64 } from '@cosmjs/encoding';
 import { SimulateUtils } from './utils';
-import { IndexerClient } from 'src/utils/apis/IndexerClient';
-import { TX_TYPE_URL } from 'src/common/constants/app.constant';
-import { Chain } from 'src/entities';
-import { makeMultisignedTxEvmos } from 'src/chains';
+import { Chain } from '../entities';
+import { IndexerClient } from '../utils/apis/IndexerClient';
+import { makeMultisignedTxEvmos } from '../chains';
+import { TX_TYPE_URL } from '../common/constants/app.constant';
 
 export class SafeSimulate {
   signature: string;

@@ -1,8 +1,8 @@
 import { BaseEntityAutoId } from './base/base.entity';
 import { Column, Entity } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
-import { CommonUtil } from 'src/utils/common.util';
-import { SAFE_STATUS } from 'src/common/constants/app.constant';
+import { SAFE_STATUS } from '../common/constants/app.constant';
+import { CommonUtil } from '../utils/common.util';
 
 @Entity({ name: 'Safe' })
 export class Safe extends BaseEntityAutoId {

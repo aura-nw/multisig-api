@@ -1,4 +1,4 @@
-import { TxMessageHistoryResponse } from 'src/dtos/responses';
+import { TxMessageHistoryResponse } from '../dtos/responses';
 import { TxMessageResponse } from '../dtos/responses/message/tx-msg.response';
 import { Message } from '../entities/message.entity';
 import { IBaseRepository } from './ibase.repository';

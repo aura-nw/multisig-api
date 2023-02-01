@@ -10,7 +10,7 @@ import { BaseRepository } from './base.repository';
 import { TxMessageHistoryResponse } from '../../dtos/responses';
 import { CustomError } from '../../common/customError';
 import { ErrorMap } from '../../common/error.map';
-import { TX_TYPE_URL } from 'src/common/constants/app.constant';
+import { TX_TYPE_URL } from '../../common/constants/app.constant';
 
 @Injectable()
 export class MessageRepository

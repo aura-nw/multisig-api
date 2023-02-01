@@ -19,11 +19,11 @@ import { IMultisigWalletRepository } from '../../repositories/imultisig-wallet.r
 import { ITransactionRepository } from '../../repositories/itransaction.repository';
 import { ITransactionService } from '../transaction.service';
 import { BaseService } from './base.service';
-import { TxDetail } from 'src/dtos/responses/multisig-transaction/tx-detail.response';
-import { TxMessageResponse } from 'src/dtos/responses/message/tx-msg.response';
-import { CommonUtil } from 'src/utils/common.util';
 import { plainToInstance } from 'class-transformer';
-import { ITransactionHistoryRepository } from 'src/repositories/itx-history.repository';
+import { CommonUtil } from '../../utils/common.util';
+import { ITransactionHistoryRepository } from '../../repositories/itx-history.repository';
+import { TxMessageResponse } from '../../dtos/responses/message/tx-msg.response';
+import { TxDetail } from '../../dtos/responses/multisig-transaction/tx-detail.response';
 
 @Injectable()
 export class TransactionService

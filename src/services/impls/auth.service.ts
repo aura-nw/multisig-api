@@ -11,7 +11,6 @@ import {
   AppConstants,
   COMMON_CONSTANTS,
 } from '../../common/constants/app.constant';
-import { ContextService } from '../../../providers/context.service';
 import { IGeneralRepository } from '../../repositories';
 import {
   createSignMessageByData,
@@ -21,6 +20,7 @@ import {
 } from '../../chains';
 import { UserInfo } from '../../dtos/userInfo';
 import { IUserRepository } from '../../repositories/iuser.repository';
+import { ContextService } from '../../providers/context.service';
 @Injectable()
 export class AuthService implements IAuthService {
   private readonly _logger = new Logger(AuthService.name);
