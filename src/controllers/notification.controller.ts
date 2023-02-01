@@ -1,9 +1,9 @@
 import { Body, Controller, Inject, Logger } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { CONTROLLER_CONSTANTS } from 'src/common/constants/api.constant';
-import { CommonAuthGet, CommonAuthPost } from 'src/decorators/common.decorator';
-import { MODULE_REQUEST, SERVICE_INTERFACE } from 'src/module.config';
-import { INotificationService } from 'src/services/inotification.service';
+import { CONTROLLER_CONSTANTS } from '../common/constants/api.constant';
+import { CommonAuthGet, CommonAuthPost } from '../decorators/common.decorator';
+import { MODULE_REQUEST, SERVICE_INTERFACE } from '../module.config';
+import { INotificationService } from '../services/inotification.service';
 
 @Controller(CONTROLLER_CONSTANTS.NOTIFICATION)
 @ApiTags(CONTROLLER_CONSTANTS.NOTIFICATION)

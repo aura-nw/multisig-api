@@ -1,15 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Notification } from 'src/entities';
-import { ENTITIES_CONFIG, MODULE_REQUEST } from 'src/module.config';
 import { In, Repository } from 'typeorm';
 import { INotificationService } from '../inotification.service';
 import { BaseService } from './base.service';
 import { plainToInstance } from 'class-transformer';
-import { CommonUtil } from 'src/utils/common.util';
-import { ResponseDto } from 'src/dtos/responses';
-import { ErrorMap } from 'src/common/error.map';
-import { NotificationStatus } from 'src/common/constants/app.constant';
+import { CommonUtil } from '../../utils/common.util';
+import { ENTITIES_CONFIG, MODULE_REQUEST } from '../../module.config';
+import { ResponseDto } from '../../dtos/responses';
+import { Notification } from '../../entities';
+import { ErrorMap } from '../../common/error.map';
+import { NotificationStatus } from '../../common/constants/app.constant';
 
 @Injectable()
 export class NotificationService

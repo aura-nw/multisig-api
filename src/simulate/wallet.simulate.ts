@@ -3,9 +3,9 @@ import { fromBase64, toBase64 } from '@cosmjs/encoding';
 import { SafeSimulate } from './safe.simulate';
 import { OwnerSimulate } from './owner.simulate';
 import { SimulateUtils } from './utils';
-import { LcdClient } from 'src/utils/apis/LcdClient';
-import { SimulateResponse } from 'src/dtos/responses/simulate';
-import { Chain, Safe } from 'src/entities';
+import { Chain, Safe } from '../entities';
+import { SimulateResponse } from '../dtos/responses/simulate';
+import { LcdClient } from '../utils/apis/LcdClient';
 
 export class WalletSimulate {
   safeOwnerMap = new Map<number, SafeSimulate>();

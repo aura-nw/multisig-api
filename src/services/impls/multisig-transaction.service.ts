@@ -42,13 +42,13 @@ import { makeMultisignedTxEvmos, verifyEvmosSig } from '../../chains/evmos';
 import { CommonUtil } from '../../utils/common.util';
 import { AminoMsg, coin, makeSignDoc } from '@cosmjs/amino';
 import { verifyCosmosSig } from '../../chains';
-import { IndexerClient } from 'src/utils/apis/IndexerClient';
-import { ConfigService } from 'src/shared/services/config.service';
-import { AccountInfo, TxRawInfo } from 'src/dtos/requests';
-import { UserInfo } from 'src/dtos/userInfo';
-import { Simulate } from 'src/simulate';
-import { CustomError } from 'src/common/customError';
-import { INotificationRepository } from 'src/repositories/inotification.repository';
+import { IndexerClient } from '../../utils/apis/IndexerClient';
+import { Simulate } from '../../simulate';
+import { ConfigService } from '../../shared/services/config.service';
+import { INotificationRepository } from '../../repositories/inotification.repository';
+import { CustomError } from '../../common/customError';
+import { AccountInfo, TxRawInfo } from '../../dtos/requests';
+import { UserInfo } from '../../dtos/userInfo';
 
 @Injectable()
 export class MultisigTransactionService

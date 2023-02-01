@@ -18,10 +18,10 @@ import {
   MsgSendEncodeObject,
   StdFee,
 } from '@cosmjs/stargate';
-import { REGISTRY_GENERATED_TYPES } from 'src/common/constants/app.constant';
 import { coins } from '@cosmjs/amino';
-import { IndexerClient } from 'src/utils/apis/IndexerClient';
-import { encodePubkeyEvmos } from 'src/chains';
+import { REGISTRY_GENERATED_TYPES } from '../common/constants/app.constant';
+import { IndexerClient } from '../utils/apis/IndexerClient';
+import { encodePubkeyEvmos } from '../chains';
 
 export class SimulateUtils {
   public static makeBodyBytes(messages: any[], prefix: string): Uint8Array {

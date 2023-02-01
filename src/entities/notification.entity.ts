@@ -1,9 +1,9 @@
 import { plainToInstance } from 'class-transformer';
+import { Column, Entity, Index } from 'typeorm';
 import {
   NotificationEventType,
   NotificationStatus,
-} from 'src/common/constants/app.constant';
-import { Column, Entity, Index } from 'typeorm';
+} from '../common/constants/app.constant';
 import { BaseEntityAutoId } from './base/base.entity';
 
 @Entity({ name: 'Notification' })

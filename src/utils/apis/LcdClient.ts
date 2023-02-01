@@ -1,7 +1,7 @@
-import { CustomError } from 'src/common/customError';
-import { ErrorMap } from 'src/common/error.map';
-import { SimulateResponse } from 'src/dtos/responses/simulate';
-import { ConfigService } from 'src/shared/services/config.service';
+import { CustomError } from '../../common/customError';
+import { ErrorMap } from '../../common/error.map';
+import { SimulateResponse } from '../../dtos/responses/simulate';
+import { ConfigService } from '../../shared/services/config.service';
 import { CommonUtil } from '../common.util';
 
 export class LcdClient {

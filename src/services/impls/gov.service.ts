@@ -15,7 +15,7 @@ import {
   GetProposalsTurnout,
 } from '../../dtos/responses/gov/get-proposals.response';
 import { GetVotesByProposalIdResponse } from '../../dtos/responses/gov/get-votes-by-proposal-id.response';
-import { IndexerClient } from 'src/utils/apis/IndexerClient';
+import { IndexerClient } from '../../utils/apis/IndexerClient';
 
 @Injectable()
 export class GovService implements IGovService {

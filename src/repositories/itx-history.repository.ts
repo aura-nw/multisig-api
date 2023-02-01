@@ -1,4 +1,4 @@
-import { TransactionHistory } from 'src/entities/transaction-history.entity';
+import { TransactionHistory } from '../entities/transaction-history.entity';
 import { IBaseRepository } from './ibase.repository';
 
 export interface ITransactionHistoryRepository extends IBaseRepository {

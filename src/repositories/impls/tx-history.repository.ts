@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
-import { TRANSACTION_STATUS } from 'src/common/constants/app.constant';
-import { MultisigTransactionHistoryResponse } from 'src/dtos/responses';
-import { TransactionHistory } from 'src/entities/transaction-history.entity';
-import { ENTITIES_CONFIG } from 'src/module.config';
 import { ObjectLiteral, Repository } from 'typeorm';
+import { TRANSACTION_STATUS } from '../../common/constants/app.constant';
+import { MultisigTransactionHistoryResponse } from '../../dtos/responses';
+import { TransactionHistory } from '../../entities/transaction-history.entity';
+import { ENTITIES_CONFIG } from '../../module.config';
 import { ITransactionHistoryRepository } from '../itx-history.repository';
 import { BaseRepository } from './base.repository';
 
