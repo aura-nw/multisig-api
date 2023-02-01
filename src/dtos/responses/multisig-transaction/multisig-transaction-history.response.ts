@@ -51,14 +51,14 @@ export class MultisigTransactionHistoryResponse {
   FinalAmount: number;
 
   @ApiProperty({
-    example: 2,
+    example: [],
   })
-  Confirmations: number;
+  Confirmations: string[];
 
   @ApiProperty({
-    example: 2,
+    example: [],
   })
-  Rejections: number;
+  Rejections: string[];
 
   @ApiProperty({
     example: 2,

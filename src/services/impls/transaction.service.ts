@@ -127,13 +127,13 @@ export class TransactionService
           pageSize,
         );
       else {
-        result = await this.multisigTransactionRepos.getQueueTransaction(
+        const txs = await this.multisigTransactionRepos.getQueueTransaction(
           safeAddress,
           internalChainId,
           pageIndex,
           pageSize,
         );
-        result = await this.getConfirmationStatus(result, safe[0].threshold);
+        result = await this.getConfirmationStatus(txs, safe[0].threshold);
       }
       const response = result.map((item) => {
         if (item.TypeUrl === null || item.FromAddress !== safeAddress)
@@ -170,10 +170,12 @@ export class TransactionService
             tx.MultisigTxId,
             tx.TxHash,
           );
-        tx.Confirmations = confirmations.filter(
-          (x) => x.status === MULTISIG_CONFIRM_STATUS.CONFIRM,
-        ).length;
-        tx.Rejections = confirmations.length - tx.Confirmations;
+        tx.Confirmations = confirmations
+          .filter((x) => x.status === MULTISIG_CONFIRM_STATUS.CONFIRM)
+          .map((item) => item.ownerAddress);
+        tx.Rejections = confirmations
+          .filter((x) => x.status === MULTISIG_CONFIRM_STATUS.REJECT)
+          .map((item) => item.ownerAddress);
 
         tx.ConfirmationsRequired = threshold;
         return tx;
