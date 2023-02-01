@@ -4,7 +4,7 @@ COPY --chown=node:node package*.json ./
 
 # ✅ Safe install
 RUN npm ci
-COPY --chown=node:node . .
+COPY --chown=node:node ./src ./src
 RUN npm run build
 
 # Run-time stage
