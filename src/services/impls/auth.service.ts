@@ -13,7 +13,6 @@ import {
 } from '../../common/constants/app.constant';
 import { IGeneralRepository } from '../../repositories';
 import {
-  createSignMessageByData,
   pubkeyToAddressEvmos,
   verifyCosmosSig,
   verifyEvmosSig,
@@ -21,6 +20,7 @@ import {
 import { UserInfo } from '../../dtos/userInfo';
 import { IUserRepository } from '../../repositories/iuser.repository';
 import { ContextService } from '../../providers/context.service';
+import { CommonUtil } from '../../utils/common.util';
 @Injectable()
 export class AuthService implements IAuthService {
   private readonly _logger = new Logger(AuthService.name);
@@ -58,7 +58,7 @@ export class AuthService implements IAuthService {
         // get address from pubkey
         address = pubkeyToAddressEvmos(pubkey);
         // create message hash from data
-        const msg = createSignMessageByData(address, plainData);
+        const msg = CommonUtil.createSignMessageByData(address, plainData);
         // verify signature
         resultVerify = await verifyEvmosSig(signature, msg, address);
       } else {
@@ -66,7 +66,7 @@ export class AuthService implements IAuthService {
         const pubkeyFormated = encodeSecp256k1Pubkey(fromBase64(pubkey));
         address = pubkeyToAddress(pubkeyFormated, prefix);
         // create message hash from data
-        const msg = createSignMessageByData(address, plainData);
+        const msg = CommonUtil.createSignMessageByData(address, plainData);
         // verify signature
         resultVerify = await verifyCosmosSig(
           signature,
