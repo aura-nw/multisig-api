@@ -142,6 +142,9 @@ export class MultisigTransactionService
 
       await this.deleteTx(tx, creatorAddress);
 
+      // Update next seq
+      await this.updateNextSeqAfterDeleteTx(tx.safeId, tx.internalChainId);
+
       // notify to all owners except the one who deletes the transaction
       const safeOwners = await this.safeOwnerRepo.getSafeOwnersWithError(
         tx.safeId,
@@ -780,6 +783,32 @@ export class MultisigTransactionService
           return acc;
       }
     }, 0);
+  }
+
+  /**
+   * updateNextSeqAfterDeleteTx
+   * @param safeId
+   * @param internalChainId
+   */
+  async updateNextSeqAfterDeleteTx(safeId: number, internalChainId: number) {
+    // get safe info
+    const safe = await this.safeRepos.getSafe(safeId.toString());
+
+    // get chain info
+    const chain = await this.chainRepos.findChain(internalChainId);
+
+    // get safe account info
+    const accountInfo: AccountInfo = await this.getAccountInfoWithNewSeq(
+      null,
+      safe,
+      chain.chainId,
+    );
+
+    safe.nextQueueSeq = (
+      await this.calculateNextSeq(safe.id, accountInfo.sequence)
+    ).toString();
+
+    await this.safeRepos.updateSafe(safe);
   }
 
   /**
