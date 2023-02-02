@@ -21,7 +21,7 @@ import {
 import { coins } from '@cosmjs/amino';
 import { REGISTRY_GENERATED_TYPES } from '../common/constants/app.constant';
 import { IndexerClient } from '../utils/apis/IndexerClient';
-import { encodePubkeyEvmos } from '../chains';
+import { encodePubkeyEvmos } from '../chains/evmos';
 
 export class SimulateUtils {
   public static makeBodyBytes(messages: any[], prefix: string): Uint8Array {

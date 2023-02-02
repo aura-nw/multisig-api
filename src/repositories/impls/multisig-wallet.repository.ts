@@ -20,7 +20,7 @@ import { fromBase64 } from '@cosmjs/encoding';
 import { IndexerClient } from '../../utils/apis/IndexerClient';
 import { ConfigService } from '../../shared/services/config.service';
 import { CommonUtil } from '../../utils/common.util';
-import { createEvmosPubkey } from '../../chains';
+import { createEvmosPubkey } from '../../chains/evmos';
 
 @Injectable()
 export class MultisigWalletRepository

@@ -40,8 +40,7 @@ import {
 } from '../../repositories';
 import { makeMultisignedTxEvmos, verifyEvmosSig } from '../../chains/evmos';
 import { CommonUtil } from '../../utils/common.util';
-import { AminoMsg, coin, makeSignDoc } from '@cosmjs/amino';
-import { verifyCosmosSig } from '../../chains';
+import { AminoMsg, makeSignDoc } from '@cosmjs/amino';
 import { IndexerClient } from '../../utils/apis/IndexerClient';
 import { Simulate } from '../../simulate';
 import { ConfigService } from '../../shared/services/config.service';
@@ -49,6 +48,7 @@ import { INotificationRepository } from '../../repositories/inotification.reposi
 import { CustomError } from '../../common/customError';
 import { AccountInfo, TxRawInfo } from '../../dtos/requests';
 import { UserInfo } from '../../dtos/userInfo';
+import { CosmosUtil } from '../../chains/cosmos';
 
 @Injectable()
 export class MultisigTransactionService
@@ -595,7 +595,7 @@ export class MultisigTransactionService
         creatorAddress,
       );
     } else {
-      resultVerify = await verifyCosmosSig(
+      resultVerify = await CosmosUtil.verifyCosmosSig(
         txRawInfo.signature,
         signDoc,
         fromBase64(creatorPubkey),

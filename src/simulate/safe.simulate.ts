@@ -12,8 +12,8 @@ import { fromBase64, toBase64 } from '@cosmjs/encoding';
 import { SimulateUtils } from './utils';
 import { Chain } from '../entities';
 import { IndexerClient } from '../utils/apis/IndexerClient';
-import { makeMultisignedTxEvmos } from '../chains';
 import { TX_TYPE_URL } from '../common/constants/app.constant';
+import { makeMultisignedTxEvmos } from '../chains/evmos';
 
 export class SafeSimulate {
   signature: string;
