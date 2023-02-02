@@ -12,15 +12,12 @@ import {
   COMMON_CONSTANTS,
 } from '../../common/constants/app.constant';
 import { IGeneralRepository } from '../../repositories';
-import {
-  pubkeyToAddressEvmos,
-  verifyCosmosSig,
-  verifyEvmosSig,
-} from '../../chains';
 import { UserInfo } from '../../dtos/userInfo';
 import { IUserRepository } from '../../repositories/iuser.repository';
 import { ContextService } from '../../providers/context.service';
 import { CommonUtil } from '../../utils/common.util';
+import { pubkeyToAddressEvmos, verifyEvmosSig } from '../../chains/evmos';
+import { CosmosUtil } from '../../chains/cosmos';
 @Injectable()
 export class AuthService implements IAuthService {
   private readonly _logger = new Logger(AuthService.name);
@@ -68,7 +65,7 @@ export class AuthService implements IAuthService {
         // create message hash from data
         const msg = CommonUtil.createSignMessageByData(address, plainData);
         // verify signature
-        resultVerify = await verifyCosmosSig(
+        resultVerify = await CosmosUtil.verifyCosmosSig(
           signature,
           msg,
           fromBase64(pubkey),
