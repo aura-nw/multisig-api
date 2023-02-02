@@ -290,7 +290,7 @@ export class MultisigTransactionService
           safe.safeAddress,
         );
       safe.nextQueueSeq = (
-        await this.calculateNextSeq(safe.id, sequenceInIndexer - 1)
+        await this.calculateNextSeq(safe.id, sequenceInIndexer)
       ).toString();
       safe.accountNumber = accountInfo.accountNumber.toString();
       await this.safeRepos.updateSafe(safe);
@@ -432,6 +432,16 @@ export class MultisigTransactionService
         if (typeof error.txId === 'undefined' || error.txId === null) {
           multisigTransaction.status = TRANSACTION_STATUS.FAILED;
           await this.multisigTransactionRepos.update(multisigTransaction);
+
+          // re calculate next seq
+          safe.nextQueueSeq = (
+            await this.calculateNextSeq(
+              safe.id,
+              Number(multisigTransaction.sequence),
+            )
+          ).toString();
+          await this.safeRepos.updateSafe(safe);
+
           return ResponseDto.responseError(
             MultisigTransactionService.name,
             error,
@@ -451,14 +461,12 @@ export class MultisigTransactionService
 
           // update safe next queue sequence
           safe.sequence = (Number(multisigTransaction.sequence) + 1).toString();
-
           safe.nextQueueSeq = (
             await this.calculateNextSeq(
               safe.id,
-              Number(multisigTransaction.sequence),
+              Number(multisigTransaction.sequence) + 1,
             )
           ).toString();
-          await this.safeRepos.updateSafe(safe);
 
           // notify tx broadcasted
           const safeOwners = await this.safeOwnerRepo.getSafeOwnersWithError(
@@ -472,6 +480,7 @@ export class MultisigTransactionService
             safeOwners.map((safeOwner) => safeOwner.ownerAddress),
             internalChainId,
           );
+          await this.safeRepos.updateSafe(safe);
 
           return ResponseDto.response(ErrorMap.SUCCESSFUL, {
             TxHash: error.txId,
@@ -807,11 +816,14 @@ export class MultisigTransactionService
     return accountInfo;
   }
 
-  async calculateNextSeq(safeId: number, executedSeq: number): Promise<number> {
+  async calculateNextSeq(
+    safeId: number,
+    currentSequence: number,
+  ): Promise<number> {
     const queueSequences =
       await this.multisigTransactionRepos.findSequenceInQueue(safeId);
 
-    let nextSeq = executedSeq + 1;
+    let nextSeq = currentSequence;
     for (const i in queueSequences) {
       if (queueSequences[i] !== nextSeq) {
         break;
