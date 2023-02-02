@@ -85,6 +85,11 @@ export class MultisigTransactionService
     this._simulate = new Simulate(this.configService.get('SYS_MNEMONIC'));
   }
 
+  /**
+   * changeSequence
+   * @param request
+   * @returns
+   */
   async changeSequence(
     request: MODULE_REQUEST.ChangeSequenceTransactionRequest,
   ): Promise<ResponseDto> {
@@ -127,6 +132,11 @@ export class MultisigTransactionService
     return created;
   }
 
+  /**
+   * deleteTransaction
+   * @param request
+   * @returns
+   */
   async deleteTransaction(
     request: MODULE_REQUEST.DeleteTxRequest,
   ): Promise<ResponseDto> {
