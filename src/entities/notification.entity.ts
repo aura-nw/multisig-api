@@ -4,7 +4,7 @@ import {
   NotificationEventType,
   NotificationStatus,
 } from '../common/constants/app.constant';
-import { BaseEntityAutoId } from './base/base.entity';
+import { BaseEntityAutoId } from '../common/base.entity';
 
 @Entity({ name: 'Notification' })
 export class Notification extends BaseEntityAutoId {

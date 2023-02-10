@@ -29,7 +29,6 @@ export class OwnerController {
     summary: 'Return Safes where the address provided is an owner',
   })
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
-  @HttpCode(HttpStatus.OK)
   async getSafes(
     @Param() param: MODULE_REQUEST.GetSafesByOwnerAddressParams,
     @Query() query: MODULE_REQUEST.GetSafesByOwnerAddressQuery,

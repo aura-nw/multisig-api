@@ -43,6 +43,8 @@ import { NotificationService } from './services/impls/notification.service';
 import { TransactionHistoryRepository } from './repositories/impls/tx-history.repository';
 import { ScheduleModule } from '@nestjs/schedule';
 import { NotifyProposalJob } from './jobs/notify-proposal.jobs';
+import { AuthModule } from './modules/auth/auth.module';
+import { SafeModule } from './modules/safe/safe.module';
 
 const controllers = [
   MultisigWalletController,
@@ -54,7 +56,6 @@ const controllers = [
   DistributionController,
   UserController,
   NotificationController,
-  // AppController,
 ];
 const entities = [
   ENTITIES_CONFIG.SAFE,
@@ -92,6 +93,8 @@ const entities = [
       inject: [ConfigService],
     }),
     ScheduleModule.forRoot(),
+    AuthModule,
+    SafeModule,
   ],
   controllers: [...controllers],
   providers: [

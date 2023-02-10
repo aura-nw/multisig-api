@@ -1,4 +1,4 @@
-import { BaseEntityAutoId } from './base/base.entity';
+import { BaseEntityAutoId } from '../common/base.entity';
 import { Column, Entity } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
 import { SAFE_STATUS } from '../common/constants/app.constant';

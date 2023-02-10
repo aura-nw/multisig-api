@@ -1,5 +1,5 @@
 import { Column, Entity } from 'typeorm';
-import { BaseEntityAutoId } from './base/base.entity';
+import { BaseEntityAutoId } from '../common/base.entity';
 
 @Entity({ name: 'Gas' })
 export class Gas extends BaseEntityAutoId {
