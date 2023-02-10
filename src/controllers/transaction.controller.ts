@@ -123,7 +123,6 @@ export class TransactionController {
     schema: {},
   })
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
-  @HttpCode(HttpStatus.OK)
   async getSignaturesOfMultisigTx(
     @Param() param: MODULE_REQUEST.GetMultisigSignaturesParam,
   ) {

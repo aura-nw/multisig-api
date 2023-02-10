@@ -1,4 +1,4 @@
-import { BaseEntityAutoId } from './base/base.entity';
+import { BaseEntityAutoId } from '../common/base.entity';
 import { Column, Entity } from 'typeorm';
 import { Expose } from 'class-transformer';
 

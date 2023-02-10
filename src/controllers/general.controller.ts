@@ -55,7 +55,6 @@ export class GeneralController {
     schema: {},
   })
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
-  @HttpCode(HttpStatus.OK)
   async getAccountOnchain(
     @Param() param: MODULE_REQUEST.GetAccountOnchainParam,
   ) {

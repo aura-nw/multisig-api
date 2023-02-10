@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Inject,
-  HttpCode,
-  HttpStatus,
-  Logger,
-  Post,
-  Body,
-} from '@nestjs/common';
+import { Controller, Inject, Logger, Post, Body } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CONTROLLER_CONSTANTS } from '../common/constants/api.constant';
 import { MODULE_REQUEST, SERVICE_INTERFACE } from '../module.config';
@@ -26,7 +18,6 @@ export class AuthController {
     summary: 'Send signature to create access token',
   })
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
-  @HttpCode(HttpStatus.OK)
   async signin(@Body() request: MODULE_REQUEST.AuthRequest) {
     return this.authService.auth(request);
   }
