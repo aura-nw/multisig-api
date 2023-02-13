@@ -20,7 +20,7 @@ import { fromBase64 } from '@cosmjs/encoding';
 import { IndexerClient } from '../../utils/apis/IndexerClient';
 import { ConfigService } from '../../shared/services/config.service';
 import { CommonUtil } from '../../utils/common.util';
-import { createEvmosPubkey } from '../../chains/evmos';
+import { createEthSecp256k1Pubkey } from '../../chains/ethermint/EthSecp256k1Pubkey';
 
 @Injectable()
 export class MultisigWalletRepository
@@ -333,8 +333,8 @@ export class MultisigWalletRepository
       newSafe.safePubkey = JSON.stringify(
         createMultisigThresholdPubkey(
           pubkeyInfo.public_keys.map((pubkey) => {
-            return chainInfo.prefix.startsWith('evmos')
-              ? createEvmosPubkey(pubkey.key)
+            return chainInfo.coinDecimals === 18
+              ? createEthSecp256k1Pubkey(pubkey.key)
               : CommonUtil.createPubkeys(pubkey.key);
           }),
           pubkeyInfo.threshold,

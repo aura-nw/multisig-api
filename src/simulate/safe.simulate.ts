@@ -13,13 +13,15 @@ import { SimulateUtils } from './utils';
 import { Chain } from '../entities';
 import { IndexerClient } from '../utils/apis/IndexerClient';
 import { TX_TYPE_URL } from '../common/constants/app.constant';
-import { makeMultisignedTxEvmos } from '../chains/evmos';
+import { EthermintHelper } from '../chains/ethermint/ethermint.helper';
 
 export class SafeSimulate {
   signature: string;
   authInfo: string;
   pubkey: MultisigThresholdPubkey;
   address: string;
+
+  private ethermintHelper = new EthermintHelper();
 
   constructor(
     public ownerSimulates: OwnerSimulate[],
@@ -76,15 +78,16 @@ export class SafeSimulate {
     );
 
     // create signature and authInfo
-    const multisignedTx = this.chain.chainId.startsWith('evmos')
-      ? makeMultisignedTxEvmos(
-          this.pubkey,
-          sequence,
-          fee,
-          bodyBytes,
-          signatures,
-        )
-      : makeMultisignedTx(this.pubkey, sequence, fee, bodyBytes, signatures);
+    const multisignedTx =
+      this.chain.coinDecimals === 18
+        ? this.ethermintHelper.makeMultisignedTxEthermint(
+            this.pubkey,
+            sequence,
+            fee,
+            bodyBytes,
+            signatures,
+          )
+        : makeMultisignedTx(this.pubkey, sequence, fee, bodyBytes, signatures);
 
     this.signature = toBase64(multisignedTx.signatures[0]);
     this.authInfo = toBase64(multisignedTx.authInfoBytes);
@@ -119,7 +122,7 @@ export class SafeSimulate {
     const authInfoBytes = simulateAuthInfo
       ? fromBase64(simulateAuthInfo)
       : await SimulateUtils.makeAuthInfoBytes(
-          this.chain.chainId,
+          this.chain,
           safeAddress,
           safePubkey,
           this.threshold,

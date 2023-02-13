@@ -20,16 +20,14 @@ import {
 } from '@terra-money/terra.js';
 import { plainToInstance } from 'class-transformer';
 import { readFile } from 'graceful-fs';
-import {
-  createMultisigThresholdPubkeyEvmos,
-  encodeAminoPubkeySupportEvmos,
-} from '../chains/evmos';
 import { PUBKEY_TYPES } from '../common/constants/app.constant';
 import { CustomError } from '../common/customError';
 import { ErrorMap } from '../common/error.map';
 import { UserInfo } from '../dtos/userInfo';
 import { MultisigTransaction, Safe } from '../entities';
 import { AuthService } from '../services/impls/auth.service';
+import { EthermintHelper } from '../chains/ethermint/ethermint.helper';
+import { createEthSecp256k1Pubkey } from '../chains/ethermint/EthSecp256k1Pubkey';
 
 export class CommonUtil {
   /**
@@ -67,8 +65,10 @@ export class CommonUtil {
    * @returns address string
    */
   public static pubkeyToAddress(pubkey: Pubkey, prefix: string): string {
-    if (prefix === 'evmos') {
-      const pubkeyAmino = encodeAminoPubkeySupportEvmos(pubkey);
+    if (prefix === 'evmos' || prefix === 'canto') {
+      const ethermintHelper = new EthermintHelper();
+      const pubkeyAmino =
+        ethermintHelper.encodeAminoPubkeySupportEthermint(pubkey);
       console.log(toHex(pubkeyAmino));
       const rawAddress = sha256(pubkeyAmino).slice(0, 20);
       const address = toBech32(prefix, rawAddress);
@@ -112,15 +112,16 @@ export class CommonUtil {
     pubkey: string;
     address: string;
   } {
+    const ethermintHelper = new EthermintHelper();
     try {
       let arrPubkeys;
-      if (prefix === 'evmos') {
-        arrPubkeys = pubKeyArrString.map(this.createPubkeyEvmos);
+      if (prefix === 'evmos' || prefix === 'canto') {
+        arrPubkeys = pubKeyArrString.map(createEthSecp256k1Pubkey);
       } else arrPubkeys = pubKeyArrString.map(this.createPubkeys);
 
       let multisigPubkey;
-      if (prefix === 'evmos') {
-        multisigPubkey = createMultisigThresholdPubkeyEvmos(
+      if (prefix === 'evmos' || prefix === 'canto') {
+        multisigPubkey = ethermintHelper.createMultisigThresholdPubkeyEthermint(
           arrPubkeys,
           threshold,
         );
@@ -138,14 +139,6 @@ export class CommonUtil {
     } catch (error) {
       throw new CustomError(ErrorMap.CANNOT_CREATE_SAFE_ADDRESS, error.message);
     }
-  }
-
-  static createPubkeyEvmos(value: string): SinglePubkey {
-    const result: SinglePubkey = {
-      type: 'ethermint/PubKeyEthSecp256k1',
-      value: value,
-    };
-    return result;
   }
 
   static createPubkeys(value: string): SinglePubkey {
