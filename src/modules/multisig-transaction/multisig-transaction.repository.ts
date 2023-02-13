@@ -35,7 +35,25 @@ export class MultisigTransactionRepository {
   }
 
   /**
-   * deleteTx
+   * Set status of transaction to CANCELLED
+   * @param tx
+   */
+  async cancelTx(tx: MultisigTransaction): Promise<void> {
+    tx.status = TRANSACTION_STATUS.CANCELLED;
+    await this.repo.save(tx);
+  }
+
+  /**
+   * Set status of transaction to FAILED
+   * @param tx
+   */
+  async updateFailedTx(tx: MultisigTransaction): Promise<void> {
+    tx.status = TRANSACTION_STATUS.FAILED;
+    await this.repo.save(tx);
+  }
+
+  /**
+   * Set status of transaction to DELETED
    * @param id
    */
   async deleteTx(id: number): Promise<void> {
@@ -152,11 +170,11 @@ export class MultisigTransactionRepository {
     return this.repo.save(transaction);
   }
 
-  async isExecutable(transactionId: number, safeId: number): Promise<boolean> {
+  async isExecutable(multisigTxId: number, safeId: number): Promise<boolean> {
     // get list confirm
     const listConfirmAfterSign =
       await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-        transactionId,
+        multisigTxId,
         undefined,
         MULTISIG_CONFIRM_STATUS.CONFIRM,
       );
@@ -173,7 +191,11 @@ export class MultisigTransactionRepository {
 
   async updateAwaitingExecutionTx(
     multisigTxId: number,
+    safeId: number,
   ): Promise<MultisigTransaction> {
+    const isExecutable = await this.isExecutable(multisigTxId, safeId);
+    if (!isExecutable) return;
+
     const transaction = await this.repo.findOne({
       where: { id: multisigTxId },
     });

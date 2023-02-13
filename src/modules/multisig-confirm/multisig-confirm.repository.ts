@@ -28,6 +28,26 @@ export class MultisigConfirmRepository {
     );
   }
 
+  async getConfirmedByTxId(
+    multisigTransactionId: number,
+  ): Promise<MultisigConfirm[]> {
+    return this.repo.find({
+      where: {
+        multisigTransactionId,
+        status: MULTISIG_CONFIRM_STATUS.CONFIRM,
+      },
+    });
+  }
+
+  async getRejects(multisigTransactionId: number) {
+    return this.repo.find({
+      where: {
+        multisigTransactionId,
+        status: MULTISIG_CONFIRM_STATUS.REJECT,
+      },
+    });
+  }
+
   async insertIntoMultisigConfirm(
     multisigTransactionId: number,
     ownerAddress: string,
