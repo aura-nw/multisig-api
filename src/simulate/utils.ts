@@ -21,7 +21,8 @@ import {
 import { coins } from '@cosmjs/amino';
 import { REGISTRY_GENERATED_TYPES } from '../common/constants/app.constant';
 import { IndexerClient } from '../utils/apis/IndexerClient';
-import { encodePubkeyEvmos } from '../chains/evmos';
+import { EthermintHelper } from '../chains/ethermint/ethermint.helper';
+import { Chain } from '../entities';
 
 export class SimulateUtils {
   public static makeBodyBytes(messages: any[], prefix: string): Uint8Array {
@@ -38,17 +39,21 @@ export class SimulateUtils {
   }
 
   static async makeAuthInfoBytes(
-    chainId: string,
+    chain: Chain,
     safeAddress: string,
     safePubkey: any,
     totalOwner: number,
     denom: string,
   ): Promise<Uint8Array> {
     const indexerClient = new IndexerClient();
+    const ethermintHelper = new EthermintHelper();
     let sequence = 0;
     try {
       sequence = (
-        await indexerClient.getAccountNumberAndSequence(chainId, safeAddress)
+        await indexerClient.getAccountNumberAndSequence(
+          chain.chainId,
+          safeAddress,
+        )
       ).sequence;
     } catch (error) {
       console.log(error);
@@ -57,9 +62,10 @@ export class SimulateUtils {
     const defaultFee = SimulateUtils.getDefaultFee(denom);
     const signers: boolean[] = Array(totalOwner).fill(false);
 
-    const encodedPubkey = chainId.startsWith('evmos')
-      ? encodePubkeyEvmos(safePubkey)
-      : encodePubkey(safePubkey);
+    const encodedPubkey =
+      chain.coinDecimals === 18
+        ? ethermintHelper.encodePubkeyEthermint(safePubkey)
+        : encodePubkey(safePubkey);
 
     const signerInfo: SignerInfo = {
       publicKey: encodedPubkey,

@@ -16,12 +16,13 @@ import { UserInfo } from '../../dtos/userInfo';
 import { IUserRepository } from '../../repositories/iuser.repository';
 import { ContextService } from '../../providers/context.service';
 import { CommonUtil } from '../../utils/common.util';
-import { pubkeyToAddressEvmos, verifyEvmosSig } from '../../chains/evmos';
 import { CosmosUtil } from '../../chains/cosmos';
+import { EthermintHelper } from '../../chains/ethermint/ethermint.helper';
 @Injectable()
 export class AuthService implements IAuthService {
   private readonly _logger = new Logger(AuthService.name);
   private static _authUserKey = AppConstants.USER_KEY;
+  private ethermintHelper = new EthermintHelper();
 
   constructor(
     private jwtService: JwtService,
@@ -51,13 +52,21 @@ export class AuthService implements IAuthService {
 
       let address = '';
       let resultVerify = false;
-      if (chainInfo.chainId.startsWith('evmos_')) {
+      if (chainInfo.coinDecimals === 18) {
         // get address from pubkey
-        address = pubkeyToAddressEvmos(pubkey);
+        address = this.ethermintHelper.pubkeyToCosmosAddress(
+          pubkey,
+          chainInfo.prefix,
+        );
         // create message hash from data
         const msg = CommonUtil.createSignMessageByData(address, plainData);
         // verify signature
-        resultVerify = await verifyEvmosSig(signature, msg, address);
+        resultVerify = await this.ethermintHelper.verifySignature(
+          signature,
+          msg,
+          address,
+          prefix,
+        );
       } else {
         // get address from pubkey
         const pubkeyFormated = encodeSecp256k1Pubkey(fromBase64(pubkey));

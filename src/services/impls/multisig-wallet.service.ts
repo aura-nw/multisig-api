@@ -19,11 +19,10 @@ import { CustomError } from '../../common/customError';
 import { Chain } from '../../entities';
 import { encodeSecp256k1Pubkey, pubkeyToAddress } from '@cosmjs/amino';
 import { fromBase64 } from '@cosmjs/encoding';
-import { SimplePublicKey } from '@terra-money/terra.js';
-import { pubkeyToAddressEvmos } from '../../chains/evmos';
 import { IndexerClient } from '../../utils/apis/IndexerClient';
 import { ConfigService } from '../../shared/services/config.service';
 import { INotificationRepository } from '../../repositories/inotification.repository';
+import { EthermintHelper } from '../../chains/ethermint/ethermint.helper';
 
 @Injectable()
 export class MultisigWalletService
@@ -33,6 +32,7 @@ export class MultisigWalletService
   private readonly _logger = new Logger(MultisigWalletService.name);
   private _commonUtil: CommonUtil = new CommonUtil();
   private _indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
+  private ethermintHelper = new EthermintHelper();
 
   constructor(
     private configService: ConfigService,
@@ -309,11 +309,11 @@ export class MultisigWalletService
   ) {
     let generatedAddress;
 
-    if (chain.name === 'Terra Testnet') {
-      const simplePubkey = new SimplePublicKey(pubkey);
-      generatedAddress = simplePubkey.address();
-    } else if (chain.prefix.startsWith('evmos')) {
-      generatedAddress = pubkeyToAddressEvmos(pubkey);
+    if (chain.coinDecimals === 18) {
+      generatedAddress = this.ethermintHelper.pubkeyToCosmosAddress(
+        pubkey,
+        chain.prefix,
+      );
     } else {
       // get address from pubkey
       const pubkeyFormated = encodeSecp256k1Pubkey(fromBase64(pubkey));
