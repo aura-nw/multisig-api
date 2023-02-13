@@ -1,10 +1,9 @@
 import { Registry } from '@cosmjs/proto-signing';
 import { AuthInfo, TxBody, TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ResponseDto } from '../../dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
-import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
-import { IMultisigTransactionService } from '../imultisig-transaction.service';
+import { MODULE_REQUEST } from '../../module.config';
 import {
   AminoTypes,
   coins,
@@ -21,7 +20,6 @@ import {
   StargateClient,
 } from '@cosmjs/stargate';
 import { fromBase64 } from '@cosmjs/encoding';
-import { BaseService } from './base.service';
 import { Chain, MultisigTransaction, Safe } from '../../entities';
 import {
   MULTISIG_CONFIRM_STATUS,
@@ -30,21 +28,12 @@ import {
   TRANSACTION_STATUS,
 } from '../../common/constants/app.constant';
 
-import {
-  IGeneralRepository,
-  IMessageRepository,
-  IMultisigConfirmRepository,
-  IMultisigTransactionsRepository,
-  IMultisigWalletOwnerRepository,
-  IMultisigWalletRepository,
-} from '../../repositories';
 import { makeMultisignedTxEvmos, verifyEvmosSig } from '../../chains/evmos';
 import { CommonUtil } from '../../utils/common.util';
 import { AminoMsg, makeSignDoc } from '@cosmjs/amino';
 import { IndexerClient } from '../../utils/apis/IndexerClient';
 import { Simulate } from '../../simulate';
 import { ConfigService } from '../../shared/services/config.service';
-import { INotificationRepository } from '../../repositories/inotification.repository';
 import { CustomError } from '../../common/customError';
 import { AccountInfo, TxRawInfo } from '../../dtos/requests';
 import { UserInfo } from '../../dtos/userInfo';
@@ -55,6 +44,7 @@ import { ChainRepository } from '../chain/chain.repository';
 import { SafeRepository } from '../safe/safe.repository';
 import { SafeOwnerRepository } from '../safe-owner/safe-owner.repository';
 import { MessageRepository } from '../message/message.repository';
+import { NotificationRepository } from '../notification/notification.repository';
 
 @Injectable()
 export class MultisigTransactionService {
@@ -73,7 +63,6 @@ export class MultisigTransactionService {
     private messageRepos: MessageRepository,
     private notificationRepo: NotificationRepository,
   ) {
-    super(multisigTransactionRepos);
     this._logger.log(
       '============== Constructor Multisig Transaction Service ==============',
     );
@@ -183,7 +172,7 @@ export class MultisigTransactionService {
       );
 
       // get safe info
-      const safeInfo = await this.safeRepos.getSafe(safeId.toString());
+      const safeInfo = await this.safeRepos.getSafeById(safeId);
       if (safeInfo.status !== SAFE_STATUS.CREATED)
         throw new CustomError(ErrorMap.INVALID_SAFE);
 
@@ -224,7 +213,7 @@ export class MultisigTransactionService {
       const creatorAddress = authInfo.address;
 
       // get safe info
-      const safe = await this.safeRepos.getSafe(from, internalChainId);
+      const safe = await this.safeRepos.getSafeByAddress(from, internalChainId);
 
       // get chain info
       const chain = await this.chainRepos.findChain(internalChainId);
@@ -352,7 +341,7 @@ export class MultisigTransactionService {
       );
 
       // get safe info
-      const safe = await this.safeRepos.getSafe(
+      const safe = await this.safeRepos.getSafeByAddress(
         pendingTx.fromAddress,
         internalChainId,
       );
@@ -412,7 +401,7 @@ export class MultisigTransactionService {
         await this.multisigTransactionRepos.getBroadcastableTx(transactionId);
 
       // get safe & validate safe owner
-      const safe = await this.safeRepos.getSafe(
+      const safe = await this.safeRepos.getSafeByAddress(
         multisigTransaction.fromAddress,
         internalChainId,
       );
@@ -439,8 +428,9 @@ export class MultisigTransactionService {
         //Update status and txhash
         //TxHash is encoded transaction when send it to network
         if (typeof error.txId === 'undefined' || error.txId === null) {
-          multisigTransaction.status = TRANSACTION_STATUS.FAILED;
-          await this.multisigTransactionRepos.update(multisigTransaction);
+          await this.multisigTransactionRepos.updateFailedTx(
+            multisigTransaction,
+          );
 
           // re calculate next seq
           safe.nextQueueSeq = (
@@ -513,7 +503,7 @@ export class MultisigTransactionService {
         await this.multisigTransactionRepos.getTransactionById(transactionId);
 
       // Get safe
-      const safe = await this.safeRepos.getSafe(
+      const safe = await this.safeRepos.getSafeByAddress(
         transaction.fromAddress,
         internalChainId,
       );
@@ -535,20 +525,18 @@ export class MultisigTransactionService {
       );
 
       // count number of reject
-      const rejectConfirms = await this.multisigConfirmRepos.findByCondition({
-        multisigTransactionId: request.transactionId,
-        status: MULTISIG_CONFIRM_STATUS.REJECT,
-      });
+      const rejectConfirms = await this.multisigConfirmRepos.getRejects(
+        request.transactionId,
+      );
 
       // count number of owner
-      const safeOwner = await this.safeOwnerRepo.findByCondition({
-        safeId: transaction.safeId,
-      });
+      const safeOwner = await this.safeOwnerRepo.getOwnersBySafeId(
+        transaction.safeId,
+      );
 
       // if number of reject > number of owner / 2 => reject transaction
       if (safeOwner.length - rejectConfirms.length < safe.threshold) {
-        transaction.status = TRANSACTION_STATUS.CANCELLED;
-        await this.multisigTransactionRepos.update(transaction);
+        await this.multisigTransactionRepos.cancelTx(transaction);
       }
 
       // update queued tag
@@ -671,17 +659,13 @@ export class MultisigTransactionService {
     );
 
     // update tx status to waiting execute if all owner has confirmed
-    const isExecutable = await this.multisigTransactionRepos.isExecutable(
-      transaction.id,
-      safe.id,
-      internalChainId,
-    );
-
-    if (isExecutable) {
+    const awaitingExecutionTx =
       await this.multisigTransactionRepos.updateAwaitingExecutionTx(
         transaction.id,
+        safe.id,
       );
 
+    if (awaitingExecutionTx) {
       // notify tx ready to execute
       const safeOwners = await this.safeOwnerRepo.getSafeOwnersWithError(
         safe.id,
@@ -717,10 +701,10 @@ export class MultisigTransactionService {
     multisigTransaction: MultisigTransaction,
   ): Promise<any> {
     // Get all signature of transaction
-    const multisigConfirmArr = await this.multisigConfirmRepos.findByCondition({
-      multisigTransactionId: multisigTransaction.id,
-      status: MULTISIG_CONFIRM_STATUS.CONFIRM,
-    });
+    const multisigConfirmArr =
+      await this.multisigConfirmRepos.getConfirmedByTxId(
+        multisigTransaction.id,
+      );
 
     const addressSignarureMap = new Map<string, Uint8Array>();
 
@@ -798,7 +782,7 @@ export class MultisigTransactionService {
    */
   async updateNextSeqAfterDeleteTx(safeId: number, internalChainId: number) {
     // get safe info
-    const safe = await this.safeRepos.getSafe(safeId.toString());
+    const safe = await this.safeRepos.getSafeById(safeId);
 
     // get chain info
     const chain = await this.chainRepos.findChain(internalChainId);

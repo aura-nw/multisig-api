@@ -82,13 +82,12 @@ export class SafeOwnerRepository {
     }
   }
 
-  async getOwners(safeAddress: string) {
-    const sqlQuerry = this.repo
-      .createQueryBuilder('safeOwner')
-      .innerJoin(Safe, 'safe', 'safe.id = safeOwner.safeId')
-      .where('safe.safeAddress = :safeAddress', { safeAddress })
-      .select(['safeOwner.ownerAddress as OwnerAddress']);
-    return sqlQuerry.getRawMany();
+  async getOwnersBySafeId(safeId: number) {
+    return this.repo.find({
+      where: {
+        safeId,
+      },
+    });
   }
 
   async insertOwners(

@@ -1,10 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
-import { ENTITIES_CONFIG } from '../../module.config';
-import { INotificationRepository } from '../inotification.repository';
 import { UserRepository } from '../user/user.repository';
-import { BaseRepository } from './base.repository';
 import { Notification } from './entities/notification.entity';
 
 @Injectable()
@@ -49,11 +46,7 @@ export class NotificationRepository {
     ownerAddresses: string[],
     internalChainId: number,
   ): Promise<void> {
-    const users = await this.userRepo.find({
-      where: {
-        address: In(ownerAddresses),
-      },
-    });
+    const users = await this.userRepo.getUsersByListAddress(ownerAddresses);
     const notifications = users.map((user) => {
       return Notification.newSafeCreatedNotification(
         user.id,
@@ -77,11 +70,7 @@ export class NotificationRepository {
     otherOwnersAddress: string[],
     internalChainId: number,
   ): Promise<void> {
-    const users = await this.userRepo.find({
-      where: {
-        address: In(otherOwnersAddress),
-      },
-    });
+    const users = await this.userRepo.getUsersByListAddress(otherOwnersAddress);
     const notifications = users.map((user) => {
       return Notification.newTxNotification(
         user.id,
@@ -107,11 +96,7 @@ export class NotificationRepository {
     ownerAddresses: string[],
     internalChainId: number,
   ): Promise<void> {
-    const users = await this.userRepo.find({
-      where: {
-        address: In(ownerAddresses),
-      },
-    });
+    const users = await this.userRepo.getUsersByListAddress(ownerAddresses);
     const notifications = users.map((user) => {
       return Notification.newTxExecutableNotification(
         user.id,
@@ -136,11 +121,7 @@ export class NotificationRepository {
     ownerAddresses: string[],
     internalChainId: number,
   ): Promise<void> {
-    const users = await this.userRepo.find({
-      where: {
-        address: In(ownerAddresses),
-      },
-    });
+    const users = await this.userRepo.getUsersByListAddress(ownerAddresses);
     const notifications = users.map((user) => {
       return Notification.newTxBroadcastedNotification(
         user.id,
@@ -166,11 +147,7 @@ export class NotificationRepository {
     txCreatorAddress: string,
     internalChainId: number,
   ): Promise<void> {
-    const users = await this.userRepo.find({
-      where: {
-        address: In(ownerAddresses),
-      },
-    });
+    const users = await this.userRepo.getUsersByListAddress(ownerAddresses);
     const notifications = users.map((user) => {
       return Notification.newDeletedTxNotification(
         user.id,
