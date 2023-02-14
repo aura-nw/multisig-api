@@ -560,6 +560,12 @@ export class MultisigTransactionService
       // update queued tag
       await this.safeRepos.updateQueuedTag(transaction.safeId);
 
+      // Update next seq
+      await this.updateNextSeqAfterDeleteTx(
+        transaction.safeId,
+        transaction.internalChainId,
+      );
+
       return ResponseDto.response(ErrorMap.SUCCESSFUL);
     } catch (error) {
       return ResponseDto.responseError(MultisigTransactionService.name, error);
@@ -580,7 +586,8 @@ export class MultisigTransactionService
     const bodyBytesEncode = fromBase64(txRawInfo.bodyBytes);
     const { memo, messages } = TxBody.decode(bodyBytesEncode);
 
-    const { accountNumber, sequence } = accountInfo;
+    const sequence = decodedAuthInfo.signerInfos[0]?.sequence.toNumber();
+    const { accountNumber } = accountInfo;
 
     // build stdSignDoc for verify signature
     const registry = new Registry(REGISTRY_GENERATED_TYPES);
