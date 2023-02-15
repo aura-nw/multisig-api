@@ -3,7 +3,7 @@ FROM node:16.17-alpine AS build-stage
 COPY --chown=node:node package*.json ./
 
 # ✅ Safe install
-RUN npm install -g npm@9.4.0
+RUN npm install -g npm@9.4.2
 RUN npm ci
 COPY --chown=node:node ./src ./
 COPY --chown=node:node ./*.json ./
