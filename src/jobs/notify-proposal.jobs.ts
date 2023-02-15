@@ -54,7 +54,6 @@ export class NotifyProposalJob {
     if (inVotingProposal.length === 0) return;
 
     // Get all users
-    // TODO: Get 1000 users/batch
     const users: User[] = await this.userRepo.findAll();
 
     // Make notification templates
@@ -70,7 +69,7 @@ export class NotifyProposalJob {
       );
     });
 
-    // TODO: send a notification to the safe owner by a chain instead of reporting to all user
+    // Must send a notification to the safe owner by a chain instead of reporting to all user
     // Notify to all users
     templates.forEach(async (template) => {
       const notifications = users.map((user) => {

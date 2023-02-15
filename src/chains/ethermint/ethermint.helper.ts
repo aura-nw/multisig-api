@@ -325,6 +325,7 @@ export class EthermintHelper {
   private compareArrays(a: Uint8Array, b: Uint8Array): number {
     const aHex = toHex(a);
     const bHex = toHex(b);
-    return aHex === bHex ? 0 : aHex < bHex ? -1 : 1;
+    if (aHex === bHex) return 0;
+    return aHex < bHex ? -1 : 1;
   }
 }
