@@ -166,6 +166,12 @@ export class EthermintHelper {
     };
   }
 
+  isEthSecp256k1Pubkey(pubkey: Pubkey): pubkey is EthSecp256k1Pubkey {
+    return (
+      (pubkey as EthSecp256k1Pubkey).type === 'ethermint/PubKeyEthSecp256k1'
+    );
+  }
+
   makeMultisignedTxEthermint(
     multisigPubkey: MultisigThresholdPubkey,
     sequence: number,
@@ -244,7 +250,7 @@ export class EthermintHelper {
         typeUrl: '/cosmos.crypto.multisig.LegacyAminoPubKey',
         value: Uint8Array.from(LegacyAminoPubKey.encode(pubkeyProto).finish()),
       });
-    } else if (this.isEthSecp256k1Pubkey(pubkey)) {
+    } else if (pubkey.type === 'ethermint/PubKeyEthSecp256k1') {
       const pubkeyProto = PubKey.fromPartial({
         key: fromBase64(pubkey.value),
       });
@@ -307,12 +313,6 @@ export class EthermintHelper {
       );
     }
     return [checked];
-  }
-
-  private isEthSecp256k1Pubkey(pubkey: Pubkey): pubkey is EthSecp256k1Pubkey {
-    return (
-      (pubkey as EthSecp256k1Pubkey).type === 'ethermint/PubKeyEthSecp256k1'
-    );
   }
 
   private isValidAddress(address: string): boolean {
