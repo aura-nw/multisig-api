@@ -24,8 +24,9 @@ import { PUBKEY_TYPES } from '../common/constants/app.constant';
 import { CustomError } from '../common/customError';
 import { ErrorMap } from '../common/error.map';
 import { UserInfo } from '../dtos/userInfo';
-import { MultisigTransaction, Safe } from '../entities';
 import { AuthService } from '../modules/auth/auth.service';
+import { MultisigTransaction } from '../modules/multisig-transaction/entities/multisig-transaction.entity';
+import { Safe } from '../modules/safe/entities/safe.entity';
 
 export class CommonUtil {
   /**

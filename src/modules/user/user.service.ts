@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ResponseDto } from '../../dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
-import { Chain } from '../../entities';
 import { UserRepository } from './user.repository';
 import { GetUserPathParamDto } from './dto/request/get-user.req';
+import { Chain } from '../chain/entities/chain.entity';
 
 @Injectable()
 export class UserService {

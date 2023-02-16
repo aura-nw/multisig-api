@@ -9,14 +9,12 @@ import {
 import { CustomError } from '../../common/customError';
 import { ErrorMap } from '../../common/error.map';
 import { plainToInstance } from 'class-transformer';
-import { MultisigTransactionHistoryResponse } from '../../dtos/responses';
-import { TxDetailResponse } from '../../dtos/responses/multisig-transaction/tx-detail.response';
-import { MultisigConfirmRepository } from '../multisig-confirm/multisig-confirm.repository';
 import { SafeRepository } from '../safe/safe.repository';
 import { MultisigTransaction } from './entities/multisig-transaction.entity';
 import { AuraTx } from '../aura-tx/entities/aura-tx.entity';
 import { Chain } from '../chain/entities/chain.entity';
-import { TxDetailDto } from './dto/response/tx-detail.res';
+import { TxDetailDto, TxDetailResponse } from './dto/response/tx-detail.res';
+import { MultisigTransactionHistoryResponseDto } from './dto';
 
 @Injectable()
 export class MultisigTransactionRepository {
@@ -287,7 +285,7 @@ export class MultisigTransactionRepository {
     internalChainId: number,
     pageIndex: number,
     limit: number,
-  ): Promise<MultisigTransactionHistoryResponse[]> {
+  ): Promise<MultisigTransactionHistoryResponseDto[]> {
     const offset = limit * (pageIndex - 1);
     const result: any[] = await this.repo.query(
       `
@@ -309,7 +307,7 @@ export class MultisigTransactionRepository {
         offset,
       ],
     );
-    const txs = plainToInstance(MultisigTransactionHistoryResponse, result);
+    const txs = plainToInstance(MultisigTransactionHistoryResponseDto, result);
     return txs;
   }
 }

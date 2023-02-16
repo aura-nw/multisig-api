@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ResponseDto } from '../../dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { CommonUtil } from '../../utils/common.util';
-import { Chain } from '../../entities';
 import { ConfigService } from '../../shared/services/config.service';
 import { PROPOSAL_STATUS } from '../../common/constants/app.constant';
 import { IndexerClient } from '../../utils/apis/indexer-client.service';
@@ -23,6 +22,7 @@ import {
   ProposalDepositResponseDto,
 } from './dto';
 import { plainToInstance } from 'class-transformer';
+import { Chain } from '../chain/entities/chain.entity';
 
 @Injectable()
 export class GovService {

@@ -1,13 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass, plainToInstance } from 'class-transformer';
-import { TxMessageResponse } from '../../dtos/responses/message/tx-msg.response';
 import { Repository } from 'typeorm';
-import { TxMessageHistoryResponse } from '../../dtos/responses';
 import { CustomError } from '../../common/customError';
 import { ErrorMap } from '../../common/error.map';
 import { TX_TYPE_URL } from '../../common/constants/app.constant';
 import { Message } from './entities/message.entity';
+import { TxMessageResponseDto } from './dto';
+import { TxMessageHistoryResponseDto } from './dto/response/tx-message-history.res';
 
 @Injectable()
 export class MessageRepository {
@@ -53,28 +53,28 @@ export class MessageRepository {
     return result;
   }
 
-  async getMsgsByTxId(txId: number): Promise<TxMessageResponse[]> {
+  async getMsgsByTxId(txId: number): Promise<TxMessageResponseDto[]> {
     const result = await this.repos.find({
       where: { txId },
     });
-    return plainToInstance(TxMessageResponse, result, {
+    return plainToInstance(TxMessageResponseDto, result, {
       excludeExtraneousValues: true,
     });
   }
 
-  async getMsgsByAuraTxId(auraTxId: number): Promise<TxMessageResponse[]> {
+  async getMsgsByAuraTxId(auraTxId: number): Promise<TxMessageResponseDto[]> {
     if (!auraTxId) return [];
     const result = await this.repos.find({
       where: { auraTxId },
     });
-    return plainToInstance(TxMessageResponse, result, {
+    return plainToInstance(TxMessageResponseDto, result, {
       excludeExtraneousValues: true,
     });
   }
 
   async getMessagesFromTxIds(
     txIds: number[],
-  ): Promise<TxMessageHistoryResponse[]> {
+  ): Promise<TxMessageHistoryResponseDto[]> {
     const result = await this.repos
       .createQueryBuilder('message')
       .where('message.auraTxID IN (:txIds)', { txIds })

@@ -1,4 +1,4 @@
-import { Chain } from '../entities';
+import { Chain } from '../modules/chain/entities/chain.entity';
 import { WalletSimulate } from './wallet.simulate';
 
 export class Simulate {

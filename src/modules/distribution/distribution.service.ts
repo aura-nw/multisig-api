@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { ErrorMap } from '../../common/error.map';
-import { ResponseDto } from '../../dtos/responses';
 import { ConfigService } from '../../shared/services/config.service';
 import { CommonUtil } from '../../utils/common.util';
 import { IndexerClient } from '../../utils/apis/indexer-client.service';
@@ -23,6 +22,7 @@ import {
   GetValidatorsResponseDto,
   GetValidatorsValidatorDto,
 } from './dto';
+import { ResponseDto } from '../../dtos/responses/response.dto';
 @Injectable()
 export class DistributionService {
   private readonly logger = new Logger(DistributionService.name);

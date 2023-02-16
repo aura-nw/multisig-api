@@ -18,7 +18,10 @@ import {
   ApiResponseOptions,
 } from '@nestjs/swagger';
 import { AuthUserInterceptor } from '../interceptors/auth-user-interceptor.service';
-import { ResponseDto, SwaggerBaseApiResponse } from '../dtos/responses';
+import {
+  ResponseDto,
+  SwaggerBaseApiResponse,
+} from '../dtos/responses/response.dto';
 
 interface Options {
   url?: string;

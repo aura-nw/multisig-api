@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
 import { Repository } from 'typeorm';
 import { TRANSACTION_STATUS } from '../../common/constants/app.constant';
-import { MultisigTransactionHistoryResponse } from '../../dtos/responses';
+import { MultisigTransactionHistoryResponseDto } from '../multisig-transaction/dto';
 import { TransactionHistory } from './entities/transaction-history.entity';
 
 @Injectable()
@@ -71,7 +71,7 @@ export class TransactionHistoryRepository {
       ],
     );
 
-    const txs = plainToInstance(MultisigTransactionHistoryResponse, result);
+    const txs = plainToInstance(MultisigTransactionHistoryResponseDto, result);
     return txs;
   }
 }
