@@ -35,7 +35,6 @@ import { IndexerClient } from '../../utils/apis/indexer-client.service';
 import { Simulate } from '../../simulate';
 import { ConfigService } from '../../shared/services/config.service';
 import { CustomError } from '../../common/customError';
-import { AccountInfo, TxRawInfo } from '../../dtos/requests';
 import { UserInfo } from '../../dtos/userInfo';
 import { CosmosUtil } from '../../chains/cosmos';
 import { MultisigTransactionRepository } from './multisig-transaction.repository';
@@ -67,6 +66,8 @@ import { MultisigTransaction } from './entities/multisig-transaction.entity';
 import { Chain } from '../chain/entities/chain.entity';
 import { Safe } from '../safe/entities/safe.entity';
 import { TransactionHistoryRepository } from '../transaction-history/transaction-history.repository';
+import { AccountInfo } from '../../dtos/requests/account';
+import { TxRawInfo } from '../../dtos/requests/transaction';
 
 @Injectable()
 export class MultisigTransactionService {

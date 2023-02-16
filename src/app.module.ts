@@ -15,9 +15,9 @@ import { MultisigTransactionModule } from './modules/multisig-transaction/multis
 import { NotificationModule } from './modules/notification/notification.module';
 import { SafeOwnerModule } from './modules/safe-owner/safe-owner.module';
 import { UserModule } from './modules/user/user.module';
-import { NotifyProposalJob } from './jobs/notify-proposal.jobs';
+import { NotifyProposalJob } from './modules/jobs/notify-proposal.jobs';
 import { JwtStrategy } from './jwt.strategy';
-import { NotifyProposalModule } from './jobs/notify-proposal.module';
+import { NotifyProposalModule } from './modules/jobs/notify-proposal.module';
 
 @Module({
   imports: [

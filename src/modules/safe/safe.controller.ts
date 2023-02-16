@@ -9,7 +9,6 @@ import {
   CommonAuthPost,
   CommonGet,
 } from '../../decorators/common.decorator';
-import { SwaggerBaseApiResponse } from '../../dtos/responses';
 import { SafeService } from './safe.service';
 import { CreateMultisigWalletRequestDto } from './dto/request/create-multisig-wallet.req';
 import {
@@ -20,6 +19,7 @@ import { ConfirmSafePathParamsDto } from './dto/request/confirm-multisig-wallet.
 import { DeleteSafePathParamsDto } from './dto/request/delete-multisig-wallet.req';
 import { CreateSafeResponseDto } from './dto/response/create-safe.res';
 import { GetMultisigWalletResponseDto } from './dto/response/get-multisig-wallet.res';
+import { SwaggerBaseApiResponse } from '../../dtos/responses/response.dto';
 
 @Controller(CONTROLLER_CONSTANTS.MULTISIG_WALLET)
 @ApiTags(CONTROLLER_CONSTANTS.MULTISIG_WALLET)

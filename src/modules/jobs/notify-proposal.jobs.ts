@@ -1,12 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { plainToInstance } from 'class-transformer';
-import { Chain, Notification, User } from '../entities';
-import { ChainRepository } from '../modules/chain/chain.repository';
-import { NotificationRepository } from '../modules/notification/notification.repository';
-import { UserRepository } from '../modules/user/user.repository';
-import { ConfigService } from '../shared/services/config.service';
-import { IndexerClient } from '../utils/apis/indexer-client.service';
+import { ChainRepository } from '../chain/chain.repository';
+import { NotificationRepository } from '../notification/notification.repository';
+import { UserRepository } from '../user/user.repository';
+import { ConfigService } from '../../shared/services/config.service';
+import { IndexerClient } from '../../utils/apis/indexer-client.service';
+import { Chain } from '../chain/entities/chain.entity';
+import { Notification } from '../notification/entities/notification.entity';
+import { User } from '../user/entities/user.entity';
 
 @Injectable()
 export class NotifyProposalJob {

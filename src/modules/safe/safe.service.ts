@@ -3,9 +3,7 @@ import { ResponseDto } from '../../dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { SAFE_STATUS } from '../../common/constants/app.constant';
 import { CommonUtil } from '../../utils/common.util';
-import { GetMultisigWalletResponse } from '../../dtos/responses/multisig-wallet/get-multisig-wallet.response';
 import { CustomError } from '../../common/customError';
-import { Chain } from '../../entities';
 import { encodeSecp256k1Pubkey, pubkeyToAddress } from '@cosmjs/amino';
 import { fromBase64 } from '@cosmjs/encoding';
 import { SimplePublicKey } from '@terra-money/terra.js';
@@ -23,6 +21,8 @@ import {
 } from './dto/request/get-safe.request';
 import { ConfirmSafePathParamsDto } from './dto/request/confirm-multisig-wallet.req';
 import { DeleteSafePathParamsDto } from './dto/request/delete-multisig-wallet.req';
+import { GetMultisigWalletResponseDto } from './dto/response/get-multisig-wallet.res';
+import { Chain } from '../chain/entities/chain.entity';
 
 @Injectable()
 export class SafeService {
@@ -142,7 +142,7 @@ export class SafeService {
       const confirms = owners.filter(({ ownerPubkey }) => ownerPubkey !== null);
 
       // build safe info
-      const safeInfo = new GetMultisigWalletResponse();
+      const safeInfo = new GetMultisigWalletResponseDto();
       safeInfo.id = safe.id;
       safeInfo.address = safe.safeAddress;
       safeInfo.accountNumber = safe.accountNumber;

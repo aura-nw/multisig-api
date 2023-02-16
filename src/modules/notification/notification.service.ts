@@ -1,14 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
 import { CommonUtil } from '../../utils/common.util';
-import { ResponseDto } from '../../dtos/responses';
-import { Notification } from '../../entities';
 import { ErrorMap } from '../../common/error.map';
-import { NotificationStatus } from '../../common/constants/app.constant';
 import { MarkAsReadNotificationReq } from './dto/request/mark-as-read.req';
 import { NotificationRepository } from './notification.repository';
+import { ResponseDto } from '../../dtos/responses/response.dto';
 
 @Injectable()
 export class NotificationService {

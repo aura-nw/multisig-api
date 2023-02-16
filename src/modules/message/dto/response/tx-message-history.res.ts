@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class TxMessageHistoryResponse {
+export class TxMessageHistoryResponseDto {
   @ApiProperty({
     example: 1,
   })

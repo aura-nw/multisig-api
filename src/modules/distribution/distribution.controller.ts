@@ -4,7 +4,6 @@ import { ApiTags } from '@nestjs/swagger';
 import { CONTROLLER_CONSTANTS } from '../../common/constants/api.constant';
 import { CommonGet } from '../../decorators/common.decorator';
 import { DistributionService } from './distribution.service';
-import { SwaggerBaseApiResponse } from '../../dtos/responses';
 import {
   GetDelegationDto,
   GetDelegationResponseDto,
@@ -17,6 +16,7 @@ import {
   GetValidatorsQueryDto,
   GetValidatorsResponseDto,
 } from './dto';
+import { SwaggerBaseApiResponse } from '../../dtos/responses/response.dto';
 
 @Controller(CONTROLLER_CONSTANTS.DISTRIBUTION)
 @ApiTags(CONTROLLER_CONSTANTS.DISTRIBUTION)
