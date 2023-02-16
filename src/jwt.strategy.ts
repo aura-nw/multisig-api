@@ -1,23 +1,12 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import {
-  HttpException,
-  HttpStatus,
-  Inject,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
-import { SERVICE_INTERFACE } from './module.config';
-import { IAuthService } from './services/iauth.service';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from './shared/services/config.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   public readonly _logger = new Logger(JwtStrategy.name);
-  constructor(
-    private configService: ConfigService,
-    @Inject(SERVICE_INTERFACE.IAUTH_SERVICE) private authService: IAuthService,
-  ) {
+  constructor(private configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,

@@ -2,8 +2,8 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { SeederService } from './database/seeders/seeder';
-import { SeederModule } from './database/seeders/seeder.module';
+import { SeederModule } from './modules/seeders/seeder.module';
+import { SeederService } from './modules/seeders/seeder.service';
 import { ConfigService } from './shared/services/config.service';
 import { SharedModule } from './shared/shared.module';
 

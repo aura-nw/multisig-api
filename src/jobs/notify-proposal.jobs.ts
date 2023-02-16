@@ -1,10 +1,10 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { plainToInstance } from 'class-transformer';
 import { Chain, Notification, User } from '../entities';
-import { REPOSITORY_INTERFACE } from '../module.config';
-import { IGeneralRepository, IUserRepository } from '../repositories';
-import { INotificationRepository } from '../repositories/inotification.repository';
+import { ChainRepository } from '../modules/chain/chain.repository';
+import { NotificationRepository } from '../modules/notification/notification.repository';
+import { UserRepository } from '../modules/user/user.repository';
 import { ConfigService } from '../shared/services/config.service';
 import { IndexerClient } from '../utils/apis/indexer-client.service';
 
@@ -15,12 +15,9 @@ export class NotifyProposalJob {
 
   constructor(
     private configService: ConfigService,
-    @Inject(REPOSITORY_INTERFACE.IUSER_REPOSITORY)
-    private readonly userRepo: IUserRepository,
-    @Inject(REPOSITORY_INTERFACE.IGENERAL_REPOSITORY)
-    private readonly chainRepo: IGeneralRepository,
-    @Inject(REPOSITORY_INTERFACE.INOTIFICATION_REPOSITORY)
-    private readonly notificationRepo: INotificationRepository,
+    private readonly userRepo: UserRepository,
+    private readonly chainRepo: ChainRepository,
+    private readonly notificationRepo: NotificationRepository,
   ) {
     this._logger.log(
       '============== Constructor Notify Proposal Job ==============',
@@ -31,7 +28,7 @@ export class NotifyProposalJob {
   async handleCron() {
     const currentTime = new Date();
     // Get all supported chains
-    const supportedChains: Chain[] = await this.chainRepo.findAll();
+    const supportedChains: Chain[] = await this.chainRepo.showNetworkList();
 
     // Get latest proposal
     const latestProposals = await Promise.all(
@@ -54,7 +51,8 @@ export class NotifyProposalJob {
     if (inVotingProposal.length === 0) return;
 
     // Get all users
-    const users: User[] = await this.userRepo.findAll();
+    // TODO: Get 1000 users/batch
+    const users: User[] = await this.userRepo.getAllUser();
 
     // Make notification templates
     const templates = inVotingProposal.map((proposal) => {
@@ -79,7 +77,9 @@ export class NotifyProposalJob {
       });
 
       // Save notifications to DB
-      const result = await this.notificationRepo.create(notifications);
+      const result = await this.notificationRepo.saveNotification(
+        notifications,
+      );
       this._logger.log(
         `Notified proposal ${template.proposalNumber} to ${result.length} users successfully!`,
       );

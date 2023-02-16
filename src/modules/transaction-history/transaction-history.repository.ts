@@ -1,10 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
-import { ObjectLiteral, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { TRANSACTION_STATUS } from '../../common/constants/app.constant';
 import { MultisigTransactionHistoryResponse } from '../../dtos/responses';
-import { ENTITIES_CONFIG } from '../../module.config';
 import { TransactionHistory } from './entities/transaction-history.entity';
 
 @Injectable()

@@ -25,9 +25,7 @@ import { CustomError } from '../common/customError';
 import { ErrorMap } from '../common/error.map';
 import { UserInfo } from '../dtos/userInfo';
 import { MultisigTransaction, Safe } from '../entities';
-import { AuthService } from '../services/impls/auth.service';
-import { EthermintHelper } from '../chains/ethermint/ethermint.helper';
-import { createEthSecp256k1Pubkey } from '../chains/ethermint/EthSecp256k1Pubkey';
+import { AuthService } from '../modules/auth/auth.service';
 
 export class CommonUtil {
   /**

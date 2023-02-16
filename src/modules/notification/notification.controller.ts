@@ -5,7 +5,7 @@ import {
   CommonAuthGet,
   CommonAuthPost,
 } from '../../decorators/common.decorator';
-import { MODULE_REQUEST } from '../../module.config';
+import { MarkAsReadNotificationReq } from './dto/request/mark-as-read.req';
 import { NotificationService } from './notification.service';
 
 @Controller(CONTROLLER_CONSTANTS.NOTIFICATION)
@@ -38,7 +38,7 @@ export class NotificationController {
       schema: {},
     },
   })
-  async markAsRead(@Body() param: MODULE_REQUEST.MarkAsReadNotificationReq) {
+  async markAsRead(@Body() param: MarkAsReadNotificationReq) {
     this._logger.log('========== Mark notifications as read ==========');
     return this.notificationService.markAsRead(param);
   }
