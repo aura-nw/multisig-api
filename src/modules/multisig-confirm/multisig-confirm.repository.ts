@@ -3,23 +3,20 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { MULTISIG_CONFIRM_STATUS } from '../../common/constants/app.constant';
 import { CustomError } from '../../common/customError';
 import { ErrorMap } from '../../common/error.map';
-import {
-  MultisigConfirm,
-  MultisigTransaction,
-  Safe,
-  SafeOwner,
-} from '../../entities';
 import { Repository } from 'typeorm';
-import { SafeRepository } from '../safe/safe.repository';
 import { plainToInstance } from 'class-transformer';
-import { GetListConfirmResDto } from './dto/res/get-list-confirm.res';
-import { GetListConfirmWithPubkey } from './dto/res/get-list-confirm-with-pubkey.res';
+import { MultisigConfirm } from './entities/multisig-confirm.entity';
+import { SafeOwner } from '../safe-owner/entities/safe-owner.entity';
+import { Safe } from '../safe/entities/safe.entity';
+import { MultisigTransaction } from '../multisig-transaction/entities/multisig-transaction.entity';
+import { SafeOwnerRepository } from '../safe-owner/safe-owner.repository';
+import { GetListConfirmResDto, GetListConfirmWithPubkey } from './dto';
 
 @Injectable()
 export class MultisigConfirmRepository {
   private readonly _logger = new Logger(MultisigConfirmRepository.name);
   constructor(
-    private safeRepo: SafeRepository,
+    private safeOwnerRepo: SafeOwnerRepository,
     @InjectRepository(MultisigConfirm)
     private readonly repo: Repository<MultisigConfirm>,
   ) {
@@ -89,7 +86,7 @@ export class MultisigConfirmRepository {
     internalChainId: number,
   ): Promise<void> {
     //Validate owner
-    const listSafe = await this.safeRepo.getMultisigWalletsByOwner(
+    const listSafe = await this.safeOwnerRepo.getMultisigWalletsByOwner(
       ownerAddress,
       internalChainId,
     );

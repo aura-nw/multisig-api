@@ -11,7 +11,7 @@ import { OwnerSimulate } from './owner.simulate';
 import { fromBase64, toBase64 } from '@cosmjs/encoding';
 import { SimulateUtils } from './utils';
 import { Chain } from '../entities';
-import { IndexerClient } from '../utils/apis/IndexerClient';
+import { IndexerClient } from '../utils/apis/indexer-client.service';
 import { TX_TYPE_URL } from '../common/constants/app.constant';
 import { makeMultisignedTxEvmos } from '../chains/evmos';
 

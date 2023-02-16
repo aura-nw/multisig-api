@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { In, Repository, UpdateResult } from 'typeorm';
+import { NotificationStatus } from '../../common/constants/app.constant';
 import { UserRepository } from '../user/user.repository';
 import { Notification } from './entities/notification.entity';
 
@@ -15,6 +16,28 @@ export class NotificationRepository {
   ) {
     this._logger.log(
       '============== Constructor Notification Repository ==============',
+    );
+  }
+
+  async getNotificationsByUser(userId: number): Promise<Notification[]> {
+    return this.repo.find({
+      where: { userId },
+      order: { id: 'DESC' },
+    });
+  }
+
+  async markNotificationsAsRead(
+    notifications: number[],
+    userId: number,
+  ): Promise<UpdateResult> {
+    return this.repo.update(
+      {
+        id: In(notifications),
+        userId: userId,
+      },
+      {
+        status: NotificationStatus.READ,
+      },
     );
   }
 

@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ObjectLiteral, Repository } from 'typeorm';
-import { plainToInstance } from 'class-transformer';
+import { Repository } from 'typeorm';
 import { CustomError } from '../../common/customError';
 import { ErrorMap } from '../../common/error.map';
 import { Chain } from './entities/chain.entity';

@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ResponseDto } from '../../dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
-import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
 import { fromBase64 } from '@cosmjs/encoding';
 import { JwtService } from '@nestjs/jwt';
 import { CustomError } from '../../common/customError';
@@ -10,7 +9,6 @@ import {
   AppConstants,
   COMMON_CONSTANTS,
 } from '../../common/constants/app.constant';
-import { UserInfo } from '../../dtos/userInfo';
 import { ContextService } from '../../providers/context.service';
 import { CommonUtil } from '../../utils/common.util';
 import { pubkeyToAddressEvmos, verifyEvmosSig } from '../../chains/evmos';
@@ -18,6 +16,7 @@ import { CosmosUtil } from '../../chains/cosmos';
 import { ChainRepository } from '../chain/chain.repository';
 import { UserRepository } from '../user/user.repository';
 import { RequestAuthDto } from './dto/request-auth.dto';
+import { UserInfoDto } from './dto/user-info.dto';
 @Injectable()
 export class AuthService {
   private readonly _logger = new Logger(AuthService.name);
@@ -74,7 +73,6 @@ export class AuthService {
           msg,
           fromBase64(pubkey),
         );
-        // resultVerify = await verifyADR36Amino(prefix, address, plainData, fromBase64(pubkey), fromBase64(signature))
       }
       if (!resultVerify) {
         throw new CustomError(ErrorMap.SIGNATURE_VERIFICATION_FAILED);
@@ -113,7 +111,7 @@ export class AuthService {
    * setAuthUser
    * @param user
    */
-  static setAuthUser(user: UserInfo) {
+  static setAuthUser(user: UserInfoDto) {
     ContextService.set(AuthService._authUserKey, user);
   }
 }

@@ -18,6 +18,30 @@ export class SafeOwnerRepository {
     );
   }
 
+  async getMultisigWalletsByOwner(
+    ownerAddress: string,
+    internalChainId: number,
+  ): Promise<any[]> {
+    const sqlQuerry = this.repo
+      .createQueryBuilder('safeOwner')
+      .innerJoin(Safe, 'safe', 'safe.id = safeOwner.safeId')
+      .where('safeOwner.ownerAddress = :ownerAddress', { ownerAddress })
+      .andWhere('safeOwner.internalChainId = :internalChainId', {
+        internalChainId,
+      })
+      .select([
+        'safe.id as id',
+        'safe.safeAddress as safeAddress',
+        'safe.creatorAddress as creatorAddress',
+        'safe.status as status',
+        'safeOwner.ownerAddress as ownerAddress',
+        'safeOwner.ownerPubkey as ownerPubkey',
+        'safeOwner.internalChainId as internalChainId',
+      ]);
+
+    return sqlQuerry.getRawMany();
+  }
+
   async getConfirmationStatus(
     safeId: number,
     ownerAddress: string,

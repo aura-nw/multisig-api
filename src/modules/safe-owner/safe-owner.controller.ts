@@ -1,34 +1,32 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Query, Logger, Param } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  CONTROLLER_CONSTANTS,
+  URL_CONSTANTS,
+} from '../../common/constants/api.constant';
+import {
+  GetSafesByOwnerAddressParamsDto,
+  GetSafesByOwnerAddressQueryDto,
+} from './dto/request/get-safe-owners.req';
 import { SafeOwnerService } from './safe-owner.service';
-import { CreateSafeOwnerDto } from './dto/create-safe-owner.dto';
-import { UpdateSafeOwnerDto } from './dto/update-safe-owner.dto';
-
-@Controller('safe-owner')
+@Controller(CONTROLLER_CONSTANTS.OWNER)
+@ApiTags(CONTROLLER_CONSTANTS.OWNER)
 export class SafeOwnerController {
-  constructor(private readonly safeOwnerService: SafeOwnerService) {}
+  public readonly _logger = new Logger(SafeOwnerController.name);
+  constructor(private safeOwnerService: SafeOwnerService) {}
 
-  @Post()
-  create(@Body() createSafeOwnerDto: CreateSafeOwnerDto) {
-    return this.safeOwnerService.create(createSafeOwnerDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.safeOwnerService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.safeOwnerService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSafeOwnerDto: UpdateSafeOwnerDto) {
-    return this.safeOwnerService.update(+id, updateSafeOwnerDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.safeOwnerService.remove(+id);
+  @Get(URL_CONSTANTS.GET_SAFES_BY_OWNER)
+  @ApiOperation({
+    summary: 'Get Safes by where the owner address',
+  })
+  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
+  async getSafes(
+    @Param() param: GetSafesByOwnerAddressParamsDto,
+    @Query() query: GetSafesByOwnerAddressQueryDto,
+  ) {
+    this._logger.log(
+      '========== Return Safes where the address provided is an owner ==========',
+    );
+    return this.safeOwnerService.getMultisigWalletsByOwner(param, query);
   }
 }

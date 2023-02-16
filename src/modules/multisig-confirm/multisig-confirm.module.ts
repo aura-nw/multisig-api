@@ -1,9 +1,13 @@
 import { Module } from '@nestjs/common';
-import { MultisigConfirmService } from './multisig-confirm.service';
-import { MultisigConfirmController } from './multisig-confirm.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { SafeOwnerModule } from '../safe-owner/safe-owner.module';
+import { MultisigConfirm } from './entities/multisig-confirm.entity';
+import { MultisigConfirmRepository } from './multisig-confirm.repository';
 
 @Module({
-  controllers: [MultisigConfirmController],
-  providers: [MultisigConfirmService]
+  imports: [TypeOrmModule.forFeature([MultisigConfirm]), SafeOwnerModule],
+  controllers: [],
+  providers: [MultisigConfirmRepository],
+  exports: [MultisigConfirmRepository],
 })
 export class MultisigConfirmModule {}

@@ -5,14 +5,18 @@ import { CONTROLLER_CONSTANTS } from '../../common/constants/api.constant';
 import { CommonGet } from '../../decorators/common.decorator';
 import { DistributionService } from './distribution.service';
 import { SwaggerBaseApiResponse } from '../../dtos/responses';
-import { MODULE_REQUEST, MODULE_RESPONSE } from '../../module.config';
 import {
+  GetDelegationDto,
+  GetDelegationResponseDto,
+  GetDelegationsParamDto,
+  GetDelegationsResponseDto,
+  GetUndelegationsParamDto,
+  GetUndelegationsResponseDto,
+  GetValidatorDetailDto,
   GetValidatorsParamDto,
   GetValidatorsQueryDto,
-} from './dto/get-validators.dto';
-import { GetValidatorDetailDto } from './dto/get-validator-info.dto';
-import { GetUndelegationsParamDto } from './dto/get-undelegatation.dto';
-import { GetDelegationDto } from './dto/get-delegation.dto';
+  GetValidatorsResponseDto,
+} from './dto';
 
 @Controller(CONTROLLER_CONSTANTS.DISTRIBUTION)
 @ApiTags(CONTROLLER_CONSTANTS.DISTRIBUTION)
@@ -24,7 +28,7 @@ export class DistributionController {
     summary: 'Queries all validators.',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetValidatorsResponse),
+      type: SwaggerBaseApiResponse(GetValidatorsResponseDto),
       description: 'List validators',
       schema: {},
     },
@@ -41,7 +45,6 @@ export class DistributionController {
     summary: 'Queries a validator.',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetValidatorDetailResponse),
       description: 'Validator detail',
       schema: {},
     },
@@ -55,12 +58,12 @@ export class DistributionController {
     summary: 'Queries all delegations of a user.',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetDelegationsResponse),
+      type: SwaggerBaseApiResponse(GetDelegationsResponseDto),
       description: 'List delegations of a user',
       schema: {},
     },
   })
-  async getDelegations(@Param() param: MODULE_REQUEST.GetDelegationsParam) {
+  async getDelegations(@Param() param: GetDelegationsParamDto) {
     return this.distributionService.getDelegations(param);
   }
 
@@ -69,7 +72,7 @@ export class DistributionController {
     summary: 'Get single validator info and delegation from user.',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetDelegationResponse),
+      type: SwaggerBaseApiResponse(GetDelegationResponseDto),
       description: 'List delegation and validator of a user',
       schema: {},
     },
@@ -83,7 +86,7 @@ export class DistributionController {
     summary: 'Queries all undelegations of a user.',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetUndelegationsResponse),
+      type: SwaggerBaseApiResponse(GetUndelegationsResponseDto),
       description: 'List undelegations of a user',
       schema: {},
     },

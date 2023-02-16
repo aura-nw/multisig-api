@@ -299,10 +299,10 @@ export class GetProposalsResponse {
       },
     ],
   })
-  proposals: GetProposalsProposal[];
+  proposals: GetProposalsProposalDto[];
 }
 
-export class GetProposalsProposal {
+export class GetProposalsProposalDto {
   @ApiProperty({
     example: 272,
   })

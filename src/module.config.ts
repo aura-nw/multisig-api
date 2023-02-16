@@ -51,7 +51,6 @@ import {
   CreateSafeResponse,
   GetBalanceResponse,
   GetProposalsResponse,
-  GetProposalsProposal,
   GetVotesByProposalIdResponse,
   GetValidatorVotesByProposalIdResponse,
   GetValidatorsResponse,
@@ -147,7 +146,6 @@ export const RESPONSE_CONFIG = {
   GET_DELEGATION_RESPONSE: GetDelegationResponse,
   GET_UNDELEGATIONS_RESPONSE: GetUndelegationsResponse,
   GET_PROPOSALS_RESPONSE: GetProposalsResponse,
-  GET_PROPOSAL_RESPONSE: GetProposalsProposal,
   GET_VOTES_BY_PROPOSAL_ID_RESPONSE: GetVotesByProposalIdResponse,
   GET_VALIDATOR_VOTES_BY_PROPOSAL_ID_RESPONSE:
     GetValidatorVotesByProposalIdResponse,
@@ -212,7 +210,6 @@ export namespace MODULE_RESPONSE {
   export abstract class GetDelegationResponse extends RESPONSE_CONFIG.GET_DELEGATION_RESPONSE {}
   export abstract class GetUndelegationsResponse extends RESPONSE_CONFIG.GET_UNDELEGATIONS_RESPONSE {}
   export abstract class GetProposalsResponse extends RESPONSE_CONFIG.GET_PROPOSALS_RESPONSE {}
-  export abstract class GetProposalResponse extends RESPONSE_CONFIG.GET_PROPOSAL_RESPONSE {}
   export abstract class GetVotesByProposalIdResponse extends RESPONSE_CONFIG.GET_VOTES_BY_PROPOSAL_ID_RESPONSE {}
   export abstract class GetValidatorVotesByProposalIdResponse extends RESPONSE_CONFIG.GET_VALIDATOR_VOTES_BY_PROPOSAL_ID_RESPONSE {}
   export abstract class GetValidatorDetailResponse extends RESPONSE_CONFIG.GET_VALIDATOR_DETAIL_RESPONSE {}

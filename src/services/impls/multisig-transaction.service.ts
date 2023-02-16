@@ -41,7 +41,7 @@ import {
 import { makeMultisignedTxEvmos, verifyEvmosSig } from '../../chains/evmos';
 import { CommonUtil } from '../../utils/common.util';
 import { AminoMsg, makeSignDoc } from '@cosmjs/amino';
-import { IndexerClient } from '../../utils/apis/IndexerClient';
+import { IndexerClient } from '../../utils/apis/indexer-client.service';
 import { Simulate } from '../../simulate';
 import { ConfigService } from '../../shared/services/config.service';
 import { INotificationRepository } from '../../repositories/inotification.repository';

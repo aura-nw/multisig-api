@@ -11,7 +11,7 @@ import {
   pubkeyToAddress,
 } from '@cosmjs/amino';
 import { fromBase64 } from '@cosmjs/encoding';
-import { IndexerClient } from '../../utils/apis/IndexerClient';
+import { IndexerClient } from '../../utils/apis/indexer-client.service';
 import { ConfigService } from '../../shared/services/config.service';
 import { CommonUtil } from '../../utils/common.util';
 import { createEvmosPubkey } from '../../chains/evmos';
@@ -20,9 +20,9 @@ import { SafeOwnerRepository } from '../safe-owner/safe-owner.repository';
 import { ChainRepository } from '../chain/chain.repository';
 import { SafeOwner } from '../safe-owner/entities/safe-owner.entity';
 import { plainToInstance } from 'class-transformer';
-import { GetThresholdResDto } from './dto/res/get-threshold.res';
 import { In, Not, Repository } from 'typeorm';
-import { GetSafeByOwnerAddressResDto } from './dto/res/get-safe-by-owner.res';
+import { GetSafeByOwnerAddressResDto } from './dto/request/get-safe-by-owner.res';
+import { GetThresholdResDto } from './dto/request/get-threshold.res';
 
 @Injectable()
 export class SafeRepository {
@@ -127,35 +127,6 @@ export class SafeRepository {
       .andWhere('safe.creatorAddress = :creatorAddress', { owner_address })
       .orWhere('');
     return sqlQuerry.getRawMany();
-  }
-
-  async getMultisigWalletsByOwner(
-    ownerAddress: string,
-    internalChainId: number,
-  ): Promise<GetSafeByOwnerAddressResDto[]> {
-    const sqlQuerry = this.repo
-      .createQueryBuilder('safe')
-      .innerJoin(
-        ENTITIES_CONFIG.SAFE_OWNER,
-        'safeOwner',
-        'safe.id = safeOwner.safeId',
-      )
-      .where('safeOwner.ownerAddress = :ownerAddress', { ownerAddress })
-      .andWhere('safeOwner.internalChainId = :internalChainId', {
-        internalChainId,
-      })
-      .select([
-        'safe.id as id',
-        'safe.safeAddress as safeAddress',
-        'safe.creatorAddress as creatorAddress',
-        'safe.status as status',
-        'safeOwner.ownerAddress as ownerAddress',
-        'safeOwner.ownerPubkey as ownerPubkey',
-        'safeOwner.internalChainId as internalChainId',
-      ]);
-
-    const result = await sqlQuerry.getRawMany();
-    return plainToInstance(GetSafeByOwnerAddressResDto, result);
   }
 
   async getThreshold(safeAddress: string) {

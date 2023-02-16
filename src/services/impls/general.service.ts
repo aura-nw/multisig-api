@@ -6,7 +6,7 @@ import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
 import { IGeneralRepository } from '../../repositories/igeneral.repository';
 import { ErrorMap } from '../../common/error.map';
 import { IGasRepository } from '../../repositories/igas.repository';
-import { IndexerClient } from '../../utils/apis/IndexerClient';
+import { IndexerClient } from '../../utils/apis/indexer-client.service';
 import { ConfigService } from '../../shared/services/config.service';
 
 export class GeneralService extends BaseService implements IGeneralService {

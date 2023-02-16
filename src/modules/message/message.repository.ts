@@ -12,6 +12,7 @@ import { Message } from './entities/message.entity';
 @Injectable()
 export class MessageRepository {
   private readonly _logger = new Logger(MessageRepository.name);
+
   constructor(
     @InjectRepository(Message)
     private readonly repos: Repository<Message>,

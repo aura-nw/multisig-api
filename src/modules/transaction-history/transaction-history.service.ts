@@ -1,26 +1,53 @@
-import { Injectable } from '@nestjs/common';
-import { CreateTransactionHistoryDto } from './dto/create-transaction-history.dto';
-import { UpdateTransactionHistoryDto } from './dto/update-transaction-history.dto';
+import { Injectable, Logger } from '@nestjs/common';
+import { SafeRepository } from '../safe/safe.repository';
+import { TransactionHistoryRepository } from './transaction-history.repository';
+import { AuraTxRepository } from '../aura-tx/aura-tx.repository';
 
 @Injectable()
 export class TransactionHistoryService {
-  create(createTransactionHistoryDto: CreateTransactionHistoryDto) {
-    return 'This action adds a new transactionHistory';
+  private readonly logger = new Logger(TransactionHistoryService.name);
+
+  constructor(
+    private safeRepo: SafeRepository,
+    private txHistoryRepo: TransactionHistoryRepository,
+    private auraTxRepo: AuraTxRepository,
+  ) {
+    this.logger.log(
+      '============== Constructor Transaction Service ==============',
+    );
   }
 
-  findAll() {
-    return `This action returns all transactionHistory`;
-  }
+  async migrateTxToTxHistory() {
+    const allSafeAddress = await this.safeRepo.getAllSafeAddress();
 
-  findOne(id: number) {
-    return `This action returns a #${id} transactionHistory`;
-  }
+    let skip = 0;
+    const take = 50;
+    let batchTx = await this.auraTxRepo.getBatchTx(take, skip);
 
-  update(id: number, updateTransactionHistoryDto: UpdateTransactionHistoryDto) {
-    return `This action updates a #${id} transactionHistory`;
-  }
+    // Using job queue to process batchTx
+    while (batchTx.length > 0) {
+      await Promise.all(
+        batchTx.map((tx) => {
+          let safeAddress = '';
+          if (allSafeAddress.includes(tx.fromAddress)) {
+            safeAddress = tx.fromAddress;
+          }
+          if (allSafeAddress.includes(tx.toAddress)) {
+            safeAddress = tx.toAddress;
+          }
+          if (safeAddress !== '') {
+            return this.txHistoryRepo.saveTxHistory(
+              tx.internalChainId,
+              safeAddress,
+              tx.txHash,
+              tx.createdAt,
+            );
+          }
+        }),
+      );
 
-  remove(id: number) {
-    return `This action removes a #${id} transactionHistory`;
+      skip += take;
+      batchTx = await this.auraTxRepo.getBatchTx(take, skip);
+    }
   }
 }

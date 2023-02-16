@@ -10,12 +10,12 @@ import { ConfigService } from '../../shared/services/config.service';
 import { ProposalDepositResponse } from '../../dtos/responses';
 import { PROPOSAL_STATUS } from '../../common/constants/app.constant';
 import {
-  GetProposalsProposal,
+  GetProposalsProposalDto,
   GetProposalsTally,
   GetProposalsTurnout,
 } from '../../dtos/responses/gov/get-proposals.response';
 import { GetVotesByProposalIdResponse } from '../../dtos/responses/gov/get-votes-by-proposal-id.response';
-import { IndexerClient } from '../../utils/apis/IndexerClient';
+import { IndexerClient } from '../../utils/apis/indexer-client.service';
 
 @Injectable()
 export class GovService implements IGovService {
@@ -50,8 +50,8 @@ export class GovService implements IGovService {
     }
   }
 
-  mapProposal(proposal: any): GetProposalsProposal {
-    const result: GetProposalsProposal = {
+  mapProposal(proposal: any): GetProposalsProposalDto {
+    const result: GetProposalsProposalDto = {
       id: proposal.proposal_id,
       title: proposal.content.title,
       proposer: proposal.proposer_address,

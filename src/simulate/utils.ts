@@ -20,7 +20,7 @@ import {
 } from '@cosmjs/stargate';
 import { coins } from '@cosmjs/amino';
 import { REGISTRY_GENERATED_TYPES } from '../common/constants/app.constant';
-import { IndexerClient } from '../utils/apis/IndexerClient';
+import { IndexerClient } from '../utils/apis/indexer-client.service';
 import { encodePubkeyEvmos } from '../chains/evmos';
 
 export class SimulateUtils {
