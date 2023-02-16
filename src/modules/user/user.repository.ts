@@ -17,6 +17,10 @@ export class UserRepository {
     );
   }
 
+  async getAllUser(): Promise<User[]> {
+    return this.repo.find();
+  }
+
   async getUserByAddress(address: string): Promise<User> {
     const user = await this.repo.findOne({
       where: { address },

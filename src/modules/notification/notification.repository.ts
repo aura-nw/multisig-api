@@ -19,6 +19,10 @@ export class NotificationRepository {
     );
   }
 
+  async saveNotification(notifications: Notification[]) {
+    return this.repo.save(notifications);
+  }
+
   async getNotificationsByUser(userId: number): Promise<Notification[]> {
     return this.repo.find({
       where: { userId },

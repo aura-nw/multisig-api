@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CustomError } from '../../common/customError';
 import { ErrorMap } from '../../common/error.map';
+import { ChainInfo } from '../../utils/validations/chain.validation';
 import { Chain } from './entities/chain.entity';
 
 @Injectable()
@@ -15,6 +16,28 @@ export class ChainRepository {
     this._logger.log(
       '============== Constructor Chain Repository ==============',
     );
+  }
+
+  async createOrUpdate(chainInfos: ChainInfo[]) {
+    const chainIds = chainInfos.map((chainInfo) => {
+      return chainInfo.chainId;
+    });
+    const chains = await this.repos
+      .createQueryBuilder()
+      .where('Chain.ChainId IN (:...chainIds)', { chainIds })
+      .getMany();
+
+    const chainsToCreateOrUpdate = [];
+
+    for (const chainInfo of chainInfos) {
+      let chainToUpdate = chains.find((chain) => {
+        return chain.chainId === chainInfo.chainId;
+      });
+      chainToUpdate = { ...chainToUpdate, ...chainInfo };
+      chainsToCreateOrUpdate.push(chainToUpdate);
+    }
+    const res = await this.repos.save(chainsToCreateOrUpdate);
+    return res;
   }
 
   /**

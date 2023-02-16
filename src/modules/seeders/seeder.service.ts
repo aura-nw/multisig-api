@@ -1,14 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { CommonUtil } from '../../utils/common.util';
 import { validateChainInfo } from '../../utils/validations/chain.validation';
-import { ChainSeederService } from './chain/chain-seeder.service';
 import * as path from 'path';
+import { ChainRepository } from '../chain/chain.repository';
 
 @Injectable()
 export class SeederService {
   private readonly _logger = new Logger(SeederService.name);
   private _commonUtil: CommonUtil = new CommonUtil();
-  constructor(private chainSeederService: ChainSeederService) {}
+  constructor(private chainRepo: ChainRepository) {}
 
   async seed() {
     await this.seedChain();
@@ -24,7 +24,7 @@ export class SeederService {
             return;
           }
           const chainInfos = await validateChainInfo(objects);
-          await this.chainSeederService.createOrUpdate(chainInfos);
+          await this.chainRepo.createOrUpdate(chainInfos);
         },
       );
     } catch (error) {

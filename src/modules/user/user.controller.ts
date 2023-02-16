@@ -1,16 +1,12 @@
-import { Controller, Inject, Logger, Param } from '@nestjs/common';
+import { Controller, Logger, Param } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import {
   CONTROLLER_CONSTANTS,
   URL_CONSTANTS,
 } from '../../common/constants/api.constant';
 import { CommonGet } from '../../decorators/common.decorator';
-import { SwaggerBaseApiResponse } from '../../dtos/responses';
-import {
-  MODULE_REQUEST,
-  MODULE_RESPONSE,
-  SERVICE_INTERFACE,
-} from '../../module.config';
+import { ResponseDto, SwaggerBaseApiResponse } from '../../dtos/responses';
+import { GetUserPathParamDto } from './dto/request/get-user.req';
 import { UserService } from './user.service';
 @Controller(CONTROLLER_CONSTANTS.USER)
 @ApiTags(CONTROLLER_CONSTANTS.USER)
@@ -24,12 +20,12 @@ export class UserController {
     summary: 'Get user by address',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(MODULE_RESPONSE.ResponseDto),
+      type: SwaggerBaseApiResponse(ResponseDto),
       description: 'User detail',
       schema: {},
     },
   })
-  async getUserByAddress(@Param() param: MODULE_REQUEST.GetUserPathParams) {
+  async getUserByAddress(@Param() param: GetUserPathParamDto) {
     this._logger.log('========== Get user by address ==========');
     return this.userService.getUserByAddress(param);
   }

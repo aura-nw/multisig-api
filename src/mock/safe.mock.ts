@@ -1,6 +1,4 @@
-import { MODULE_REQUEST } from '../module.config';
-
-export const mockCreateRequest: MODULE_REQUEST.CreateMultisigWalletRequest[] = [
+export const mockCreateRequest: any[] = [
   {
     // creatorAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
     // creatorPubkey: 'A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8k',
