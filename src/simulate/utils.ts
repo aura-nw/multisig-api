@@ -20,9 +20,8 @@ import {
 } from '@cosmjs/stargate';
 import { coins } from '@cosmjs/amino';
 import { REGISTRY_GENERATED_TYPES } from '../common/constants/app.constant';
-import { IndexerClient } from '../utils/apis/IndexerClient';
-import { EthermintHelper } from '../chains/ethermint/ethermint.helper';
-import { Chain } from '../entities';
+import { IndexerClient } from '../utils/apis/indexer-client.service';
+import { encodePubkeyEvmos } from '../chains/evmos';
 
 export class SimulateUtils {
   public static makeBodyBytes(messages: any[], prefix: string): Uint8Array {

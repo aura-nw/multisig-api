@@ -4,24 +4,25 @@ import { ErrorMap } from '../../common/error.map';
 import { CommonUtil } from '../../utils/common.util';
 import { Chain } from '../../entities';
 import { ConfigService } from '../../shared/services/config.service';
-import { ProposalDepositResponse } from '../../dtos/responses';
 import { PROPOSAL_STATUS } from '../../common/constants/app.constant';
+import { IndexerClient } from '../../utils/apis/indexer-client.service';
+import { ChainRepository } from '../chain/chain.repository';
 import {
-  GetProposalsProposal,
+  GetProposalByIdDto,
+  GetProposalDepositsDto,
+  GetProposalsParamDto,
+  GetProposalsProposalDto,
+  GetProposalsResponseDto,
   GetProposalsTally,
   GetProposalsTurnout,
-} from '../../dtos/responses/gov/get-proposals.response';
-import { GetVotesByProposalIdResponse } from '../../dtos/responses/gov/get-votes-by-proposal-id.response';
-import { IndexerClient } from '../../utils/apis/IndexerClient';
-import { ChainRepository } from '../chain/chain.repository';
-import { GetProposalsParamDto } from './dto/get-proposals.dto';
-import { GetProposalByIdDto } from './dto/get-proposal-by-id.dto';
-import {
+  GetValidatorVotesByProposalIdResponseDto,
+  GetValidatorVotesDto,
   GetVotesByProposalIdParamDto,
   GetVotesByProposalIdQueryDto,
-} from './dto/get-vote-by-proposal-dto';
-import { GetValidatorVotesDto } from './dto/get-validator-votes.dto';
-import { GetProposalDepositsDto } from './dto/get-proposal-deposits.dto';
+  GetVotesByProposalIdResponseDto,
+  ProposalDepositResponseDto,
+} from './dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class GovService {
@@ -45,9 +46,12 @@ export class GovService {
 
       const proposals = result.map((proposal) => this.mapProposal(proposal));
 
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, {
-        proposals,
-      });
+      return ResponseDto.response(
+        ErrorMap.SUCCESSFUL,
+        plainToInstance(GetProposalsResponseDto, {
+          proposals,
+        }),
+      );
     } catch (e) {
       return ResponseDto.responseError(GovService.name, e);
     }
@@ -102,7 +106,7 @@ export class GovService {
           pageLimit,
           reverse,
         );
-      const results: GetVotesByProposalIdResponse = {
+      const results: GetVotesByProposalIdResponseDto = {
         votes: votes.map((vote) => {
           return {
             voter: vote.voter_address,
@@ -144,7 +148,13 @@ export class GovService {
         proposalId,
       );
 
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, validatorVotes);
+      return ResponseDto.response(
+        ErrorMap.SUCCESSFUL,
+        plainToInstance(
+          GetValidatorVotesByProposalIdResponseDto,
+          validatorVotes,
+        ),
+      );
     } catch (e) {
       return ResponseDto.responseError(GovService.name, e);
     }
@@ -163,12 +173,12 @@ export class GovService {
           chain.chainId,
           proposalId,
         );
-      const response: ProposalDepositResponse[] = proposalDepositTxs.map(
+      const response: ProposalDepositResponseDto[] = proposalDepositTxs.map(
         (tx) => {
           const proposalDepositEvent = tx.tx_response.logs[0].events.find(
             (x) => x.type === 'proposal_deposit',
           );
-          const proposalDepositResponse: ProposalDepositResponse = {
+          const proposalDepositResponse: ProposalDepositResponseDto = {
             proposal_id: Number(
               proposalDepositEvent?.attributes.find(
                 (x) => x.key === 'proposal_id',
@@ -193,8 +203,8 @@ export class GovService {
     }
   }
 
-  mapProposal(proposal: any): GetProposalsProposal {
-    const result: GetProposalsProposal = {
+  mapProposal(proposal: any) {
+    const result: GetProposalsProposalDto = {
       id: proposal.proposal_id,
       title: proposal.content.title,
       proposer: proposal.proposer_address,

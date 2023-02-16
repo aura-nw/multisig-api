@@ -5,14 +5,10 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
-import { Cache } from 'cache-manager';
 import { Reflector } from '@nestjs/core';
 @Injectable()
 export class GroupsGuard implements CanActivate {
-  constructor(
-    private readonly _reflector: Reflector,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {}
+  constructor(private readonly _reflector: Reflector) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const roles = this._reflector.get<string[]>('roles', context.getHandler());

@@ -1,4 +1,4 @@
-import { Controller, Query, Inject, Logger, Param } from '@nestjs/common';
+import { Controller, Query, Logger, Param } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import {
   CONTROLLER_CONSTANTS,
@@ -7,32 +7,37 @@ import {
 import { CommonGet } from '../../decorators/common.decorator';
 import { SwaggerBaseApiResponse } from '../../dtos/responses';
 import {
-  MODULE_REQUEST,
-  MODULE_RESPONSE,
-  SERVICE_INTERFACE,
-} from '../../module.config';
-import { IGovService } from '../../services/igov.service';
+  GetProposalByIdDto,
+  GetProposalDepositsDto,
+  GetProposalsParamDto,
+  GetProposalsProposalDto,
+  GetProposalsResponseDto,
+  GetValidatorVotesByProposalIdResponseDto,
+  GetValidatorVotesDto,
+  GetVotesByProposalIdParamDto,
+  GetVotesByProposalIdQueryDto,
+  GetVotesByProposalIdResponseDto,
+  ProposalDepositResponseDto,
+} from './dto';
+import { GovService } from './gov.service';
 @Controller(CONTROLLER_CONSTANTS.GOV)
 @ApiTags(CONTROLLER_CONSTANTS.GOV)
 export class GovController {
   public readonly _logger = new Logger(GovController.name);
 
-  constructor(
-    @Inject(SERVICE_INTERFACE.IGOV_SERVICE)
-    private govService: IGovService,
-  ) {}
+  constructor(private govService: GovService) {}
 
   @CommonGet({
     url: URL_CONSTANTS.GET_PROPOSALS,
     summary: 'Queries all proposals.',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetProposalsResponse),
+      type: SwaggerBaseApiResponse(GetProposalsResponseDto),
       description: 'List proposals',
       schema: {},
     },
   })
-  async getProposals(@Param() param: MODULE_REQUEST.GetProposalsParam) {
+  async getProposals(@Param() param: GetProposalsParamDto) {
     this._logger.log('========== Queries all proposals ==========');
     return this.govService.getProposals(param);
   }
@@ -42,12 +47,12 @@ export class GovController {
     summary: 'Queries a single proposal.',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetProposalResponse),
+      type: SwaggerBaseApiResponse(GetProposalsProposalDto),
       description: 'Proposal Details',
       schema: {},
     },
   })
-  async getProposalById(@Param() param: MODULE_REQUEST.GetProposalParam) {
+  async getProposalById(@Param() param: GetProposalByIdDto) {
     return this.govService.getProposalById(param);
   }
 
@@ -56,16 +61,14 @@ export class GovController {
     summary: 'List votes by proposal Id.',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(
-        MODULE_RESPONSE.GetVotesByProposalIdResponse,
-      ),
+      type: SwaggerBaseApiResponse(GetVotesByProposalIdResponseDto),
       description: 'List votes by proposal Id',
       schema: {},
     },
   })
   async getVotesByProposalId(
-    @Param() param: MODULE_REQUEST.GetVotesByProposalIdParams,
-    @Query() query: MODULE_REQUEST.GetVotesByProposalIdQuery,
+    @Param() param: GetVotesByProposalIdParamDto,
+    @Query() query: GetVotesByProposalIdQueryDto,
   ) {
     return this.govService.getVotesByProposalId(param, query);
   }
@@ -75,16 +78,12 @@ export class GovController {
     summary: 'List validator votes by proposal Id.',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(
-        MODULE_RESPONSE.GetValidatorVotesByProposalIdResponse,
-      ),
+      type: SwaggerBaseApiResponse(GetValidatorVotesByProposalIdResponseDto),
       description: 'List validators votes by proposal Id',
       schema: {},
     },
   })
-  async getValidatorVotesByProposalId(
-    @Param() param: MODULE_REQUEST.GetValidatorVotesByProposalIdParams,
-  ) {
+  async getValidatorVotesByProposalId(@Param() param: GetValidatorVotesDto) {
     return this.govService.getValidatorVotesByProposalId(param);
   }
 
@@ -93,14 +92,12 @@ export class GovController {
     summary: 'Queries deposit txs of a given proposal.',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetMultisigWalletResponse),
+      type: SwaggerBaseApiResponse(ProposalDepositResponseDto),
       description: 'List proposal deposits',
       schema: {},
     },
   })
-  async getProposalDepositById(
-    @Param() param: MODULE_REQUEST.GetProposalDepositsByIdPathParams,
-  ) {
+  async getProposalDepositById(@Param() param: GetProposalDepositsDto) {
     this._logger.log(
       '========== Queries deposit txs of a given proposal ==========',
     );

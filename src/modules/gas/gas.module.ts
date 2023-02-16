@@ -1,9 +1,12 @@
 import { Module } from '@nestjs/common';
-import { GasService } from './gas.service';
-import { GasController } from './gas.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Gas } from './entities/gas.entity';
+import { GasRepository } from './gas.repository';
 
 @Module({
-  controllers: [GasController],
-  providers: [GasService]
+  imports: [TypeOrmModule.forFeature([Gas])],
+  controllers: [],
+  providers: [GasRepository],
+  exports: [GasRepository],
 })
 export class GasModule {}

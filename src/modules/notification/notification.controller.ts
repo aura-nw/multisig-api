@@ -1,22 +1,19 @@
-import { Body, Controller, Inject, Logger } from '@nestjs/common';
+import { Body, Controller, Logger } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CONTROLLER_CONSTANTS } from '../../common/constants/api.constant';
 import {
   CommonAuthGet,
   CommonAuthPost,
 } from '../../decorators/common.decorator';
-import { MODULE_REQUEST, SERVICE_INTERFACE } from '../../module.config';
-import { INotificationService } from '../../services/inotification.service';
+import { MODULE_REQUEST } from '../../module.config';
+import { NotificationService } from './notification.service';
 
 @Controller(CONTROLLER_CONSTANTS.NOTIFICATION)
 @ApiTags(CONTROLLER_CONSTANTS.NOTIFICATION)
 export class NotificationController {
   public readonly _logger = new Logger(NotificationController.name);
 
-  constructor(
-    @Inject(SERVICE_INTERFACE.INOTIFICATION_SERVICE)
-    private notificationService: INotificationService,
-  ) {}
+  constructor(private notificationService: NotificationService) {}
 
   @CommonAuthGet({
     summary: 'Get notifications for current user',

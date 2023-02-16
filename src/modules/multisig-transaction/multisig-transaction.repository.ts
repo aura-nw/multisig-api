@@ -10,21 +10,19 @@ import { CustomError } from '../../common/customError';
 import { ErrorMap } from '../../common/error.map';
 import { plainToInstance } from 'class-transformer';
 import { MultisigTransactionHistoryResponse } from '../../dtos/responses';
-import {
-  TxDetail,
-  TxDetailResponse,
-} from '../../dtos/responses/multisig-transaction/tx-detail.response';
+import { TxDetailResponse } from '../../dtos/responses/multisig-transaction/tx-detail.response';
 import { MultisigConfirmRepository } from '../multisig-confirm/multisig-confirm.repository';
 import { SafeRepository } from '../safe/safe.repository';
 import { MultisigTransaction } from './entities/multisig-transaction.entity';
 import { AuraTx } from '../aura-tx/entities/aura-tx.entity';
 import { Chain } from '../chain/entities/chain.entity';
+import { TxDetailDto } from './dto/response/tx-detail.res';
 
 @Injectable()
 export class MultisigTransactionRepository {
   private readonly _logger = new Logger(MultisigTransactionRepository.name);
   constructor(
-    private multisigConfirmRepos: MultisigConfirmRepository,
+    // private multisigConfirmRepos: MultisigConfirmRepository,
     private safeRepos: SafeRepository,
     @InjectRepository(MultisigTransaction)
     private readonly repo: Repository<MultisigTransaction>,
@@ -32,6 +30,16 @@ export class MultisigTransactionRepository {
     this._logger.log(
       '============== Constructor Multisig Transaction Repository ==============',
     );
+  }
+
+  async getMultisigTx(id: number): Promise<MultisigTransaction> {
+    const tx = await this.repo.findOne({
+      where: {
+        id,
+      },
+    });
+    if (!tx) throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
+    return tx;
   }
 
   /**
@@ -172,12 +180,12 @@ export class MultisigTransactionRepository {
 
   async isExecutable(multisigTxId: number, safeId: number): Promise<boolean> {
     // get list confirm
-    const listConfirmAfterSign =
-      await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-        multisigTxId,
-        undefined,
-        MULTISIG_CONFIRM_STATUS.CONFIRM,
-      );
+    const listConfirmAfterSign = [];
+    // await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+    //   multisigTxId,
+    //   undefined,
+    //   MULTISIG_CONFIRM_STATUS.CONFIRM,
+    // );
 
     const safe = await this.safeRepos.getSafeById(safeId);
 
@@ -214,7 +222,7 @@ export class MultisigTransactionRepository {
     });
   }
 
-  async getMultisigTxDetail(multisigTxId: number): Promise<TxDetail> {
+  async getMultisigTxDetail(multisigTxId: number): Promise<TxDetailDto> {
     const tx = await this.repo
       .createQueryBuilder('MT')
       .leftJoin(AuraTx, 'AT', 'MT.TxHash = AT.TxHash')
@@ -232,7 +240,7 @@ export class MultisigTransactionRepository {
       ])
       .getRawOne();
 
-    return plainToInstance(TxDetail, tx);
+    return plainToInstance(TxDetailDto, tx);
   }
 
   async getTransactionDetailsMultisigTransaction(

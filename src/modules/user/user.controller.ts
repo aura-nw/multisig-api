@@ -11,16 +11,13 @@ import {
   MODULE_RESPONSE,
   SERVICE_INTERFACE,
 } from '../../module.config';
-import { IUserService } from '../../services/iuser.service';
+import { UserService } from './user.service';
 @Controller(CONTROLLER_CONSTANTS.USER)
 @ApiTags(CONTROLLER_CONSTANTS.USER)
 export class UserController {
   public readonly _logger = new Logger(UserController.name);
 
-  constructor(
-    @Inject(SERVICE_INTERFACE.IUSER_SERVICE)
-    private userService: IUserService,
-  ) {}
+  constructor(private userService: UserService) {}
 
   @CommonGet({
     url: URL_CONSTANTS.GET_USER_BY_ADDRESS,

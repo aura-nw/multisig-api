@@ -1,44 +1,43 @@
-import { Controller, Body, Param, Logger, Inject, Query } from '@nestjs/common';
+import { Controller, Body, Param, Logger, Query } from '@nestjs/common';
 import {
   CONTROLLER_CONSTANTS,
   URL_CONSTANTS,
 } from '../../common/constants/api.constant';
 import { ApiTags } from '@nestjs/swagger';
 import {
-  MODULE_REQUEST,
-  MODULE_RESPONSE,
-  SERVICE_INTERFACE,
-} from '../../module.config';
-import { IMultisigWalletService } from '../../services/imultisig-wallet.service';
-import {
   CommonAuthDelete,
   CommonAuthPost,
   CommonGet,
 } from '../../decorators/common.decorator';
 import { SwaggerBaseApiResponse } from '../../dtos/responses';
+import { SafeService } from './safe.service';
+import { CreateMultisigWalletRequestDto } from './dto/request/create-multisig-wallet.req';
+import {
+  GetSafePathParamsDto,
+  GetSafeQueryDto,
+} from './dto/request/get-safe.request';
+import { ConfirmSafePathParamsDto } from './dto/request/confirm-multisig-wallet.req';
+import { DeleteSafePathParamsDto } from './dto/request/delete-multisig-wallet.req';
+import { CreateSafeResponseDto } from './dto/response/create-safe.res';
+import { GetMultisigWalletResponseDto } from './dto/response/get-multisig-wallet.res';
 
 @Controller(CONTROLLER_CONSTANTS.MULTISIG_WALLET)
 @ApiTags(CONTROLLER_CONSTANTS.MULTISIG_WALLET)
 export class SafeController {
-  private readonly _logger = new Logger(SafeController.name);
-  constructor(
-    @Inject(SERVICE_INTERFACE.IMULTISIG_WALLET_SERVICE)
-    private multisigWalletService: IMultisigWalletService,
-  ) {}
+  private readonly logger = new Logger(SafeController.name);
+  constructor(private multisigWalletService: SafeService) {}
 
   @CommonAuthPost({
     summary: 'Create a multisig wallet',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(MODULE_RESPONSE.CreateSafeResponse),
+      type: SwaggerBaseApiResponse(CreateSafeResponseDto),
       description: 'Safe information',
       schema: {},
     },
   })
-  async createMultisigWallet(
-    @Body() request: MODULE_REQUEST.CreateMultisigWalletRequest,
-  ) {
-    this._logger.log('========== Create a multisig wallet ==========');
+  async createMultisigWallet(@Body() request: CreateMultisigWalletRequestDto) {
+    this.logger.log('========== Create a multisig wallet ==========');
     return this.multisigWalletService.createMultisigWallet(request);
   }
 
@@ -47,16 +46,16 @@ export class SafeController {
     summary: 'Get status of the multisig wallet by safeId',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetMultisigWalletResponse),
+      type: SwaggerBaseApiResponse(GetMultisigWalletResponseDto),
       description: 'Status of multisig wallet',
       schema: {},
     },
   })
   async getMultisigWallet(
-    @Param() param: MODULE_REQUEST.GetSafePathParams,
-    @Query() query: MODULE_REQUEST.GetSafeQuery,
+    @Param() param: GetSafePathParamsDto,
+    @Query() query: GetSafeQueryDto,
   ) {
-    this._logger.log(
+    this.logger.log(
       '========== Get status of the multisig wallet by safeId ==========',
     );
     return this.multisigWalletService.getMultisigWallet(param, query);
@@ -66,10 +65,8 @@ export class SafeController {
     url: URL_CONSTANTS.CONFIRM_SAFE,
     summary: 'Confirm multisig wallet',
   })
-  async confirmMultisigWallet(
-    @Param() param: MODULE_REQUEST.ConfirmSafePathParams,
-  ) {
-    this._logger.log('========== Confirm multisig wallet ==========');
+  async confirmMultisigWallet(@Param() param: ConfirmSafePathParamsDto) {
+    this.logger.log('========== Confirm multisig wallet ==========');
     return this.multisigWalletService.confirm(param);
   }
 
@@ -77,10 +74,8 @@ export class SafeController {
     url: URL_CONSTANTS.DELETE_SAFE,
     summary: 'Delete pending multisig wallet',
   })
-  async deletePendingMultisigWallet(
-    @Param() param: MODULE_REQUEST.DeleteSafePathParams,
-  ) {
-    this._logger.log('========== Delete pending multisig wallet ==========');
+  async deletePendingMultisigWallet(@Param() param: DeleteSafePathParamsDto) {
+    this.logger.log('========== Delete pending multisig wallet ==========');
     return this.multisigWalletService.deletePending(param);
   }
 }

@@ -1,26 +1,29 @@
-import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { Injectable, Logger } from '@nestjs/common';
+import { ResponseDto } from '../../dtos/responses/response.dto';
+import { ErrorMap } from '../../common/error.map';
+import { MODULE_REQUEST, REPOSITORY_INTERFACE } from '../../module.config';
+import { Chain } from '../../entities';
+import { UserRepository } from './user.repository';
 
 @Injectable()
 export class UserService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  private readonly logger = new Logger(UserService.name);
+  auraChain: Chain;
+  indexerUrl: string;
+
+  constructor(private userRepo: UserRepository) {
+    this.logger.log('============== Constructor User Service ==============');
   }
 
-  findAll() {
-    return `This action returns all user`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
-
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async getUserByAddress(
+    param: MODULE_REQUEST.GetUserPathParams,
+  ): Promise<ResponseDto> {
+    const { address } = param;
+    try {
+      const user = await this.userRepo.getUserByAddress(address);
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, user);
+    } catch (e) {
+      return ResponseDto.responseError(UserService.name, e);
+    }
   }
 }

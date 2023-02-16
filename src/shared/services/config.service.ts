@@ -65,6 +65,7 @@ export class ConfigService {
       logging: this.nodeEnv === 'development',
       namingStrategy: new PascalCaseStrategy(),
       multipleStatements: true,
+      autoLoadEntities: true,
     };
   }
 

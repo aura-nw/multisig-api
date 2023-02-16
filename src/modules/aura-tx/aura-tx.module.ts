@@ -1,9 +1,12 @@
 import { Module } from '@nestjs/common';
-import { AuraTxService } from './aura-tx.service';
-import { AuraTxController } from './aura-tx.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuraTxRepository } from './aura-tx.repository';
+import { AuraTx } from './entities/aura-tx.entity';
 
 @Module({
-  controllers: [AuraTxController],
-  providers: [AuraTxService]
+  imports: [TypeOrmModule.forFeature([AuraTx])],
+  controllers: [],
+  providers: [AuraTxRepository],
+  exports: [AuraTxRepository],
 })
 export class AuraTxModule {}

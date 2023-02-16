@@ -42,7 +42,6 @@ export class GovController {
     summary: 'Queries a single proposal.',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(MODULE_RESPONSE.GetProposalResponse),
       description: 'Proposal Details',
       schema: {},
     },

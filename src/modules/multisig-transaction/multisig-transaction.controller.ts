@@ -2,7 +2,6 @@ import {
   Controller,
   Get,
   Post,
-  Inject,
   Body,
   Param,
   HttpStatus,
@@ -26,25 +25,31 @@ import {
   CommonGet,
   CommonPost,
 } from '../../decorators/common.decorator';
+import { TransactionHistoryService } from '../transaction-history/transaction-history.service';
+import { MultisigTransactionHistoryResponseDto } from './dto/response/transaction-history.res';
+import { MultisigTransactionService } from './multisig-transaction.service';
 import {
-  MODULE_REQUEST,
-  MODULE_RESPONSE,
-  SERVICE_INTERFACE,
-} from '../../module.config';
-import { TransactionService } from '../../services/impls/transaction.service';
-import { IMultisigTransactionService } from '../../services/imultisig-transaction.service';
+  ChangeSequenceTransactionRequestDto,
+  ConfirmTransactionRequestDto,
+  CreateTransactionRequestDto,
+  GetAllTransactionsRequestDto,
+  GetMultisigSignaturesParamDto,
+  GetSimulateAddressQueryDto,
+  GetTxDetailQueryDto,
+  MultisigSignatureResponseDto,
+  RejectTransactionRequestDto,
+  SendTransactionRequestDto,
+  SimulateTxRequestDto,
+  TxDetailDto,
+} from './dto';
+import { DeleteTxRequestDto } from './dto/request/delete-tx.req';
 
 @Controller(CONTROLLER_CONSTANTS.TRANSACTION)
 @ApiTags(CONTROLLER_CONSTANTS.TRANSACTION)
 export class MultisigTransactionController {
   public readonly _logger = new Logger(MultisigTransactionController.name);
 
-  constructor(
-    @Inject(SERVICE_INTERFACE.ITRANSACTION_SERVICE)
-    private transactionService: TransactionService,
-    @Inject(SERVICE_INTERFACE.IMULTISIG_TRANSACTION_SERVICE)
-    private multisigTransactionService: IMultisigTransactionService,
-  ) {}
+  constructor(private multisigTransactionService: MultisigTransactionService) {}
 
   @CommonAuthPost({
     url: URL_CONSTANTS.CREATE,
@@ -52,9 +57,7 @@ export class MultisigTransactionController {
     description: `It is used to allow owner of safe create transaction transfer native coin with another address. 
     Firs of all, owner must sign transaction via wallet extension then get signature and bodyBytes, what is result of action sign. Then call API to create transaction.`,
   })
-  async createTransaction(
-    @Body() request: MODULE_REQUEST.CreateTransactionRequest,
-  ) {
+  async createTransaction(@Body() request: CreateTransactionRequestDto) {
     this._logger.log('========== Create multisig transaction ==========');
     return this.multisigTransactionService.createMultisigTransaction(request);
   }
@@ -64,7 +67,7 @@ export class MultisigTransactionController {
     summary: 'API Change sequence of multisig transaction',
   })
   async changeSeqTransaction(
-    @Body() request: MODULE_REQUEST.ChangeSequenceTransactionRequest,
+    @Body() request: ChangeSequenceTransactionRequestDto,
   ) {
     this._logger.log(
       '========== Change sequence of multisig transaction ==========',
@@ -77,9 +80,7 @@ export class MultisigTransactionController {
     summary: 'API Owner confirm their transaction. ',
     description: `It is used to owner of safe sign transaction. When transaction meet threshold, it changes to status AWAITING_EXECUTION ready to broadcast to network.`,
   })
-  async confirmTransaction(
-    @Body() request: MODULE_REQUEST.ConfirmTransactionRequest,
-  ) {
+  async confirmTransaction(@Body() request: ConfirmTransactionRequestDto) {
     return this.multisigTransactionService.confirmMultisigTransaction(request);
   }
 
@@ -88,9 +89,7 @@ export class MultisigTransactionController {
     summary: 'Owner reject their transaction',
     description: `It is used to owner of safe reject transaction.`,
   })
-  async rejectTransaction(
-    @Body() request: MODULE_REQUEST.RejectTransactionParam,
-  ) {
+  async rejectTransaction(@Body() request: RejectTransactionRequestDto) {
     return this.multisigTransactionService.rejectMultisigTransaction(request);
   }
 
@@ -100,16 +99,16 @@ export class MultisigTransactionController {
   })
   @ApiOkResponse({
     status: 200,
-    type: MODULE_RESPONSE.MultisigTransactionHistoryResponse,
+    type: MultisigTransactionHistoryResponseDto,
     isArray: true,
     description: 'Get Transaction History of a Safe',
     schema: {},
   })
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
   @HttpCode(HttpStatus.OK)
-  async getAllTxs(@Body() request: MODULE_REQUEST.GetAllTransactionsRequest) {
+  async getAllTxs(@Body() request: GetAllTransactionsRequestDto) {
     this._logger.log('========== Get All Transactions ==========');
-    return this.transactionService.getTransactionHistory(request);
+    return this.multisigTransactionService.getTransactionHistory(request);
   }
 
   @Get(URL_CONSTANTS.SIGNATURES)
@@ -118,18 +117,18 @@ export class MultisigTransactionController {
   })
   @ApiOkResponse({
     status: 200,
-    type: MODULE_RESPONSE.MultisigSignatureResponse,
+    type: MultisigSignatureResponseDto,
     description: 'List signature of multisig',
     schema: {},
   })
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
   async getSignaturesOfMultisigTx(
-    @Param() param: MODULE_REQUEST.GetMultisigSignaturesParam,
+    @Param() param: GetMultisigSignaturesParamDto,
   ) {
     this._logger.log(
       '========== Get Signatures of Multisig Transaction ==========',
     );
-    return this.transactionService.getListMultisigConfirmById(param);
+    return this.multisigTransactionService.getListMultisigConfirmById(param);
   }
 
   @CommonAuthPost({
@@ -138,9 +137,7 @@ export class MultisigTransactionController {
     description: `It is used to owner of safe broadcast transaction to network. When it failed will throw information. 
     When it success, update transaction txHash to DB. Multisig sync service will crawl data from network then update result of transaction.`,
   })
-  async sendTransaction(
-    @Body() request: MODULE_REQUEST.SendTransactionRequest,
-  ) {
+  async sendTransaction(@Body() request: SendTransactionRequestDto) {
     this._logger.log('========== Send transaction to AURA ==========');
     return this.multisigTransactionService.sendMultisigTransaction(request);
   }
@@ -151,15 +148,15 @@ export class MultisigTransactionController {
   })
   @ApiOkResponse({
     status: 200,
-    type: MODULE_RESPONSE.TransactionDetailsResponse,
+    type: TxDetailDto,
     description: 'Details of a Transaction',
     schema: {},
   })
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
   @HttpCode(HttpStatus.OK)
-  async getTransactionDetails(@Query() query: MODULE_REQUEST.GetTxDetailQuery) {
+  async getTransactionDetails(@Query() query: GetTxDetailQueryDto) {
     this._logger.log('========== Get details of a Transaction ==========');
-    return this.transactionService.getTransactionDetails(query);
+    return this.multisigTransactionService.getTransactionDetails(query);
   }
 
   @CommonGet({
@@ -167,9 +164,7 @@ export class MultisigTransactionController {
     summary: 'Get simulate addresses',
     description: 'Get simulate addresses',
   })
-  async getSimulateAddresses(
-    @Query() request: MODULE_REQUEST.GetSimulateAddressQuery,
-  ) {
+  async getSimulateAddresses(@Query() request: GetSimulateAddressQueryDto) {
     this._logger.log('========== Get simulate addresses ==========');
     return this.multisigTransactionService.getSimulateAddresses(request);
   }
@@ -179,7 +174,7 @@ export class MultisigTransactionController {
     summary: 'Simulate transaction',
     description: 'Simulate transaction',
   })
-  async simulateTransaction(@Body() request: MODULE_REQUEST.SimulateTxRequest) {
+  async simulateTransaction(@Body() request: SimulateTxRequestDto) {
     this._logger.log('========== Simulate transaction ==========');
     return this.multisigTransactionService.simulate(request);
   }
@@ -189,7 +184,7 @@ export class MultisigTransactionController {
     summary: 'Delete transaction',
     description: 'Delete transaction',
   })
-  async deleteTransaction(@Body() request: MODULE_REQUEST.DeleteTxRequest) {
+  async deleteTransaction(@Body() request: DeleteTxRequestDto) {
     this._logger.log('========== Delete transaction ==========');
     return this.multisigTransactionService.deleteTransaction(request);
   }

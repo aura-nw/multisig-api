@@ -6,7 +6,7 @@ import { REPOSITORY_INTERFACE } from '../module.config';
 import { IGeneralRepository, IUserRepository } from '../repositories';
 import { INotificationRepository } from '../repositories/inotification.repository';
 import { ConfigService } from '../shared/services/config.service';
-import { IndexerClient } from '../utils/apis/IndexerClient';
+import { IndexerClient } from '../utils/apis/indexer-client.service';
 
 @Injectable()
 export class NotifyProposalJob {

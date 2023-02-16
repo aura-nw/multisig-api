@@ -3,7 +3,6 @@ import { AuthInfo, TxBody, TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { Injectable, Logger } from '@nestjs/common';
 import { ResponseDto } from '../../dtos/responses/response.dto';
 import { ErrorMap } from '../../common/error.map';
-import { MODULE_REQUEST } from '../../module.config';
 import {
   AminoTypes,
   coins,
@@ -20,18 +19,19 @@ import {
   StargateClient,
 } from '@cosmjs/stargate';
 import { fromBase64 } from '@cosmjs/encoding';
-import { Chain, MultisigTransaction, Safe } from '../../entities';
 import {
   MULTISIG_CONFIRM_STATUS,
   REGISTRY_GENERATED_TYPES,
   SAFE_STATUS,
   TRANSACTION_STATUS,
+  TRANSFER_DIRECTION,
+  TX_TYPE_URL,
 } from '../../common/constants/app.constant';
 
 import { makeMultisignedTxEvmos, verifyEvmosSig } from '../../chains/evmos';
 import { CommonUtil } from '../../utils/common.util';
 import { AminoMsg, makeSignDoc } from '@cosmjs/amino';
-import { IndexerClient } from '../../utils/apis/IndexerClient';
+import { IndexerClient } from '../../utils/apis/indexer-client.service';
 import { Simulate } from '../../simulate';
 import { ConfigService } from '../../shared/services/config.service';
 import { CustomError } from '../../common/customError';
@@ -45,23 +45,48 @@ import { SafeRepository } from '../safe/safe.repository';
 import { SafeOwnerRepository } from '../safe-owner/safe-owner.repository';
 import { MessageRepository } from '../message/message.repository';
 import { NotificationRepository } from '../notification/notification.repository';
+import { ChangeSequenceTransactionRequestDto } from './dto/request/change-seq.req';
+import { ConfirmTransactionRequestDto } from './dto/request/confirm-transaction.req';
+import { TxDetailDto } from './dto/response/tx-detail.res';
+import { AuraTxRepository } from '../aura-tx/aura-tx.repository';
+import { TxMessageResponseDto } from '../message/dto/response/tx-message.res';
+import { plainToInstance } from 'class-transformer';
+import { CreateTransactionRequestDto } from './dto/request/create-transaction.req';
+import {
+  GetAllTransactionsRequestDto,
+  GetMultisigSignaturesParamDto,
+  GetSimulateAddressQueryDto,
+  GetTxDetailQueryDto,
+  MultisigTransactionHistoryResponseDto,
+  RejectTransactionRequestDto,
+  SendTransactionRequestDto,
+  SimulateTxRequestDto,
+} from './dto';
+import { DeleteTxRequestDto } from './dto/request/delete-tx.req';
+import { MultisigTransaction } from './entities/multisig-transaction.entity';
+import { Chain } from '../chain/entities/chain.entity';
+import { Safe } from '../safe/entities/safe.entity';
+import { TransactionHistoryRepository } from '../transaction-history/transaction-history.repository';
 
 @Injectable()
 export class MultisigTransactionService {
   private readonly _logger = new Logger(MultisigTransactionService.name);
   private readonly _commonUtil: CommonUtil = new CommonUtil();
   private _indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
+  private readonly utils: CommonUtil = new CommonUtil();
   private _simulate: Simulate;
 
   constructor(
     private configService: ConfigService,
     private multisigTransactionRepos: MultisigTransactionRepository,
+    private auraTxRepo: AuraTxRepository,
     private multisigConfirmRepos: MultisigConfirmRepository,
     private chainRepos: ChainRepository,
     private safeRepos: SafeRepository,
     private safeOwnerRepo: SafeOwnerRepository,
     private messageRepos: MessageRepository,
     private notificationRepo: NotificationRepository,
+    private txHistoryRepo: TransactionHistoryRepository,
   ) {
     this._logger.log(
       '============== Constructor Multisig Transaction Service ==============',
@@ -70,13 +95,130 @@ export class MultisigTransactionService {
     this._simulate = new Simulate(this.configService.get('SYS_MNEMONIC'));
   }
 
+  async getTransactionHistory(
+    request: GetAllTransactionsRequestDto,
+  ): Promise<ResponseDto> {
+    const { safeAddress, isHistory, pageSize, pageIndex, internalChainId } =
+      request;
+
+    try {
+      const safe = await this.safeRepos.getSafeByAddress(
+        safeAddress,
+        internalChainId,
+      );
+
+      let result: MultisigTransactionHistoryResponseDto[];
+      if (isHistory)
+        result = await this.txHistoryRepo.getTxHistoryBySafeAddress(
+          safeAddress,
+          internalChainId,
+          pageIndex,
+          pageSize,
+        );
+      else {
+        const txs = await this.multisigTransactionRepos.getQueueTransaction(
+          safeAddress,
+          internalChainId,
+          pageIndex,
+          pageSize,
+        );
+        result = await this.getConfirmationStatus(txs, safe[0].threshold);
+      }
+      const response = result.map((item) => {
+        if (item.TypeUrl === null || item.FromAddress !== safeAddress)
+          item.TypeUrl = TX_TYPE_URL.RECEIVE;
+
+        item.Direction = this.getDirection(
+          item.TypeUrl,
+          item.FromAddress,
+          safeAddress,
+        );
+
+        item.FinalAmount =
+          item.MultisigTxAmount || item.AuraTxAmount || item.AuraTxRewardAmount;
+
+        if (!Number.isNaN(Number(item.Status))) {
+          item.Status = this.parseStatus(item.Status);
+        }
+        return item;
+      });
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, response);
+    } catch (error) {
+      return ResponseDto.responseError(MultisigTransactionService.name, error);
+    }
+  }
+
+  getDirection(typeUrl: string, from: string, safeAddress: string): string {
+    switch (typeUrl) {
+      case TX_TYPE_URL.SEND:
+      case TX_TYPE_URL.MULTI_SEND:
+        return from === safeAddress
+          ? TRANSFER_DIRECTION.OUTGOING
+          : TRANSFER_DIRECTION.INCOMING;
+      case TX_TYPE_URL.DELEGATE:
+      case TX_TYPE_URL.REDELEGATE:
+      case TX_TYPE_URL.VOTE:
+        return TRANSFER_DIRECTION.OUTGOING;
+      case TX_TYPE_URL.UNDELEGATE:
+      case TX_TYPE_URL.WITHDRAW_REWARD:
+      default:
+        return TRANSFER_DIRECTION.INCOMING;
+    }
+  }
+
+  async getConfirmationStatus(
+    txs: MultisigTransactionHistoryResponseDto[],
+    threshold: number,
+  ) {
+    const result = await Promise.all(
+      txs.map(async (tx) => {
+        const confirmations: any[] =
+          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+            tx.MultisigTxId,
+            tx.TxHash,
+          );
+        tx.Confirmations = confirmations
+          .filter((x) => x.status === MULTISIG_CONFIRM_STATUS.CONFIRM)
+          .map((item) => item.ownerAddress);
+        tx.Rejections = confirmations
+          .filter((x) => x.status === MULTISIG_CONFIRM_STATUS.REJECT)
+          .map((item) => item.ownerAddress);
+
+        tx.ConfirmationsRequired = threshold;
+        return tx;
+      }),
+    );
+    return result;
+  }
+
+  async getListMultisigConfirmById(
+    param: GetMultisigSignaturesParamDto,
+    status?: string,
+  ): Promise<ResponseDto> {
+    const { id } = param;
+    try {
+      const multisig = await this.multisigTransactionRepos.getMultisigTx(id);
+      if (!multisig) throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
+
+      const result =
+        await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+          id,
+          undefined,
+          status,
+        );
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
+    } catch (error) {
+      return ResponseDto.responseError(MultisigTransactionService.name, error);
+    }
+  }
+
   /**
    * changeSequence
    * @param request
    * @returns
    */
   async changeSequence(
-    request: MODULE_REQUEST.ChangeSequenceTransactionRequest,
+    request: ChangeSequenceTransactionRequestDto,
   ): Promise<ResponseDto> {
     const {
       from,
@@ -91,7 +233,7 @@ export class MultisigTransactionService {
     } = request;
 
     // delete old tx
-    const requestDeleteTx: MODULE_REQUEST.DeleteTxRequest = {
+    const requestDeleteTx: DeleteTxRequestDto = {
       id: oldTxId,
     };
     const deleted = await this.deleteTransaction(requestDeleteTx);
@@ -100,7 +242,7 @@ export class MultisigTransactionService {
     }
 
     // create new tx
-    const requestCreateTx: MODULE_REQUEST.CreateTransactionRequest = {
+    const requestCreateTx: CreateTransactionRequestDto = {
       from,
       to,
       authInfoBytes,
@@ -122,9 +264,7 @@ export class MultisigTransactionService {
    * @param request
    * @returns
    */
-  async deleteTransaction(
-    request: MODULE_REQUEST.DeleteTxRequest,
-  ): Promise<ResponseDto> {
+  async deleteTransaction(request: DeleteTxRequestDto): Promise<ResponseDto> {
     try {
       const { id } = request;
       const authInfo = this._commonUtil.getAuthInfo();
@@ -162,9 +302,7 @@ export class MultisigTransactionService {
     }
   }
 
-  async simulate(
-    request: MODULE_REQUEST.SimulateTxRequest,
-  ): Promise<ResponseDto> {
+  async simulate(request: SimulateTxRequestDto): Promise<ResponseDto> {
     try {
       const { encodedMsgs, safeId } = request;
       const messages = JSON.parse(
@@ -188,7 +326,7 @@ export class MultisigTransactionService {
   }
 
   async getSimulateAddresses(
-    request: MODULE_REQUEST.GetSimulateAddressQuery,
+    request: GetSimulateAddressQueryDto,
   ): Promise<ResponseDto> {
     const { internalChainId } = request;
     const chain = await this.chainRepos.findChain(internalChainId);
@@ -197,7 +335,7 @@ export class MultisigTransactionService {
   }
 
   async createMultisigTransaction(
-    request: MODULE_REQUEST.CreateTransactionRequest,
+    request: CreateTransactionRequestDto,
   ): Promise<ResponseDto> {
     const {
       from,
@@ -318,7 +456,7 @@ export class MultisigTransactionService {
   }
 
   async confirmMultisigTransaction(
-    request: MODULE_REQUEST.ConfirmTransactionRequest,
+    request: ConfirmTransactionRequestDto,
   ): Promise<ResponseDto> {
     try {
       const {
@@ -361,11 +499,11 @@ export class MultisigTransactionService {
       // verify data
       await this.decodeAndVerifyTxInfo(txRawInfo, accountInfo, chain, authInfo);
 
-      await this.multisigConfirmRepos.validateSafeOwner(
-        creatorAddress,
-        pendingTx.fromAddress,
-        internalChainId,
-      );
+      // await this.multisigConfirmRepos.validateSafeOwner(
+      //   creatorAddress,
+      //   pendingTx.fromAddress,
+      //   internalChainId,
+      // );
 
       await this.confirmTx(
         pendingTx,
@@ -383,7 +521,7 @@ export class MultisigTransactionService {
   }
 
   async sendMultisigTransaction(
-    request: MODULE_REQUEST.SendTransactionRequest,
+    request: SendTransactionRequestDto,
   ): Promise<ResponseDto> {
     try {
       const { internalChainId, transactionId } = request;
@@ -411,14 +549,14 @@ export class MultisigTransactionService {
       const txBroadcast = await this.makeTx(safe, chain, multisigTransaction);
 
       // Record owner send transaction
-      await this.multisigConfirmRepos.insertIntoMultisigConfirm(
-        request.transactionId,
-        creatorAddress,
-        '',
-        '',
-        internalChainId,
-        MULTISIG_CONFIRM_STATUS.SEND,
-      );
+      // await this.multisigConfirmRepos.insertIntoMultisigConfirm(
+      //   request.transactionId,
+      //   creatorAddress,
+      //   '',
+      //   '',
+      //   internalChainId,
+      //   MULTISIG_CONFIRM_STATUS.SEND,
+      // );
       await this.safeRepos.updateQueuedTag(multisigTransaction.safeId);
 
       try {
@@ -492,7 +630,7 @@ export class MultisigTransactionService {
   }
 
   async rejectMultisigTransaction(
-    request: MODULE_REQUEST.RejectTransactionParam,
+    request: RejectTransactionRequestDto,
   ): Promise<ResponseDto> {
     const { transactionId, internalChainId } = request;
     try {
@@ -510,24 +648,25 @@ export class MultisigTransactionService {
       await this.safeOwnerRepo.isSafeOwner(creatorAddress, safe.id);
 
       //Check user has rejected transaction before
-      await this.multisigConfirmRepos.checkUserHasSigned(
-        transactionId,
-        creatorAddress,
-      );
+      // await this.multisigConfirmRepos.checkUserHasSigned(
+      //   transactionId,
+      //   creatorAddress,
+      // );
 
-      await this.multisigConfirmRepos.insertIntoMultisigConfirm(
-        request.transactionId,
-        creatorAddress,
-        '',
-        '',
-        request.internalChainId,
-        MULTISIG_CONFIRM_STATUS.REJECT,
-      );
+      // await this.multisigConfirmRepos.insertIntoMultisigConfirm(
+      //   request.transactionId,
+      //   creatorAddress,
+      //   '',
+      //   '',
+      //   request.internalChainId,
+      //   MULTISIG_CONFIRM_STATUS.REJECT,
+      // );
 
       // count number of reject
-      const rejectConfirms = await this.multisigConfirmRepos.getRejects(
-        request.transactionId,
-      );
+      const rejectConfirms = [];
+      // await this.multisigConfirmRepos.getRejects(
+      //   request.transactionId,
+      // );
 
       // count number of owner
       const safeOwner = await this.safeOwnerRepo.getOwnersBySafeId(
@@ -643,20 +782,20 @@ export class MultisigTransactionService {
     safe: Safe,
   ) {
     // if user has confirmed transaction before then return
-    await this.multisigConfirmRepos.checkUserHasSigned(
-      transaction.id,
-      ownerAddress,
-    );
+    // await this.multisigConfirmRepos.checkUserHasSigned(
+    //   transaction.id,
+    //   ownerAddress,
+    // );
 
     // insert into multisig confirm table
-    await this.multisigConfirmRepos.insertIntoMultisigConfirm(
-      transaction.id,
-      ownerAddress,
-      signature,
-      bodyBytes,
-      internalChainId,
-      MULTISIG_CONFIRM_STATUS.CONFIRM,
-    );
+    // await this.multisigConfirmRepos.insertIntoMultisigConfirm(
+    //   transaction.id,
+    //   ownerAddress,
+    //   signature,
+    //   bodyBytes,
+    //   internalChainId,
+    //   MULTISIG_CONFIRM_STATUS.CONFIRM,
+    // );
 
     // update tx status to waiting execute if all owner has confirmed
     const awaitingExecutionTx =
@@ -701,10 +840,10 @@ export class MultisigTransactionService {
     multisigTransaction: MultisigTransaction,
   ): Promise<any> {
     // Get all signature of transaction
-    const multisigConfirmArr =
-      await this.multisigConfirmRepos.getConfirmedByTxId(
-        multisigTransaction.id,
-      );
+    const multisigConfirmArr = [];
+    // await this.multisigConfirmRepos.getConfirmedByTxId(
+    //   multisigTransaction.id,
+    // );
 
     const addressSignarureMap = new Map<string, Uint8Array>();
 
@@ -799,6 +938,127 @@ export class MultisigTransactionService {
     ).toString();
 
     await this.safeRepos.updateSafe(safe);
+  }
+
+  async getTransactionDetails(
+    query: GetTxDetailQueryDto,
+  ): Promise<ResponseDto> {
+    const { multisigTxId, auraTxId, safeAddress } = query;
+    try {
+      // get multisig tx from db
+      const txDetail = await this.getTxFromDB(multisigTxId, auraTxId);
+
+      if (!txDetail.MultisigTxId) {
+        // case: receive token from other wallet
+        const messages = await this.messageRepos.getMsgsByAuraTxId(
+          txDetail.AuraTxId,
+        );
+        txDetail.Messages = plainToInstance(
+          TxMessageResponseDto,
+          messages.map((msg) => this.utils.omitByNil(msg)),
+        );
+
+        txDetail.Status = this.parseStatus(txDetail.Status);
+      } else {
+        // get confirmations
+        const confirmations =
+          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+            txDetail.MultisigTxId,
+            null,
+            MULTISIG_CONFIRM_STATUS.CONFIRM,
+          );
+
+        // get rejections
+        const rejections =
+          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+            txDetail.MultisigTxId,
+            null,
+            MULTISIG_CONFIRM_STATUS.REJECT,
+          );
+
+        // get execution info
+        const executors =
+          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+            txDetail.MultisigTxId,
+            null,
+            MULTISIG_CONFIRM_STATUS.SEND,
+          );
+
+        // get messages & auto claim amount
+        const multisigMsgs = await this.messageRepos.getMsgsByTxId(
+          txDetail.MultisigTxId,
+        );
+        const autoClaimMsgs = await this.messageRepos.getMsgsByAuraTxId(
+          txDetail.AuraTxId,
+        );
+
+        // set data
+        txDetail.Messages = this.buildMessages(multisigMsgs, autoClaimMsgs);
+
+        txDetail.Confirmations = confirmations;
+        txDetail.Rejectors = rejections;
+        txDetail.Executor = executors[0];
+
+        txDetail.AutoClaimAmount = this.calculateAutoClaimAmount(autoClaimMsgs);
+      }
+
+      // get signed info
+      const threshold = await this.safeRepos.getThreshold(safeAddress);
+      txDetail.ConfirmationsRequired = threshold.ConfirmationsRequired;
+
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, txDetail);
+    } catch (error) {
+      return ResponseDto.responseError(MultisigTransactionService.name, error);
+    }
+  }
+
+  buildMessages(
+    multisigMsgs: TxMessageResponseDto[],
+    autoClaimMsgs: TxMessageResponseDto[],
+  ) {
+    return multisigMsgs.map((msg) => {
+      // get amount from auraTx tbl when msg type is withdraw reward
+      if (msg.typeUrl === TX_TYPE_URL.WITHDRAW_REWARD) {
+        const withdrawMsg = autoClaimMsgs.filter(
+          (x) =>
+            x.typeUrl === TX_TYPE_URL.WITHDRAW_REWARD &&
+            x.fromAddress === msg.validatorAddress,
+        );
+        if (withdrawMsg.length > 0) msg.amount = withdrawMsg[0].amount;
+      }
+      return plainToInstance(TxMessageResponseDto, this.utils.omitByNil(msg));
+    });
+  }
+
+  calculateAutoClaimAmount(autoClaimMsgs: TxMessageResponseDto[]): number {
+    return autoClaimMsgs.reduce((totalAmount, item) => {
+      const ignoreTypeUrl = [
+        TX_TYPE_URL.SEND.toString(),
+        TX_TYPE_URL.MULTI_SEND.toString(),
+        TX_TYPE_URL.WITHDRAW_REWARD.toString(),
+      ];
+      if (ignoreTypeUrl.includes(item.typeUrl)) {
+        return totalAmount;
+      }
+      return Number(totalAmount + item.amount);
+    }, 0);
+  }
+
+  parseStatus(status: string): string {
+    return Number(status) === 0
+      ? TRANSACTION_STATUS.SUCCESS
+      : TRANSACTION_STATUS.FAILED;
+  }
+
+  async getTxFromDB(
+    multisigTxId: number,
+    auraTxId: number,
+  ): Promise<TxDetailDto> {
+    const txDetail = multisigTxId
+      ? await this.multisigTransactionRepos.getMultisigTxDetail(multisigTxId)
+      : await this.auraTxRepo.getAuraTxDetail(auraTxId);
+    if (!txDetail) throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
+    return txDetail;
   }
 
   /**
