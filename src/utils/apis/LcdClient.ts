@@ -1,6 +1,6 @@
 import { CustomError } from '../../common/customError';
 import { ErrorMap } from '../../common/error.map';
-import { SimulateResponse } from '../../dtos/responses/simulate';
+import { SimulateResponse } from '../../simulate/dtos/simulate';
 import { ConfigService } from '../../shared/services/config.service';
 import { CommonUtil } from '../common.util';
 

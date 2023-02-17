@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ResponseDto } from '../../dtos/responses/response.dto';
+import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { SAFE_STATUS } from '../../common/constants/app.constant';
 import { CommonUtil } from '../../utils/common.util';

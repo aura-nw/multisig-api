@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
-import { ResponseDto } from '../../dtos/responses/response.dto';
+import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { IndexerClient } from '../../utils/apis/indexer-client.service';
 import { ConfigService } from '../../shared/services/config.service';

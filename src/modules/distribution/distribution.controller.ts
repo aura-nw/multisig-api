@@ -16,7 +16,7 @@ import {
   GetValidatorsQueryDto,
   GetValidatorsResponseDto,
 } from './dto';
-import { SwaggerBaseApiResponse } from '../../dtos/responses/response.dto';
+import { SwaggerBaseApiResponse } from '../../common/dtos/response.dto';
 
 @Controller(CONTROLLER_CONSTANTS.DISTRIBUTION)
 @ApiTags(CONTROLLER_CONSTANTS.DISTRIBUTION)

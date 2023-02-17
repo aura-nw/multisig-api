@@ -8,7 +8,7 @@ import { CommonGet } from '../../decorators/common.decorator';
 import {
   ResponseDto,
   SwaggerBaseApiResponse,
-} from '../../dtos/responses/response.dto';
+} from '../../common/dtos/response.dto';
 import { GetUserPathParamDto } from './dto/request/get-user.req';
 import { UserService } from './user.service';
 @Controller(CONTROLLER_CONSTANTS.USER)

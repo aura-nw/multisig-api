@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ResponseDto } from '../../dtos/responses/response.dto';
+import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { fromBase64 } from '@cosmjs/encoding';
 import { JwtService } from '@nestjs/jwt';

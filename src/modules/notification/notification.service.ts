@@ -4,7 +4,7 @@ import { CommonUtil } from '../../utils/common.util';
 import { ErrorMap } from '../../common/error.map';
 import { MarkAsReadNotificationReq } from './dto/request/mark-as-read.req';
 import { NotificationRepository } from './notification.repository';
-import { ResponseDto } from '../../dtos/responses/response.dto';
+import { ResponseDto } from '../../common/dtos/response.dto';
 
 @Injectable()
 export class NotificationService {
