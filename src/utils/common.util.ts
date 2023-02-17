@@ -23,10 +23,10 @@ import { readFile } from 'graceful-fs';
 import { PUBKEY_TYPES } from '../common/constants/app.constant';
 import { CustomError } from '../common/customError';
 import { ErrorMap } from '../common/error.map';
-import { UserInfo } from '../dtos/userInfo';
 import { AuthService } from '../modules/auth/auth.service';
 import { MultisigTransaction } from '../modules/multisig-transaction/entities/multisig-transaction.entity';
 import { Safe } from '../modules/safe/entities/safe.entity';
+import { UserInfoDto } from '../modules/auth/dto/user-info.dto';
 
 export class CommonUtil {
   /**
@@ -211,10 +211,10 @@ export class CommonUtil {
     return tx;
   }
 
-  getAuthInfo(): UserInfo {
+  getAuthInfo(): UserInfoDto {
     const currentUser = AuthService.getAuthUser();
     if (!currentUser) throw new CustomError(ErrorMap.UNAUTHRORIZED);
-    return plainToInstance(UserInfo, currentUser);
+    return plainToInstance(UserInfoDto, currentUser);
   }
 
   jsonReader(filePath, cb) {

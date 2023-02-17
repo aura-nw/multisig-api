@@ -21,7 +21,7 @@ import { AuthUserInterceptor } from '../interceptors/auth-user-interceptor.servi
 import {
   ResponseDto,
   SwaggerBaseApiResponse,
-} from '../dtos/responses/response.dto';
+} from '../common/dtos/response.dto';
 
 interface Options {
   url?: string;

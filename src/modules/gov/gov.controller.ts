@@ -5,7 +5,7 @@ import {
   URL_CONSTANTS,
 } from '../../common/constants/api.constant';
 import { CommonGet } from '../../decorators/common.decorator';
-import { SwaggerBaseApiResponse } from '../../dtos/responses/response.dto';
+import { SwaggerBaseApiResponse } from '../../common/dtos/response.dto';
 import {
   GetProposalByIdDto,
   GetProposalDepositsDto,

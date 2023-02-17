@@ -1,7 +1,7 @@
 import { Registry } from '@cosmjs/proto-signing';
 import { AuthInfo, TxBody, TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { Injectable, Logger } from '@nestjs/common';
-import { ResponseDto } from '../../dtos/responses/response.dto';
+import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import {
   AminoTypes,
@@ -35,7 +35,6 @@ import { IndexerClient } from '../../utils/apis/indexer-client.service';
 import { Simulate } from '../../simulate';
 import { ConfigService } from '../../shared/services/config.service';
 import { CustomError } from '../../common/customError';
-import { UserInfo } from '../../dtos/userInfo';
 import { CosmosUtil } from '../../chains/cosmos';
 import { MultisigTransactionRepository } from './multisig-transaction.repository';
 import { MultisigConfirmRepository } from '../multisig-confirm/multisig-confirm.repository';
@@ -60,14 +59,15 @@ import {
   RejectTransactionRequestDto,
   SendTransactionRequestDto,
   SimulateTxRequestDto,
+  TxRawInfo,
 } from './dto';
 import { DeleteTxRequestDto } from './dto/request/delete-tx.req';
 import { MultisigTransaction } from './entities/multisig-transaction.entity';
 import { Chain } from '../chain/entities/chain.entity';
 import { Safe } from '../safe/entities/safe.entity';
 import { TransactionHistoryRepository } from '../transaction-history/transaction-history.repository';
-import { AccountInfo } from '../../dtos/requests/account';
-import { TxRawInfo } from '../../dtos/requests/transaction';
+import { AccountInfo } from '../../common/dtos/account-info';
+import { UserInfoDto } from '../auth/dto/user-info.dto';
 
 @Injectable()
 export class MultisigTransactionService {
@@ -692,7 +692,7 @@ export class MultisigTransactionService {
     txRawInfo: TxRawInfo,
     accountInfo: AccountInfo,
     chain: Chain,
-    creatorInfo: UserInfo,
+    creatorInfo: UserInfoDto,
   ) {
     const { chainId, prefix } = chain;
     const { address: creatorAddress, pubkey: creatorPubkey } = creatorInfo;

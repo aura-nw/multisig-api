@@ -6,7 +6,7 @@ import {
 } from '@cosmjs/amino';
 import { AccountData } from '@cosmjs/proto-signing';
 import { SignerData, SigningStargateClient } from '@cosmjs/stargate';
-import { OwnerSimulateSignResponse } from '../dtos/responses/simulate';
+import { OwnerSimulateSignResponse } from './dtos/simulate';
 
 export class OwnerSimulate {
   address: string;

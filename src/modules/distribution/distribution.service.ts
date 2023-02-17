@@ -22,7 +22,7 @@ import {
   GetValidatorsResponseDto,
   GetValidatorsValidatorDto,
 } from './dto';
-import { ResponseDto } from '../../dtos/responses/response.dto';
+import { ResponseDto } from '../../common/dtos/response.dto';
 @Injectable()
 export class DistributionService {
   private readonly logger = new Logger(DistributionService.name);

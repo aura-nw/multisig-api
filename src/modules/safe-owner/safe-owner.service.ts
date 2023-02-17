@@ -5,7 +5,7 @@ import {
   SAFE_STATUS,
 } from '../../common/constants/app.constant';
 import { ErrorMap } from '../../common/error.map';
-import { ResponseDto } from '../../dtos/responses/response.dto';
+import { ResponseDto } from '../../common/dtos/response.dto';
 import { CommonUtil } from '../../utils/common.util';
 import {
   GetSafesByOwnerAddressParamsDto,
