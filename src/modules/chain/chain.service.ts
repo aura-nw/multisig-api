@@ -28,19 +28,13 @@ export class ChainService {
   async showNetworkList(): Promise<ResponseDto> {
     try {
       const chains = await this.chainRepo.showNetworkList();
-      const listGas = await this.gasRepo.findGasByChainIds(
-        chains.map((chain) => chain.chainId),
-      );
-
-      const result = chains.map((chain) => {
-        const networkInfo = plainToInstance(NetworkListResponseDto, chain);
-        networkInfo.defaultGas = listGas.find(
-          (g) => g !== null && g.chainId === networkInfo.chainId,
-        );
-        return networkInfo;
+      const networkInfo = chains.map(async (chain) => {
+        const res = plainToInstance(NetworkListResponseDto, chain);
+        res.defaultGas = await this.gasRepo.findGasByChainId(chain.chainId);
+        return res;
       });
 
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, networkInfo);
     } catch (error) {
       return ResponseDto.responseError(ChainService.name, error);
     }
