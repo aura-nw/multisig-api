@@ -1,7 +1,7 @@
-import { Gas } from '../../../gas/entities/gas.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsNumber, IsString } from 'class-validator';
+import { FindGasByChainDto } from '../../../gas/dtos';
 
 export class NetworkListResponseDto {
   @IsNumber()
@@ -31,9 +31,21 @@ export class NetworkListResponseDto {
 
   @IsString()
   @ApiProperty({
+    example: 'https://explorer.dev.aura.network',
+  })
+  explorer: string;
+
+  @IsString()
+  @ApiProperty({
     example: 'aura-testnet',
   })
   chainId: string;
+
+  @IsString()
+  @ApiProperty({
+    example: 'TAURA',
+  })
+  symbol: string;
 
   @IsString()
   @ApiProperty({
@@ -47,5 +59,24 @@ export class NetworkListResponseDto {
   })
   prefix: string;
 
-  defaultGas: Gas;
+  @IsNumber()
+  @ApiProperty({
+    example: 6,
+  })
+  coinDecimals: number;
+
+  @IsNumber()
+  @ApiProperty({
+    example: 0.0002,
+  })
+  gasPrice: number;
+
+  @IsString()
+  @ApiProperty({
+    example:
+      'https://aura-explorer-assets.s3.ap-southeast-1.amazonaws.com/aura.png',
+  })
+  tokenImg: string;
+
+  defaultGas: FindGasByChainDto[];
 }

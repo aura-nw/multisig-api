@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
+import { FindGasByChainDto } from './dtos';
 import { Gas } from './entities/gas.entity';
 
 @Injectable()
@@ -20,12 +21,12 @@ export class GasRepository {
    * @param chainId
    * @returns
    */
-  async findGasByChainIds(chainIds: string[]): Promise<Gas[]> {
+  async findGasByChainId(chainId: string): Promise<FindGasByChainDto[]> {
     return this.repos.find({
       where: {
-        chainId: In(chainIds),
+        chainId,
       },
-      select: ['typeUrl', 'gasAmount', 'multiplier', 'chainId'],
+      select: ['typeUrl', 'gasAmount', 'multiplier'],
     });
   }
 }
