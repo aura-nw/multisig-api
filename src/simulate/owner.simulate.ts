@@ -10,6 +10,7 @@ import { OwnerSimulateSignResponse } from './dtos/simulate';
 
 export class OwnerSimulate {
   address: string;
+
   pubkey: Secp256k1Pubkey;
 
   constructor(

@@ -1,13 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { In, Repository } from 'typeorm';
 import { CustomError } from '../../common/customError';
 import { ErrorMap } from '../../common/error.map';
-import { In, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 
 @Injectable()
 export class UserRepository {
   private readonly _logger = new Logger(UserRepository.name);
+
   constructor(
     @InjectRepository(User)
     private readonly repo: Repository<User>,
@@ -47,7 +48,7 @@ export class UserRepository {
       const newUser = new User();
       newUser.address = address;
       newUser.pubkey = pubkey;
-      return await this.repo.save(newUser);
+      return this.repo.save(newUser);
     }
     return user;
   }

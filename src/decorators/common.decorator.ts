@@ -8,7 +8,6 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { GroupsGuard } from '../guards/groups.guard';
 import { AuthGuard } from '@nestjs/passport';
 import {
   ApiBadRequestResponse,
@@ -17,6 +16,7 @@ import {
   ApiOperation,
   ApiResponseOptions,
 } from '@nestjs/swagger';
+import { GroupsGuard } from '../guards/groups.guard';
 import { AuthUserInterceptor } from '../interceptors/auth-user-interceptor.service';
 import {
   ResponseDto,

@@ -25,39 +25,12 @@ import { CustomError } from '../common/customError';
 import { ErrorMap } from '../common/error.map';
 import { AuthService } from '../modules/auth/auth.service';
 import { MultisigTransaction } from '../modules/multisig-transaction/entities/multisig-transaction.entity';
-import { Safe } from '../modules/safe/entities/safe.entity';
 import { UserInfoDto } from '../modules/auth/dto/user-info.dto';
 
+interface ISafe {
+  safePubkey;
+}
 export class CommonUtil {
-  /**
-   * createSignMessageByData
-   * @param address
-   * @param data
-   * @returns
-   */
-  public static createSignMessageByData(address: string, data: string) {
-    const signDoc = {
-      chain_id: '',
-      account_number: '0',
-      sequence: '0',
-      fee: {
-        gas: '0',
-        amount: [],
-      },
-      msgs: [
-        {
-          type: 'sign/MsgSignData',
-          value: {
-            signer: address,
-            data: Buffer.from(data, 'utf8').toString('base64'),
-          },
-        },
-      ],
-      memo: '',
-    };
-    return signDoc;
-  }
-
   /**
    * Calculate address from public key
    * @param pubkey public key
@@ -72,15 +45,14 @@ export class CommonUtil {
       const rawAddress = sha256(pubkeyAmino).slice(0, 20);
       const address = toBech32(prefix, rawAddress);
       return address;
-    } else {
-      const pubkeyData = encodeAminoPubkey(pubkey);
-
-      const rawAddress = sha256(pubkeyData).slice(0, 20);
-      const address = toBech32(prefix, rawAddress);
-      console.log(address);
-
-      return pubkeyToAddress(pubkey, prefix);
     }
+    const pubkeyData = encodeAminoPubkey(pubkey);
+
+    const rawAddress = sha256(pubkeyData).slice(0, 20);
+    const address = toBech32(prefix, rawAddress);
+    console.log(address);
+
+    return pubkeyToAddress(pubkey, prefix);
   }
 
   /**
@@ -98,9 +70,7 @@ export class CommonUtil {
    * @returns string[]
    */
   public filterEmptyInStringArray(strArr: string[]): string[] {
-    return strArr.filter((e) => {
-      return e !== '';
-    });
+    return strArr.filter((e) => e !== '');
   }
 
   static createSafeAddressAndPubkey(
@@ -140,6 +110,14 @@ export class CommonUtil {
     }
   }
 
+  static createPubkeyEvmos(value: string): SinglePubkey {
+    const result: SinglePubkey = {
+      type: 'ethermint/PubKeyEthSecp256k1',
+      value,
+    };
+    return result;
+  }
+
   static createPubkeys(value: string): SinglePubkey {
     const result: SinglePubkey = {
       type: 'tendermint/PubKeySecp256k1',
@@ -150,7 +128,7 @@ export class CommonUtil {
 
   async makeTerraTx(
     multisigTransaction: MultisigTransaction,
-    safe: Safe,
+    safe: ISafe,
     multisigConfirmArr: any[],
     client: LCDClient,
   ) {
@@ -239,7 +217,7 @@ export class CommonUtil {
       },
     };
     if (body) {
-      options['body'] = JSON.stringify(body);
+      options.body = JSON.stringify(body);
     }
     const result = await fetch(url, options);
 
@@ -255,13 +233,11 @@ export class CommonUtil {
   }
 
   getPercentage(number: any, sum: any): string {
-    if (number == 0) {
+    if (number === 0) {
       return '0';
     }
     return ((+number * 100) / sum).toFixed(2);
   }
 
-  omitByNil = (obj: any) => {
-    return omitBy(obj, isNil);
-  };
+  omitByNil = (obj: any) => omitBy(obj, isNil);
 }

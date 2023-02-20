@@ -1,9 +1,9 @@
 import { Controller, Body, Param, Logger, Query } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import {
   CONTROLLER_CONSTANTS,
   URL_CONSTANTS,
 } from '../../common/constants/api.constant';
-import { ApiTags } from '@nestjs/swagger';
 import {
   CommonAuthDelete,
   CommonAuthPost,
@@ -25,6 +25,7 @@ import { SwaggerBaseApiResponse } from '../../common/dtos/response.dto';
 @ApiTags(CONTROLLER_CONSTANTS.MULTISIG_WALLET)
 export class SafeController {
   private readonly logger = new Logger(SafeController.name);
+
   constructor(private multisigWalletService: SafeService) {}
 
   @CommonAuthPost({

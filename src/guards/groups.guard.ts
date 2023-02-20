@@ -6,6 +6,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+
 @Injectable()
 export class GroupsGuard implements CanActivate {
   constructor(private readonly _reflector: Reflector) {}
@@ -16,9 +17,9 @@ export class GroupsGuard implements CanActivate {
     if (!roles) {
       return true;
     }
-    //check group of user
+    // check group of user
     const request = context.switchToHttp().getRequest();
-    const userRole = request.user['role'];
+    const userRole = request.user.role;
     if (roles.includes(userRole)) {
       return true;
     }

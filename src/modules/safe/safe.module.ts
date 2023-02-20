@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { SafeService } from './safe.service';
 import { SafeController } from './safe.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { Safe } from './entities/safe.entity';
 import { SafeOwnerModule } from '../safe-owner/safe-owner.module';
 import { ChainModule } from '../chain/chain.module';

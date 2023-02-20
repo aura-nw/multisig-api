@@ -10,6 +10,7 @@ import { Safe } from '../modules/safe/entities/safe.entity';
 
 export class WalletSimulate {
   safeOwnerMap = new Map<number, SafeSimulate>();
+
   ownerWallets: OwnerSimulate[] = [];
 
   constructor(public mnemonic: string, public chain: Chain) {}

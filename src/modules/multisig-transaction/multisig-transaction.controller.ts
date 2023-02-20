@@ -25,7 +25,6 @@ import {
   CommonGet,
   CommonPost,
 } from '../../decorators/common.decorator';
-import { TransactionHistoryService } from '../transaction-history/transaction-history.service';
 import { MultisigTransactionHistoryResponseDto } from './dto/response/transaction-history.res';
 import { MultisigTransactionService } from './multisig-transaction.service';
 import {
@@ -78,7 +77,8 @@ export class MultisigTransactionController {
   @CommonAuthPost({
     url: URL_CONSTANTS.CONFIRM_TRANSACTION,
     summary: 'API Owner confirm their transaction. ',
-    description: `It is used to owner of safe sign transaction. When transaction meet threshold, it changes to status AWAITING_EXECUTION ready to broadcast to network.`,
+    description:
+      'It is used to owner of safe sign transaction. When transaction meet threshold, it changes to status AWAITING_EXECUTION ready to broadcast to network.',
   })
   async confirmTransaction(@Body() request: ConfirmTransactionRequestDto) {
     return this.multisigTransactionService.confirmMultisigTransaction(request);
@@ -87,7 +87,7 @@ export class MultisigTransactionController {
   @CommonAuthPost({
     url: URL_CONSTANTS.REJECT_TRANSACTION,
     summary: 'Owner reject their transaction',
-    description: `It is used to owner of safe reject transaction.`,
+    description: 'It is used to owner of safe reject transaction.',
   })
   async rejectTransaction(@Body() request: RejectTransactionRequestDto) {
     return this.multisigTransactionService.rejectMultisigTransaction(request);

@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { plainToInstance } from 'class-transformer';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { CommonUtil } from '../../utils/common.util';
@@ -21,14 +22,16 @@ import {
   GetVotesByProposalIdResponseDto,
   ProposalDepositResponseDto,
 } from './dto';
-import { plainToInstance } from 'class-transformer';
 import { Chain } from '../chain/entities/chain.entity';
 
 @Injectable()
 export class GovService {
   private readonly _logger = new Logger(GovService.name);
+
   private _commonUtil: CommonUtil = new CommonUtil();
+
   private _indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
+
   auraChain: Chain;
 
   constructor(
@@ -67,7 +70,7 @@ export class GovService {
       );
 
       const result = this.mapProposal(proposal);
-      //add additional properties for proposal details page
+      // add additional properties for proposal details page
       const networkStatus = await this._indexer.getNetwork(chain.chainId);
       const bondedTokens = networkStatus.pool.bonded_tokens;
 
@@ -107,14 +110,12 @@ export class GovService {
           reverse,
         );
       const results: GetVotesByProposalIdResponseDto = {
-        votes: votes.map((vote) => {
-          return {
+        votes: votes.map((vote) => ({
             voter: vote.voter_address,
             txHash: vote.txhash,
             answer: vote.answer,
             time: vote.timestamp,
-          };
-        }),
+          })),
         nextKey: newNextKey,
       };
       return ResponseDto.response(ErrorMap.SUCCESSFUL, results);
@@ -219,12 +220,12 @@ export class GovService {
   }
 
   calculateProposalTally(proposal: any): GetProposalsTally {
-    //default to final result of tally property
+    // default to final result of tally property
     let tally = proposal.final_tally_result;
     if (proposal.status === PROPOSAL_STATUS.VOTING_PERIOD) {
       tally = proposal.tally;
     }
-    //default mostVoted to yes
+    // default mostVoted to yes
     let mostVotedOptionKey = Object.keys(tally)[0];
     // calculate sum to determine percentage
     let sum = 0;
@@ -261,7 +262,7 @@ export class GovService {
   }
 
   calculateProposalTunrout(proposal: any, bondedTokens: string) {
-    //default to final result of tally property
+    // default to final result of tally property
     let tally = proposal.final_tally_result;
     if (proposal.status === PROPOSAL_STATUS.VOTING_PERIOD) {
       tally = proposal.tally;

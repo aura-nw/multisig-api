@@ -1,11 +1,11 @@
 import { CacheModule, MiddlewareConsumer, Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 import { SharedModule } from './shared/shared.module';
 import { ConfigService } from './shared/services/config.service';
 import { contextMiddleware } from './middlewares';
 import { SeederModule } from './modules/seeders/seeder.module';
-import { ScheduleModule } from '@nestjs/schedule';
 import { AuthModule } from './modules/auth/auth.module';
 import { SafeModule } from './modules/safe/safe.module';
 import { ChainModule } from './modules/chain/chain.module';
@@ -15,7 +15,6 @@ import { MultisigTransactionModule } from './modules/multisig-transaction/multis
 import { NotificationModule } from './modules/notification/notification.module';
 import { SafeOwnerModule } from './modules/safe-owner/safe-owner.module';
 import { UserModule } from './modules/user/user.module';
-import { NotifyProposalJob } from './modules/jobs/notify-proposal.jobs';
 import { JwtStrategy } from './jwt.strategy';
 import { NotifyProposalModule } from './modules/jobs/notify-proposal.module';
 

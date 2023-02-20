@@ -6,6 +6,7 @@ import { ConfigService } from './shared/services/config.service';
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   public readonly _logger = new Logger(JwtStrategy.name);
+
   constructor(private configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -16,7 +17,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: any) {
     try {
-      const data = payload.data;
+      const {data} = payload;
       const timestampExpire = new Date(
         Number(data) +
           1000 *

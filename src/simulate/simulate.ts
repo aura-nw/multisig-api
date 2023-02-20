@@ -3,6 +3,7 @@ import { WalletSimulate } from './wallet.simulate';
 
 export class Simulate {
   chainWalletMap = new Map<string, WalletSimulate>();
+
   constructor(public mnemonic: string) {}
 
   async simulateWithChain(chain: Chain) {

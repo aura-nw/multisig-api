@@ -1,12 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { encodeSecp256k1Pubkey, pubkeyToAddress } from '@cosmjs/amino';
+import { fromBase64 } from '@cosmjs/encoding';
+import { SimplePublicKey } from '@terra-money/terra.js';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { SAFE_STATUS } from '../../common/constants/app.constant';
 import { CommonUtil } from '../../utils/common.util';
 import { CustomError } from '../../common/customError';
-import { encodeSecp256k1Pubkey, pubkeyToAddress } from '@cosmjs/amino';
-import { fromBase64 } from '@cosmjs/encoding';
-import { SimplePublicKey } from '@terra-money/terra.js';
 import { pubkeyToAddressEvmos } from '../../chains/evmos';
 import { IndexerClient } from '../../utils/apis/indexer-client.service';
 import { ConfigService } from '../../shared/services/config.service';
@@ -27,7 +27,9 @@ import { Chain } from '../chain/entities/chain.entity';
 @Injectable()
 export class SafeService {
   private readonly _logger = new Logger(SafeService.name);
+
   private _commonUtil: CommonUtil = new CommonUtil();
+
   private _indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
 
   constructor(

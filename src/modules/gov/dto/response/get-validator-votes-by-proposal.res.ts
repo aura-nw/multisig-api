@@ -28,6 +28,7 @@ export class GetValidatorVotesByProposalIdResponseDto {
     ],
   })
   votes: GetValidatorVotesVote[];
+
   @ApiProperty({
     example: 'aura1trqfuz89vxe745lmn2yfedt7d4xnpcpvltc86e',
   })
@@ -36,8 +37,12 @@ export class GetValidatorVotesByProposalIdResponseDto {
 
 export class GetValidatorVotesVote {
   validator: string;
+
   txHash: string;
+
   answer: string;
+
   time: string;
+
   percentVotingPower: number;
 }

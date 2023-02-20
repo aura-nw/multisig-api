@@ -34,7 +34,7 @@ async function bootstrap() {
       });
     });
 
-  //setup swagger
+  // setup swagger
   const config = new DocumentBuilder()
     .setTitle('Multisig Wallet API for Aura Network')
     .setVersion('0.1')

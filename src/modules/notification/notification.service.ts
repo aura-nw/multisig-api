@@ -9,6 +9,7 @@ import { ResponseDto } from '../../common/dtos/response.dto';
 @Injectable()
 export class NotificationService {
   private readonly _logger = new Logger(NotificationService.name);
+
   private utils: CommonUtil = new CommonUtil();
 
   constructor(private readonly repo: NotificationRepository) {

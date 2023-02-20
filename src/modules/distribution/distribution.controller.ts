@@ -1,7 +1,6 @@
-import { URL_CONSTANTS } from './../../common/constants/api.constant';
 import { Controller, Param, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { CONTROLLER_CONSTANTS } from '../../common/constants/api.constant';
+import { URL_CONSTANTS , CONTROLLER_CONSTANTS } from '../../common/constants/api.constant';
 import { CommonGet } from '../../decorators/common.decorator';
 import { DistributionService } from './distribution.service';
 import {

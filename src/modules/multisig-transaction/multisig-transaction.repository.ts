@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
+import { plainToInstance } from 'class-transformer';
 import {
   MULTISIG_CONFIRM_STATUS,
   TRANSACTION_STATUS,
@@ -8,7 +9,6 @@ import {
 } from '../../common/constants/app.constant';
 import { CustomError } from '../../common/customError';
 import { ErrorMap } from '../../common/error.map';
-import { plainToInstance } from 'class-transformer';
 import { SafeRepository } from '../safe/safe.repository';
 import { MultisigTransaction } from './entities/multisig-transaction.entity';
 import { AuraTx } from '../aura-tx/entities/aura-tx.entity';
@@ -19,6 +19,7 @@ import { MultisigTransactionHistoryResponseDto } from './dto';
 @Injectable()
 export class MultisigTransactionRepository {
   private readonly _logger = new Logger(MultisigTransactionRepository.name);
+
   constructor(
     // private multisigConfirmRepos: MultisigConfirmRepository,
     private safeRepos: SafeRepository,
@@ -107,7 +108,7 @@ export class MultisigTransactionRepository {
   async findSequenceInQueue(safeId: number): Promise<number[]> {
     const result = await this.repo.find({
       where: {
-        safeId: safeId,
+        safeId,
         status: In([
           TRANSACTION_STATUS.AWAITING_CONFIRMATIONS,
           TRANSACTION_STATUS.AWAITING_EXECUTION,
@@ -115,7 +116,7 @@ export class MultisigTransactionRepository {
       },
       select: ['sequence'],
     });
-    const sequence = result.map((item) => Number(item['sequence']));
+    const sequence = result.map((item) => Number(item.sequence));
     return [...new Set(sequence)].sort();
   }
 
@@ -148,7 +149,7 @@ export class MultisigTransactionRepository {
 
     if (
       !multisigTransaction ||
-      multisigTransaction.status != TRANSACTION_STATUS.AWAITING_EXECUTION
+      multisigTransaction.status !== TRANSACTION_STATUS.AWAITING_EXECUTION
     ) {
       throw new CustomError(ErrorMap.TRANSACTION_NOT_VALID);
     }
@@ -198,7 +199,7 @@ export class MultisigTransactionRepository {
   async updateAwaitingExecutionTx(
     multisigTxId: number,
     safeId: number,
-  ): Promise<MultisigTransaction> {
+  ): Promise<void> {
     const isExecutable = await this.isExecutable(multisigTxId, safeId);
     if (!isExecutable) return;
 
@@ -207,8 +208,7 @@ export class MultisigTransactionRepository {
     });
     transaction.status = TRANSACTION_STATUS.AWAITING_EXECUTION;
 
-    const updatedTx = await this.repo.save(transaction);
-    return updatedTx;
+    await this.repo.save(transaction);
   }
 
   async getMultisigTxId(internalTxHash: string) {

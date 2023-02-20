@@ -1,25 +1,27 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ResponseDto } from '../../common/dtos/response.dto';
-import { ErrorMap } from '../../common/error.map';
 import { fromBase64 } from '@cosmjs/encoding';
 import { JwtService } from '@nestjs/jwt';
-import { CustomError } from '../../common/customError';
 import { encodeSecp256k1Pubkey, pubkeyToAddress } from '@cosmjs/amino';
+import { ResponseDto } from '../../common/dtos/response.dto';
+import { ErrorMap } from '../../common/error.map';
+import { CustomError } from '../../common/customError';
 import {
   AppConstants,
   COMMON_CONSTANTS,
 } from '../../common/constants/app.constant';
 import { ContextService } from '../../providers/context.service';
-import { CommonUtil } from '../../utils/common.util';
 import { pubkeyToAddressEvmos, verifyEvmosSig } from '../../chains/evmos';
 import { CosmosUtil } from '../../chains/cosmos';
 import { ChainRepository } from '../chain/chain.repository';
 import { UserRepository } from '../user/user.repository';
 import { RequestAuthDto } from './dto/request-auth.dto';
 import { UserInfoDto } from './dto/user-info.dto';
+import { AuthUtil } from '../../utils/auth.util';
+
 @Injectable()
 export class AuthService {
   private readonly _logger = new Logger(AuthService.name);
+
   private static _authUserKey = AppConstants.USER_KEY;
 
   constructor(
@@ -50,7 +52,7 @@ export class AuthService {
 
       // Find chain
       const chainInfo = await this.chainRepo.findChain(internalChainId);
-      const prefix = chainInfo.prefix;
+      const { prefix } = chainInfo;
 
       let address = '';
       let resultVerify = false;
@@ -58,7 +60,7 @@ export class AuthService {
         // get address from pubkey
         address = pubkeyToAddressEvmos(pubkey);
         // create message hash from data
-        const msg = CommonUtil.createSignMessageByData(address, plainData);
+        const msg = AuthUtil.createSignMessageByData(address, plainData);
         // verify signature
         resultVerify = await verifyEvmosSig(signature, msg, address);
       } else {
@@ -66,7 +68,7 @@ export class AuthService {
         const pubkeyFormated = encodeSecp256k1Pubkey(fromBase64(pubkey));
         address = pubkeyToAddress(pubkeyFormated, prefix);
         // create message hash from data
-        const msg = CommonUtil.createSignMessageByData(address, plainData);
+        const msg = AuthUtil.createSignMessageByData(address, plainData);
         // verify signature
         resultVerify = await CosmosUtil.verifyCosmosSig(
           signature,
@@ -83,10 +85,10 @@ export class AuthService {
 
       const payload = {
         userId: user.id,
-        address: address,
-        pubkey: pubkey,
+        address,
+        pubkey,
         // data: data,
-        signature: signature,
+        signature,
       };
       const accessToken = this.jwtService.sign(payload);
 

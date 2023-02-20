@@ -3,12 +3,13 @@ import { plainToInstance } from 'class-transformer';
 import { CustomError } from '../../common/customError';
 import { AccountInfo } from '../../common/dtos/account-info';
 import { ErrorMap } from '../../common/error.map';
-import { ConfigService } from '../../shared/services/config.service';
+import { ConfigService } from './config.service';
 import { CommonUtil } from '../../utils/common.util';
 
 @Injectable()
 export class IndexerClient {
   private readonly _logger = new Logger(IndexerClient.name);
+
   indexerUrl: string;
 
   constructor(private configService: ConfigService) {
@@ -20,7 +21,7 @@ export class IndexerClient {
     if (status) {
       url += `&status=${status}`;
     }
-    url += `&pageOffset=0&pageLimit=1000`;
+    url += '&pageOffset=0&pageLimit=1000';
     const validatorsRes = await CommonUtil.requestAPI(
       new URL(url, this.indexerUrl).href,
     );
@@ -73,7 +74,7 @@ export class IndexerClient {
 
     const sequence = Number(accountInfo.account_auth.account.sequence);
 
-    if (isNaN(accountNumber) || isNaN(sequence)) {
+    if (Number.isNaN(accountNumber) || Number.isNaN(sequence)) {
       throw new CustomError(ErrorMap.CANNOT_GET_ACCOUNT_NUMBER_OR_SEQUENCE);
     }
     return plainToInstance(AccountInfo, {
@@ -130,11 +131,11 @@ export class IndexerClient {
   ) {
     let url = `api/v1/votes?chainid=${chainId}&proposalid=${proposalId}`;
 
-    url += answer ? `&answer=${answer}` : ''; //optional
-    url += nextKey ? `&nextKey=${nextKey}` : ''; //optional
-    url += `&pageOffset=${pageOffset}`; //optional
-    url += `&pageLimit=${pageLimit}`; //optional
-    url += `&reverse=${reverse}`; //optional
+    url += answer ? `&answer=${answer}` : ''; // optional
+    url += nextKey ? `&nextKey=${nextKey}` : ''; // optional
+    url += `&pageOffset=${pageOffset}`; // optional
+    url += `&pageLimit=${pageLimit}`; // optional
+    url += `&reverse=${reverse}`; // optional
 
     const response = await CommonUtil.requestAPI(
       new URL(url, this.indexerUrl).href,

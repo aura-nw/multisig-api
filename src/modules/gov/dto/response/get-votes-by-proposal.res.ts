@@ -27,6 +27,7 @@ export class GetVotesByProposalIdResponseDto {
     ],
   })
   votes: GetVotesVote[];
+
   @ApiProperty({
     example: 'aura1trqfuz89vxe745lmn2yfedt7d4xnpcpvltc86e',
   })
@@ -35,7 +36,10 @@ export class GetVotesByProposalIdResponseDto {
 
 export class GetVotesVote {
   voter: string;
+
   txHash: string;
+
   answer: string;
+
   time: string;
 }

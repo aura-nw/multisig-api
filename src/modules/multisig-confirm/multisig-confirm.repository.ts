@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { plainToInstance } from 'class-transformer';
 import { MULTISIG_CONFIRM_STATUS } from '../../common/constants/app.constant';
 import { CustomError } from '../../common/customError';
 import { ErrorMap } from '../../common/error.map';
-import { Repository } from 'typeorm';
-import { plainToInstance } from 'class-transformer';
 import { MultisigConfirm } from './entities/multisig-confirm.entity';
 import { SafeOwner } from '../safe-owner/entities/safe-owner.entity';
 import { Safe } from '../safe/entities/safe.entity';
@@ -15,6 +15,7 @@ import { GetListConfirmResDto, GetListConfirmWithPubkey } from './dto';
 @Injectable()
 export class MultisigConfirmRepository {
   private readonly _logger = new Logger(MultisigConfirmRepository.name);
+
   constructor(
     private safeOwnerRepo: SafeOwnerRepository,
     @InjectRepository(MultisigConfirm)
@@ -71,7 +72,7 @@ export class MultisigConfirmRepository {
     const confirmed = await this.repo.findOne({
       where: {
         multisigTransactionId: transactionId,
-        ownerAddress: ownerAddress,
+        ownerAddress,
       },
     });
 
@@ -85,7 +86,7 @@ export class MultisigConfirmRepository {
     safeAddress: string,
     internalChainId: number,
   ): Promise<void> {
-    //Validate owner
+    // Validate owner
     const listSafe = await this.safeOwnerRepo.getMultisigWalletsByOwner(
       ownerAddress,
       internalChainId,

@@ -11,6 +11,7 @@ import {
 } from '../../common/dtos/response.dto';
 import { GetUserPathParamDto } from './dto/request/get-user.req';
 import { UserService } from './user.service';
+
 @Controller(CONTROLLER_CONSTANTS.USER)
 @ApiTags(CONTROLLER_CONSTANTS.USER)
 export class UserController {

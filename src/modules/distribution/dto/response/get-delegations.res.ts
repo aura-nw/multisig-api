@@ -10,6 +10,7 @@ export class GetDelegationsResponseDto {
     },
   })
   availableBalance: Coin;
+
   @ApiProperty({
     example: [
       {
@@ -36,6 +37,7 @@ export class GetDelegationsResponseDto {
     ],
   })
   delegations: GetDelegationsDelegationDto[];
+
   @ApiProperty({
     example: {
       staked: {
@@ -59,10 +61,12 @@ export class GetDelegationsResponseDto {
 export class GetDelegationsDelegationDto {
   // name: string;
   operatorAddress: string;
+
   balance: {
     denom: string;
     amount: string;
   };
+
   reward: {
     denom: string;
     amount: string;

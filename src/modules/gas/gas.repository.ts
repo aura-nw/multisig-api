@@ -1,12 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { FindGasByChainDto } from './dtos';
 import { Gas } from './entities/gas.entity';
 
 @Injectable()
 export class GasRepository {
   private readonly _logger = new Logger(GasRepository.name);
+
   constructor(
     @InjectRepository(Gas)
     public readonly repos: Repository<Gas>,

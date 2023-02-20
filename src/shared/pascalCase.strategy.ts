@@ -6,7 +6,7 @@ export class PascalCaseStrategy
   implements NamingStrategyInterface
 {
   tableName(className: string, customName: string): string {
-    return customName ? customName : camelCase(className, true);
+    return customName || camelCase(className, true);
   }
 
   columnName(
@@ -16,7 +16,7 @@ export class PascalCaseStrategy
   ): string {
     return (
       camelCase(embeddedPrefixes.join(''), true) +
-      (customName ? customName : camelCase(propertyName, true))
+      (customName || camelCase(propertyName, true))
     );
   }
 
@@ -45,7 +45,7 @@ export class PascalCaseStrategy
     columnName?: string,
   ): string {
     return camelCase(
-      tableName + (columnName ? columnName : propertyName),
+      tableName + (columnName || propertyName),
       true,
     );
   }

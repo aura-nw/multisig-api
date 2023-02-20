@@ -9,6 +9,7 @@ import { TransactionHistory } from './entities/transaction-history.entity';
 @Injectable()
 export class TransactionHistoryRepository {
   private readonly logger = new Logger(TransactionHistoryRepository.name);
+
   constructor(
     @InjectRepository(TransactionHistory)
     private readonly repos: Repository<TransactionHistory>,

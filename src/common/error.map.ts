@@ -5,11 +5,11 @@ export const ErrorMap = {
   },
   UNAUTHRORIZED: {
     Code: 'E401',
-    Message: `Unauthorized`,
+    Message: 'Unauthorized',
   },
   E001: {
     Code: 'E001',
-    Message: `Invalid address`,
+    Message: 'Invalid address',
   },
   EXISTS: {
     Code: 'E002',
@@ -133,23 +133,23 @@ export const ErrorMap = {
   },
   PUBKEY_NOT_BASE64: {
     Code: 'E032',
-    Message: `Pubkey must be Base64 type!`,
+    Message: 'Pubkey must be Base64 type!',
   },
   SIGNATURE_NOT_BASE64: {
     Code: 'E033',
-    Message: `Signature must be Base64 type!`,
+    Message: 'Signature must be Base64 type!',
   },
   INVALID_TIMESTAMP: {
     Code: 'E034',
-    Message: `Invalid Timestamp!`,
+    Message: 'Invalid Timestamp!',
   },
   CHAIN_NOT_FOUND: {
     Code: 'E035',
-    Message: `Chain not found!`,
+    Message: 'Chain not found!',
   },
   VERIFY_SIGNATURE_FAIL: {
     Code: 'E036',
-    Message: `Verify signature fail!`,
+    Message: 'Verify signature fail!',
   },
   SIGNATURE_VERIFICATION_FAILED: {
     Code: 'E037',
@@ -198,18 +198,18 @@ export const ErrorMap = {
   },
   C001: {
     Code: 'C001',
-    Message: `Missing result from Chaincode`,
+    Message: 'Missing result from Chaincode',
   },
   E400: {
     Code: 'E400',
-    Message: `Bad request`,
+    Message: 'Bad request',
   },
   E403: {
     Code: 'E401',
-    Message: `Unauthorized`,
+    Message: 'Unauthorized',
   },
   E500: {
     Code: 'E500',
-    Message: `Server error`,
+    Message: 'Server error',
   },
 };

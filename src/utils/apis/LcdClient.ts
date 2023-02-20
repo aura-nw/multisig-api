@@ -6,7 +6,9 @@ import { CommonUtil } from '../common.util';
 
 export class LcdClient {
   private configService: ConfigService = new ConfigService();
+
   lcdUrl: string;
+
   request = CommonUtil.requestAPI;
 
   constructor(lcdUrl?: string) {
@@ -15,7 +17,7 @@ export class LcdClient {
 
   async simulate(txBytesBase64: string): Promise<SimulateResponse> {
     try {
-      const url = new URL(`cosmos/tx/v1beta1/simulate`, this.lcdUrl);
+      const url = new URL('cosmos/tx/v1beta1/simulate', this.lcdUrl);
       const simulateRes = await this.request(url.href, 'POST', {
         tx_bytes: txBytesBase64,
       });
@@ -25,7 +27,7 @@ export class LcdClient {
     } catch (error) {
       throw new CustomError(
         ErrorMap.TX_SIMULATION_FAILED,
-        error.message + ' ' + error.msg,
+        `${error.message  } ${  error.msg}`,
       );
     }
   }
