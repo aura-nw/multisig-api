@@ -35,6 +35,7 @@
     "@cosmjs/proto-signing": "^0.28.1",
     "@cosmjs/stargate": "0.28.11",
     "@evmos/address-converter": "^0.1.8",
+    "@golevelup/ts-jest": "^0.3.4",
     "@nestjs/axios": "0.1.0",
     "@nestjs/common": "9.0.11",
     "@nestjs/core": "9.0.11",

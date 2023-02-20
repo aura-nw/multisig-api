@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
-import { mockChain } from '../../mock/chain.mock';
+import { networkList } from '../../mock/chain/chain.mock';
 import { SharedModule } from '../../shared/shared.module';
 import { Gas } from '../gas/entities/gas.entity';
 import { GasRepository } from '../gas/gas.repository';
@@ -44,8 +44,22 @@ describe('ChainController', () => {
 
   describe('showNetworkList', () => {
     it('should return an array of chains', async () => {
-      const chains = mockChain;
+      const chains = networkList;
       const result = ResponseDto.response(ErrorMap.SUCCESSFUL, chains);
+
+      jest
+        .spyOn(service, 'showNetworkList')
+        .mockImplementation(async () => result);
+
+      expect(await controller.showNetworkList()).toBe(result);
+    });
+  });
+
+  describe('getAccountOnchain', () => {
+    it('should return an array of chains', async () => {
+      const chains = networkList;
+      const result = ResponseDto.response(ErrorMap.SUCCESSFUL, chains);
+
       jest
         .spyOn(service, 'showNetworkList')
         .mockImplementation(async () => result);
