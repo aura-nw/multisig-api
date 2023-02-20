@@ -1,6 +1,7 @@
 import { Module, Global } from '@nestjs/common';
 import { ConfigService } from './services/config.service';
-const providers = [ConfigService];
+import { IndexerClient } from './services/indexer.service';
+const providers = [ConfigService, IndexerClient];
 
 @Global()
 @Module({

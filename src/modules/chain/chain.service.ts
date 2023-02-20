@@ -2,21 +2,19 @@ import { Injectable, Logger } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
-import { IndexerClient } from '../../utils/apis/indexer-client.service';
-import { ConfigService } from '../../shared/services/config.service';
 import { ChainRepository } from './chain.repository';
 import { GasRepository } from '../gas/gas.repository';
 import { GetAccountOnchainParamDto, NetworkListResponseDto } from './dto';
+import { IndexerClient } from '../../shared/services/indexer.service';
 
 @Injectable()
 export class ChainService {
   private readonly _logger = new Logger(ChainService.name);
-  private _indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
 
   constructor(
-    private configService: ConfigService,
     private chainRepo: ChainRepository,
     private gasRepo: GasRepository,
+    private indexer: IndexerClient,
   ) {
     this._logger.log('============== Constructor Chain Service ==============');
   }
@@ -54,10 +52,9 @@ export class ChainService {
   ): Promise<ResponseDto> {
     try {
       const { safeAddress, internalChainId } = param;
-      const indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
 
       const chainInfo = await this.chainRepo.findChain(internalChainId);
-      const account = await indexer.getAccountNumberAndSequence(
+      const account = await this.indexer.getAccountNumberAndSequence(
         chainInfo.chainId,
         safeAddress,
       );
