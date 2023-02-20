@@ -43,7 +43,7 @@ describe('ChainController', () => {
   });
 
   describe('showNetworkList', () => {
-    it('should return an array of chains', async () => {
+    it('should return information of a multisig account', async () => {
       const chains = networkList;
       const result = ResponseDto.response(ErrorMap.SUCCESSFUL, chains);
 
@@ -57,14 +57,28 @@ describe('ChainController', () => {
 
   describe('getAccountOnchain', () => {
     it('should return an array of chains', async () => {
-      const chains = networkList;
-      const result = ResponseDto.response(ErrorMap.SUCCESSFUL, chains);
+      const getAccountOnchainParamMock = {
+        safeAddress: 'aura1522aavcagyrahayuspe47ndje7s694dkzcup6x',
+        internalChainId: 22,
+      };
+
+      const accountOnchainMock = {
+        accountNumber: 41,
+        sequence: 109,
+      };
+
+      const result = ResponseDto.response(
+        ErrorMap.SUCCESSFUL,
+        accountOnchainMock,
+      );
 
       jest
-        .spyOn(service, 'showNetworkList')
+        .spyOn(service, 'getAccountOnchain')
         .mockImplementation(async () => result);
 
-      expect(await controller.showNetworkList()).toBe(result);
+      expect(
+        await controller.getAccountOnchain(getAccountOnchainParamMock),
+      ).toBe(result);
     });
   });
 });
