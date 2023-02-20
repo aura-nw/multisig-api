@@ -1,5 +1,7 @@
 import { Logger } from '@nestjs/common';
+import { plainToInstance } from 'class-transformer';
 import { CustomError } from '../../common/customError';
+import { AccountInfo } from '../../common/dtos/account-info';
 import { ErrorMap } from '../../common/error.map';
 import { ConfigService } from '../../shared/services/config.service';
 import { CommonUtil } from '../common.util';
@@ -57,7 +59,10 @@ export class IndexerClient {
     return accountInfo.data;
   }
 
-  async getAccountNumberAndSequence(chainId: string, address: string) {
+  async getAccountNumberAndSequence(
+    chainId: string,
+    address: string,
+  ): Promise<AccountInfo> {
     const accountInfo = await this.getAccountInfo(chainId, address);
     if (!accountInfo.account_auth) {
       throw new CustomError(ErrorMap.MISSING_ACCOUNT_AUTH);
@@ -71,10 +76,10 @@ export class IndexerClient {
     if (isNaN(accountNumber) || isNaN(sequence)) {
       throw new CustomError(ErrorMap.CANNOT_GET_ACCOUNT_NUMBER_OR_SEQUENCE);
     }
-    return {
+    return plainToInstance(AccountInfo, {
       accountNumber,
       sequence,
-    };
+    });
   }
 
   async getAccountPubkey(chainId: string, address: string) {

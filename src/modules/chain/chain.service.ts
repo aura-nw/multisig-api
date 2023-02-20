@@ -28,11 +28,15 @@ export class ChainService {
   async showNetworkList(): Promise<ResponseDto> {
     try {
       const chains = await this.chainRepo.showNetworkList();
-      const networkInfo = chains.map(async (chain) => {
-        const res = plainToInstance(NetworkListResponseDto, chain);
-        res.defaultGas = await this.gasRepo.findGasByChainId(chain.chainId);
-        return res;
-      });
+      const networkInfo = await Promise.all(
+        chains.map(async (chain) => {
+          const res = plainToInstance(NetworkListResponseDto, chain, {
+            excludeExtraneousValues: true,
+          });
+          res.defaultGas = await this.gasRepo.findGasByChainId(chain.chainId);
+          return res;
+        }),
+      );
 
       return ResponseDto.response(ErrorMap.SUCCESSFUL, networkInfo);
     } catch (error) {
@@ -58,10 +62,7 @@ export class ChainService {
         safeAddress,
       );
 
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, {
-        accountNumber: account.accountNumber,
-        sequence: account.sequence,
-      });
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, account);
     } catch (error) {
       return ResponseDto.responseError(ChainService.name, error);
     }
