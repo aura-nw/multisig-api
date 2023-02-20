@@ -20,6 +20,7 @@ import {
   ProposalDepositResponseDto,
 } from './dto';
 import { GovService } from './gov.service';
+
 @Controller(CONTROLLER_CONSTANTS.GOV)
 @ApiTags(CONTROLLER_CONSTANTS.GOV)
 export class GovController {

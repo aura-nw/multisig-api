@@ -7,8 +7,8 @@ import {
 
 import { makeMultisignedTx } from '@cosmjs/stargate';
 
-import { OwnerSimulate } from './owner.simulate';
 import { fromBase64, toBase64 } from '@cosmjs/encoding';
+import { OwnerSimulate } from './owner.simulate';
 import { SimulateUtils } from './utils';
 import { IndexerClient } from '../utils/apis/indexer-client.service';
 import { TX_TYPE_URL } from '../common/constants/app.constant';
@@ -17,8 +17,11 @@ import { Chain } from '../modules/chain/entities/chain.entity';
 
 export class SafeSimulate {
   signature: string;
+
   authInfo: string;
+
   pubkey: MultisigThresholdPubkey;
+
   address: string;
 
   constructor(
@@ -68,11 +71,9 @@ export class SafeSimulate {
     );
 
     // combine signatures
-    const bodyBytes = result[0].bodyBytes;
+    const { bodyBytes } = result[0];
     const signatures = new Map<string, Uint8Array>(
-      result.map((r) => {
-        return [r.address, r.signature] as const;
-      }),
+      result.map((r) => [r.address, r.signature] as const),
     );
 
     // create signature and authInfo

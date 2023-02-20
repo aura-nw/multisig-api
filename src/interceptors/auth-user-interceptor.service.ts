@@ -7,6 +7,7 @@ import {
 import { Observable } from 'rxjs';
 import { AuthService } from '../modules/auth/auth.service';
 import { UserInfoDto } from '../modules/auth/dto/user-info.dto';
+
 @Injectable()
 export class AuthUserInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {

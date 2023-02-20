@@ -9,10 +9,12 @@ import {
   GetSafesByOwnerAddressQueryDto,
 } from './dto/request/get-safe-owners.req';
 import { SafeOwnerService } from './safe-owner.service';
+
 @Controller(CONTROLLER_CONSTANTS.OWNER)
 @ApiTags(CONTROLLER_CONSTANTS.OWNER)
 export class SafeOwnerController {
   public readonly _logger = new Logger(SafeOwnerController.name);
+
   constructor(private safeOwnerService: SafeOwnerService) {}
 
   @Get(URL_CONSTANTS.GET_SAFES_BY_OWNER)

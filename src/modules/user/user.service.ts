@@ -8,7 +8,9 @@ import { Chain } from '../chain/entities/chain.entity';
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
+
   auraChain: Chain;
+
   indexerUrl: string;
 
   constructor(private userRepo: UserRepository) {

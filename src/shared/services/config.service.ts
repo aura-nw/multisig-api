@@ -8,7 +8,7 @@ import { PascalCaseStrategy } from '../pascalCase.strategy';
 export class ConfigService {
   constructor() {
     dotenv.config({
-      path: `.env`,
+      path: '.env',
     });
 
     // Replace \\n with \n to support multiline strings in AWS
@@ -46,8 +46,8 @@ export class ConfigService {
   }
 
   get typeOrmConfig(): TypeOrmModuleOptions {
-    const entities = [__dirname + '/../../entities/**/*.entity{.ts,.js}'];
-    const migrations = [__dirname + '/../../migrations/*{.ts,.js}'];
+    const entities = [`${__dirname  }/../../entities/**/*.entity{.ts,.js}`];
+    const migrations = [`${__dirname  }/../../migrations/*{.ts,.js}`];
 
     return {
       entities,
@@ -77,4 +77,4 @@ export class ConfigService {
   }
 }
 
-export const ENV_CONFIG = new ConfigService().ENV_CONFIG;
+export const {ENV_CONFIG} = new ConfigService();

@@ -9,6 +9,7 @@ import { AuraTx } from './entities/aura-tx.entity';
 @Injectable()
 export class AuraTxRepository {
   private readonly logger = new Logger(AuraTxRepository.name);
+
   constructor(
     @InjectRepository(AuraTx)
     private readonly repo: Repository<AuraTx>,

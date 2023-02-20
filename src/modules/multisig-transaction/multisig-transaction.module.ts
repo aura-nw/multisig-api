@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { MultisigTransactionService } from './multisig-transaction.service';
 import { MultisigTransactionController } from './multisig-transaction.controller';
 import { MultisigTransactionRepository } from './multisig-transaction.repository';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { MultisigTransaction } from './entities/multisig-transaction.entity';
 import { AuraTxModule } from '../aura-tx/aura-tx.module';
 import { MultisigConfirmModule } from '../multisig-confirm/multisig-confirm.module';

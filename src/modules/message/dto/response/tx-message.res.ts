@@ -107,5 +107,6 @@ export class TxMessageResponseDto {
 
 class MultiSendInOutput {
   address: string;
+
   coins: Coin[];
 }

@@ -9,6 +9,7 @@ import { Safe } from '../safe/entities/safe.entity';
 @Injectable()
 export class SafeOwnerRepository {
   private readonly _logger = new Logger(SafeOwnerRepository.name);
+
   constructor(
     @InjectRepository(SafeOwner)
     private readonly repo: Repository<SafeOwner>,

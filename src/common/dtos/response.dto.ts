@@ -10,14 +10,17 @@ export class ResponseDto {
     example: ErrorMap.SUCCESSFUL.Code,
   })
   ErrorCode: string;
+
   @ApiProperty({
     description: 'Return Error Message',
     type: 'string',
     example: ErrorMap.SUCCESSFUL.Code,
   })
   Message: string;
+
   @ApiProperty({ description: 'Data return', type: 'object' })
   Data: any;
+
   @ApiProperty({ description: 'Data return' })
   AdditionalData: any;
 
@@ -45,10 +48,10 @@ export class ResponseDto {
   public static responseError(moduleName: string, error: Error | CustomError) {
     if (error instanceof CustomError)
       return this.response(error.errorMap, error.msg);
-    const _logger = new Logger(moduleName);
-    _logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
-    _logger.error(`${error.name}: ${error.message}`);
-    _logger.error(`${error.stack}`);
+    const logger = new Logger(moduleName);
+    logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
+    logger.error(`${error.name}: ${error.message}`);
+    logger.error(`${error.stack}`);
     return ResponseDto.response(ErrorMap.E500, error.message);
   }
 }

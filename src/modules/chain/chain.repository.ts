@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { CustomError } from '../../common/customError';
 import { ErrorMap } from '../../common/error.map';
 import { ChainInfo } from '../../utils/validations/chain.validation';
@@ -9,6 +9,7 @@ import { Chain } from './entities/chain.entity';
 @Injectable()
 export class ChainRepository {
   private readonly _logger = new Logger(ChainRepository.name);
+
   constructor(
     @InjectRepository(Chain)
     private readonly repos: Repository<Chain>,
@@ -18,21 +19,23 @@ export class ChainRepository {
     );
   }
 
+  /**
+   * createOrUpdate
+   * @param chainInfos
+   * @returns
+   */
   async createOrUpdate(chainInfos: ChainInfo[]) {
-    const chainIds = chainInfos.map((chainInfo) => {
-      return chainInfo.chainId;
+    const chainIds = chainInfos.map((chainInfo) => chainInfo.chainId);
+    const chains = await this.repos.find({
+      where: {
+        chainId: In(chainIds),
+      },
     });
-    const chains = await this.repos
-      .createQueryBuilder()
-      .where('Chain.ChainId IN (:...chainIds)', { chainIds })
-      .getMany();
 
     const chainsToCreateOrUpdate = [];
 
     for (const chainInfo of chainInfos) {
-      let chainToUpdate = chains.find((chain) => {
-        return chain.chainId === chainInfo.chainId;
-      });
+      let chainToUpdate = chains.find((chain) => chain.chainId === chainInfo.chainId);
       chainToUpdate = { ...chainToUpdate, ...chainInfo };
       chainsToCreateOrUpdate.push(chainToUpdate);
     }
@@ -48,6 +51,11 @@ export class ChainRepository {
     return this.repos.find();
   }
 
+  /**
+   * findChain
+   * @param internalChainId
+   * @returns
+   */
   async findChain(internalChainId: number): Promise<Chain> {
     const chainInfo = await this.repos.findOne({
       where: {
@@ -58,6 +66,11 @@ export class ChainRepository {
     return chainInfo;
   }
 
+  /**
+   * findChainByChainId
+   * @param chainId
+   * @returns
+   */
   async findChainByChainId(chainId: string): Promise<Chain> {
     const chainInfo = await this.repos.findOne({
       where: {

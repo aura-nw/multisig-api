@@ -90,8 +90,8 @@ export class SimulateUtils {
     signature: Uint8Array,
   ): Uint8Array {
     const newTxRaw = TxRaw.fromPartial({
-      bodyBytes: bodyBytes,
-      authInfoBytes: authInfoBytes,
+      bodyBytes,
+      authInfoBytes,
       signatures: [signature],
     });
     return Uint8Array.from(TxRaw.encode(newTxRaw).finish());

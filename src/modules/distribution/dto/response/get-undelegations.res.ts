@@ -15,6 +15,8 @@ export class GetUndelegationsResponseDto {
 
 export class GetUnDelegationsUndelegationDto {
   operatorAddress: string;
+
   completionTime: string;
+
   balance: string;
 }

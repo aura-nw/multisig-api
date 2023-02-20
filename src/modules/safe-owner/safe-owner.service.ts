@@ -13,9 +13,11 @@ import {
 } from './dto/request/get-safe-owners.req';
 import { ListSafeByOwnerResponseDto } from './dto/response/get-safe-by-owner.res';
 import { SafeOwnerRepository } from './safe-owner.repository';
+
 @Injectable()
 export class SafeOwnerService {
   private readonly logger = new Logger(SafeOwnerService.name);
+
   private utils: CommonUtil = new CommonUtil();
 
   constructor(private readonly repo: SafeOwnerRepository) {

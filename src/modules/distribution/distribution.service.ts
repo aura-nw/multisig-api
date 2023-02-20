@@ -23,16 +23,21 @@ import {
   GetValidatorsValidatorDto,
 } from './dto';
 import { ResponseDto } from '../../common/dtos/response.dto';
+
 @Injectable()
 export class DistributionService {
   private readonly logger = new Logger(DistributionService.name);
+
   private chains = new Map<string, Chain>();
+
   private indexerClient = new IndexerClient(
     this.configService.get('INDEXER_URL'),
   );
 
   private validatorsPicture = new Map<string, string>();
+
   indexerUrl: string;
+
   constructor(
     private configService: ConfigService,
     private chainRepo: ChainRepository,
@@ -82,7 +87,7 @@ export class DistributionService {
         validator: validator.description.moniker,
         operatorAddress: validator.operator_address,
         status: validator.status,
-        picture: picture,
+        picture,
       }),
     );
   }
@@ -112,8 +117,8 @@ export class DistributionService {
       // Build response
       const validatorsResponse = await Promise.all(
         validators
-          .filter((validator) => validator.description)
-          .map((validator) => this.formatValidator(validator)),
+          .filter((validator: { description: any }) => validator.description)
+          .map((validator: any) => this.formatValidator(validator)),
       );
 
       return ResponseDto.response(
@@ -138,13 +143,13 @@ export class DistributionService {
       // Get chain
       const chain = await this.getChain(internalChainId);
 
-      //get acccount info
+      // get acccount info
       const accountInfo = await this.indexerClient.getAccountInfo(
         chain.chainId,
         delegatorAddress,
       );
 
-      //get validator info
+      // get validator info
       const validator = await this.indexerClient.getValidatorByOperatorAddress(
         chain.chainId,
         operatorAddress,
@@ -152,13 +157,16 @@ export class DistributionService {
 
       // combine info from two api
       const claimedReward = accountInfo.account_claimed_rewards.find(
-        (r) => r.validator_address === validator.operator_address,
+        (r: { validator_address: any }) =>
+          r.validator_address === validator.operator_address,
       );
       const delegationBalance = accountInfo.account_delegations.find(
-        (r) => r.delegation.validator_address === validator.operator_address,
+        (r: { delegation: { validator_address: any } }) =>
+          r.delegation.validator_address === validator.operator_address,
       )?.balance;
       const pendingReward = accountInfo.account_delegate_rewards.rewards.find(
-        (r) => r.validator_address === validator.operator_address,
+        (r: { validator_address: any }) =>
+          r.validator_address === validator.operator_address,
       )?.reward[0];
 
       return ResponseDto.response(
@@ -192,8 +200,8 @@ export class DistributionService {
                   amount: accountInfo.account_balances[0].amount,
                 }
               : null,
-            delegationBalance: delegationBalance ? delegationBalance : null,
-            pendingReward: pendingReward ? pendingReward : null,
+            delegationBalance: delegationBalance || null,
+            pendingReward: pendingReward || null,
           },
         }),
       );
@@ -216,12 +224,11 @@ export class DistributionService {
 
       // Get delegate info
       const delegations = accountInfo.account_delegations.filter(
-        (delegation) => {
-          return Number(delegation.balance.amount) > 0;
-        },
+        (delegation: { balance: { amount: any } }) =>
+          Number(delegation.balance.amount) > 0,
       );
       const delegateRewards = accountInfo.account_delegate_rewards;
-      const rewards: any[] = delegateRewards.rewards;
+      const { rewards } = delegateRewards;
 
       // Build response
       const results: GetDelegationsResponseDto = {
@@ -241,7 +248,7 @@ export class DistributionService {
       // Build delegations
       for (const delegation of delegations) {
         const reward = rewards.find(
-          (r) =>
+          (r: { validator_address: any }) =>
             r.validator_address === delegation.delegation.validator_address,
         );
         const result: GetDelegationsDelegationDto = {
@@ -277,7 +284,7 @@ export class DistributionService {
         undelegations: [],
       };
       for (const bond of accountUnbonding) {
-        //loop through each entries of a single validator
+        // loop through each entries of a single validator
         for (const entry of bond.entries) {
           const result: GetUnDelegationsUndelegationDto = {
             operatorAddress: bond.validator_address,
@@ -310,7 +317,7 @@ export class DistributionService {
       },
       description: {
         moniker: validator.description.moniker,
-        picture: picture,
+        picture,
       },
       votingPower: {
         number: (+validator.tokens / 10 ** 6).toFixed(3),

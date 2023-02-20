@@ -60,7 +60,7 @@ export async function verifyEvmosSig(
 ) {
   const sig = Secp256k1Signature.fromFixedLength(fromBase64(signature));
   let valid = false;
-  for (let i = 0; i < 2; i++) {
+  for (let i = 0; i < 2; i += 1) {
     const pub = ethUtils.ecrecover(
       ethUtils.toBuffer(keccak256(serializeSignDoc(msg))),
       27 + i,
@@ -116,24 +116,26 @@ export function encodeAminoPubkeySupportEvmos(pubkey: Pubkey): Uint8Array {
       out.push(...pubkeyData);
     }
     return new Uint8Array(out);
-  } else if (isEd25519Pubkey(pubkey)) {
+  }
+  if (isEd25519Pubkey(pubkey)) {
     return new Uint8Array([
       ...pubkeyAminoPrefixEd25519,
       ...fromBase64(pubkey.value),
     ]);
-  } else if (isSecp256k1Pubkey(pubkey)) {
+  }
+  if (isSecp256k1Pubkey(pubkey)) {
     return new Uint8Array([
       ...pubkeyAminoPrefixSecp256k1,
       ...fromBase64(pubkey.value),
     ]);
-  } else if (isEthSecp256k1Pubkey(pubkey)) {
+  }
+  if (isEthSecp256k1Pubkey(pubkey)) {
     return new Uint8Array([
       ...pubkeyAminoPrefixEthSecp256k1,
       ...fromBase64(pubkey.value),
     ]);
-  } else {
-    throw new Error('Unsupported pubkey type');
   }
+  throw new Error('Unsupported pubkey type');
 }
 
 export function createMultisigThresholdPubkeyEvmos(
@@ -175,13 +177,13 @@ export function makeMultisignedTxEvmos(
   signatures: Map<string, Uint8Array>,
 ): TxRaw {
   const addresses = Array.from(signatures.keys());
-  const prefix = fromBech32(addresses[0]).prefix;
+  const { prefix } = fromBech32(addresses[0]);
 
   const signers: boolean[] = Array(multisigPubkey.value.pubkeys.length).fill(
     false,
   );
   const signaturesList = new Array<Uint8Array>();
-  for (let i = 0; i < multisigPubkey.value.pubkeys.length; i++) {
+  for (let i = 0; i < multisigPubkey.value.pubkeys.length; i += 1) {
     const signerAddress = pubkeyToAddressEvmos(
       multisigPubkey.value.pubkeys[i].value,
       prefix,
@@ -216,8 +218,8 @@ export function makeMultisignedTxEvmos(
 
   const authInfoBytes = AuthInfo.encode(authInfo).finish();
   const signedTx = TxRaw.fromPartial({
-    bodyBytes: bodyBytes,
-    authInfoBytes: authInfoBytes,
+    bodyBytes,
+    authInfoBytes,
     signatures: [
       MultiSignature.encode(
         MultiSignature.fromPartial({ signatures: signaturesList }),
@@ -236,7 +238,8 @@ export function encodePubkeyEvmos(pubkey: Pubkey): Any {
       typeUrl: '/cosmos.crypto.secp256k1.PubKey',
       value: Uint8Array.from(PubKey.encode(pubkeyProto).finish()),
     });
-  } else if (isEthSecp256k1Pubkey(pubkey)) {
+  }
+  if (isEthSecp256k1Pubkey(pubkey)) {
     const pubkeyProto = PubKey.fromPartial({
       key: fromBase64(pubkey.value),
     });
@@ -244,7 +247,8 @@ export function encodePubkeyEvmos(pubkey: Pubkey): Any {
       typeUrl: '/ethermint.crypto.v1.ethsecp256k1.PubKey',
       value: Uint8Array.from(PubKey.encode(pubkeyProto).finish()),
     });
-  } else if (isMultisigThresholdPubkey(pubkey)) {
+  }
+  if (isMultisigThresholdPubkey(pubkey)) {
     const pubkeyProto = LegacyAminoPubKey.fromPartial({
       threshold: Uint53.fromString(pubkey.value.threshold).toNumber(),
       publicKeys: pubkey.value.pubkeys.map(encodePubkeyEvmos),
@@ -253,9 +257,8 @@ export function encodePubkeyEvmos(pubkey: Pubkey): Any {
       typeUrl: '/cosmos.crypto.multisig.LegacyAminoPubKey',
       value: Uint8Array.from(LegacyAminoPubKey.encode(pubkeyProto).finish()),
     });
-  } else {
-    throw new Error(`Pubkey type ${pubkey.type} not recognized`);
   }
+  throw new Error(`Pubkey type ${pubkey.type} not recognized`);
 }
 
 function encodeUvarint(value: number | string): number[] {
@@ -304,7 +307,7 @@ function toChecksummedAddress(address: string | Uint8Array): string {
 
   const addressHash = toHex(new Keccak256(toAscii(addressLower)).digest());
   let checksumAddress = '0x';
-  for (let i = 0; i < 40; i++) {
+  for (let i = 0; i < 40; i += 1) {
     checksumAddress +=
       parseInt(addressHash[i], 16) > 7
         ? addressLower[i].toUpperCase()

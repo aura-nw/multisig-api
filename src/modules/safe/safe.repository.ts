@@ -1,8 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CustomError } from '../../common/customError';
-import { ErrorMap } from '../../common/error.map';
-import { SAFE_STATUS } from '../../common/constants/app.constant';
 import { createHash } from 'crypto';
 import {
   createMultisigThresholdPubkey,
@@ -10,6 +7,11 @@ import {
   pubkeyToAddress,
 } from '@cosmjs/amino';
 import { fromBase64 } from '@cosmjs/encoding';
+import { plainToInstance } from 'class-transformer';
+import { In, Not, Repository } from 'typeorm';
+import { CustomError } from '../../common/customError';
+import { ErrorMap } from '../../common/error.map';
+import { SAFE_STATUS } from '../../common/constants/app.constant';
 import { IndexerClient } from '../../utils/apis/indexer-client.service';
 import { ConfigService } from '../../shared/services/config.service';
 import { CommonUtil } from '../../utils/common.util';
@@ -18,14 +20,12 @@ import { Safe } from './entities/safe.entity';
 import { SafeOwnerRepository } from '../safe-owner/safe-owner.repository';
 import { ChainRepository } from '../chain/chain.repository';
 import { SafeOwner } from '../safe-owner/entities/safe-owner.entity';
-import { plainToInstance } from 'class-transformer';
-import { In, Not, Repository } from 'typeorm';
-import { GetSafeByOwnerAddressResDto } from './dto/request/get-safe-by-owner.res';
 import { GetThresholdResDto } from './dto/request/get-threshold.res';
 
 @Injectable()
 export class SafeRepository {
   private readonly _logger = new Logger(SafeRepository.name);
+
   private _indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
 
   constructor(
@@ -73,7 +73,7 @@ export class SafeRepository {
    */
   async updateQueuedTagByAddress(safeAddress: string): Promise<void> {
     await this.repo.update(
-      { safeAddress: safeAddress },
+      { safeAddress },
       { txQueuedTag: () => Date.now().toString() },
     );
   }
@@ -164,7 +164,7 @@ export class SafeRepository {
     });
 
     if (existSafe) {
-      this._logger.debug(`Safe with these information already exists!`);
+      this._logger.debug('Safe with these information already exists!');
       return existSafe.id;
     }
     return -1;
@@ -236,7 +236,7 @@ export class SafeRepository {
     });
 
     if (!safe) {
-      //Found on network
+      // Found on network
       throw new CustomError(ErrorMap.NO_SAFES_FOUND);
     }
     return safe;
@@ -293,11 +293,11 @@ export class SafeRepository {
       newSafe.safeAddress = accountAddress;
       newSafe.safePubkey = JSON.stringify(
         createMultisigThresholdPubkey(
-          pubkeyInfo.public_keys.map((pubkey) => {
-            return chainInfo.prefix.startsWith('evmos')
+          pubkeyInfo.public_keys.map((pubkey) =>
+            chainInfo.prefix.startsWith('evmos')
               ? createEvmosPubkey(pubkey.key)
-              : CommonUtil.createPubkeys(pubkey.key);
-          }),
+              : CommonUtil.createPubkeys(pubkey.key),
+          ),
           pubkeyInfo.threshold,
         ),
       );
@@ -312,7 +312,7 @@ export class SafeRepository {
 
       // insert safe owner
       const promises = [];
-      for (let i = 0; i < ownersAddresses.length; i++) {
+      for (let i = 0; i < ownersAddresses.length; i += 1) {
         promises.push(
           this.safeOwnerRepo.recoverSafeOwner(
             safeId,

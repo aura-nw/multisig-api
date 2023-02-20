@@ -45,6 +45,7 @@ export class GetDelegationResponseDto {
     delegators: number;
     commission: string;
   };
+
   delegation: {
     delegationBalance: Coin;
     delegatableBalance: Coin;
