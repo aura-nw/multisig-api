@@ -15,14 +15,12 @@ import { SafeOwnerRepository } from '../safe-owner/safe-owner.repository';
 import { ChainRepository } from '../chain/chain.repository';
 import { NotificationRepository } from '../notification/notification.repository';
 import { CreateMultisigWalletRequestDto } from './dto/request/create-multisig-wallet.req';
-import {
-  GetSafePathParamsDto,
-  GetSafeQueryDto,
-} from './dto/request/get-safe.request';
+import { GetSafePathParamsDto } from './dto/request/get-safe.request';
 import { ConfirmSafePathParamsDto } from './dto/request/confirm-multisig-wallet.req';
 import { DeleteSafePathParamsDto } from './dto/request/delete-multisig-wallet.req';
 import { GetMultisigWalletResponseDto } from './dto/response/get-multisig-wallet.res';
 import { Chain } from '../chain/entities/chain.entity';
+import { GetSafeQueryDto } from './dto/request/get-safe-query.req';
 
 @Injectable()
 export class SafeService {
@@ -134,7 +132,7 @@ export class SafeService {
       const { safeId } = param;
       const { internalChainId } = query;
 
-      const safe = isNaN(Number(safeId))
+      const safe = Number.isNaN(Number(safeId))
         ? await this.safeRepo.getSafeByAddress(safeId, internalChainId)
         : await this.safeRepo.getSafeById(Number(safeId));
 

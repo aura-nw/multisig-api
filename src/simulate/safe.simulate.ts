@@ -104,20 +104,22 @@ export class SafeSimulate {
 
     // get simulate msgs base typeUrl and the messages given by user
     const encodeMsgs = SimulateUtils.anyToEncodeMsgs(messages, prefix);
-    encodeMsgs.forEach((msg) => {
+    const updatedEncodeMsgs = encodeMsgs.map((msg) => {
+      const updatedMsg = msg;
       switch (msg.typeUrl) {
         case TX_TYPE_URL.SEND:
           simulateAuthInfo = this.authInfo;
-          msg.value.fromAddress = this.address;
-          msg.value.amount = coins(1, msg.value.amount[0].denom);
+          updatedMsg.value.fromAddress = this.address;
+          updatedMsg.value.amount = coins(1, msg.value.amount[0].denom);
           break;
         case TX_TYPE_URL.VOTE:
           simulateAuthInfo = this.authInfo;
-          msg.value.voter = this.address;
+          updatedMsg.value.voter = this.address;
           break;
         default:
           break;
       }
+      return updatedMsg;
     });
 
     const authInfoBytes = simulateAuthInfo
@@ -130,7 +132,7 @@ export class SafeSimulate {
           this.chain.denom,
         );
     const bodyBytes = SimulateUtils.makeBodyBytes(
-      encodeMsgs,
+      updatedEncodeMsgs,
       this.chain.prefix,
     );
     return {

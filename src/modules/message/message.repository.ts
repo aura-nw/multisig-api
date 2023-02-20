@@ -42,6 +42,8 @@ export class MessageRepository {
         case TX_TYPE_URL.UNDELEGATE:
           newMsg.amount = msg.value.amount ? msg.value.amount?.amount : null;
           break;
+        default:
+          break;
       }
       newMsg.voteOption = msg.value.option ? msg.value.option : null;
       newMsg.proposalId = msg.value.proposalId

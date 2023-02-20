@@ -1,6 +1,6 @@
 import { CustomError } from '../../common/customError';
 import { ErrorMap } from '../../common/error.map';
-import { SimulateResponse } from '../../simulate/dtos/simulate';
+import { SimulateResponse } from '../../simulate/dtos/simulate-response';
 import { ConfigService } from '../../shared/services/config.service';
 import { CommonUtil } from '../common.util';
 
@@ -27,7 +27,7 @@ export class LcdClient {
     } catch (error) {
       throw new CustomError(
         ErrorMap.TX_SIMULATION_FAILED,
-        `${error.message  } ${  error.msg}`,
+        `${error.message} ${error.msg}`,
       );
     }
   }

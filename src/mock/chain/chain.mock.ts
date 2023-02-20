@@ -2,50 +2,50 @@ import { NetworkListResponseDto } from '../../modules/chain/dto';
 import { Chain } from '../../modules/chain/entities/chain.entity';
 import { FindGasByChainDto } from '../../modules/gas/dtos';
 
-export const networkList: NetworkListResponseDto[] = [
-  {
-    id: 22,
-    name: 'Aura Devnet',
-    rest: 'https://lcd.dev.aura.network/',
-    rpc: 'https://rpc.dev.aura.network/',
-    explorer: 'https://explorer.dev.aura.network',
-    chainId: 'aura-testnet-2',
-    symbol: 'TAURA',
-    denom: 'utaura',
-    prefix: 'aura',
-    coinDecimals: 6,
-    gasPrice: 0.0002,
-    tokenImg:
-      'https://aura-explorer-assets.s3.ap-southeast-1.amazonaws.com/aura.png',
-    defaultGas: [
-      {
-        typeUrl: '/cosmos.bank.v1beta1.MsgSend',
-        gasAmount: 90000,
-        multiplier: 0.13,
-      },
-      {
-        typeUrl: '/cosmos.staking.v1beta1.MsgDelegate',
-        gasAmount: 250000,
-        multiplier: 0.13,
-      },
-      {
-        typeUrl: '/cosmos.staking.v1beta1.MsgBeginRedelegate',
-        gasAmount: 250000,
-        multiplier: 0.13,
-      },
-      {
-        typeUrl: '/cosmos.staking.v1beta1.MsgUndelegate',
-        gasAmount: 250000,
-        multiplier: 0.13,
-      },
-      {
-        typeUrl: '/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward',
-        gasAmount: 150000,
-        multiplier: 0.13,
-      },
-    ],
-  } as NetworkListResponseDto,
-];
+const network: NetworkListResponseDto = {
+  id: 22,
+  name: 'Aura Devnet',
+  rest: 'https://lcd.dev.aura.network/',
+  rpc: 'https://rpc.dev.aura.network/',
+  explorer: 'https://explorer.dev.aura.network',
+  chainId: 'aura-testnet-2',
+  symbol: 'TAURA',
+  denom: 'utaura',
+  prefix: 'aura',
+  coinDecimals: 6,
+  gasPrice: 0.0002,
+  tokenImg:
+    'https://aura-explorer-assets.s3.ap-southeast-1.amazonaws.com/aura.png',
+  defaultGas: [
+    {
+      typeUrl: '/cosmos.bank.v1beta1.MsgSend',
+      gasAmount: 90000,
+      multiplier: 0.13,
+    },
+    {
+      typeUrl: '/cosmos.staking.v1beta1.MsgDelegate',
+      gasAmount: 250000,
+      multiplier: 0.13,
+    },
+    {
+      typeUrl: '/cosmos.staking.v1beta1.MsgBeginRedelegate',
+      gasAmount: 250000,
+      multiplier: 0.13,
+    },
+    {
+      typeUrl: '/cosmos.staking.v1beta1.MsgUndelegate',
+      gasAmount: 250000,
+      multiplier: 0.13,
+    },
+    {
+      typeUrl: '/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward',
+      gasAmount: 150000,
+      multiplier: 0.13,
+    },
+  ],
+};
+
+export const networkList: NetworkListResponseDto[] = [network];
 
 export const chainList: Chain[] = [
   {

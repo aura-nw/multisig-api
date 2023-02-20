@@ -4,10 +4,8 @@ import {
   CONTROLLER_CONSTANTS,
   URL_CONSTANTS,
 } from '../../common/constants/api.constant';
-import {
-  GetSafesByOwnerAddressParamsDto,
-  GetSafesByOwnerAddressQueryDto,
-} from './dto/request/get-safe-owners.req';
+import { GetSafesByOwnerAddressParamsDto } from '../safe/dto/request/get-safe-by-owner-param.req';
+import { GetSafesByOwnerAddressQueryDto } from './dto/request/get-safe-owners.req';
 import { SafeOwnerService } from './safe-owner.service';
 
 @Controller(CONTROLLER_CONSTANTS.OWNER)

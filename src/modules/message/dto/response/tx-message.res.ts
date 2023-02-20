@@ -1,7 +1,7 @@
-import { Coin } from '@cosmjs/amino';
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Transform, Type } from 'class-transformer';
 import { IsNumber, IsString } from 'class-validator';
+import { MultiSendInOutput } from './multi-send-inout';
 
 export class TxMessageResponseDto {
   @Expose()
@@ -103,10 +103,4 @@ export class TxMessageResponseDto {
     typeof value === 'string' ? JSON.parse(value) : value,
   )
   outputs: MultiSendInOutput[];
-}
-
-class MultiSendInOutput {
-  address: string;
-
-  coins: Coin[];
 }

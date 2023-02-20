@@ -11,15 +11,13 @@ import {
 } from '../../decorators/common.decorator';
 import { SafeService } from './safe.service';
 import { CreateMultisigWalletRequestDto } from './dto/request/create-multisig-wallet.req';
-import {
-  GetSafePathParamsDto,
-  GetSafeQueryDto,
-} from './dto/request/get-safe.request';
+import { GetSafePathParamsDto } from './dto/request/get-safe.request';
 import { ConfirmSafePathParamsDto } from './dto/request/confirm-multisig-wallet.req';
 import { DeleteSafePathParamsDto } from './dto/request/delete-multisig-wallet.req';
 import { CreateSafeResponseDto } from './dto/response/create-safe.res';
 import { GetMultisigWalletResponseDto } from './dto/response/get-multisig-wallet.res';
 import { SwaggerBaseApiResponse } from '../../common/dtos/response.dto';
+import { GetSafeQueryDto } from './dto/request/get-safe-query.req';
 
 @Controller(CONTROLLER_CONSTANTS.MULTISIG_WALLET)
 @ApiTags(CONTROLLER_CONSTANTS.MULTISIG_WALLET)

@@ -9,9 +9,8 @@ import {
 } from 'cosmjs-types/cosmos/staking/v1beta1/tx';
 
 export const COMMON_CONSTANTS = {
-  REGEX_BASE64: new RegExp(
+  REGEX_BASE64:
     /^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$/,
-  ),
 };
 
 export enum NotificationEventType {

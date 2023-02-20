@@ -79,10 +79,11 @@ export class SafeRepository {
   }
 
   async recoverSafe(
-    newSafe: Safe,
+    safe: Safe,
     otherOwnersAddress: string[],
     chainPrefix: string,
   ): Promise<Safe> {
+    const newSafe = safe;
     // check duplicate with safe address hash
     const safeAddressHash = await this.makeAddressHash(
       newSafe.internalChainId,
@@ -287,7 +288,8 @@ export class SafeRepository {
 
       // insert safe
       const newSafe = new Safe();
-      newSafe.creatorAddress = ownersAddresses[0];
+      const [creatorAddress] = ownersAddresses;
+      newSafe.creatorAddress = creatorAddress;
       newSafe.creatorPubkey = pubkeyInfo.public_keys[0].key;
       newSafe.threshold = pubkeyInfo.threshold;
       newSafe.safeAddress = accountAddress;

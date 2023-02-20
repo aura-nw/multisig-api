@@ -70,7 +70,8 @@ export class SafeOwnerRepository {
     safeOwner: SafeOwner,
     ownerPubkey: string,
   ): Promise<SafeOwner> {
-    safeOwner.ownerPubkey = ownerPubkey;
+    const updatedSafeOwner = safeOwner;
+    updatedSafeOwner.ownerPubkey = ownerPubkey;
     const updateResult = await this.repo.save(safeOwner);
     if (!updateResult) throw new CustomError(ErrorMap.UPDATE_SAFE_OWNER_FAILED);
     return updateResult;
