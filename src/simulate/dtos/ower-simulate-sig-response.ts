@@ -1,7 +1,3 @@
-export class SimulateResponse {
-  gasUsed: number;
-}
-
 export class OwnerSimulateSignResponse {
   address: string;
 

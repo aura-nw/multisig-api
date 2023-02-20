@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
 import {
-  MULTISIG_CONFIRM_STATUS,
   TRANSACTION_STATUS,
   TRANSFER_DIRECTION,
 } from '../../common/constants/app.constant';
@@ -46,7 +45,8 @@ export class MultisigTransactionRepository {
    * @param tx
    */
   async cancelTx(tx: MultisigTransaction): Promise<void> {
-    tx.status = TRANSACTION_STATUS.CANCELLED;
+    const updatedTx = tx;
+    updatedTx.status = TRANSACTION_STATUS.CANCELLED;
     await this.repo.save(tx);
   }
 

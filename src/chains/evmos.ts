@@ -39,10 +39,8 @@ import * as ethUtils from 'ethereumjs-util';
 // Prefixes listed here: https://github.com/tendermint/tendermint/blob/d419fffe18531317c28c29a292ad7d253f6cafdf/docs/spec/blockchain/encoding.md#public-key-cryptography
 // Last bytes is varint-encoded length prefix
 const pubkeyAminoPrefixEthSecp256k1 = fromHex('21' /* fixed length */);
-const pubkeyAminoPrefixSecp256k1 = fromHex(
-  'eb5ae987' + '21' /* fixed length */,
-);
-const pubkeyAminoPrefixEd25519 = fromHex('1624de64' + '20' /* fixed length */);
+const pubkeyAminoPrefixSecp256k1 = fromHex(`eb5ae987${21}` /* fixed length */);
+const pubkeyAminoPrefixEd25519 = fromHex(`1624de64${20}` /* fixed length */);
 /** See https://github.com/tendermint/tendermint/commit/38b401657e4ad7a7eeb3c30a3cbf512037df3740 */
 const pubkeyAminoPrefixMultisigThreshold = fromHex(
   '22c1f7e2' /* variable length not included */,
@@ -319,5 +317,6 @@ function toChecksummedAddress(address: string | Uint8Array): string {
 function compareArrays(a: Uint8Array, b: Uint8Array): number {
   const aHex = toHex(a);
   const bHex = toHex(b);
-  return aHex === bHex ? 0 : aHex < bHex ? -1 : 1;
+  if (aHex === bHex) return 0;
+  return aHex < bHex ? -1 : 1;
 }

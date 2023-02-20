@@ -6,7 +6,7 @@ import {
 } from '@cosmjs/amino';
 import { AccountData } from '@cosmjs/proto-signing';
 import { SignerData, SigningStargateClient } from '@cosmjs/stargate';
-import { OwnerSimulateSignResponse } from './dtos/simulate';
+import { OwnerSimulateSignResponse } from './dtos/ower-simulate-sig-response';
 
 export class OwnerSimulate {
   address: string;
@@ -53,10 +53,12 @@ export class OwnerSimulate {
       signerData,
     );
 
-    return {
+    const result: OwnerSimulateSignResponse = {
       address: this.address,
       bodyBytes,
       signature: signatures[0],
-    } as OwnerSimulateSignResponse;
+    };
+
+    return result;
   }
 }

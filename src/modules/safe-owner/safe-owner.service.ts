@@ -7,12 +7,10 @@ import {
 import { ErrorMap } from '../../common/error.map';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { CommonUtil } from '../../utils/common.util';
-import {
-  GetSafesByOwnerAddressParamsDto,
-  GetSafesByOwnerAddressQueryDto,
-} from './dto/request/get-safe-owners.req';
+import { GetSafesByOwnerAddressQueryDto } from './dto/request/get-safe-owners.req';
 import { ListSafeByOwnerResponseDto } from './dto/response/get-safe-by-owner.res';
 import { SafeOwnerRepository } from './safe-owner.repository';
+import { GetSafesByOwnerAddressParamsDto } from '../safe/dto/request/get-safe-by-owner-param.req';
 
 @Injectable()
 export class SafeOwnerService {
