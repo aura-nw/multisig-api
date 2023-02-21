@@ -2,8 +2,8 @@ export type MockType<T> = {
   [P in keyof T]?: jest.Mock<{}>;
 };
 
-export class MockFactory {
-  static getMock<T>(
+export const MockFactory = {
+  getMock<T>(
     type: new (...args: any[]) => T,
     includes?: string[],
   ): MockType<T> {
@@ -19,5 +19,5 @@ export class MockFactory {
       });
 
     return mock;
-  }
-}
+  },
+};

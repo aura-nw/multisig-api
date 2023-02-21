@@ -4,7 +4,7 @@ import { SafeSimulate } from './safe.simulate';
 import { OwnerSimulate } from './owner.simulate';
 import { SimulateUtils } from './utils';
 import { SimulateResponse } from './dtos/simulate-response';
-import { LcdClient } from '../utils/apis/LcdClient';
+import { LcdClient } from '../utils/apis/lcd-client';
 import { Chain } from '../modules/chain/entities/chain.entity';
 import { Safe } from '../modules/safe/entities/safe.entity';
 
@@ -20,20 +20,28 @@ export class WalletSimulate {
    */
   async initialize(): Promise<void> {
     // generate owners
+    const promises = [];
     for (let i = 0; i < 20; i += 1) {
       // create wallet
-      const wallet = await Secp256k1HdWallet.fromMnemonic(this.mnemonic, {
-        hdPaths: [makeCosmoshubPath(i)],
-        prefix: this.chain.prefix,
-      });
+      promises.push(
+        Secp256k1HdWallet.fromMnemonic(this.mnemonic, {
+          hdPaths: [makeCosmoshubPath(i)],
+          prefix: this.chain.prefix,
+        }),
+      );
+    }
+    const wallets = await Promise.all(promises);
 
-      // create account
-      const accounts = await wallet.getAccounts();
+    // create account
+    const accounts = await Promise.all(
+      wallets.map((wallet) => wallet.getAccounts()),
+    );
 
+    for (let i = 0; i < 20; i += 1) {
       // create owner
       const ownerWallet = new OwnerSimulate(
-        wallet,
-        accounts[0],
+        wallets[i],
+        accounts[i][0],
         this.chain.prefix,
       );
       this.ownerWallets.push(ownerWallet);
@@ -97,7 +105,7 @@ export class WalletSimulate {
    * @returns
    */
   getAddresses(): string[] {
-    return Array.from(this.safeOwnerMap.values()).map((safe) => safe.address);
+    return [...this.safeOwnerMap.values()].map((safe) => safe.address);
   }
 
   /**

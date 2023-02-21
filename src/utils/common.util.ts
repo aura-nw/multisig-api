@@ -20,8 +20,12 @@ import {
 } from '@terra-money/terra.js';
 import { plainToInstance } from 'class-transformer';
 import { readFile } from 'graceful-fs';
-import { PUBKEY_TYPES } from '../common/constants/app.constant';
-import { CustomError } from '../common/customError';
+import {
+  createMultisigThresholdPubkeyEvmos,
+  encodeAminoPubkeySupportEvmos,
+} from '../chains/evmos';
+import { PubkeyTypes } from '../common/constants/app.constant';
+import { CustomError } from '../common/custom-error';
 import { ErrorMap } from '../common/error.map';
 import { AuthService } from '../modules/auth/auth.service';
 import { MultisigTransaction } from '../modules/multisig-transaction/entities/multisig-transaction.entity';
@@ -60,7 +64,7 @@ export class CommonUtil {
    * @param arr
    * @returns boolean
    */
-  public checkIfDuplicateExists(arr): boolean {
+  public static checkIfDuplicateExists(arr): boolean {
     return new Set(arr).size !== arr.length;
   }
 
@@ -84,19 +88,16 @@ export class CommonUtil {
     const ethermintHelper = new EthermintHelper();
     try {
       let arrPubkeys;
-      if (prefix === 'evmos' || prefix === 'canto') {
-        arrPubkeys = pubKeyArrString.map(createEthSecp256k1Pubkey);
-      } else arrPubkeys = pubKeyArrString.map(this.createPubkeys);
+      arrPubkeys =
+        prefix === 'evmos'
+          ? pubKeyArrString.map(this.createPubkeyEvmos)
+          : pubKeyArrString.map(this.createPubkeys);
 
       let multisigPubkey;
-      if (prefix === 'evmos' || prefix === 'canto') {
-        multisigPubkey = ethermintHelper.createMultisigThresholdPubkeyEthermint(
-          arrPubkeys,
-          threshold,
-        );
-      } else {
-        multisigPubkey = createMultisigThresholdPubkey(arrPubkeys, threshold);
-      }
+      multisigPubkey =
+        prefix === 'evmos'
+          ? createMultisigThresholdPubkeyEvmos(arrPubkeys, threshold)
+          : createMultisigThresholdPubkey(arrPubkeys, threshold);
       const multiSigWalletAddress = this.pubkeyToAddress(
         multisigPubkey,
         prefix,
@@ -166,7 +167,7 @@ export class CommonUtil {
     const addressSignarureMap = [];
     multisigConfirmArr.forEach((x) => {
       const pubkeyAmino: SimplePublicKey.Amino = {
-        type: PUBKEY_TYPES.SECP256K1,
+        type: PubkeyTypes.SECP256K1,
         value: x.pubkey,
       };
       const amino: SignatureV2.Amino = {

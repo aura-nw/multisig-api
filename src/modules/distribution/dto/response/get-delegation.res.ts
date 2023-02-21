@@ -7,7 +7,7 @@ export class GetDelegationResponseDto {
       validator: {
         operatorAddress: 'auravaloper1edw4lwcz3esnlgzcw60ra8m38k3zygz2xtl2qh',
         votingPower: {
-          percent_voting_power: 93.478854,
+          percent_voting_power: 93.478_854,
           tokens: {
             amount: '32587434807',
             denom: 'utaura',

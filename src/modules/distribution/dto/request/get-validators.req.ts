@@ -1,6 +1,5 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
-import { VALIDATOR_STATUS } from '../../../../common/constants/app.constant';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsString } from 'class-validator';
 
 export class GetValidatorsParamDto {
   @ApiProperty({
@@ -9,13 +8,4 @@ export class GetValidatorsParamDto {
   })
   @IsString()
   internalChainId: number;
-}
-
-export class GetValidatorsQueryDto {
-  @ApiPropertyOptional({
-    description: 'Status of validators',
-    type: VALIDATOR_STATUS,
-  })
-  @IsOptional()
-  status: VALIDATOR_STATUS;
 }

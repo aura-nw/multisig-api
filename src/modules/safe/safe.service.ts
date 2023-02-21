@@ -4,9 +4,9 @@ import { fromBase64 } from '@cosmjs/encoding';
 import { SimplePublicKey } from '@terra-money/terra.js';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
-import { SAFE_STATUS } from '../../common/constants/app.constant';
+import { SafeStatus } from '../../common/constants/app.constant';
 import { CommonUtil } from '../../utils/common.util';
-import { CustomError } from '../../common/customError';
+import { CustomError } from '../../common/custom-error';
 import { pubkeyToAddressEvmos } from '../../chains/evmos';
 import { IndexerClient } from '../../utils/apis/indexer-client.service';
 import { ConfigService } from '../../shared/services/config.service';
@@ -24,11 +24,11 @@ import { GetSafeQueryDto } from './dto/request/get-safe-query.req';
 
 @Injectable()
 export class SafeService {
-  private readonly _logger = new Logger(SafeService.name);
+  private readonly logger = new Logger(SafeService.name);
 
-  private _commonUtil: CommonUtil = new CommonUtil();
+  private commonUtil: CommonUtil = new CommonUtil();
 
-  private _indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
+  private indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
 
   constructor(
     private configService: ConfigService,
@@ -37,7 +37,7 @@ export class SafeService {
     private chainRepo: ChainRepository,
     private notificationRepo: NotificationRepository,
   ) {
-    this._logger.log(
+    this.logger.log(
       '============== Constructor Multisig Wallet Service ==============',
     );
   }
@@ -49,14 +49,14 @@ export class SafeService {
       const { threshold, internalChainId } = request;
       let { otherOwnersAddress } = request;
 
-      const authInfo = this._commonUtil.getAuthInfo();
+      const authInfo = this.commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
       const creatorPubkey = authInfo.pubkey;
 
       // Check input
-      if (otherOwnersAddress.indexOf(creatorAddress) > -1)
+      if (otherOwnersAddress.includes(creatorAddress))
         throw new CustomError(ErrorMap.OTHER_ADDRESS_INCLUDE_CREATOR);
-      if (this._commonUtil.checkIfDuplicateExists(otherOwnersAddress))
+      if (CommonUtil.checkIfDuplicateExists(otherOwnersAddress))
         throw new CustomError(ErrorMap.DUPLICATE_SAFE_OWNER);
 
       // Find chain
@@ -70,7 +70,7 @@ export class SafeService {
 
       // Filter empty string in otherOwnersAddress
       otherOwnersAddress =
-        this._commonUtil.filterEmptyInStringArray(otherOwnersAddress);
+        this.commonUtil.filterEmptyInStringArray(otherOwnersAddress);
 
       // insert safe
       const newSafe = await this.safeRepo.insertSafe(
@@ -116,7 +116,7 @@ export class SafeService {
 
       return ResponseDto.response(
         ErrorMap.SUCCESSFUL,
-        this._commonUtil.omitByNil(newSafe),
+        this.commonUtil.omitByNil(newSafe),
       );
     } catch (error) {
       return ResponseDto.responseError(SafeService.name, error);
@@ -162,7 +162,7 @@ export class SafeService {
       // if safe created => Get balance
       if (safeInfo.address !== null) {
         try {
-          const accountInfo = await this._indexer.getAccountInfo(
+          const accountInfo = await this.indexer.getAccountInfo(
             chainInfo.chainId,
             safeInfo.address,
           );
@@ -178,7 +178,7 @@ export class SafeService {
                 ];
         } catch (error) {
           msgError = error.message;
-          this._logger.error(error.message);
+          this.logger.error(error.message);
           safeInfo.balance = [
             {
               denom: chainInfo.denom,
@@ -196,7 +196,7 @@ export class SafeService {
   async confirm(param: ConfirmSafePathParamsDto): Promise<ResponseDto> {
     try {
       const { safeId } = param;
-      const authInfo = this._commonUtil.getAuthInfo();
+      const authInfo = this.commonUtil.getAuthInfo();
       const myAddress = authInfo.address;
       const myPubkey = authInfo.pubkey;
 
@@ -227,7 +227,7 @@ export class SafeService {
           confirmations.map((item) => item.ownerPubkey),
           chainInfo.prefix,
         );
-        safe.status = SAFE_STATUS.CREATED;
+        safe.status = SafeStatus.CREATED;
         await this.safeRepo.updateSafe(safe);
 
         await this.notificationRepo.notifySafeCreated(
@@ -247,7 +247,7 @@ export class SafeService {
   async deletePending(param: DeleteSafePathParamsDto): Promise<ResponseDto> {
     try {
       const { safeId } = param;
-      const authInfo = this._commonUtil.getAuthInfo();
+      const authInfo = this.commonUtil.getAuthInfo();
       const myAddress = authInfo.address;
 
       const deletedSafe = await this.safeRepo.deletePendingSafe(

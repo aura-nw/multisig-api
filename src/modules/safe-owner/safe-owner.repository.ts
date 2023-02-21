@@ -1,20 +1,22 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CustomError } from '../../common/customError';
+import { plainToInstance } from 'class-transformer';
+import { CustomError } from '../../common/custom-error';
 import { ErrorMap } from '../../common/error.map';
 import { SafeOwner } from './entities/safe-owner.entity';
 import { Safe } from '../safe/entities/safe.entity';
+import { ListSafeByOwnerResponseDto } from './dto/response/get-safe-by-owner.res';
 
 @Injectable()
 export class SafeOwnerRepository {
-  private readonly _logger = new Logger(SafeOwnerRepository.name);
+  private readonly logger = new Logger(SafeOwnerRepository.name);
 
   constructor(
     @InjectRepository(SafeOwner)
     private readonly repo: Repository<SafeOwner>,
   ) {
-    this._logger.log(
+    this.logger.log(
       '============== Constructor Safe Owner Repository ==============',
     );
   }
@@ -22,7 +24,7 @@ export class SafeOwnerRepository {
   async getMultisigWalletsByOwner(
     ownerAddress: string,
     internalChainId: number,
-  ): Promise<any[]> {
+  ): Promise<ListSafeByOwnerResponseDto[]> {
     const sqlQuerry = this.repo
       .createQueryBuilder('safeOwner')
       .innerJoin(Safe, 'safe', 'safe.id = safeOwner.safeId')
@@ -40,7 +42,8 @@ export class SafeOwnerRepository {
         'safeOwner.internalChainId as internalChainId',
       ]);
 
-    return sqlQuerry.getRawMany();
+    const result = await sqlQuerry.getRawMany();
+    return plainToInstance(ListSafeByOwnerResponseDto, result);
   }
 
   async getConfirmationStatus(
@@ -103,8 +106,9 @@ export class SafeOwnerRepository {
     try {
       const result = await this.repo.save(newSafeOwner);
       return result;
-    } catch (err) {
-      throw new CustomError(ErrorMap.INSERT_SAFE_FAILED, err.message);
+    } catch (error) {
+      if (error instanceof Error)
+        throw new CustomError(ErrorMap.INSERT_SAFE_FAILED, error.message);
     }
   }
 
@@ -142,8 +146,9 @@ export class SafeOwnerRepository {
 
     try {
       await this.repo.save(owners);
-    } catch (err) {
-      throw new CustomError(ErrorMap.INSERT_SAFE_OWNER_FAILED, err.message);
+    } catch (error) {
+      if (error instanceof Error)
+        throw new CustomError(ErrorMap.INSERT_SAFE_OWNER_FAILED, error.message);
     }
   }
 
@@ -152,7 +157,7 @@ export class SafeOwnerRepository {
       where: { safeId },
     });
     if (owners.length === 0) {
-      this._logger.debug(`Not found any safe owner with safeId: ${safeId}`);
+      this.logger.debug(`Not found any safe owner with safeId: ${safeId}`);
       throw new CustomError(ErrorMap.NO_SAFE_OWNERS_FOUND);
     }
     return owners;

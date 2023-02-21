@@ -43,15 +43,18 @@ export class ChainInfo {
 
 export const validateChainInfo = async (
   chainObjects: Record<string, unknown>[],
-) => {
-  const chainInfos: ChainInfo[] = [];
-  for (const chainObject of chainObjects) {
-    const chainInfo = plainToInstance(ChainInfo, chainObject);
-    const errors = await validate(chainInfo);
-    if (errors.length > 0) {
-      throw new Error(errors.toString());
-    }
-    chainInfos.push(chainInfo);
+): Promise<ChainInfo[]> => {
+  const result = await Promise.all(
+    chainObjects.map((chainObject) => {
+      const chainInfo = plainToInstance(ChainInfo, chainObject);
+      return validate(chainInfo);
+    }),
+  );
+
+  const errors = result.filter((error) => error.length > 0);
+  if (errors.length > 0) {
+    throw new Error(errors.toString());
   }
-  return chainInfos;
+
+  return plainToInstance(ChainInfo, chainObjects);
 };

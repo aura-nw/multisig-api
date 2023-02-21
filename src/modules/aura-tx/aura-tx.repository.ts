@@ -4,6 +4,7 @@ import { plainToInstance } from 'class-transformer';
 import { MoreThan, Repository } from 'typeorm';
 import { TxDetailDto } from '../multisig-transaction/dto/response/tx-detail.res';
 import { MultisigTransaction } from '../multisig-transaction/entities/multisig-transaction.entity';
+import { BatchAuraTxDto } from './dto';
 import { AuraTx } from './entities/aura-tx.entity';
 
 @Injectable()
@@ -19,7 +20,7 @@ export class AuraTxRepository {
     );
   }
 
-  async getBatchTx(take: number, skip: number): Promise<any> {
+  async getBatchTx(take: number, skip: number): Promise<BatchAuraTxDto[]> {
     const result = await this.repo
       .createQueryBuilder('AuraTx')
       .take(take)
@@ -34,7 +35,7 @@ export class AuraTxRepository {
         'AuraTx.internalChainId as internalChainId',
       ])
       .getRawMany();
-    return result;
+    return plainToInstance(BatchAuraTxDto, result);
   }
 
   async getAuraTxDetail(auraTxId: number): Promise<TxDetailDto> {
@@ -53,8 +54,8 @@ export class AuraTxRepository {
         'AT.CreatedAt as CreatedAt',
         'AT.UpdatedAt as UpdatedAt',
       ])
-      .getRawOne();
+      .getRawOne<TxDetailDto>();
 
-    return plainToInstance(TxDetailDto, tx);
+    return tx;
   }
 }

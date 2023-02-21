@@ -11,7 +11,7 @@ import { SafeOwnerService } from './safe-owner.service';
 @Controller(CONTROLLER_CONSTANTS.OWNER)
 @ApiTags(CONTROLLER_CONSTANTS.OWNER)
 export class SafeOwnerController {
-  public readonly _logger = new Logger(SafeOwnerController.name);
+  public readonly logger = new Logger(SafeOwnerController.name);
 
   constructor(private safeOwnerService: SafeOwnerService) {}
 
@@ -24,7 +24,7 @@ export class SafeOwnerController {
     @Param() param: GetSafesByOwnerAddressParamsDto,
     @Query() query: GetSafesByOwnerAddressQueryDto,
   ) {
-    this._logger.log(
+    this.logger.log(
       '========== Return Safes where the address provided is an owner ==========',
     );
     return this.safeOwnerService.getMultisigWalletsByOwner(param, query);

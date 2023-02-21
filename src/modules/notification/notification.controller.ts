@@ -11,7 +11,7 @@ import { NotificationService } from './notification.service';
 @Controller(CONTROLLER_CONSTANTS.NOTIFICATION)
 @ApiTags(CONTROLLER_CONSTANTS.NOTIFICATION)
 export class NotificationController {
-  public readonly _logger = new Logger(NotificationController.name);
+  public readonly logger = new Logger(NotificationController.name);
 
   constructor(private notificationService: NotificationService) {}
 
@@ -24,9 +24,7 @@ export class NotificationController {
     },
   })
   async getNotifications() {
-    this._logger.log(
-      '========== Get notifications for current user ==========',
-    );
+    this.logger.log('========== Get notifications for current user ==========');
     return this.notificationService.getNotifications();
   }
 
@@ -39,7 +37,7 @@ export class NotificationController {
     },
   })
   async markAsRead(@Body() param: MarkAsReadNotificationReq) {
-    this._logger.log('========== Mark notifications as read ==========');
+    this.logger.log('========== Mark notifications as read ==========');
     return this.notificationService.markAsRead(param);
   }
 }

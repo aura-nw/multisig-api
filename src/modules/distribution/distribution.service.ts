@@ -7,20 +7,20 @@ import { IndexerClient } from '../../utils/apis/indexer-client.service';
 import { ChainRepository } from '../chain/chain.repository';
 import { Chain } from '../chain/entities/chain.entity';
 import {
+  DelegationDetailDto,
   GetDelegationDto,
   GetDelegationResponseDto,
-  GetDelegationsDelegationDto,
   GetDelegationsParamDto,
   GetDelegationsResponseDto,
   GetUndelegationsParamDto,
   GetUndelegationsResponseDto,
-  GetUnDelegationsUndelegationDto,
   GetValidatorDetailDto,
   GetValidatorInfoResDto,
   GetValidatorsParamDto,
   GetValidatorsQueryDto,
   GetValidatorsResponseDto,
-  GetValidatorsValidatorDto,
+  UnDelegationDetailDto,
+  ValidatorInfoDto,
 } from './dto';
 import { ResponseDto } from '../../common/dtos/response.dto';
 
@@ -127,8 +127,8 @@ export class DistributionService {
           validators: validatorsResponse,
         }),
       );
-    } catch (e) {
-      return ResponseDto.responseError(DistributionService.name, e);
+    } catch (error) {
+      return ResponseDto.responseError(DistributionService.name, error);
     }
   }
 
@@ -205,8 +205,8 @@ export class DistributionService {
           },
         }),
       );
-    } catch (e) {
-      return ResponseDto.responseError(DistributionService.name, e);
+    } catch (error) {
+      return ResponseDto.responseError(DistributionService.name, error);
     }
   }
 
@@ -251,7 +251,7 @@ export class DistributionService {
           (r: { validator_address: any }) =>
             r.validator_address === delegation.delegation.validator_address,
         );
-        const result: GetDelegationsDelegationDto = {
+        const result: DelegationDetailDto = {
           operatorAddress: delegation.delegation.validator_address,
           balance: delegation.balance,
           reward: reward ? reward.reward : [],
@@ -260,8 +260,8 @@ export class DistributionService {
       }
 
       return ResponseDto.response(ErrorMap.SUCCESSFUL, results);
-    } catch (e) {
-      return ResponseDto.responseError(DistributionService.name, e);
+    } catch (error) {
+      return ResponseDto.responseError(DistributionService.name, error);
     }
   }
 
@@ -286,7 +286,7 @@ export class DistributionService {
       for (const bond of accountUnbonding) {
         // loop through each entries of a single validator
         for (const entry of bond.entries) {
-          const result: GetUnDelegationsUndelegationDto = {
+          const result: UnDelegationDetailDto = {
             operatorAddress: bond.validator_address,
             completionTime: entry.completion_time,
             balance: entry.balance,
@@ -295,14 +295,12 @@ export class DistributionService {
         }
       }
       return ResponseDto.response(ErrorMap.SUCCESSFUL, results);
-    } catch (e) {
-      return ResponseDto.responseError(DistributionService.name, e);
+    } catch (error) {
+      return ResponseDto.responseError(DistributionService.name, error);
     }
   }
 
-  private async formatValidator(
-    validator: any,
-  ): Promise<GetValidatorsValidatorDto> {
+  private async formatValidator(validator: any): Promise<ValidatorInfoDto> {
     const picture = await this.getValidatorPicture(
       validator.description.identity,
     );
@@ -349,8 +347,8 @@ export class DistributionService {
           this.validatorsPicture.set(identity, pictureUrl);
         }
       }
-    } catch (e) {
-      this.logger.debug(e);
+    } catch (error) {
+      this.logger.debug(error);
     }
     return pictureUrl;
   }

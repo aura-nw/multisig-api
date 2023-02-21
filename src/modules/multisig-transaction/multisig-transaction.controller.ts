@@ -46,7 +46,7 @@ import { DeleteTxRequestDto } from './dto/request/delete-tx.req';
 @Controller(CONTROLLER_CONSTANTS.TRANSACTION)
 @ApiTags(CONTROLLER_CONSTANTS.TRANSACTION)
 export class MultisigTransactionController {
-  public readonly _logger = new Logger(MultisigTransactionController.name);
+  public readonly logger = new Logger(MultisigTransactionController.name);
 
   constructor(private multisigTransactionService: MultisigTransactionService) {}
 
@@ -57,7 +57,7 @@ export class MultisigTransactionController {
     Firs of all, owner must sign transaction via wallet extension then get signature and bodyBytes, what is result of action sign. Then call API to create transaction.`,
   })
   async createTransaction(@Body() request: CreateTransactionRequestDto) {
-    this._logger.log('========== Create multisig transaction ==========');
+    this.logger.log('========== Create multisig transaction ==========');
     return this.multisigTransactionService.createMultisigTransaction(request);
   }
 
@@ -68,7 +68,7 @@ export class MultisigTransactionController {
   async changeSeqTransaction(
     @Body() request: ChangeSequenceTransactionRequestDto,
   ) {
-    this._logger.log(
+    this.logger.log(
       '========== Change sequence of multisig transaction ==========',
     );
     return this.multisigTransactionService.changeSequence(request);
@@ -107,7 +107,7 @@ export class MultisigTransactionController {
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
   @HttpCode(HttpStatus.OK)
   async getAllTxs(@Body() request: GetAllTransactionsRequestDto) {
-    this._logger.log('========== Get All Transactions ==========');
+    this.logger.log('========== Get All Transactions ==========');
     return this.multisigTransactionService.getTransactionHistory(request);
   }
 
@@ -125,7 +125,7 @@ export class MultisigTransactionController {
   async getSignaturesOfMultisigTx(
     @Param() param: GetMultisigSignaturesParamDto,
   ) {
-    this._logger.log(
+    this.logger.log(
       '========== Get Signatures of Multisig Transaction ==========',
     );
     return this.multisigTransactionService.getListMultisigConfirmById(param);
@@ -138,7 +138,7 @@ export class MultisigTransactionController {
     When it success, update transaction txHash to DB. Multisig sync service will crawl data from network then update result of transaction.`,
   })
   async sendTransaction(@Body() request: SendTransactionRequestDto) {
-    this._logger.log('========== Send transaction to AURA ==========');
+    this.logger.log('========== Send transaction to AURA ==========');
     return this.multisigTransactionService.sendMultisigTransaction(request);
   }
 
@@ -155,7 +155,7 @@ export class MultisigTransactionController {
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
   @HttpCode(HttpStatus.OK)
   async getTransactionDetails(@Query() query: GetTxDetailQueryDto) {
-    this._logger.log('========== Get details of a Transaction ==========');
+    this.logger.log('========== Get details of a Transaction ==========');
     return this.multisigTransactionService.getTransactionDetails(query);
   }
 
@@ -165,7 +165,7 @@ export class MultisigTransactionController {
     description: 'Get simulate addresses',
   })
   async getSimulateAddresses(@Query() request: GetSimulateAddressQueryDto) {
-    this._logger.log('========== Get simulate addresses ==========');
+    this.logger.log('========== Get simulate addresses ==========');
     return this.multisigTransactionService.getSimulateAddresses(request);
   }
 
@@ -175,7 +175,7 @@ export class MultisigTransactionController {
     description: 'Simulate transaction',
   })
   async simulateTransaction(@Body() request: SimulateTxRequestDto) {
-    this._logger.log('========== Simulate transaction ==========');
+    this.logger.log('========== Simulate transaction ==========');
     return this.multisigTransactionService.simulate(request);
   }
 
@@ -185,7 +185,7 @@ export class MultisigTransactionController {
     description: 'Delete transaction',
   })
   async deleteTransaction(@Body() request: DeleteTxRequestDto) {
-    this._logger.log('========== Delete transaction ==========');
+    this.logger.log('========== Delete transaction ==========');
     return this.multisigTransactionService.deleteTransaction(request);
   }
 }

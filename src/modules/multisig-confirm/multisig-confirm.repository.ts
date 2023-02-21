@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
-import { MULTISIG_CONFIRM_STATUS } from '../../common/constants/app.constant';
-import { CustomError } from '../../common/customError';
+import { MultisigConfirmStatus } from '../../common/constants/app.constant';
+import { CustomError } from '../../common/custom-error';
 import { ErrorMap } from '../../common/error.map';
 import { MultisigConfirm } from './entities/multisig-confirm.entity';
 import { SafeOwner } from '../safe-owner/entities/safe-owner.entity';
@@ -14,14 +14,14 @@ import { GetListConfirmResDto, GetListConfirmWithPubkey } from './dto';
 
 @Injectable()
 export class MultisigConfirmRepository {
-  private readonly _logger = new Logger(MultisigConfirmRepository.name);
+  private readonly logger = new Logger(MultisigConfirmRepository.name);
 
   constructor(
     private safeOwnerRepo: SafeOwnerRepository,
     @InjectRepository(MultisigConfirm)
     private readonly repo: Repository<MultisigConfirm>,
   ) {
-    this._logger.log(
+    this.logger.log(
       '============== Constructor Multisig Confirm Repository ==============',
     );
   }
@@ -32,7 +32,7 @@ export class MultisigConfirmRepository {
     return this.repo.find({
       where: {
         multisigTransactionId,
-        status: MULTISIG_CONFIRM_STATUS.CONFIRM,
+        status: MultisigConfirmStatus.CONFIRM,
       },
     });
   }
@@ -41,7 +41,7 @@ export class MultisigConfirmRepository {
     return this.repo.find({
       where: {
         multisigTransactionId,
-        status: MULTISIG_CONFIRM_STATUS.REJECT,
+        status: MultisigConfirmStatus.REJECT,
       },
     });
   }
@@ -137,10 +137,7 @@ export class MultisigConfirmRepository {
       sqlQuerry.andWhere('multisigConfirm.status = :status', { status });
     else
       sqlQuerry.andWhere('multisigConfirm.status IN (:...status)', {
-        status: [
-          MULTISIG_CONFIRM_STATUS.CONFIRM,
-          MULTISIG_CONFIRM_STATUS.REJECT,
-        ],
+        status: [MultisigConfirmStatus.CONFIRM, MultisigConfirmStatus.REJECT],
       });
     const result = await sqlQuerry.getRawMany();
     return plainToInstance(GetListConfirmResDto, result);

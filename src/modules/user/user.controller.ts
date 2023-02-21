@@ -15,7 +15,7 @@ import { UserService } from './user.service';
 @Controller(CONTROLLER_CONSTANTS.USER)
 @ApiTags(CONTROLLER_CONSTANTS.USER)
 export class UserController {
-  public readonly _logger = new Logger(UserController.name);
+  public readonly logger = new Logger(UserController.name);
 
   constructor(private userService: UserService) {}
 
@@ -30,7 +30,7 @@ export class UserController {
     },
   })
   async getUserByAddress(@Param() param: GetUserPathParamDto) {
-    this._logger.log('========== Get user by address ==========');
+    this.logger.log('========== Get user by address ==========');
     return this.userService.getUserByAddress(param);
   }
 }

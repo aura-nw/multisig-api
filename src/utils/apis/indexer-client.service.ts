@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
-import { CustomError } from '../../common/customError';
+import { CustomError } from '../../common/custom-error';
 import { AccountInfo } from '../../common/dtos/account-info';
 import { ErrorMap } from '../../common/error.map';
 import { ConfigService } from '../../shared/services/config.service';
@@ -9,7 +9,7 @@ import { CommonUtil } from '../common.util';
 export class IndexerClient {
   private configService: ConfigService = new ConfigService();
 
-  private readonly _logger = new Logger(IndexerClient.name);
+  private readonly logger = new Logger(IndexerClient.name);
 
   indexerUrl: string;
 
@@ -173,7 +173,7 @@ export class IndexerClient {
       const response = await CommonUtil.requestAPI(getProposalByChainIdURL);
       return response.data.proposals || [];
     } catch (error) {
-      this._logger.error(error);
+      this.logger.error(error);
       return [];
     }
   }

@@ -1,6 +1,6 @@
 import { Column, Entity } from 'typeorm';
 import { Expose } from 'class-transformer';
-import { BaseEntityAutoId } from '../../../common/base.entity';
+import { BaseEntityAutoId } from '../../../common/entities';
 
 @Entity({ name: 'Message' })
 export class Message extends BaseEntityAutoId {

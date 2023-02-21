@@ -7,14 +7,14 @@ import { Notification } from './entities/notification.entity';
 
 @Injectable()
 export class NotificationRepository {
-  private readonly _logger = new Logger(NotificationRepository.name);
+  private readonly logger = new Logger(NotificationRepository.name);
 
   constructor(
     @InjectRepository(Notification)
     private readonly repo: Repository<Notification>,
     private readonly userRepo: UserRepository,
   ) {
-    this._logger.log(
+    this.logger.log(
       '============== Constructor Notification Repository ==============',
     );
   }
@@ -52,13 +52,15 @@ export class NotificationRepository {
     internalChainId: number,
   ): Promise<void> {
     const users = await this.userRepo.getUsersByListAddress(otherOwnersAddress);
-    const notifications = users.map((user) => Notification.newWaitAllowSafeNotification(
+    const notifications = users.map((user) =>
+      Notification.newWaitAllowSafeNotification(
         user.id,
         safeId,
         creatorAddress,
         users.length + 1,
         internalChainId,
-      ));
+      ),
+    );
 
     if (notifications.length > 0) {
       await this.repo.save(notifications);
@@ -72,12 +74,14 @@ export class NotificationRepository {
     internalChainId: number,
   ): Promise<void> {
     const users = await this.userRepo.getUsersByListAddress(ownerAddresses);
-    const notifications = users.map((user) => Notification.newSafeCreatedNotification(
+    const notifications = users.map((user) =>
+      Notification.newSafeCreatedNotification(
         user.id,
         safeId,
         safeAddress,
         internalChainId,
-      ));
+      ),
+    );
 
     if (notifications.length > 0) {
       await this.repo.save(notifications);
@@ -94,7 +98,8 @@ export class NotificationRepository {
     internalChainId: number,
   ): Promise<void> {
     const users = await this.userRepo.getUsersByListAddress(otherOwnersAddress);
-    const notifications = users.map((user) => Notification.newTxNotification(
+    const notifications = users.map((user) =>
+      Notification.newTxNotification(
         user.id,
         safeId,
         multisigTxId,
@@ -102,7 +107,8 @@ export class NotificationRepository {
         safeAddress,
         txCreatorAddress,
         internalChainId,
-      ));
+      ),
+    );
 
     if (notifications.length > 0) {
       await this.repo.save(notifications);
@@ -118,14 +124,16 @@ export class NotificationRepository {
     internalChainId: number,
   ): Promise<void> {
     const users = await this.userRepo.getUsersByListAddress(ownerAddresses);
-    const notifications = users.map((user) => Notification.newTxExecutableNotification(
+    const notifications = users.map((user) =>
+      Notification.newTxExecutableNotification(
         user.id,
         safeId,
         multisigTxId,
         sequence,
         safeAddress,
         internalChainId,
-      ));
+      ),
+    );
 
     if (notifications.length > 0) {
       await this.repo.save(notifications);
@@ -141,14 +149,16 @@ export class NotificationRepository {
     internalChainId: number,
   ): Promise<void> {
     const users = await this.userRepo.getUsersByListAddress(ownerAddresses);
-    const notifications = users.map((user) => Notification.newTxBroadcastedNotification(
+    const notifications = users.map((user) =>
+      Notification.newTxBroadcastedNotification(
         user.id,
         safeId,
         multisigTxId,
         sequence,
         safeAddress,
         internalChainId,
-      ));
+      ),
+    );
 
     if (notifications.length > 0) {
       await this.repo.save(notifications);
@@ -165,7 +175,8 @@ export class NotificationRepository {
     internalChainId: number,
   ): Promise<void> {
     const users = await this.userRepo.getUsersByListAddress(ownerAddresses);
-    const notifications = users.map((user) => Notification.newDeletedTxNotification(
+    const notifications = users.map((user) =>
+      Notification.newDeletedTxNotification(
         user.id,
         safeId,
         multisigTxId,
@@ -173,7 +184,8 @@ export class NotificationRepository {
         safeAddress,
         txCreatorAddress,
         internalChainId,
-      ));
+      ),
+    );
 
     if (notifications.length > 0) {
       await this.repo.save(notifications);

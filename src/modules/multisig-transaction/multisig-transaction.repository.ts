@@ -2,11 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
-import {
-  TRANSACTION_STATUS,
-  TRANSFER_DIRECTION,
-} from '../../common/constants/app.constant';
-import { CustomError } from '../../common/customError';
+import { TransactionStatus } from '../../common/constants/app.constant';
+import { CustomError } from '../../common/custom-error';
 import { ErrorMap } from '../../common/error.map';
 import { SafeRepository } from '../safe/safe.repository';
 import { MultisigTransaction } from './entities/multisig-transaction.entity';
@@ -16,7 +13,7 @@ import { MultisigTransactionHistoryResponseDto } from './dto';
 
 @Injectable()
 export class MultisigTransactionRepository {
-  private readonly _logger = new Logger(MultisigTransactionRepository.name);
+  private readonly logger = new Logger(MultisigTransactionRepository.name);
 
   constructor(
     // private multisigConfirmRepos: MultisigConfirmRepository,
@@ -24,7 +21,7 @@ export class MultisigTransactionRepository {
     @InjectRepository(MultisigTransaction)
     private readonly repo: Repository<MultisigTransaction>,
   ) {
-    this._logger.log(
+    this.logger.log(
       '============== Constructor Multisig Transaction Repository ==============',
     );
   }
@@ -45,7 +42,7 @@ export class MultisigTransactionRepository {
    */
   async cancelTx(tx: MultisigTransaction): Promise<void> {
     const updatedTx = tx;
-    updatedTx.status = TRANSACTION_STATUS.CANCELLED;
+    updatedTx.status = TransactionStatus.CANCELLED;
     await this.repo.save(tx);
   }
 
@@ -55,7 +52,7 @@ export class MultisigTransactionRepository {
    */
   async updateFailedTx(tx: MultisigTransaction): Promise<void> {
     const updatedTx = tx;
-    updatedTx.status = TRANSACTION_STATUS.FAILED;
+    updatedTx.status = TransactionStatus.FAILED;
     await this.repo.save(updatedTx);
   }
 
@@ -68,7 +65,7 @@ export class MultisigTransactionRepository {
       .createQueryBuilder()
       .update(MultisigTransaction)
       .set({
-        status: TRANSACTION_STATUS.DELETED,
+        status: TransactionStatus.DELETED,
       })
       .where('Id = :id', { id })
       .execute();
@@ -84,7 +81,7 @@ export class MultisigTransactionRepository {
       .createQueryBuilder()
       .update(MultisigTransaction)
       .set({
-        status: TRANSACTION_STATUS.REPLACED,
+        status: TransactionStatus.REPLACED,
       })
       .where(
         'SafeId = :safeId and Sequence = :sequence and Status IN (:...status)',
@@ -92,8 +89,8 @@ export class MultisigTransactionRepository {
           safeId,
           sequence,
           status: [
-            TRANSACTION_STATUS.AWAITING_CONFIRMATIONS,
-            TRANSACTION_STATUS.AWAITING_EXECUTION,
+            TransactionStatus.AWAITING_CONFIRMATIONS,
+            TransactionStatus.AWAITING_EXECUTION,
           ],
         },
       )
@@ -110,8 +107,8 @@ export class MultisigTransactionRepository {
       where: {
         safeId,
         status: In([
-          TRANSACTION_STATUS.AWAITING_CONFIRMATIONS,
-          TRANSACTION_STATUS.AWAITING_EXECUTION,
+          TransactionStatus.AWAITING_CONFIRMATIONS,
+          TransactionStatus.AWAITING_EXECUTION,
         ]),
       },
       select: ['sequence'],
@@ -135,7 +132,7 @@ export class MultisigTransactionRepository {
       },
     });
 
-    multisigTransaction.status = TRANSACTION_STATUS.PENDING;
+    multisigTransaction.status = TransactionStatus.PENDING;
     multisigTransaction.txHash = txHash;
     await this.repo.save(multisigTransaction);
   }
@@ -149,7 +146,7 @@ export class MultisigTransactionRepository {
 
     if (
       !multisigTransaction ||
-      multisigTransaction.status !== TRANSACTION_STATUS.AWAITING_EXECUTION
+      multisigTransaction.status !== TransactionStatus.AWAITING_EXECUTION
     ) {
       throw new CustomError(ErrorMap.TRANSACTION_NOT_VALID);
     }
@@ -183,7 +180,7 @@ export class MultisigTransactionRepository {
     // await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
     //   multisigTxId,
     //   undefined,
-    //   MULTISIG_CONFIRM_STATUS.CONFIRM,
+    //   MultisigConfirmStatus.CONFIRM,
     // );
 
     const safe = await this.safeRepos.getSafeById(safeId);
@@ -206,7 +203,7 @@ export class MultisigTransactionRepository {
     const transaction = await this.repo.findOne({
       where: { id: multisigTxId },
     });
-    transaction.status = TRANSACTION_STATUS.AWAITING_EXECUTION;
+    transaction.status = TransactionStatus.AWAITING_EXECUTION;
 
     return this.repo.save(transaction);
   }
@@ -260,9 +257,9 @@ export class MultisigTransactionRepository {
     `,
       [
         safeAddress,
-        TRANSACTION_STATUS.AWAITING_CONFIRMATIONS,
-        TRANSACTION_STATUS.AWAITING_EXECUTION,
-        TRANSACTION_STATUS.PENDING,
+        TransactionStatus.AWAITING_CONFIRMATIONS,
+        TransactionStatus.AWAITING_EXECUTION,
+        TransactionStatus.PENDING,
         internalChainId,
         limit,
         offset,

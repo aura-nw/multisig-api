@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  TRANSACTION_STATUS,
-  TRANSFER_DIRECTION,
+  TransactionStatus,
+  TransferDirection,
 } from '../../../../common/constants/app.constant';
 
 export class MultisigTransactionHistoryResponseDto {
@@ -66,7 +66,7 @@ export class MultisigTransactionHistoryResponseDto {
   ConfirmationsRequired: number;
 
   @ApiProperty({
-    example: TRANSACTION_STATUS.SUCCESS,
+    example: TransactionStatus.SUCCESS,
   })
   Status: string;
 
@@ -86,7 +86,7 @@ export class MultisigTransactionHistoryResponseDto {
   UpdatedAt: Date;
 
   @ApiProperty({
-    example: TRANSFER_DIRECTION.OUTGOING,
+    example: TransferDirection.OUTGOING,
   })
   Direction: string;
 }

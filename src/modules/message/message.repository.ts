@@ -2,22 +2,22 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass, plainToInstance } from 'class-transformer';
 import { Repository } from 'typeorm';
-import { CustomError } from '../../common/customError';
+import { CustomError } from '../../common/custom-error';
 import { ErrorMap } from '../../common/error.map';
-import { TX_TYPE_URL } from '../../common/constants/app.constant';
+import { TxTypeUrl } from '../../common/constants/app.constant';
 import { Message } from './entities/message.entity';
 import { TxMessageResponseDto } from './dto';
 import { TxMessageHistoryResponseDto } from './dto/response/tx-message-history.res';
 
 @Injectable()
 export class MessageRepository {
-  private readonly _logger = new Logger(MessageRepository.name);
+  private readonly logger = new Logger(MessageRepository.name);
 
   constructor(
     @InjectRepository(Message)
     private readonly repos: Repository<Message>,
   ) {
-    this._logger.log(
+    this.logger.log(
       '============== Constructor Message Repository ==============',
     );
   }
@@ -30,20 +30,24 @@ export class MessageRepository {
       newMsg.txId = txId;
       newMsg.typeUrl = msg.typeUrl;
       switch (msg.typeUrl) {
-        case TX_TYPE_URL.SEND:
+        case TxTypeUrl.SEND: {
           newMsg.amount = msg.value.amount ? msg.value.amount[0].amount : null;
           break;
-        case TX_TYPE_URL.MULTI_SEND:
+        }
+        case TxTypeUrl.MULTI_SEND: {
           newMsg.inputs = JSON.stringify(msg.value.inputs);
           newMsg.outputs = JSON.stringify(msg.value.outputs);
           break;
-        case TX_TYPE_URL.DELEGATE:
-        case TX_TYPE_URL.REDELEGATE:
-        case TX_TYPE_URL.UNDELEGATE:
+        }
+        case TxTypeUrl.DELEGATE:
+        case TxTypeUrl.REDELEGATE:
+        case TxTypeUrl.UNDELEGATE: {
           newMsg.amount = msg.value.amount ? msg.value.amount?.amount : null;
           break;
-        default:
+        }
+        default: {
           break;
+        }
       }
       newMsg.voteOption = msg.value.option ? msg.value.option : null;
       newMsg.proposalId = msg.value.proposalId

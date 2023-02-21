@@ -22,12 +22,12 @@ import { plainToInstance } from 'class-transformer';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import {
-  MULTISIG_CONFIRM_STATUS,
-  REGISTRY_GENERATED_TYPES,
-  SAFE_STATUS,
-  TRANSACTION_STATUS,
-  TRANSFER_DIRECTION,
-  TX_TYPE_URL,
+  MultisigConfirmStatus,
+  RegistryGeneratedTypes,
+  SafeStatus,
+  TransactionStatus,
+  TransferDirection,
+  TxTypeUrl,
 } from '../../common/constants/app.constant';
 
 import { makeMultisignedTxEvmos, verifyEvmosSig } from '../../chains/evmos';
@@ -35,7 +35,7 @@ import { CommonUtil } from '../../utils/common.util';
 import { IndexerClient } from '../../utils/apis/indexer-client.service';
 import { Simulate } from '../../simulate';
 import { ConfigService } from '../../shared/services/config.service';
-import { CustomError } from '../../common/customError';
+import { CustomError } from '../../common/custom-error';
 import { CosmosUtil } from '../../chains/cosmos';
 import { MultisigTransactionRepository } from './multisig-transaction.repository';
 import { MultisigConfirmRepository } from '../multisig-confirm/multisig-confirm.repository';
@@ -71,11 +71,11 @@ import { UserInfoDto } from '../auth/dto/user-info.dto';
 
 @Injectable()
 export class MultisigTransactionService {
-  private readonly _logger = new Logger(MultisigTransactionService.name);
+  private readonly logger = new Logger(MultisigTransactionService.name);
 
-  private readonly _commonUtil: CommonUtil = new CommonUtil();
+  private readonly commonUtil: CommonUtil = new CommonUtil();
 
-  private _indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
+  private indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
 
   private readonly utils: CommonUtil = new CommonUtil();
 
@@ -93,7 +93,7 @@ export class MultisigTransactionService {
     private notificationRepo: NotificationRepository,
     private txHistoryRepo: TransactionHistoryRepository,
   ) {
-    this._logger.log(
+    this.logger.log(
       '============== Constructor Multisig Transaction Service ==============',
     );
 
@@ -132,7 +132,7 @@ export class MultisigTransactionService {
       const response = result.map((item) => {
         const updatedItem = item;
         if (item.TypeUrl === null || item.FromAddress !== safeAddress)
-          updatedItem.TypeUrl = TX_TYPE_URL.RECEIVE;
+          updatedItem.TypeUrl = TxTypeUrl.RECEIVE;
 
         updatedItem.Direction = this.getDirection(
           item.TypeUrl,
@@ -156,19 +156,22 @@ export class MultisigTransactionService {
 
   getDirection(typeUrl: string, from: string, safeAddress: string): string {
     switch (typeUrl) {
-      case TX_TYPE_URL.SEND:
-      case TX_TYPE_URL.MULTI_SEND:
+      case TxTypeUrl.SEND:
+      case TxTypeUrl.MULTI_SEND: {
         return from === safeAddress
-          ? TRANSFER_DIRECTION.OUTGOING
-          : TRANSFER_DIRECTION.INCOMING;
-      case TX_TYPE_URL.DELEGATE:
-      case TX_TYPE_URL.REDELEGATE:
-      case TX_TYPE_URL.VOTE:
-        return TRANSFER_DIRECTION.OUTGOING;
-      case TX_TYPE_URL.UNDELEGATE:
-      case TX_TYPE_URL.WITHDRAW_REWARD:
-      default:
-        return TRANSFER_DIRECTION.INCOMING;
+          ? TransferDirection.OUTGOING
+          : TransferDirection.INCOMING;
+      }
+      case TxTypeUrl.DELEGATE:
+      case TxTypeUrl.REDELEGATE:
+      case TxTypeUrl.VOTE: {
+        return TransferDirection.OUTGOING;
+      }
+      case TxTypeUrl.UNDELEGATE:
+      case TxTypeUrl.WITHDRAW_REWARD:
+      default: {
+        return TransferDirection.INCOMING;
+      }
     }
   }
 
@@ -185,10 +188,10 @@ export class MultisigTransactionService {
             tx.TxHash,
           );
         updatedTx.Confirmations = confirmations
-          .filter((x) => x.status === MULTISIG_CONFIRM_STATUS.CONFIRM)
+          .filter((x) => x.status === MultisigConfirmStatus.CONFIRM)
           .map((item) => item.ownerAddress);
         updatedTx.Rejections = confirmations
-          .filter((x) => x.status === MULTISIG_CONFIRM_STATUS.REJECT)
+          .filter((x) => x.status === MultisigConfirmStatus.REJECT)
           .map((item) => item.ownerAddress);
 
         updatedTx.ConfirmationsRequired = threshold;
@@ -274,12 +277,12 @@ export class MultisigTransactionService {
   async deleteTransaction(request: DeleteTxRequestDto): Promise<ResponseDto> {
     try {
       const { id } = request;
-      const authInfo = this._commonUtil.getAuthInfo();
+      const authInfo = this.commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
 
       // check tx status
       const tx = await this.multisigTransactionRepos.getTransactionById(id);
-      if (tx.status !== TRANSACTION_STATUS.AWAITING_CONFIRMATIONS)
+      if (tx.status !== TransactionStatus.AWAITING_CONFIRMATIONS)
         throw new CustomError(ErrorMap.CANNOT_DELETE_TX);
 
       await this.deleteTx(tx, creatorAddress);
@@ -318,7 +321,7 @@ export class MultisigTransactionService {
 
       // get safe info
       const safeInfo = await this.safeRepos.getSafeById(safeId);
-      if (safeInfo.status !== SAFE_STATUS.CREATED)
+      if (safeInfo.status !== SafeStatus.CREATED)
         throw new CustomError(ErrorMap.INVALID_SAFE);
 
       // get chain info
@@ -354,7 +357,7 @@ export class MultisigTransactionService {
       sequence,
     } = request;
     try {
-      const authInfo = this._commonUtil.getAuthInfo();
+      const authInfo = this.commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
 
       // get safe info
@@ -404,7 +407,7 @@ export class MultisigTransactionService {
       transaction.accountNumber = accountInfo.accountNumber;
       transaction.typeUrl = messages[0].typeUrl;
       transaction.denom = chain.denom;
-      transaction.status = TRANSACTION_STATUS.AWAITING_CONFIRMATIONS;
+      transaction.status = TransactionStatus.AWAITING_CONFIRMATIONS;
       transaction.internalChainId = internalChainId;
       transaction.sequence = accountInfo.sequence.toString();
       transaction.safeId = safe.id;
@@ -421,7 +424,7 @@ export class MultisigTransactionService {
 
       // save account number & next queue sequence
       const { sequence: sequenceInIndexer } =
-        await this._indexer.getAccountNumberAndSequence(
+        await this.indexer.getAccountNumberAndSequence(
           chain.chainId,
           safe.safeAddress,
         );
@@ -467,7 +470,7 @@ export class MultisigTransactionService {
         internalChainId,
         sequence,
       } = request;
-      const authInfo = this._commonUtil.getAuthInfo();
+      const authInfo = this.commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
 
       // Connect to chain
@@ -518,14 +521,14 @@ export class MultisigTransactionService {
   ): Promise<ResponseDto> {
     try {
       const { internalChainId, transactionId } = request;
-      const authInfo = this._commonUtil.getAuthInfo();
+      const authInfo = this.commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
 
       const chain = await this.chainRepos.findChain(internalChainId);
       let client: StargateClient;
       try {
         client = await StargateClient.connect(chain.rpc);
-      } catch (error) {}
+      } catch {}
 
       // get tx
       const multisigTransaction =
@@ -548,7 +551,7 @@ export class MultisigTransactionService {
       //   '',
       //   '',
       //   internalChainId,
-      //   MULTISIG_CONFIRM_STATUS.SEND,
+      //   MultisigConfirmStatus.SEND,
       // );
       await this.safeRepos.updateQueuedTag(multisigTransaction.safeId);
 
@@ -558,7 +561,7 @@ export class MultisigTransactionService {
         console.log('Error', error);
         // Update status and txhash
         // TxHash is encoded transaction when send it to network
-        if (typeof error.txId === 'undefined' || error.txId === null) {
+        if (error.txId === undefined || error.txId === null) {
           await this.multisigTransactionRepos.updateFailedTx(
             multisigTransaction,
           );
@@ -626,7 +629,7 @@ export class MultisigTransactionService {
   ): Promise<ResponseDto> {
     const { transactionId, internalChainId } = request;
     try {
-      const authInfo = this._commonUtil.getAuthInfo();
+      const authInfo = this.commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
       // Check status of multisig transaction when reject transaction
       const transaction =
@@ -651,7 +654,7 @@ export class MultisigTransactionService {
       //   '',
       //   '',
       //   request.internalChainId,
-      //   MULTISIG_CONFIRM_STATUS.REJECT,
+      //   MultisigConfirmStatus.REJECT,
       // );
 
       // count number of reject
@@ -696,7 +699,7 @@ export class MultisigTransactionService {
     const { accountNumber, sequence } = accountInfo;
 
     // build stdSignDoc for verify signature
-    const registry = new Registry(REGISTRY_GENERATED_TYPES);
+    const registry = new Registry(RegistryGeneratedTypes);
 
     // stargate@0.28.11
     const aminoTypes = new AminoTypes({
@@ -725,19 +728,13 @@ export class MultisigTransactionService {
 
     // verify signature; if verify fail, throw error
     let resultVerify = false;
-    if (chainId.startsWith('evmos_')) {
-      resultVerify = await verifyEvmosSig(
-        txRawInfo.signature,
-        signDoc,
-        creatorAddress,
-      );
-    } else {
-      resultVerify = await CosmosUtil.verifyCosmosSig(
-        txRawInfo.signature,
-        signDoc,
-        fromBase64(creatorPubkey),
-      );
-    }
+    resultVerify = await (chainId.startsWith('evmos_')
+      ? verifyEvmosSig(txRawInfo.signature, signDoc, creatorAddress)
+      : CosmosUtil.verifyCosmosSig(
+          txRawInfo.signature,
+          signDoc,
+          fromBase64(creatorPubkey),
+        ));
     if (!resultVerify) {
       throw new CustomError(ErrorMap.SIGNATURE_VERIFICATION_FAILED);
     }
@@ -755,7 +752,7 @@ export class MultisigTransactionService {
     denom: string,
     expectedBalance: number,
   ): Promise<boolean> {
-    const accountInfo = await this._indexer.getAccountInfo(chainId, address);
+    const accountInfo = await this.indexer.getAccountInfo(chainId, address);
     const balance = accountInfo.account_balances.filter(
       (item: { denom: string }) => item.denom === denom,
     );
@@ -840,23 +837,21 @@ export class MultisigTransactionService {
     const safePubkey = JSON.parse(safeInfo.safePubkey);
 
     let executeTransaction;
-    if (chainInfo.chainId.startsWith('evmos_')) {
-      executeTransaction = makeMultisignedTxEvmos(
-        safePubkey,
-        Number(multisigTransaction.sequence),
-        sendFee,
-        encodedBodyBytes,
-        addressSignarureMap,
-      );
-    } else {
-      executeTransaction = makeMultisignedTx(
-        safePubkey,
-        Number(multisigTransaction.sequence),
-        sendFee,
-        encodedBodyBytes,
-        addressSignarureMap,
-      );
-    }
+    executeTransaction = chainInfo.chainId.startsWith('evmos_')
+      ? makeMultisignedTxEvmos(
+          safePubkey,
+          Number(multisigTransaction.sequence),
+          sendFee,
+          encodedBodyBytes,
+          addressSignarureMap,
+        )
+      : makeMultisignedTx(
+          safePubkey,
+          Number(multisigTransaction.sequence),
+          sendFee,
+          encodedBodyBytes,
+          addressSignarureMap,
+        );
 
     const encodeTransaction = Uint8Array.from(
       TxRaw.encode(executeTransaction).finish(),
@@ -867,9 +862,10 @@ export class MultisigTransactionService {
   calculateAmount(aminoMsgs: AminoMsg[]): number {
     return aminoMsgs.reduce((acc, cur) => {
       switch (true) {
-        case isAminoMsgSend(cur):
+        case isAminoMsgSend(cur): {
           return acc + Number(cur.value.amount[0].amount);
-        case isAminoMsgMultiSend(cur):
+        }
+        case isAminoMsgMultiSend(cur): {
           return (
             acc +
             cur.value.outputs.reduce(
@@ -877,12 +873,15 @@ export class MultisigTransactionService {
               0,
             )
           );
+        }
         case isAminoMsgDelegate(cur):
         case isAminoMsgBeginRedelegate(cur):
-        case isAminoMsgUndelegate(cur):
+        case isAminoMsgUndelegate(cur): {
           return acc + Number(cur.value.amount.amount);
-        default:
+        }
+        default: {
           return acc;
+        }
       }
     }, 0);
   }
@@ -921,24 +920,13 @@ export class MultisigTransactionService {
       // get multisig tx from db
       const txDetail = await this.getTxFromDB(multisigTxId, auraTxId);
 
-      if (!txDetail.MultisigTxId) {
-        // case: receive token from other wallet
-        const messages = await this.messageRepos.getMsgsByAuraTxId(
-          txDetail.AuraTxId,
-        );
-        txDetail.Messages = plainToInstance(
-          TxMessageResponseDto,
-          messages.map((msg) => this.utils.omitByNil(msg)),
-        );
-
-        txDetail.Status = this.parseStatus(txDetail.Status);
-      } else {
+      if (txDetail.MultisigTxId) {
         // get confirmations
         const confirmations =
           await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
             txDetail.MultisigTxId,
             null,
-            MULTISIG_CONFIRM_STATUS.CONFIRM,
+            MultisigConfirmStatus.CONFIRM,
           );
 
         // get rejections
@@ -946,7 +934,7 @@ export class MultisigTransactionService {
           await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
             txDetail.MultisigTxId,
             null,
-            MULTISIG_CONFIRM_STATUS.REJECT,
+            MultisigConfirmStatus.REJECT,
           );
 
         // get execution info
@@ -954,7 +942,7 @@ export class MultisigTransactionService {
           await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
             txDetail.MultisigTxId,
             null,
-            MULTISIG_CONFIRM_STATUS.SEND,
+            MultisigConfirmStatus.SEND,
           );
 
         // get messages & auto claim amount
@@ -973,6 +961,17 @@ export class MultisigTransactionService {
         txDetail.Executor = executors[0];
 
         txDetail.AutoClaimAmount = this.calculateAutoClaimAmount(autoClaimMsgs);
+      } else {
+        // case: receive token from other wallet
+        const messages = await this.messageRepos.getMsgsByAuraTxId(
+          txDetail.AuraTxId,
+        );
+        txDetail.Messages = plainToInstance(
+          TxMessageResponseDto,
+          messages.map((msg) => this.utils.omitByNil(msg)),
+        );
+
+        txDetail.Status = this.parseStatus(txDetail.Status);
       }
 
       // get signed info
@@ -991,10 +990,10 @@ export class MultisigTransactionService {
   ) {
     return multisigMsgs.map((msg) => {
       // get amount from auraTx tbl when msg type is withdraw reward
-      if (msg.typeUrl === TX_TYPE_URL.WITHDRAW_REWARD) {
+      if (msg.typeUrl === TxTypeUrl.WITHDRAW_REWARD) {
         const withdrawMsg = autoClaimMsgs.filter(
           (x) =>
-            x.typeUrl === TX_TYPE_URL.WITHDRAW_REWARD &&
+            x.typeUrl === TxTypeUrl.WITHDRAW_REWARD &&
             x.fromAddress === msg.validatorAddress,
         );
         if (withdrawMsg.length > 0) msg.amount = withdrawMsg[0].amount;
@@ -1006,9 +1005,9 @@ export class MultisigTransactionService {
   calculateAutoClaimAmount(autoClaimMsgs: TxMessageResponseDto[]): number {
     return autoClaimMsgs.reduce((totalAmount, item) => {
       const ignoreTypeUrl = [
-        TX_TYPE_URL.SEND.toString(),
-        TX_TYPE_URL.MULTI_SEND.toString(),
-        TX_TYPE_URL.WITHDRAW_REWARD.toString(),
+        TxTypeUrl.SEND.toString(),
+        TxTypeUrl.MULTI_SEND.toString(),
+        TxTypeUrl.WITHDRAW_REWARD.toString(),
       ];
       if (ignoreTypeUrl.includes(item.typeUrl)) {
         return totalAmount;
@@ -1019,8 +1018,8 @@ export class MultisigTransactionService {
 
   parseStatus(status: string): string {
     return Number(status) === 0
-      ? TRANSACTION_STATUS.SUCCESS
-      : TRANSACTION_STATUS.FAILED;
+      ? TransactionStatus.SUCCESS
+      : TransactionStatus.FAILED;
   }
 
   async getTxFromDB(
@@ -1058,7 +1057,7 @@ export class MultisigTransactionService {
       return accountInfo;
     }
 
-    const account = await this._indexer.getAccountNumberAndSequence(
+    const account = await this.indexer.getAccountNumberAndSequence(
       chainId,
       safe.safeAddress,
     );

@@ -11,7 +11,7 @@ import { fromBase64, toBase64 } from '@cosmjs/encoding';
 import { OwnerSimulate } from './owner.simulate';
 import { SimulateUtils } from './utils';
 import { IndexerClient } from '../utils/apis/indexer-client.service';
-import { TX_TYPE_URL } from '../common/constants/app.constant';
+import { TxTypeUrl } from '../common/constants/app.constant';
 import { makeMultisignedTxEvmos } from '../chains/evmos';
 import { Chain } from '../modules/chain/entities/chain.entity';
 
@@ -107,17 +107,20 @@ export class SafeSimulate {
     const updatedEncodeMsgs = encodeMsgs.map((msg) => {
       const updatedMsg = msg;
       switch (msg.typeUrl) {
-        case TX_TYPE_URL.SEND:
+        case TxTypeUrl.SEND: {
           simulateAuthInfo = this.authInfo;
           updatedMsg.value.fromAddress = this.address;
           updatedMsg.value.amount = coins(1, msg.value.amount[0].denom);
           break;
-        case TX_TYPE_URL.VOTE:
+        }
+        case TxTypeUrl.VOTE: {
           simulateAuthInfo = this.authInfo;
           updatedMsg.value.voter = this.address;
           break;
-        default:
+        }
+        default: {
           break;
+        }
       }
       return updatedMsg;
     });

@@ -75,13 +75,8 @@ export class TxDetailDto {
     example: [
       {
         typeUrl: '/cosmos.staking.v1beta1.MsgDelegate',
-        fromAddress: null,
-        toAddress: null,
-        amount: null,
         delegatorAddress: 'aura1nqw4cla0k49yfzpa6afl32hracut6tvwldmuuk',
         validatorAddress: 'auravaloper1d3n0v5f23sqzkhlcnewhksaj8l3x7jeyu938gx',
-        validatorSrcAddress: null,
-        validatorDstAddress: null,
       },
     ],
   })

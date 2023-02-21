@@ -12,9 +12,9 @@ import { User } from '../user/entities/user.entity';
 
 @Injectable()
 export class NotifyProposalJob {
-  private readonly _logger = new Logger(NotifyProposalJob.name);
+  private readonly logger = new Logger(NotifyProposalJob.name);
 
-  private _indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
+  private indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
 
   constructor(
     private configService: ConfigService,
@@ -22,7 +22,7 @@ export class NotifyProposalJob {
     private readonly chainRepo: ChainRepository,
     private readonly notificationRepo: NotificationRepository,
   ) {
-    this._logger.log(
+    this.logger.log(
       '============== Constructor Notify Proposal Job ==============',
     );
   }
@@ -35,7 +35,9 @@ export class NotifyProposalJob {
 
     // Get latest proposal
     const latestProposals = await Promise.all(
-      supportedChains.map((chain) => this._indexer.getProposalsByChainId(chain.chainId)),
+      supportedChains.map((chain) =>
+        this.indexer.getProposalsByChainId(chain.chainId),
+      ),
     );
 
     // Get proposal in voting period
@@ -56,23 +58,23 @@ export class NotifyProposalJob {
     const users: User[] = await this.userRepo.getAllUser();
 
     // Make notification templates
-    const templates = inVotingProposal.map((proposal) => 
+    const templates = inVotingProposal.map((proposal) =>
       // Create template notification
-       Notification.newProposalNotification(
+      Notification.newProposalNotification(
         Number(proposal.proposal_id),
         proposal.content.title,
         proposal.voting_end_time,
         supportedChains.find(
           (chain) => chain.chainId === proposal.custom_info.chain_id,
         ).id,
-      )
+      ),
     );
 
     // Must send a notification to the safe owner by a chain instead of reporting to all user
     // Notify to all users
     templates.forEach(async (template) => {
       const notifications = users.map((user) => {
-        const newNotification = { ...template};
+        const newNotification = { ...template };
         newNotification.userId = user.id;
         return plainToInstance(Notification, newNotification);
       });
@@ -81,7 +83,7 @@ export class NotifyProposalJob {
       const result = await this.notificationRepo.saveNotification(
         notifications,
       );
-      this._logger.log(
+      this.logger.log(
         `Notified proposal ${template.proposalNumber} to ${result.length} users successfully!`,
       );
     });

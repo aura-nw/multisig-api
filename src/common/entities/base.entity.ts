@@ -18,11 +18,3 @@ export class BaseEntity {
   })
   updatedAt: Date;
 }
-export class BaseEntityId extends BaseEntity {
-  @PrimaryColumn({ name: 'Id' })
-  id: string;
-}
-export class BaseEntityAutoId extends BaseEntity {
-  @PrimaryGeneratedColumn('increment', { name: 'Id' })
-  id: number;
-}

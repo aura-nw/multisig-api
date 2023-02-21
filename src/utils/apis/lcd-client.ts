@@ -1,4 +1,4 @@
-import { CustomError } from '../../common/customError';
+import { CustomError } from '../../common/custom-error';
 import { ErrorMap } from '../../common/error.map';
 import { SimulateResponse } from '../../simulate/dtos/simulate-response';
 import { ConfigService } from '../../shared/services/config.service';
@@ -25,10 +25,7 @@ export class LcdClient {
         gasUsed: simulateRes.gas_info?.gas_used || 0,
       };
     } catch (error) {
-      throw new CustomError(
-        ErrorMap.TX_SIMULATION_FAILED,
-        `${error.message} ${error.msg}`,
-      );
+      throw CustomError.fromUnknown(ErrorMap.TX_SIMULATION_FAILED, error);
     }
   }
 }
