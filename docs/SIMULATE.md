@@ -1,6 +1,6 @@
 # For Simulate Tx
 
-Automatically estimate gas by simulate transaction. Support Pyxis Safe that has up to 20 owners. Return how much gas will pay for the transaction.
+Automatically estimate gas by simulate transaction. Support Pyxis Safe which has up to 20 owners. Return how much gas will pay for the transaction.
 
 # How to use
 
@@ -42,7 +42,7 @@ Automatically estimate gas by simulate transaction. Support Pyxis Safe that has 
   }
   ```
 
-  Replace `internalChainId=22` by the internal id of chain you want. You can get all chain info by calling API `/general/network-list`
+  Replace `internalChainId=22` with the internal id of the chain you want. You can get all chain info by calling API `/general/network-list`
 
 - Send at least 1 with smallest denomination to all addresses above. You can use multi-send feature in [Pyxis-Safe](https://test.pyxis.aura.network/)
 

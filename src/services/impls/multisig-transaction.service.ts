@@ -38,7 +38,6 @@ import {
   IMultisigWalletOwnerRepository,
   IMultisigWalletRepository,
 } from '../../repositories';
-import { makeMultisignedTxEvmos, verifyEvmosSig } from '../../chains/evmos';
 import { CommonUtil } from '../../utils/common.util';
 import { AminoMsg, makeSignDoc } from '@cosmjs/amino';
 import { IndexerClient } from '../../utils/apis/IndexerClient';
@@ -49,6 +48,7 @@ import { CustomError } from '../../common/customError';
 import { AccountInfo, TxRawInfo } from '../../dtos/requests';
 import { UserInfo } from '../../dtos/userInfo';
 import { CosmosUtil } from '../../chains/cosmos';
+import { EthermintHelper } from '../../chains/ethermint/ethermint.helper';
 
 @Injectable()
 export class MultisigTransactionService
@@ -59,6 +59,8 @@ export class MultisigTransactionService
   private readonly _commonUtil: CommonUtil = new CommonUtil();
   private _indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
   private _simulate: Simulate;
+
+  private ethermintHelper = new EthermintHelper();
 
   constructor(
     private configService: ConfigService,
@@ -558,6 +560,12 @@ export class MultisigTransactionService
       // update queued tag
       await this.safeRepos.updateQueuedTag(transaction.safeId);
 
+      // Update next seq
+      await this.updateNextSeqAfterDeleteTx(
+        transaction.safeId,
+        transaction.internalChainId,
+      );
+
       return ResponseDto.response(ErrorMap.SUCCESSFUL);
     } catch (error) {
       return ResponseDto.responseError(MultisigTransactionService.name, error);
@@ -578,7 +586,8 @@ export class MultisigTransactionService
     const bodyBytesEncode = fromBase64(txRawInfo.bodyBytes);
     const { memo, messages } = TxBody.decode(bodyBytesEncode);
 
-    const { accountNumber, sequence } = accountInfo;
+    const sequence = decodedAuthInfo.signerInfos[0]?.sequence.toNumber();
+    const { accountNumber } = accountInfo;
 
     // build stdSignDoc for verify signature
     const registry = new Registry(REGISTRY_GENERATED_TYPES);
@@ -610,11 +619,12 @@ export class MultisigTransactionService
 
     // verify signature; if verify fail, throw error
     let resultVerify = false;
-    if (chainId.startsWith('evmos_')) {
-      resultVerify = await verifyEvmosSig(
+    if (chain.coinDecimals === 18) {
+      resultVerify = await this.ethermintHelper.verifySignature(
         txRawInfo.signature,
         signDoc,
         creatorAddress,
+        prefix,
       );
     } else {
       resultVerify = await CosmosUtil.verifyCosmosSig(
@@ -748,8 +758,8 @@ export class MultisigTransactionService
     const safePubkey = JSON.parse(safeInfo.safePubkey);
 
     let executeTransaction;
-    if (chainInfo.chainId.startsWith('evmos_')) {
-      executeTransaction = makeMultisignedTxEvmos(
+    if (chainInfo.coinDecimals === 18) {
+      executeTransaction = this.ethermintHelper.makeMultisignedTxEthermint(
         safePubkey,
         Number(multisigTransaction.sequence),
         sendFee,
