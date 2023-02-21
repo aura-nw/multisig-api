@@ -21,13 +21,3 @@ export class SimulateTxRequestDto {
   })
   safeId: number;
 }
-
-export class GetSimulateAddressQueryDto {
-  @IsNumber()
-  @ApiProperty({
-    description: 'Offchain Chain Id',
-    example: 22,
-  })
-  @Type(() => Number)
-  internalChainId: number;
-}

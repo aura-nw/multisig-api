@@ -130,22 +130,23 @@ export class MultisigTransactionService {
         result = await this.getConfirmationStatus(txs, safe[0].threshold);
       }
       const response = result.map((item) => {
+        const updatedItem = item;
         if (item.TypeUrl === null || item.FromAddress !== safeAddress)
-          item.TypeUrl = TX_TYPE_URL.RECEIVE;
+          updatedItem.TypeUrl = TX_TYPE_URL.RECEIVE;
 
-        item.Direction = this.getDirection(
+        updatedItem.Direction = this.getDirection(
           item.TypeUrl,
           item.FromAddress,
           safeAddress,
         );
 
-        item.FinalAmount =
+        updatedItem.FinalAmount =
           item.MultisigTxAmount || item.AuraTxAmount || item.AuraTxRewardAmount;
 
         if (!Number.isNaN(Number(item.Status))) {
-          item.Status = this.parseStatus(item.Status);
+          updatedItem.Status = this.parseStatus(item.Status);
         }
-        return item;
+        return updatedItem;
       });
       return ResponseDto.response(ErrorMap.SUCCESSFUL, response);
     } catch (error) {
@@ -177,20 +178,21 @@ export class MultisigTransactionService {
   ) {
     const result = await Promise.all(
       txs.map(async (tx) => {
+        const updatedTx = tx;
         const confirmations: any[] =
           await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
             tx.MultisigTxId,
             tx.TxHash,
           );
-        tx.Confirmations = confirmations
+        updatedTx.Confirmations = confirmations
           .filter((x) => x.status === MULTISIG_CONFIRM_STATUS.CONFIRM)
           .map((item) => item.ownerAddress);
-        tx.Rejections = confirmations
+        updatedTx.Rejections = confirmations
           .filter((x) => x.status === MULTISIG_CONFIRM_STATUS.REJECT)
           .map((item) => item.ownerAddress);
 
-        tx.ConfirmationsRequired = threshold;
-        return tx;
+        updatedTx.ConfirmationsRequired = threshold;
+        return updatedTx;
       }),
     );
     return result;
@@ -415,14 +417,7 @@ export class MultisigTransactionService {
       await this.messageRepos.saveMsgs(transactionResult.id, messages);
 
       // confirm tx
-      await this.confirmTx(
-        transactionResult,
-        creatorAddress,
-        signature,
-        bodyBytes,
-        internalChainId,
-        safe,
-      );
+      await this.confirmTx(transactionResult, internalChainId, safe);
 
       // save account number & next queue sequence
       const { sequence: sequenceInIndexer } =
@@ -510,14 +505,7 @@ export class MultisigTransactionService {
       //   internalChainId,
       // );
 
-      await this.confirmTx(
-        pendingTx,
-        creatorAddress,
-        signature,
-        bodyBytes,
-        internalChainId,
-        safe,
-      );
+      await this.confirmTx(pendingTx, internalChainId, safe);
 
       return ResponseDto.response(ErrorMap.SUCCESSFUL);
     } catch (error) {
@@ -769,7 +757,7 @@ export class MultisigTransactionService {
   ): Promise<boolean> {
     const accountInfo = await this._indexer.getAccountInfo(chainId, address);
     const balance = accountInfo.account_balances.filter(
-      (item) => item.denom === denom,
+      (item: { denom: string }) => item.denom === denom,
     );
     if (Number(balance.amount) < expectedBalance) {
       throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
@@ -779,28 +767,9 @@ export class MultisigTransactionService {
 
   private async confirmTx(
     transaction: MultisigTransaction,
-    ownerAddress: string,
-    signature: string,
-    bodyBytes: string,
     internalChainId: number,
     safe: Safe,
   ) {
-    // if user has confirmed transaction before then return
-    // await this.multisigConfirmRepos.checkUserHasSigned(
-    //   transaction.id,
-    //   ownerAddress,
-    // );
-
-    // insert into multisig confirm table
-    // await this.multisigConfirmRepos.insertIntoMultisigConfirm(
-    //   transaction.id,
-    //   ownerAddress,
-    //   signature,
-    //   bodyBytes,
-    //   internalChainId,
-    //   MULTISIG_CONFIRM_STATUS.CONFIRM,
-    // );
-
     // update tx status to waiting execute if all owner has confirmed
     const awaitingExecutionTx =
       await this.multisigTransactionRepos.updateAwaitingExecutionTx(

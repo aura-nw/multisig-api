@@ -11,8 +11,7 @@ import { ErrorMap } from '../../common/error.map';
 import { SafeRepository } from '../safe/safe.repository';
 import { MultisigTransaction } from './entities/multisig-transaction.entity';
 import { AuraTx } from '../aura-tx/entities/aura-tx.entity';
-import { Chain } from '../chain/entities/chain.entity';
-import { TxDetailDto, TxDetailResponse } from './dto/response/tx-detail.res';
+import { TxDetailDto } from './dto/response/tx-detail.res';
 import { MultisigTransactionHistoryResponseDto } from './dto';
 
 @Injectable()
@@ -55,8 +54,9 @@ export class MultisigTransactionRepository {
    * @param tx
    */
   async updateFailedTx(tx: MultisigTransaction): Promise<void> {
-    tx.status = TRANSACTION_STATUS.FAILED;
-    await this.repo.save(tx);
+    const updatedTx = tx;
+    updatedTx.status = TRANSACTION_STATUS.FAILED;
+    await this.repo.save(updatedTx);
   }
 
   /**
@@ -199,7 +199,7 @@ export class MultisigTransactionRepository {
   async updateAwaitingExecutionTx(
     multisigTxId: number,
     safeId: number,
-  ): Promise<void> {
+  ): Promise<MultisigTransaction> {
     const isExecutable = await this.isExecutable(multisigTxId, safeId);
     if (!isExecutable) return;
 
@@ -208,7 +208,7 @@ export class MultisigTransactionRepository {
     });
     transaction.status = TRANSACTION_STATUS.AWAITING_EXECUTION;
 
-    await this.repo.save(transaction);
+    return this.repo.save(transaction);
   }
 
   async getMultisigTxId(internalTxHash: string) {
@@ -239,45 +239,6 @@ export class MultisigTransactionRepository {
       .getRawOne();
 
     return plainToInstance(TxDetailDto, tx);
-  }
-
-  async getTransactionDetailsMultisigTransaction(
-    condition: any,
-  ): Promise<TxDetailResponse> {
-    const param = condition.txHash ? condition.txHash : condition.id;
-    const sqlQuerry = this.repo
-      .createQueryBuilder('multisigTransaction')
-      .innerJoin(
-        Chain,
-        'chain',
-        'multisigTransaction.internalChainId = chain.id',
-      )
-      .select([
-        'multisigTransaction.id as Id',
-        'multisigTransaction.createdAt as CreatedAt',
-        'multisigTransaction.updatedAt as UpdatedAt',
-        'multisigTransaction.fromAddress as FromAddress',
-        'multisigTransaction.toAddress as ToAddress',
-        'multisigTransaction.txHash as TxHash',
-        'multisigTransaction.amount as Amount',
-        'multisigTransaction.denom as Denom',
-        'multisigTransaction.status as Status',
-        'multisigTransaction.gas as GasWanted',
-        'multisigTransaction.fee as GasPrice',
-        'chain.chainId as ChainId',
-      ]);
-    if (condition.txHash)
-      sqlQuerry.where('multisigTransaction.txHash = :param', { param });
-    else sqlQuerry.where('multisigTransaction.id = :param', { param });
-    const result = await sqlQuerry.getRawOne();
-
-    if (result) {
-      const txDetail = plainToInstance(TxDetailResponse, result);
-      txDetail.Direction = TRANSFER_DIRECTION.OUTGOING;
-
-      return txDetail;
-    }
-    return result;
   }
 
   async getQueueTransaction(
