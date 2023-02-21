@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { ValidatorVoteDetail } from './validator-vote-detail.dto';
 
 export class GetValidatorVotesByProposalIdResponseDto {
   @ApiProperty({
@@ -27,22 +28,10 @@ export class GetValidatorVotesByProposalIdResponseDto {
       },
     ],
   })
-  votes: GetValidatorVotesVote[];
+  votes: ValidatorVoteDetail[];
 
   @ApiProperty({
     example: 'aura1trqfuz89vxe745lmn2yfedt7d4xnpcpvltc86e',
   })
   nextKey: string;
-}
-
-export class GetValidatorVotesVote {
-  validator: string;
-
-  txHash: string;
-
-  answer: string;
-
-  time: string;
-
-  percentVotingPower: number;
 }
