@@ -1,7 +1,7 @@
 import { Column, Entity } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
-import { BaseEntityAutoId } from '../../../common/base.entity';
-import { SAFE_STATUS } from '../../../common/constants/app.constant';
+import { BaseEntityAutoId } from '../../../common/entities';
+import { SafeStatus } from '../../../common/constants/app.constant';
 import { CommonUtil } from '../../../utils/common.util';
 
 @Entity({ name: 'Safe' })
@@ -66,7 +66,7 @@ export class Safe extends BaseEntityAutoId {
     if (ownerPubKeys.length !== totalOwners) {
       return plainToInstance(Safe, {
         threshold,
-        status: SAFE_STATUS.PENDING,
+        status: SafeStatus.PENDING,
       });
     }
 
@@ -80,7 +80,7 @@ export class Safe extends BaseEntityAutoId {
       safeAddress: address,
       safePubkey: pubkey,
       threshold,
-      status: SAFE_STATUS.CREATED,
+      status: SafeStatus.CREATED,
     });
   }
 

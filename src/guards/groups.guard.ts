@@ -3,10 +3,10 @@ import { Reflector } from '@nestjs/core';
 
 @Injectable()
 export class GroupsGuard implements CanActivate {
-  constructor(private readonly _reflector: Reflector) {}
+  constructor(private readonly reflector: Reflector) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const roles = this._reflector.get<string[]>('roles', context.getHandler());
+    const roles = this.reflector.get<string[]>('roles', context.getHandler());
 
     if (!roles) {
       return true;

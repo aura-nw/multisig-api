@@ -5,7 +5,7 @@ import { ConfigService } from './shared/services/config.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  public readonly _logger = new Logger(JwtStrategy.name);
+  public readonly logger = new Logger(JwtStrategy.name);
 
   constructor(private configService: ConfigService) {
     super({
@@ -17,7 +17,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: any) {
     try {
-      const {data} = payload;
+      const { data } = payload;
       const timestampExpire = new Date(
         Number(data) +
           1000 *
@@ -29,7 +29,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       }
       return payload;
     } catch (error) {
-      this._logger.error(error);
+      this.logger.error(error);
       throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
     }
   }

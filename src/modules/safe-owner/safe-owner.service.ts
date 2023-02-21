@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import {
-  SAFE_OWNER_STATUS,
-  SAFE_STATUS,
+  SafeOwnerStatus,
+  SafeStatus,
 } from '../../common/constants/app.constant';
 import { ErrorMap } from '../../common/error.map';
 import { ResponseDto } from '../../common/dtos/response.dto';
@@ -38,13 +38,13 @@ export class SafeOwnerService {
       const listSafe = plainToInstance(ListSafeByOwnerResponseDto, result);
       const response = listSafe.map((res) => {
         if (
-          res.status === SAFE_STATUS.PENDING &&
+          res.status === SafeStatus.PENDING &&
           res.creatorAddress !== res.ownerAddress
         ) {
           res.status =
             res.ownerPubkey === null
-              ? SAFE_OWNER_STATUS.NEED_CONFIRM
-              : SAFE_OWNER_STATUS.CONFIRMED;
+              ? SafeOwnerStatus.NEED_CONFIRM
+              : SafeOwnerStatus.CONFIRMED;
         }
         return res;
       });

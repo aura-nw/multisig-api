@@ -6,15 +6,13 @@ import { Gas } from './entities/gas.entity';
 
 @Injectable()
 export class GasRepository {
-  private readonly _logger = new Logger(GasRepository.name);
+  private readonly logger = new Logger(GasRepository.name);
 
   constructor(
     @InjectRepository(Gas)
     public readonly repos: Repository<Gas>,
   ) {
-    this._logger.log(
-      '============== Constructor Gas Repository ==============',
-    );
+    this.logger.log('============== Constructor Gas Repository ==============');
   }
 
   /**

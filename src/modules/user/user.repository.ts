@@ -1,19 +1,19 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
-import { CustomError } from '../../common/customError';
+import { CustomError } from '../../common/custom-error';
 import { ErrorMap } from '../../common/error.map';
 import { User } from './entities/user.entity';
 
 @Injectable()
 export class UserRepository {
-  private readonly _logger = new Logger(UserRepository.name);
+  private readonly logger = new Logger(UserRepository.name);
 
   constructor(
     @InjectRepository(User)
     private readonly repo: Repository<User>,
   ) {
-    this._logger.log(
+    this.logger.log(
       '============== Constructor User Repository ==============',
     );
   }

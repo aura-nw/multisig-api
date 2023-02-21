@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
 import { Repository } from 'typeorm';
-import { TRANSACTION_STATUS } from '../../common/constants/app.constant';
+import { TransactionStatus } from '../../common/constants/app.constant';
 import { MultisigTransactionHistoryResponseDto } from '../multisig-transaction/dto';
 import { TransactionHistory } from './entities/transaction-history.entity';
 
@@ -40,8 +40,9 @@ export class TransactionHistoryRepository {
     // query transactions from aura_tx
     // set direction of transaction
 
-    const result: any[] = await this.repos.query(
-      `
+    const txs = await this.repos
+      .query(
+        `
       SELECT AT.Id as AuraTxId, MT.Id as MultisigTxId, AT.TxHash as TxHash, MT.TypeUrl as TypeUrl, AT.FromAddress as FromAddress, AT.Amount as AuraTxAmount, AT.RewardAmount as AuraTxRewardAmount, MT.Amount as MultisigTxAmount, AT.Code as Status, MT.Sequence as Sequence, AT.CreatedAt as CreatedAt, AT.UpdatedAt as UpdatedAt 
       FROM TransactionHistory TH
         INNER JOIN AuraTx AT on TH.TxHash = AT.TxHash
@@ -57,22 +58,24 @@ export class TransactionHistoryRepository {
       ORDER BY UpdatedAt DESC
       LIMIT ? OFFSET ?;
       `,
-      [
-        internalChainId,
-        safeAddress,
-        internalChainId,
-        safeAddress,
-        TRANSACTION_STATUS.CANCELLED,
-        TRANSACTION_STATUS.SUCCESS,
-        TRANSACTION_STATUS.FAILED,
-        TRANSACTION_STATUS.REPLACED,
-        TRANSACTION_STATUS.DELETED,
-        limit,
-        offset,
-      ],
-    );
+        [
+          internalChainId,
+          safeAddress,
+          internalChainId,
+          safeAddress,
+          TransactionStatus.CANCELLED,
+          TransactionStatus.SUCCESS,
+          TransactionStatus.FAILED,
+          TransactionStatus.REPLACED,
+          TransactionStatus.DELETED,
+          limit,
+          offset,
+        ],
+      )
+      .then((res) =>
+        plainToInstance(MultisigTransactionHistoryResponseDto, res),
+      );
 
-    const txs = plainToInstance(MultisigTransactionHistoryResponseDto, result);
     return txs;
   }
 }

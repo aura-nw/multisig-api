@@ -4,7 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { encodeSecp256k1Pubkey, pubkeyToAddress } from '@cosmjs/amino';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
-import { CustomError } from '../../common/customError';
+import { CustomError } from '../../common/custom-error';
 import {
   AppConstants,
   COMMON_CONSTANTS,
@@ -20,16 +20,16 @@ import { AuthUtil } from '../../utils/auth.util';
 
 @Injectable()
 export class AuthService {
-  private readonly _logger = new Logger(AuthService.name);
+  private readonly logger = new Logger(AuthService.name);
 
-  private static _authUserKey = AppConstants.USER_KEY;
+  private static authUserKey = AppConstants.USER_KEY;
 
   constructor(
     private jwtService: JwtService,
     private chainRepo: ChainRepository,
     private userRepo: UserRepository,
   ) {
-    this._logger.log('============== Constructor Auth Service ==============');
+    this.logger.log('============== Constructor Auth Service ==============');
   }
 
   /**
@@ -52,11 +52,11 @@ export class AuthService {
 
       // Find chain
       const chainInfo = await this.chainRepo.findChain(internalChainId);
-      const { prefix } = chainInfo;
+      const { prefix, chainId } = chainInfo;
 
       let address = '';
       let resultVerify = false;
-      if (chainInfo.chainId.startsWith('evmos_')) {
+      if (chainId.startsWith('evmos_')) {
         // get address from pubkey
         address = pubkeyToAddressEvmos(pubkey);
         // create message hash from data
@@ -106,7 +106,7 @@ export class AuthService {
    * @returns
    */
   static getAuthUser() {
-    return ContextService.get(AuthService._authUserKey);
+    return ContextService.get(AuthService.authUserKey);
   }
 
   /**
@@ -114,6 +114,6 @@ export class AuthService {
    * @param user
    */
   static setAuthUser(user: UserInfoDto) {
-    ContextService.set(AuthService._authUserKey, user);
+    ContextService.set(AuthService.authUserKey, user);
   }
 }

@@ -1,5 +1,6 @@
 import { Coin } from '@cosmjs/stargate';
 import { ApiProperty } from '@nestjs/swagger';
+import { DelegationDetailDto } from './delegation-detail.res';
 
 export class GetDelegationsResponseDto {
   @ApiProperty({
@@ -36,7 +37,7 @@ export class GetDelegationsResponseDto {
       },
     ],
   })
-  delegations: GetDelegationsDelegationDto[];
+  delegations: DelegationDetailDto[];
 
   @ApiProperty({
     example: {
@@ -55,20 +56,5 @@ export class GetDelegationsResponseDto {
   total: {
     staked: Coin;
     reward: Coin[];
-  };
-}
-
-export class GetDelegationsDelegationDto {
-  // name: string;
-  operatorAddress: string;
-
-  balance: {
-    denom: string;
-    amount: string;
-  };
-
-  reward: {
-    denom: string;
-    amount: string;
   };
 }

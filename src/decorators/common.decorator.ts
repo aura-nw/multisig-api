@@ -66,18 +66,19 @@ export function CommonDelete(options: Options) {
 export function Common(
   summary: string,
   description?: string,
-  apiOkResponseOptions: ApiResponseOptions = {
-    status: 200,
-    type: SwaggerBaseApiResponse(ResponseDto),
-    description: 'The result returned is the ResponseDto class',
-    schema: {},
-  },
+  apiOkResponseOptions?: ApiResponseOptions,
 ) {
   return applyDecorators(
     ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} }),
     HttpCode(HttpStatus.OK),
     ApiOperation({ summary, description }),
-    ApiOkResponse(apiOkResponseOptions),
+    ApiOkResponse({
+      status: 200,
+      type: SwaggerBaseApiResponse(ResponseDto),
+      description: 'The result returned is the ResponseDto class',
+      schema: {},
+      ...apiOkResponseOptions,
+    }),
   );
 }
 

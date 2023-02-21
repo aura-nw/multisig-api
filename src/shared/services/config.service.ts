@@ -1,9 +1,9 @@
 import { JwtModuleOptions } from '@nestjs/jwt';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import * as dotenv from 'dotenv';
-import { DATABASE_TYPE } from '../../common/constants/app.constant';
+import { DatabaseType } from '../../common/constants/app.constant';
 
-import { PascalCaseStrategy } from '../pascalCase.strategy';
+import { PascalCaseStrategy } from '../pascal-case.strategy';
 
 export class ConfigService {
   constructor() {
@@ -12,9 +12,14 @@ export class ConfigService {
     });
 
     // Replace \\n with \n to support multiline strings in AWS
-    for (const envName of Object.keys(process.env)) {
-      process.env[envName] = process.env[envName].replace(/\\n/g, '\n');
-    }
+    // for (const envName of Object.keys(process.env)) {
+    //   process.env[envName] = process.env[envName].replace(/\\n/g, '\n');
+    // }
+
+    // Replace \\n with \n to support multiline strings in AWS
+    Object.keys(process.env).forEach((key) => {
+      process.env[key] = process.env[key].replace(/\\n/g, '\n');
+    });
   }
 
   get isDevelopment(): boolean {
@@ -46,13 +51,13 @@ export class ConfigService {
   }
 
   get typeOrmConfig(): TypeOrmModuleOptions {
-    const entities = [`${__dirname  }/../../entities/**/*.entity{.ts,.js}`];
-    const migrations = [`${__dirname  }/../../migrations/*{.ts,.js}`];
+    const entities = [`${__dirname}/../../entities/**/*.entity{.ts,.js}`];
+    const migrations = [`${__dirname}/../../migrations/*{.ts,.js}`];
 
     return {
       entities,
       migrations,
-      type: DATABASE_TYPE.MYSQL,
+      type: DatabaseType.MYSQL,
       host: this.get('DB_HOST'),
       port: this.getNumber('DB_PORT'),
       username: this.get('DB_USERNAME'),
@@ -77,4 +82,4 @@ export class ConfigService {
   }
 }
 
-export const {ENV_CONFIG} = new ConfigService();
+export const { ENV_CONFIG } = new ConfigService();

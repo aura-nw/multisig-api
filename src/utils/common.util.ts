@@ -24,8 +24,8 @@ import {
   createMultisigThresholdPubkeyEvmos,
   encodeAminoPubkeySupportEvmos,
 } from '../chains/evmos';
-import { PUBKEY_TYPES } from '../common/constants/app.constant';
-import { CustomError } from '../common/customError';
+import { PubkeyTypes } from '../common/constants/app.constant';
+import { CustomError } from '../common/custom-error';
 import { ErrorMap } from '../common/error.map';
 import { AuthService } from '../modules/auth/auth.service';
 import { MultisigTransaction } from '../modules/multisig-transaction/entities/multisig-transaction.entity';
@@ -62,7 +62,7 @@ export class CommonUtil {
    * @param arr
    * @returns boolean
    */
-  public checkIfDuplicateExists(arr): boolean {
+  public static checkIfDuplicateExists(arr): boolean {
     return new Set(arr).size !== arr.length;
   }
 
@@ -85,19 +85,16 @@ export class CommonUtil {
   } {
     try {
       let arrPubkeys;
-      if (prefix === 'evmos') {
-        arrPubkeys = pubKeyArrString.map(this.createPubkeyEvmos);
-      } else arrPubkeys = pubKeyArrString.map(this.createPubkeys);
+      arrPubkeys =
+        prefix === 'evmos'
+          ? pubKeyArrString.map(this.createPubkeyEvmos)
+          : pubKeyArrString.map(this.createPubkeys);
 
       let multisigPubkey;
-      if (prefix === 'evmos') {
-        multisigPubkey = createMultisigThresholdPubkeyEvmos(
-          arrPubkeys,
-          threshold,
-        );
-      } else {
-        multisigPubkey = createMultisigThresholdPubkey(arrPubkeys, threshold);
-      }
+      multisigPubkey =
+        prefix === 'evmos'
+          ? createMultisigThresholdPubkeyEvmos(arrPubkeys, threshold)
+          : createMultisigThresholdPubkey(arrPubkeys, threshold);
       const multiSigWalletAddress = this.pubkeyToAddress(
         multisigPubkey,
         prefix,
@@ -167,7 +164,7 @@ export class CommonUtil {
     const addressSignarureMap = [];
     multisigConfirmArr.forEach((x) => {
       const pubkeyAmino: SimplePublicKey.Amino = {
-        type: PUBKEY_TYPES.SECP256K1,
+        type: PubkeyTypes.SECP256K1,
         value: x.pubkey,
       };
       const amino: SignatureV2.Amino = {

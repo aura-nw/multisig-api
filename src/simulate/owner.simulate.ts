@@ -3,8 +3,9 @@ import {
   pubkeyToAddress,
   Secp256k1HdWallet,
   Secp256k1Pubkey,
+  StdFee,
 } from '@cosmjs/amino';
-import { AccountData } from '@cosmjs/proto-signing';
+import { EncodeObject, AccountData } from '@cosmjs/proto-signing';
 import { SignerData, SigningStargateClient } from '@cosmjs/stargate';
 import { OwnerSimulateSignResponse } from './dtos/ower-simulate-sig-response';
 
@@ -32,8 +33,8 @@ export class OwnerSimulate {
    * @returns
    */
   async sign(
-    msgs: any[],
-    fee: any,
+    msgs: EncodeObject[],
+    fee: StdFee,
     accountNumber: number,
     sequence: number,
     chainId: string,

@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
-import { CustomError } from '../customError';
+import { CustomError } from '../custom-error';
 import { ErrorMap } from '../error.map';
 
 export class ResponseDto {
@@ -45,7 +45,7 @@ export class ResponseDto {
     return res.return(errorMap, data, additionalData);
   }
 
-  public static responseError(moduleName: string, error: Error | CustomError) {
+  public static responseError(moduleName: string, error: any) {
     if (error instanceof CustomError)
       return this.response(error.errorMap, error.msg);
     const logger = new Logger(moduleName);

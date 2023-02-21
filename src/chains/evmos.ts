@@ -103,15 +103,14 @@ export function pubkeyToAddressEvmos(pubkey: string, prefix = 'evmos'): string {
  */
 export function encodeAminoPubkeySupportEvmos(pubkey: Pubkey): Uint8Array {
   if (isMultisigThresholdPubkey(pubkey)) {
-    const out = Array.from(pubkeyAminoPrefixMultisigThreshold);
+    const out = [...pubkeyAminoPrefixMultisigThreshold];
     out.push(0x08);
     out.push(...encodeUvarint(pubkey.value.threshold));
     for (const pubkeyData of pubkey.value.pubkeys.map((p) =>
       encodeAminoPubkeySupportEvmos(p),
     )) {
       out.push(0x12);
-      out.push(...encodeUvarint(pubkeyData.length));
-      out.push(...pubkeyData);
+      out.push(...encodeUvarint(pubkeyData.length), ...pubkeyData);
     }
     return new Uint8Array(out);
   }
@@ -152,7 +151,7 @@ export function createMultisigThresholdPubkeyEvmos(
 
   const outPubkeys = nosort
     ? pubkeys
-    : Array.from(pubkeys).sort((lhs, rhs) => {
+    : [...pubkeys].sort((lhs, rhs) => {
         // https://github.com/cosmos/cosmos-sdk/blob/v0.42.2/client/keys/add.go#L172-L174
         const addressLhs = pubkeyToRawAddress(lhs);
         const addressRhs = pubkeyToRawAddress(rhs);
@@ -174,10 +173,10 @@ export function makeMultisignedTxEvmos(
   bodyBytes: Uint8Array,
   signatures: Map<string, Uint8Array>,
 ): TxRaw {
-  const addresses = Array.from(signatures.keys());
+  const addresses = [...signatures.keys()];
   const { prefix } = fromBech32(addresses[0]);
 
-  const signers: boolean[] = Array(multisigPubkey.value.pubkeys.length).fill(
+  const signers: boolean[] = Array.from({length: multisigPubkey.value.pubkeys.length}).fill(
     false,
   );
   const signaturesList = new Array<Uint8Array>();
@@ -282,7 +281,7 @@ export function createEvmosPubkey(value: string): SinglePubkey {
 }
 
 function isValidAddress(address: string): boolean {
-  if (!address.match(/^0x[a-fA-F0-9]{40}$/)) {
+  if (!/^0x[\dA-Fa-f]{40}$/.test(address)) {
     return false;
   }
   return true;
@@ -307,7 +306,7 @@ function toChecksummedAddress(address: string | Uint8Array): string {
   let checksumAddress = '0x';
   for (let i = 0; i < 40; i += 1) {
     checksumAddress +=
-      parseInt(addressHash[i], 16) > 7
+      Number.parseInt(addressHash[i], 16) > 7
         ? addressLower[i].toUpperCase()
         : addressLower[i];
   }

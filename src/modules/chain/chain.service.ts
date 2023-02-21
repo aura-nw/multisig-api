@@ -9,14 +9,14 @@ import { IndexerClient } from '../../shared/services/indexer.service';
 
 @Injectable()
 export class ChainService {
-  private readonly _logger = new Logger(ChainService.name);
+  private readonly logger = new Logger(ChainService.name);
 
   constructor(
     private chainRepo: ChainRepository,
     private gasRepo: GasRepository,
     private indexer: IndexerClient,
   ) {
-    this._logger.log('============== Constructor Chain Service ==============');
+    this.logger.log('============== Constructor Chain Service ==============');
   }
 
   /**

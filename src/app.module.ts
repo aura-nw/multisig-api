@@ -17,6 +17,7 @@ import { SafeOwnerModule } from './modules/safe-owner/safe-owner.module';
 import { UserModule } from './modules/user/user.module';
 import { JwtStrategy } from './jwt.strategy';
 import { NotifyProposalModule } from './modules/jobs/notify-proposal.module';
+import { NestModule } from '@nestjs/common';
 
 @Module({
   imports: [
@@ -26,7 +27,7 @@ import { NotifyProposalModule } from './modules/jobs/notify-proposal.module';
         maxRedirects: 5,
       }),
     }),
-    CacheModule.register({ ttl: 10000 }),
+    CacheModule.register({ ttl: 10_000 }),
     SharedModule,
     SeederModule,
     TypeOrmModule.forRootAsync({
@@ -48,7 +49,7 @@ import { NotifyProposalModule } from './modules/jobs/notify-proposal.module';
   ],
   providers: [JwtStrategy],
 })
-export class AppModule {
+export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): MiddlewareConsumer | void {
     consumer.apply(contextMiddleware).forRoutes('*');
   }

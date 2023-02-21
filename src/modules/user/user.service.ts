@@ -4,6 +4,7 @@ import { ErrorMap } from '../../common/error.map';
 import { UserRepository } from './user.repository';
 import { GetUserPathParamDto } from './dto/request/get-user.req';
 import { Chain } from '../chain/entities/chain.entity';
+import { CustomError } from '../../common/custom-error';
 
 @Injectable()
 export class UserService {
@@ -22,8 +23,8 @@ export class UserService {
     try {
       const user = await this.userRepo.getUserByAddress(address);
       return ResponseDto.response(ErrorMap.SUCCESSFUL, user);
-    } catch (e) {
-      return ResponseDto.responseError(UserService.name, e);
+    } catch (error) {
+      return ResponseDto.responseError(UserService.name, error);
     }
   }
 }

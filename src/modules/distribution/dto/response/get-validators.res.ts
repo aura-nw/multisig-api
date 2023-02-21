@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { ValidatorInfoDto } from './validator-info.res';
 
 export class GetValidatorsResponseDto {
   @ApiProperty({
@@ -50,28 +51,5 @@ export class GetValidatorsResponseDto {
       },
     ],
   })
-  validators: GetValidatorsValidatorDto[];
-}
-
-export class GetValidatorsValidatorDto {
-  validator: string;
-
-  operatorAddress: string;
-
-  status: string;
-
-  votingPower: {
-    number: string;
-    percentage: string;
-  };
-
-  description: {
-    moniker: string;
-    picture: string;
-  };
-
-  commission: any;
-
-  // participation:
-  uptime: number;
+  validators: ValidatorInfoDto[];
 }

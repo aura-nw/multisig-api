@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { createHash } from 'crypto';
+import { createHash } from 'node:crypto';
 import {
   createMultisigThresholdPubkey,
   encodeSecp256k1Pubkey,
@@ -9,9 +9,9 @@ import {
 import { fromBase64 } from '@cosmjs/encoding';
 import { plainToInstance } from 'class-transformer';
 import { In, Not, Repository } from 'typeorm';
-import { CustomError } from '../../common/customError';
+import { CustomError } from '../../common/custom-error';
 import { ErrorMap } from '../../common/error.map';
-import { SAFE_STATUS } from '../../common/constants/app.constant';
+import { SafeStatus } from '../../common/constants/app.constant';
 import { IndexerClient } from '../../utils/apis/indexer-client.service';
 import { ConfigService } from '../../shared/services/config.service';
 import { CommonUtil } from '../../utils/common.util';
@@ -24,9 +24,9 @@ import { GetThresholdResDto } from './dto/request/get-threshold.res';
 
 @Injectable()
 export class SafeRepository {
-  private readonly _logger = new Logger(SafeRepository.name);
+  private readonly logger = new Logger(SafeRepository.name);
 
-  private _indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
+  private indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
 
   constructor(
     private configService: ConfigService,
@@ -35,7 +35,7 @@ export class SafeRepository {
     private safeOwnerRepo: SafeOwnerRepository,
     private chainRepo: ChainRepository,
   ) {
-    this._logger.log(
+    this.logger.log(
       '============== Constructor Safe Repository ==============',
     );
   }
@@ -47,7 +47,7 @@ export class SafeRepository {
   async getAllSafeAddress(): Promise<string[]> {
     const safeAddress = await this.repo.find({
       where: {
-        status: SAFE_STATUS.CREATED,
+        status: SafeStatus.CREATED,
       },
       select: ['safeAddress'],
     });
@@ -91,7 +91,7 @@ export class SafeRepository {
       newSafe.threshold,
     );
     newSafe.addressHash = safeAddressHash;
-    newSafe.status = SAFE_STATUS.CREATED;
+    newSafe.status = SafeStatus.CREATED;
 
     // check if need create safe address
     if (otherOwnersAddress.length === 0) {
@@ -103,7 +103,7 @@ export class SafeRepository {
         );
         newSafe.safeAddress = address;
         newSafe.safePubkey = pubkey;
-        newSafe.status = SAFE_STATUS.CREATED;
+        newSafe.status = SafeStatus.CREATED;
       } catch (error) {
         throw new CustomError(
           ErrorMap.CANNOT_CREATE_SAFE_ADDRESS,
@@ -114,8 +114,8 @@ export class SafeRepository {
     try {
       const result = await this.repo.save(newSafe);
       return result;
-    } catch (err) {
-      throw new CustomError(ErrorMap.INSERT_SAFE_FAILED, err.message);
+    } catch (error) {
+      throw new CustomError(ErrorMap.INSERT_SAFE_FAILED, error.message);
     }
   }
 
@@ -147,10 +147,10 @@ export class SafeRepository {
 
     if (safe.creatorAddress !== myAddress)
       throw new CustomError(ErrorMap.ADDRESS_NOT_CREATOR);
-    if (safe.status !== SAFE_STATUS.PENDING)
+    if (safe.status !== SafeStatus.PENDING)
       throw new CustomError(ErrorMap.SAFE_NOT_PENDING);
 
-    safe.status = SAFE_STATUS.DELETED;
+    safe.status = SafeStatus.DELETED;
     await this.repo.save(safe);
 
     return safe;
@@ -160,12 +160,12 @@ export class SafeRepository {
     const existSafe = await this.repo.findOne({
       where: {
         addressHash,
-        status: Not(In([SAFE_STATUS.DELETED])),
+        status: Not(In([SafeStatus.DELETED])),
       },
     });
 
     if (existSafe) {
-      this._logger.debug('Safe with these information already exists!');
+      this.logger.debug('Safe with these information already exists!');
       return existSafe.id;
     }
     return -1;
@@ -223,8 +223,8 @@ export class SafeRepository {
     try {
       const result: Safe = await this.repo.save(newSafe);
       return result;
-    } catch (err) {
-      throw new CustomError(ErrorMap.INSERT_SAFE_FAILED, err.message);
+    } catch (error) {
+      throw new CustomError(ErrorMap.INSERT_SAFE_FAILED, error.message);
     }
   }
 
@@ -264,7 +264,7 @@ export class SafeRepository {
   async getPendingSafe(safeId: number): Promise<Safe> {
     const safe = await this.getSafeById(safeId);
     // check safe
-    if (safe.status !== SAFE_STATUS.PENDING)
+    if (safe.status !== SafeStatus.PENDING)
       throw new CustomError(ErrorMap.SAFE_NOT_PENDING);
     return safe;
   }
@@ -276,7 +276,7 @@ export class SafeRepository {
     const chainInfo = await this.chainRepo.findChain(internalChainId);
 
     try {
-      const pubkeyInfo = await this._indexer.getAccountPubkey(
+      const pubkeyInfo = await this.indexer.getAccountPubkey(
         chainInfo.chainId,
         accountAddress,
       );
@@ -314,11 +314,11 @@ export class SafeRepository {
 
       // insert safe owner
       const promises = [];
-      for (let i = 0; i < ownersAddresses.length; i += 1) {
+      for (const [i, ownersAddress] of ownersAddresses.entries()) {
         promises.push(
           this.safeOwnerRepo.recoverSafeOwner(
             safeId,
-            ownersAddresses[i],
+            ownersAddress,
             pubkeyInfo.public_keys[i].value,
             internalChainId,
           ),
@@ -326,7 +326,7 @@ export class SafeRepository {
       }
       await Promise.all(promises);
       return result;
-    } catch (error) {
+    } catch {
       throw new CustomError(ErrorMap.NO_SAFES_FOUND);
     }
   }

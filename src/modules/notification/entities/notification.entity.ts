@@ -1,6 +1,6 @@
 import { plainToInstance } from 'class-transformer';
 import { Column, Entity, Index } from 'typeorm';
-import { BaseEntityAutoId } from '../../../common/base.entity';
+import { BaseEntityAutoId } from '../../../common/entities';
 import {
   NotificationEventType,
   NotificationStatus,

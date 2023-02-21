@@ -10,7 +10,6 @@ import {
   GetProposalByIdDto,
   GetProposalDepositsDto,
   GetProposalsParamDto,
-  GetProposalsProposalDto,
   GetProposalsResponseDto,
   GetValidatorVotesByProposalIdResponseDto,
   GetValidatorVotesDto,
@@ -18,13 +17,14 @@ import {
   GetVotesByProposalIdQueryDto,
   GetVotesByProposalIdResponseDto,
   ProposalDepositResponseDto,
+  ProposalDetailDto,
 } from './dto';
 import { GovService } from './gov.service';
 
 @Controller(CONTROLLER_CONSTANTS.GOV)
 @ApiTags(CONTROLLER_CONSTANTS.GOV)
 export class GovController {
-  public readonly _logger = new Logger(GovController.name);
+  public readonly logger = new Logger(GovController.name);
 
   constructor(private govService: GovService) {}
 
@@ -39,7 +39,7 @@ export class GovController {
     },
   })
   async getProposals(@Param() param: GetProposalsParamDto) {
-    this._logger.log('========== Queries all proposals ==========');
+    this.logger.log('========== Queries all proposals ==========');
     return this.govService.getProposals(param);
   }
 
@@ -48,7 +48,7 @@ export class GovController {
     summary: 'Queries a single proposal.',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(GetProposalsProposalDto),
+      type: SwaggerBaseApiResponse(ProposalDetailDto),
       description: 'Proposal Details',
       schema: {},
     },
@@ -99,7 +99,7 @@ export class GovController {
     },
   })
   async getProposalDepositById(@Param() param: GetProposalDepositsDto) {
-    this._logger.log(
+    this.logger.log(
       '========== Queries deposit txs of a given proposal ==========',
     );
     return this.govService.getProposalDepositById(param);

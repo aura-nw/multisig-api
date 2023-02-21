@@ -4,14 +4,13 @@ import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { CommonUtil } from '../../utils/common.util';
 import { ConfigService } from '../../shared/services/config.service';
-import { PROPOSAL_STATUS } from '../../common/constants/app.constant';
+import { ProposalStatus } from '../../common/constants/app.constant';
 import { IndexerClient } from '../../utils/apis/indexer-client.service';
 import { ChainRepository } from '../chain/chain.repository';
 import {
   GetProposalByIdDto,
   GetProposalDepositsDto,
   GetProposalsParamDto,
-  GetProposalsProposalDto,
   GetProposalsResponseDto,
   GetProposalsTally,
   GetProposalsTurnout,
@@ -21,16 +20,17 @@ import {
   GetVotesByProposalIdQueryDto,
   GetVotesByProposalIdResponseDto,
   ProposalDepositResponseDto,
+  ProposalDetailDto,
 } from './dto';
 import { Chain } from '../chain/entities/chain.entity';
 
 @Injectable()
 export class GovService {
-  private readonly _logger = new Logger(GovService.name);
+  private readonly logger = new Logger(GovService.name);
 
-  private _commonUtil: CommonUtil = new CommonUtil();
+  private commonUtil: CommonUtil = new CommonUtil();
 
-  private _indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
+  private indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
 
   auraChain: Chain;
 
@@ -38,14 +38,14 @@ export class GovService {
     private configService: ConfigService,
     private chainRepo: ChainRepository,
   ) {
-    this._logger.log('============== Constructor Gov Service ==============');
+    this.logger.log('============== Constructor Gov Service ==============');
   }
 
   async getProposals(param: GetProposalsParamDto) {
     const { internalChainId } = param;
     try {
       const chain = await this.chainRepo.findChain(internalChainId);
-      const result = await this._indexer.getProposals(chain.chainId);
+      const result = await this.indexer.getProposals(chain.chainId);
 
       const proposals = result.map((proposal) => this.mapProposal(proposal));
 
@@ -55,8 +55,8 @@ export class GovService {
           proposals,
         }),
       );
-    } catch (e) {
-      return ResponseDto.responseError(GovService.name, e);
+    } catch (error) {
+      return ResponseDto.responseError(GovService.name, error);
     }
   }
 
@@ -64,14 +64,14 @@ export class GovService {
     const { internalChainId, proposalId } = param;
     try {
       const chain = await this.chainRepo.findChain(internalChainId);
-      const proposal = await this._indexer.getProposal(
+      const proposal = await this.indexer.getProposal(
         chain.chainId,
         proposalId,
       );
 
       const result = this.mapProposal(proposal);
       // add additional properties for proposal details page
-      const networkStatus = await this._indexer.getNetwork(chain.chainId);
+      const networkStatus = await this.indexer.getNetwork(chain.chainId);
       const bondedTokens = networkStatus.pool.bonded_tokens;
 
       result.description = proposal.content.description;
@@ -80,8 +80,8 @@ export class GovService {
       result.turnout = this.calculateProposalTunrout(proposal, bondedTokens);
 
       return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
-    } catch (e) {
-      return ResponseDto.responseError(GovService.name, e);
+    } catch (error) {
+      return ResponseDto.responseError(GovService.name, error);
     }
   }
 
@@ -100,7 +100,7 @@ export class GovService {
     try {
       const chain = await this.chainRepo.findChain(internalChainId);
       const { votes, nextKey: newNextKey } =
-        await this._indexer.getVotesByProposalId(
+        await this.indexer.getVotesByProposalId(
           chain.chainId,
           proposalId,
           answer,
@@ -111,16 +111,16 @@ export class GovService {
         );
       const results: GetVotesByProposalIdResponseDto = {
         votes: votes.map((vote) => ({
-            voter: vote.voter_address,
-            txHash: vote.txhash,
-            answer: vote.answer,
-            time: vote.timestamp,
-          })),
+          voter: vote.voter_address,
+          txHash: vote.txhash,
+          answer: vote.answer,
+          time: vote.timestamp,
+        })),
         nextKey: newNextKey,
       };
       return ResponseDto.response(ErrorMap.SUCCESSFUL, results);
-    } catch (e) {
-      return ResponseDto.responseError(GovService.name, e);
+    } catch (error) {
+      return ResponseDto.responseError(GovService.name, error);
     }
   }
 
@@ -144,7 +144,7 @@ export class GovService {
           "timestamp": "2022-09-07T12:06:49.000Z"
         },
        */
-      const validatorVotes = await this._indexer.getValidatorVotesByProposalId(
+      const validatorVotes = await this.indexer.getValidatorVotesByProposalId(
         chain.chainId,
         proposalId,
       );
@@ -156,8 +156,8 @@ export class GovService {
           validatorVotes,
         ),
       );
-    } catch (e) {
-      return ResponseDto.responseError(GovService.name, e);
+    } catch (error) {
+      return ResponseDto.responseError(GovService.name, error);
     }
   }
 
@@ -170,7 +170,7 @@ export class GovService {
 
       // Get proposal deposit txs
       const proposalDepositTxs =
-        await this._indexer.getProposalDepositByProposalId(
+        await this.indexer.getProposalDepositByProposalId(
           chain.chainId,
           proposalId,
         );
@@ -199,13 +199,13 @@ export class GovService {
       );
 
       return ResponseDto.response(ErrorMap.SUCCESSFUL, response);
-    } catch (e) {
-      return ResponseDto.responseError(GovService.name, e);
+    } catch (error) {
+      return ResponseDto.responseError(GovService.name, error);
     }
   }
 
   mapProposal(proposal: any) {
-    const result: GetProposalsProposalDto = {
+    const result: ProposalDetailDto = {
       id: proposal.proposal_id,
       title: proposal.content.title,
       proposer: proposal.proposer_address,
@@ -222,7 +222,7 @@ export class GovService {
   calculateProposalTally(proposal: any): GetProposalsTally {
     // default to final result of tally property
     let tally = proposal.final_tally_result;
-    if (proposal.status === PROPOSAL_STATUS.VOTING_PERIOD) {
+    if (proposal.status === ProposalStatus.VOTING_PERIOD) {
       tally = proposal.tally;
     }
     // default mostVoted to yes
@@ -239,23 +239,23 @@ export class GovService {
     const result: GetProposalsTally = {
       yes: {
         number: tally.yes,
-        percent: this._commonUtil.getPercentage(tally.yes, sum),
+        percent: this.commonUtil.getPercentage(tally.yes, sum),
       },
       abstain: {
         number: tally.abstain,
-        percent: this._commonUtil.getPercentage(tally.abstain, sum),
+        percent: this.commonUtil.getPercentage(tally.abstain, sum),
       },
       no: {
         number: tally.no,
-        percent: this._commonUtil.getPercentage(tally.no, sum),
+        percent: this.commonUtil.getPercentage(tally.no, sum),
       },
       noWithVeto: {
         number: tally.no_with_veto,
-        percent: this._commonUtil.getPercentage(tally.no_with_veto, sum),
+        percent: this.commonUtil.getPercentage(tally.no_with_veto, sum),
       },
       mostVotedOn: {
         name: mostVotedOptionKey,
-        percent: this._commonUtil.getPercentage(tally[mostVotedOptionKey], sum),
+        percent: this.commonUtil.getPercentage(tally[mostVotedOptionKey], sum),
       },
     };
     return result;
@@ -264,7 +264,7 @@ export class GovService {
   calculateProposalTunrout(proposal: any, bondedTokens: string) {
     // default to final result of tally property
     let tally = proposal.final_tally_result;
-    if (proposal.status === PROPOSAL_STATUS.VOTING_PERIOD) {
+    if (proposal.status === ProposalStatus.VOTING_PERIOD) {
       tally = proposal.tally;
     }
     const numberOfVoted = +tally.yes + +tally.no + +tally.no_with_veto;
@@ -272,15 +272,15 @@ export class GovService {
     const result: GetProposalsTurnout = {
       voted: {
         number: numberOfVoted.toString(),
-        percent: this._commonUtil.getPercentage(numberOfVoted, bondedTokens),
+        percent: this.commonUtil.getPercentage(numberOfVoted, bondedTokens),
       },
       votedAbstain: {
         number: tally.abstain,
-        percent: this._commonUtil.getPercentage(tally.abstain, bondedTokens),
+        percent: this.commonUtil.getPercentage(tally.abstain, bondedTokens),
       },
       didNotVote: {
         number: numberOfNotVoted.toString(),
-        percent: this._commonUtil.getPercentage(numberOfNotVoted, bondedTokens),
+        percent: this.commonUtil.getPercentage(numberOfNotVoted, bondedTokens),
       },
     };
     return result;

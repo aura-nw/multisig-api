@@ -8,12 +8,12 @@ import { ResponseDto } from '../../common/dtos/response.dto';
 
 @Injectable()
 export class NotificationService {
-  private readonly _logger = new Logger(NotificationService.name);
+  private readonly logger = new Logger(NotificationService.name);
 
   private utils: CommonUtil = new CommonUtil();
 
   constructor(private readonly repo: NotificationRepository) {
-    this._logger.log(
+    this.logger.log(
       '============== Constructor Notification Service ==============',
     );
   }

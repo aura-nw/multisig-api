@@ -19,7 +19,7 @@ import {
   StdFee,
 } from '@cosmjs/stargate';
 import { coins } from '@cosmjs/amino';
-import { REGISTRY_GENERATED_TYPES } from '../common/constants/app.constant';
+import { RegistryGeneratedTypes } from '../common/constants/app.constant';
 import { IndexerClient } from '../utils/apis/indexer-client.service';
 import { encodePubkeyEvmos } from '../chains/evmos';
 
@@ -33,7 +33,7 @@ export class SimulateUtils {
       typeUrl: '/cosmos.tx.v1beta1.TxBody',
       value: signedTxBody,
     };
-    const registry = new Registry(REGISTRY_GENERATED_TYPES);
+    const registry = new Registry(RegistryGeneratedTypes);
     return registry.encode(signedTxBodyEncodeObject);
   }
 
@@ -55,7 +55,7 @@ export class SimulateUtils {
     }
 
     const defaultFee = SimulateUtils.getDefaultFee(denom);
-    const signers: boolean[] = Array(totalOwner).fill(false);
+    const signers: boolean[] = new Array(totalOwner).fill(false);
 
     const encodedPubkey = chainId.startsWith('evmos')
       ? encodePubkeyEvmos(safePubkey)
