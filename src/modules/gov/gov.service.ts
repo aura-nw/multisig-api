@@ -21,7 +21,6 @@ import {
   ProposalDetailDto,
 } from './dto';
 import { Chain } from '../chain/entities/chain.entity';
-import { ConfigService } from '@nestjs/config';
 import { IndexerClient } from '../../shared/services/indexer.service';
 
 @Injectable()
@@ -33,7 +32,6 @@ export class GovService {
   auraChain: Chain;
 
   constructor(
-    private configService: ConfigService,
     private chainRepo: ChainRepository,
     private indexer: IndexerClient,
   ) {

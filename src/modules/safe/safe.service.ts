@@ -61,11 +61,7 @@ export class SafeService {
       // Find chain
       const chainInfo = await this.chainRepo.findChain(internalChainId);
 
-      await this.checkAddressPubkeyMismatch(
-        creatorAddress,
-        creatorPubkey,
-        chainInfo,
-      );
+      this.checkAddressPubkeyMismatch(creatorAddress, creatorPubkey, chainInfo);
 
       // Filter empty string in otherOwnersAddress
       otherOwnersAddress =
@@ -96,22 +92,20 @@ export class SafeService {
        * 1. If safe created, notify the creator that safe created
        * 2. If safeAddress is null, notify other owners to allow safe
        */
-      if (newSafe.safeAddress) {
-        await this.notificationRepo.notifySafeCreated(
-          newSafe.id,
-          newSafe.safeAddress,
-          [creatorAddress],
-          newSafe.internalChainId,
-        );
-      } else {
-        // notification to other owners
-        await this.notificationRepo.notifyAllowSafe(
-          newSafe.id,
-          newSafe.creatorAddress,
-          otherOwnersAddress,
-          newSafe.internalChainId,
-        );
-      }
+      await (newSafe.safeAddress
+        ? this.notificationRepo.notifySafeCreated(
+            newSafe.id,
+            newSafe.safeAddress,
+            [creatorAddress],
+            newSafe.internalChainId,
+          )
+        : // notification to other owners
+          this.notificationRepo.notifyAllowSafe(
+            newSafe.id,
+            newSafe.creatorAddress,
+            otherOwnersAddress,
+            newSafe.internalChainId,
+          ));
 
       return ResponseDto.response(
         ErrorMap.SUCCESSFUL,
@@ -126,7 +120,6 @@ export class SafeService {
     param: GetSafePathParamsDto,
     query: GetSafeQueryDto,
   ): Promise<ResponseDto> {
-    let msgError = '';
     try {
       const { safeId } = param;
       const { internalChainId } = query;
@@ -185,7 +178,7 @@ export class SafeService {
           ];
         }
       }
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, safeInfo, msgError);
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, safeInfo);
     } catch (error) {
       return ResponseDto.responseError(SafeService.name, error);
     }
@@ -203,7 +196,7 @@ export class SafeService {
       // get chainInfo
       const chainInfo = await this.chainRepo.findChain(safe.internalChainId);
 
-      await this.checkAddressPubkeyMismatch(myAddress, myPubkey, chainInfo);
+      this.checkAddressPubkeyMismatch(myAddress, myPubkey, chainInfo);
 
       // get confirm status
       const confirmations = await this.safeOwnerRepo.getConfirmationStatus(
@@ -258,11 +251,7 @@ export class SafeService {
     }
   }
 
-  async checkAddressPubkeyMismatch(
-    address: string,
-    pubkey: string,
-    chain: Chain,
-  ) {
+  checkAddressPubkeyMismatch(address: string, pubkey: string, chain: Chain) {
     let generatedAddress;
 
     if (chain.name === 'Terra Testnet') {

@@ -7,8 +7,6 @@ import { ErrorMap } from '../../common/error.map';
 
 @Injectable()
 export class CommonService {
-  private readonly logger = new Logger(CommonService.name);
-
   constructor(private readonly httpService: HttpService) {}
 
   public async requestPost<T>(url: string, body: any): Promise<T> {

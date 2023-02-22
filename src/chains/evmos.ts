@@ -51,7 +51,7 @@ export interface EthSecp256k1Pubkey extends SinglePubkey {
   readonly value: string;
 }
 
-export async function verifyEvmosSig(
+export function verifyEvmosSig(
   signature: string,
   msg: StdSignDoc,
   expectEvmosAddr: string,
@@ -77,6 +77,7 @@ export async function verifyEvmosSig(
 }
 
 export function pubkeyToRawAddress(pubkey: Pubkey): Uint8Array {
+  /* eslint-disable-next-line @typescript-eslint/no-unsafe-argument */
   const pubKeyDecoded = Buffer.from(pubkey.value, 'base64');
   const pubKeyUncompressed = Secp256k1.uncompressPubkey(pubKeyDecoded);
   const hash = new Keccak256(pubKeyUncompressed.slice(1)).digest();
@@ -88,9 +89,7 @@ export function pubkeyToAddressEvmos(pubkey: string, prefix = 'evmos'): string {
   const ethermintPubkey = createEvmosPubkey(pubkey);
   const rawAddress = pubkeyToRawAddress(ethermintPubkey);
 
-  // generate eth address
-  const ethAddress = toChecksummedAddress(rawAddress);
-  console.log(`ETH address: ${ethAddress}`);
+  // generate eth address: toChecksummedAddress(rawAddress);
 
   // generate bech32 address
   const bech32Address = toBech32(prefix, rawAddress);
@@ -104,13 +103,11 @@ export function pubkeyToAddressEvmos(pubkey: string, prefix = 'evmos'): string {
 export function encodeAminoPubkeySupportEvmos(pubkey: Pubkey): Uint8Array {
   if (isMultisigThresholdPubkey(pubkey)) {
     const out = [...pubkeyAminoPrefixMultisigThreshold];
-    out.push(0x08);
-    out.push(...encodeUvarint(pubkey.value.threshold));
+    out.push(0x08, ...encodeUvarint(pubkey.value.threshold));
     for (const pubkeyData of pubkey.value.pubkeys.map((p) =>
       encodeAminoPubkeySupportEvmos(p),
     )) {
-      out.push(0x12);
-      out.push(...encodeUvarint(pubkeyData.length), ...pubkeyData);
+      out.push(0x12, ...encodeUvarint(pubkeyData.length), ...pubkeyData);
     }
     return new Uint8Array(out);
   }
@@ -176,9 +173,9 @@ export function makeMultisignedTxEvmos(
   const addresses = [...signatures.keys()];
   const { prefix } = fromBech32(addresses[0]);
 
-  const signers: boolean[] = Array.from({length: multisigPubkey.value.pubkeys.length}).fill(
-    false,
-  );
+  const signers: boolean[] = Array.from({
+    length: multisigPubkey.value.pubkeys.length,
+  }).fill(false);
   const signaturesList = new Array<Uint8Array>();
   for (let i = 0; i < multisigPubkey.value.pubkeys.length; i += 1) {
     const signerAddress = pubkeyToAddressEvmos(
@@ -248,7 +245,7 @@ export function encodePubkeyEvmos(pubkey: Pubkey): Any {
   if (isMultisigThresholdPubkey(pubkey)) {
     const pubkeyProto = LegacyAminoPubKey.fromPartial({
       threshold: Uint53.fromString(pubkey.value.threshold).toNumber(),
-      publicKeys: pubkey.value.pubkeys.map(encodePubkeyEvmos),
+      publicKeys: pubkey.value.pubkeys.map((pk) => encodePubkeyEvmos(pk)),
     });
     return Any.fromPartial({
       typeUrl: '/cosmos.crypto.multisig.LegacyAminoPubKey',
@@ -287,7 +284,7 @@ function isValidAddress(address: string): boolean {
   return true;
 }
 
-function toChecksummedAddress(address: string | Uint8Array): string {
+export function toChecksummedAddress(address: string | Uint8Array): string {
   // 40 low hex characters
   let addressLower;
   if (typeof address === 'string') {

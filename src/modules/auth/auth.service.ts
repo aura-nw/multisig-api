@@ -9,20 +9,16 @@ import {
   AppConstants,
   COMMON_CONSTANTS,
 } from '../../common/constants/app.constant';
-import { ContextService } from '../../providers/context.service';
 import { pubkeyToAddressEvmos, verifyEvmosSig } from '../../chains/evmos';
 import { CosmosUtil } from '../../chains/cosmos';
 import { ChainRepository } from '../chain/chain.repository';
 import { UserRepository } from '../user/user.repository';
 import { RequestAuthDto } from './dto/request-auth.dto';
-import { UserInfoDto } from './dto/user-info.dto';
 import { AuthUtil } from '../../utils/auth.util';
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
-
-  private static authUserKey = AppConstants.USER_KEY;
 
   constructor(
     private jwtService: JwtService,
@@ -62,7 +58,7 @@ export class AuthService {
         // create message hash from data
         const msg = AuthUtil.createSignMessageByData(address, plainData);
         // verify signature
-        resultVerify = await verifyEvmosSig(signature, msg, address);
+        resultVerify = verifyEvmosSig(signature, msg, address);
       } else {
         // get address from pubkey
         const pubkeyFormated = encodeSecp256k1Pubkey(fromBase64(pubkey));
@@ -84,11 +80,9 @@ export class AuthService {
       const user = await this.userRepo.createUserIfNotExists(address, pubkey);
 
       const payload = {
-        userId: user.id,
+        id: user.id,
         address,
         pubkey,
-        // data: data,
-        signature,
       };
       const accessToken = this.jwtService.sign(payload);
 
@@ -99,21 +93,5 @@ export class AuthService {
     } catch (error) {
       return ResponseDto.responseError(AuthService.name, error);
     }
-  }
-
-  /**
-   * getAuthUser
-   * @returns
-   */
-  static getAuthUser() {
-    return ContextService.get(AuthService.authUserKey);
-  }
-
-  /**
-   * setAuthUser
-   * @param user
-   */
-  static setAuthUser(user: UserInfoDto) {
-    ContextService.set(AuthService.authUserKey, user);
   }
 }
