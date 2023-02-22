@@ -1,7 +1,7 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from './shared/services/config.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -11,7 +11,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get('JWT_SECRET'),
+      secretOrKey: configService.get<string>('JWT_SECRET'),
     });
   }
 
@@ -21,7 +21,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       const timestampExpire = new Date(
         Number(data) +
           1000 *
-            Number(this.configService.get('JWT_EXPIRATION').match(/\d+/g)[0]),
+            Number(
+              this.configService.get<string>('JWT_EXPIRATION').match(/\d+/g)[0],
+            ),
       );
       const currentTimestamp = new Date();
       if (currentTimestamp > timestampExpire) {

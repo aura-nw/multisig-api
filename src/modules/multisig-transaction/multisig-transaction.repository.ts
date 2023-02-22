@@ -2,7 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
-import { TransactionStatus } from '../../common/constants/app.constant';
+import {
+  MultisigConfirmStatus,
+  TransactionStatus,
+} from '../../common/constants/app.constant';
 import { CustomError } from '../../common/custom-error';
 import { ErrorMap } from '../../common/error.map';
 import { SafeRepository } from '../safe/safe.repository';
@@ -10,13 +13,14 @@ import { MultisigTransaction } from './entities/multisig-transaction.entity';
 import { AuraTx } from '../aura-tx/entities/aura-tx.entity';
 import { TxDetailDto } from './dto/response/tx-detail.res';
 import { MultisigTransactionHistoryResponseDto } from './dto';
+import { MultisigConfirmRepository } from '../multisig-confirm/multisig-confirm.repository';
 
 @Injectable()
 export class MultisigTransactionRepository {
   private readonly logger = new Logger(MultisigTransactionRepository.name);
 
   constructor(
-    // private multisigConfirmRepos: MultisigConfirmRepository,
+    private multisigConfirmRepos: MultisigConfirmRepository,
     private safeRepos: SafeRepository,
     @InjectRepository(MultisigTransaction)
     private readonly repo: Repository<MultisigTransaction>,
@@ -125,7 +129,7 @@ export class MultisigTransactionRepository {
   async updateTxBroadcastSuccess(
     transactionId: number,
     txHash: string,
-  ): Promise<any> {
+  ): Promise<void> {
     const multisigTransaction = await this.repo.findOne({
       where: {
         id: transactionId,
@@ -170,18 +174,18 @@ export class MultisigTransactionRepository {
 
   async insertMultisigTransaction(
     transaction: MultisigTransaction,
-  ): Promise<any> {
+  ): Promise<MultisigTransaction> {
     return this.repo.save(transaction);
   }
 
   async isExecutable(multisigTxId: number, safeId: number): Promise<boolean> {
     // get list confirm
     const listConfirmAfterSign = [];
-    // await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-    //   multisigTxId,
-    //   undefined,
-    //   MultisigConfirmStatus.CONFIRM,
-    // );
+    await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+      multisigTxId,
+      undefined,
+      MultisigConfirmStatus.CONFIRM,
+    );
 
     const safe = await this.safeRepos.getSafeById(safeId);
 
@@ -198,11 +202,14 @@ export class MultisigTransactionRepository {
     safeId: number,
   ): Promise<MultisigTransaction> {
     const isExecutable = await this.isExecutable(multisigTxId, safeId);
-    if (!isExecutable) return;
+    if (!isExecutable) {
+      throw new CustomError(ErrorMap.TRANSACTION_NOT_VALID);
+    }
 
     const transaction = await this.repo.findOne({
       where: { id: multisigTxId },
     });
+    if (!transaction) throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
     transaction.status = TransactionStatus.AWAITING_EXECUTION;
 
     return this.repo.save(transaction);
@@ -233,9 +240,9 @@ export class MultisigTransactionRepository {
         'MT.CreatedAt as CreatedAt',
         'MT.UpdatedAt as UpdatedAt',
       ])
-      .getRawOne();
+      .getRawOne<TxDetailDto>();
 
-    return plainToInstance(TxDetailDto, tx);
+    return tx;
   }
 
   async getQueueTransaction(
@@ -245,27 +252,32 @@ export class MultisigTransactionRepository {
     limit: number,
   ): Promise<MultisigTransactionHistoryResponseDto[]> {
     const offset = limit * (pageIndex - 1);
-    const result: any[] = await this.repo.query(
-      `
-      SELECT Id as MultisigTxId, NULL as AuraTxId, CreatedAt, UpdatedAt, Amount as MultisigTxAmount, TypeUrl, FromAddress as FromAddress, Status, Sequence
-      FROM MultisigTransaction
-      WHERE FromAddress = ?
-      AND (Status = ? OR Status = ? OR Status = ?)
-      AND InternalChainId = ?
-      ORDER BY UpdatedAt DESC
-      LIMIT ? OFFSET ?
-    `,
-      [
-        safeAddress,
-        TransactionStatus.AWAITING_CONFIRMATIONS,
-        TransactionStatus.AWAITING_EXECUTION,
-        TransactionStatus.PENDING,
+    const txs = await this.repo
+      .createQueryBuilder('MT')
+      .where({
+        fromAddress: safeAddress,
+        status: In([
+          TransactionStatus.AWAITING_CONFIRMATIONS,
+          TransactionStatus.AWAITING_EXECUTION,
+          TransactionStatus.PENDING,
+        ]),
         internalChainId,
-        limit,
-        offset,
-      ],
-    );
-    const txs = plainToInstance(MultisigTransactionHistoryResponseDto, result);
+      })
+      .orderBy('MT.UpdatedAt', 'DESC')
+      .skip(offset)
+      .take(limit)
+      .select([
+        'id as MultisigTxId',
+        'null as AuraTxId',
+        'createdAt as CreatedAt',
+        'updatedAt as UpdatedAt',
+        'amount as MultisigTxAmount',
+        'typeUrl as TypeUrl',
+        'fromAddress as FromAddress',
+        'status as Status',
+        'sequence as Sequence',
+      ])
+      .getRawMany<MultisigTransactionHistoryResponseDto>();
     return txs;
   }
 }

@@ -1,12 +1,13 @@
+import { HttpModule } from '@nestjs/axios';
 import { Module, Global } from '@nestjs/common';
-import { ConfigService } from './services/config.service';
+import { CustomConfigService } from './services/config.service';
 import { IndexerClient } from './services/indexer.service';
 
-const providers = [ConfigService, IndexerClient];
+const providers = [CustomConfigService, IndexerClient];
 
 @Global()
 @Module({
-  imports: [],
+  imports: [HttpModule],
   providers: [...providers],
   exports: [...providers],
 })

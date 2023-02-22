@@ -30,11 +30,11 @@ export class TransactionHistory {
     internalChainId: number,
     safeAddress: string,
     txHash: string,
-    createdAt: string,
+    createdAt: Date,
   ) {
     this.internalChainId = internalChainId;
     this.safeAddress = safeAddress;
     this.txHash = txHash;
-    this.createdAt = new Date(createdAt);
+    this.createdAt = createdAt;
   }
 }

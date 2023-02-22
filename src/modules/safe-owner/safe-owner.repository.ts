@@ -96,7 +96,7 @@ export class SafeOwnerRepository {
     ownerAddress: string,
     ownerPubkey: string,
     internalChainId: number,
-  ): Promise<any> {
+  ): Promise<SafeOwner> {
     const newSafeOwner = new SafeOwner();
     newSafeOwner.ownerAddress = ownerAddress;
     newSafeOwner.ownerPubkey = ownerPubkey;
@@ -107,8 +107,7 @@ export class SafeOwnerRepository {
       const result = await this.repo.save(newSafeOwner);
       return result;
     } catch (error) {
-      if (error instanceof Error)
-        throw new CustomError(ErrorMap.INSERT_SAFE_FAILED, error.message);
+      throw CustomError.fromUnknown(ErrorMap.INSERT_SAFE_FAILED, error);
     }
   }
 
@@ -147,8 +146,7 @@ export class SafeOwnerRepository {
     try {
       await this.repo.save(owners);
     } catch (error) {
-      if (error instanceof Error)
-        throw new CustomError(ErrorMap.INSERT_SAFE_OWNER_FAILED, error.message);
+      throw CustomError.fromUnknown(ErrorMap.INSERT_SAFE_OWNER_FAILED, error);
     }
   }
 

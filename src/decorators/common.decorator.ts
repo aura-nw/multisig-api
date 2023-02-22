@@ -16,7 +16,6 @@ import {
   ApiOperation,
   ApiResponseOptions,
 } from '@nestjs/swagger';
-import { GroupsGuard } from '../guards/groups.guard';
 import { AuthUserInterceptor } from '../interceptors/auth-user-interceptor.service';
 import {
   ResponseDto,
@@ -84,7 +83,7 @@ export function Common(
 
 export function Auth() {
   return applyDecorators(
-    UseGuards(AuthGuard('jwt'), GroupsGuard),
+    UseGuards(AuthGuard('jwt')),
     ApiBearerAuth(),
     UseInterceptors(AuthUserInterceptor),
   );

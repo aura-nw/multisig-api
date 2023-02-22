@@ -17,6 +17,7 @@ import {
   StargateClient,
 } from '@cosmjs/stargate';
 import { fromBase64 } from '@cosmjs/encoding';
+import { ConfigService } from '@nestjs/config';
 import { AminoMsg, makeSignDoc } from '@cosmjs/amino';
 import { plainToInstance } from 'class-transformer';
 import { ResponseDto } from '../../common/dtos/response.dto';
@@ -34,7 +35,6 @@ import { makeMultisignedTxEvmos, verifyEvmosSig } from '../../chains/evmos';
 import { CommonUtil } from '../../utils/common.util';
 import { IndexerClient } from '../../utils/apis/indexer-client.service';
 import { Simulate } from '../../simulate';
-import { ConfigService } from '../../shared/services/config.service';
 import { CustomError } from '../../common/custom-error';
 import { CosmosUtil } from '../../chains/cosmos';
 import { MultisigTransactionRepository } from './multisig-transaction.repository';
@@ -75,14 +75,13 @@ export class MultisigTransactionService {
 
   private readonly commonUtil: CommonUtil = new CommonUtil();
 
-  private indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
-
   private readonly utils: CommonUtil = new CommonUtil();
 
-  private _simulate: Simulate;
+  private simulateFactory: Simulate;
 
   constructor(
     private configService: ConfigService,
+    private indexer: IndexerClient,
     private multisigTransactionRepos: MultisigTransactionRepository,
     private auraTxRepo: AuraTxRepository,
     private multisigConfirmRepos: MultisigConfirmRepository,
@@ -97,7 +96,9 @@ export class MultisigTransactionService {
       '============== Constructor Multisig Transaction Service ==============',
     );
 
-    this._simulate = new Simulate(this.configService.get('SYS_MNEMONIC'));
+    this.simulateFactory = new Simulate(
+      this.configService.get<string>('SYS_MNEMONIC'),
+    );
   }
 
   async getTransactionHistory(
@@ -326,9 +327,9 @@ export class MultisigTransactionService {
 
       // get chain info
       const chain = await this.chainRepos.findChain(safeInfo.internalChainId);
-      const wallet = await this._simulate.simulateWithChain(chain);
+      await this.simulateFactory.simulateWithChain(chain);
 
-      const result = await wallet.simulate(messages, safeInfo);
+      const result = await this.simulateFactory.simulate(messages, safeInfo);
       return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
     } catch (error) {
       return ResponseDto.responseError(MultisigTransactionService.name, error);
@@ -340,7 +341,9 @@ export class MultisigTransactionService {
   ): Promise<ResponseDto> {
     const { internalChainId } = request;
     const chain = await this.chainRepos.findChain(internalChainId);
-    const wallet = await this._simulate.simulateWithChain(chain);
+    await this.simulateFactory.simulateWithChain(chain);
+
+    const wallet = await this.simulateFactory.getCurrentWallet();
     return ResponseDto.response(ErrorMap.SUCCESSFUL, wallet.getAddresses());
   }
 

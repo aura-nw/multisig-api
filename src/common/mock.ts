@@ -1,5 +1,5 @@
 export type MockType<T> = {
-  [P in keyof T]?: jest.Mock<{}>;
+  [P in keyof T]?: jest.Mock<unknown>;
 };
 
 export const MockFactory = {
@@ -14,7 +14,7 @@ export const MockFactory = {
         (key: string) =>
           key !== 'constructor' && (!includes || includes.includes(key)),
       )
-      .map((key: string) => {
+      .forEach((key: string) => {
         mock[key] = jest.fn();
       });
 

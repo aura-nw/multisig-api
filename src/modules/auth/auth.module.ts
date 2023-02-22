@@ -6,20 +6,22 @@ import { AuthController } from './auth.controller';
 import { ChainModule } from '../chain/chain.module';
 import { UserModule } from '../user/user.module';
 import { SharedModule } from '../../shared/shared.module';
-import { ConfigService } from '../../shared/services/config.service';
+import { CustomConfigService } from '../../shared/services/config.service';
+import { JwtStrategy } from './jwt.strategy';
 
 @Module({
   imports: [
     PassportModule,
     JwtModule.registerAsync({
       imports: [SharedModule],
-      useFactory: (configService: ConfigService) => configService.jwtConfig,
-      inject: [ConfigService],
+      useFactory: (customConfigService: CustomConfigService) =>
+        customConfigService.jwtConfig,
+      inject: [CustomConfigService],
     }),
     ChainModule,
     UserModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, JwtStrategy],
 })
 export class AuthModule {}

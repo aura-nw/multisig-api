@@ -17,34 +17,36 @@ export class TransactionHistoryService {
     );
   }
 
-  async migrateTxToTxHistory() {
+  async migrateTxToTxHistory(skip = 0, take = 50): Promise<void> {
     const allSafeAddress = await this.safeRepo.getAllSafeAddress();
 
-    let skip = 0;
-    const take = 50;
     let batchTx = await this.auraTxRepo.getBatchTx(take, skip);
 
     // Using job queue to process batchTx
-    while (batchTx.length > 0) {
-      await Promise.all(
-        batchTx.map((tx) => {
-          let safeAddress = '';
-          if (allSafeAddress.includes(tx.fromAddress)) {
-            safeAddress = tx.fromAddress;
-          }
-          if (allSafeAddress.includes(tx.toAddress)) {
-            safeAddress = tx.toAddress;
-          }
-          if (safeAddress !== '') {
-            return this.txHistoryRepo.saveTxHistory(
+    if (batchTx.length > 0) {
+      const promises = [];
+
+      batchTx.forEach((tx) => {
+        let safeAddress = '';
+        if (allSafeAddress.includes(tx.fromAddress)) {
+          safeAddress = tx.fromAddress;
+        }
+        if (allSafeAddress.includes(tx.toAddress)) {
+          safeAddress = tx.toAddress;
+        }
+        if (safeAddress !== '') {
+          promises.push(
+            this.txHistoryRepo.saveTxHistory(
               tx.internalChainId,
               safeAddress,
               tx.txHash,
               tx.createdAt,
-            );
-          }
-        }),
-      );
+            ),
+          );
+        }
+      });
+
+      await Promise.all(promises);
 
       skip += take;
       batchTx = await this.auraTxRepo.getBatchTx(take, skip);

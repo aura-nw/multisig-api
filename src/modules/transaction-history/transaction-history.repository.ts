@@ -23,7 +23,7 @@ export class TransactionHistoryRepository {
     internalChainId: number,
     safeAddress: string,
     txHash: string,
-    createdAt: string,
+    createdAt: Date,
   ): Promise<TransactionHistory> {
     return this.repos.save(
       new TransactionHistory(internalChainId, safeAddress, txHash, createdAt),

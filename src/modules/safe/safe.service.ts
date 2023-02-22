@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { encodeSecp256k1Pubkey, pubkeyToAddress } from '@cosmjs/amino';
 import { fromBase64 } from '@cosmjs/encoding';
+import { ConfigService } from '@nestjs/config';
 import { SimplePublicKey } from '@terra-money/terra.js';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
@@ -8,8 +9,6 @@ import { SafeStatus } from '../../common/constants/app.constant';
 import { CommonUtil } from '../../utils/common.util';
 import { CustomError } from '../../common/custom-error';
 import { pubkeyToAddressEvmos } from '../../chains/evmos';
-import { IndexerClient } from '../../utils/apis/indexer-client.service';
-import { ConfigService } from '../../shared/services/config.service';
 import { SafeRepository } from './safe.repository';
 import { SafeOwnerRepository } from '../safe-owner/safe-owner.repository';
 import { ChainRepository } from '../chain/chain.repository';
@@ -21,6 +20,7 @@ import { DeleteSafePathParamsDto } from './dto/request/delete-multisig-wallet.re
 import { GetMultisigWalletResponseDto } from './dto/response/get-multisig-wallet.res';
 import { Chain } from '../chain/entities/chain.entity';
 import { GetSafeQueryDto } from './dto/request/get-safe-query.req';
+import { IndexerClient } from '../../shared/services/indexer.service';
 
 @Injectable()
 export class SafeService {
@@ -28,10 +28,9 @@ export class SafeService {
 
   private commonUtil: CommonUtil = new CommonUtil();
 
-  private indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
-
   constructor(
     private configService: ConfigService,
+    private indexer: IndexerClient,
     private safeRepo: SafeRepository,
     private safeOwnerRepo: SafeOwnerRepository,
     private chainRepo: ChainRepository,
@@ -177,8 +176,7 @@ export class SafeService {
                   },
                 ];
         } catch (error) {
-          msgError = error.message;
-          this.logger.error(error.message);
+          this.logger.error(error);
           safeInfo.balance = [
             {
               denom: chainInfo.denom,
