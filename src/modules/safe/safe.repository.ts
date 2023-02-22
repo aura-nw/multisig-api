@@ -8,8 +8,7 @@ import {
 } from '@cosmjs/amino';
 import { fromBase64 } from '@cosmjs/encoding';
 import { plainToInstance } from 'class-transformer';
-import { In, Not, Repository } from 'typeorm';
-import { ConfigService } from '@nestjs/config';
+import { In, Not, Repository, UpdateResult } from 'typeorm';
 import { CustomError } from '../../common/custom-error';
 import { ErrorMap } from '../../common/error.map';
 import { SafeStatus } from '../../common/constants/app.constant';
@@ -57,7 +56,7 @@ export class SafeRepository {
    * @param safeId
    * @returns
    */
-  async updateQueuedTag(safeId: number): Promise<any> {
+  async updateQueuedTag(safeId: number): Promise<UpdateResult> {
     return this.repo.update(
       { id: safeId },
       { txQueuedTag: () => Date.now().toString() },

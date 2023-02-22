@@ -31,7 +31,9 @@ export class MessageRepository {
       newMsg.typeUrl = msg.typeUrl;
       switch (msg.typeUrl) {
         case TxTypeUrl.SEND: {
-          newMsg.amount = msg.value.amount ? msg.value.amount[0].amount : null;
+          newMsg.amount = msg.value.amount
+            ? msg.value.amount[0].amount
+            : undefined;
           break;
         }
         case TxTypeUrl.MULTI_SEND: {
@@ -42,17 +44,19 @@ export class MessageRepository {
         case TxTypeUrl.DELEGATE:
         case TxTypeUrl.REDELEGATE:
         case TxTypeUrl.UNDELEGATE: {
-          newMsg.amount = msg.value.amount ? msg.value.amount?.amount : null;
+          newMsg.amount = msg.value.amount
+            ? msg.value.amount?.amount
+            : undefined;
           break;
         }
         default: {
           break;
         }
       }
-      newMsg.voteOption = msg.value.option ? msg.value.option : null;
+      newMsg.voteOption = msg.value.option || undefined;
       newMsg.proposalId = msg.value.proposalId
         ? Number(msg.value.proposalId)
-        : null;
+        : undefined;
       return newMsg;
     });
     const result = await this.repos.save(newMsgs);
@@ -86,7 +90,7 @@ export class MessageRepository {
       .where('message.auraTxID IN (:txIds)', { txIds })
       .select(['message.auraTxID as AuraTxID', 'sum(message.amount) as Amount'])
       .groupBy('message.auraTxID')
-      .getRawMany();
+      .getRawMany<TxMessageHistoryResponseDto>();
     if (!result) throw new CustomError(ErrorMap.MESSAGE_NOT_EXIST);
     return result;
   }

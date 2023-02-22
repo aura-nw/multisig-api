@@ -2,6 +2,7 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { middleware as expressCtx } from 'express-ctx';
 import { AppModule } from './app.module';
 import { SeederModule } from './modules/seeders/seeder.module';
 import { SeederService } from './modules/seeders/seeder.service';
@@ -17,22 +18,19 @@ async function bootstrap() {
 
   // enable cors
   app.enableCors();
+  app.use(expressCtx);
 
   const configService = app.select(SharedModule).get(ConfigService);
 
   // create or update chain info
   const seederService = app.select(SeederModule).get(SeederService);
-  seederService
-    .seed()
-    .then(() => {
-      Logger.debug('Seed completed');
-    })
-    .catch((error) => {
-      Logger.error(error);
-      app.close().then(() => {
-        process.exit(1);
-      });
-    });
+  try {
+    await seederService.seed();
+    Logger.debug('Seed completed');
+  } catch (error) {
+    Logger.error(error);
+    await app.close();
+  }
 
   // setup swagger
   const config = new DocumentBuilder()
@@ -47,4 +45,4 @@ async function bootstrap() {
 
   await app.listen(3000);
 }
-bootstrap();
+await bootstrap();

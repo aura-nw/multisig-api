@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 import { DefaultNamingStrategy, NamingStrategyInterface } from 'typeorm';
 import { camelCase } from 'typeorm/util/StringUtils';
 
@@ -44,10 +45,7 @@ export class PascalCaseStrategy
     propertyName: string,
     columnName?: string,
   ): string {
-    return camelCase(
-      tableName + (columnName || propertyName),
-      true,
-    );
+    return camelCase(tableName + (columnName || propertyName), true);
   }
 
   classTableInheritanceParentColumnName(

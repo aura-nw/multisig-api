@@ -48,8 +48,7 @@ export class TransactionHistoryService {
 
       await Promise.all(promises);
 
-      skip += take;
-      batchTx = await this.auraTxRepo.getBatchTx(take, skip);
+      batchTx = await this.auraTxRepo.getBatchTx(take, skip + take);
     }
   }
 }

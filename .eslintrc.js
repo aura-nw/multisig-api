@@ -27,6 +27,12 @@ module.exports = {
     project: ['./tsconfig.json'],
   },
   rules: {
+    // TODO: Remove this rule once the following issue is resolved:
+    '@typescript-eslint/no-unsafe-assignment': 'off',
+    '@typescript-eslint/no-unsafe-member-access': 'off',
+    'class-methods-use-this': 'off',
+
+    'eslint-comments/disable-enable-pair': ['error', { allowWholeFile: true }],
     'no-restricted-syntax': ['error', "BinaryExpression[operator='in']"],
     // Too restrictive, writing ugly code to defend against a very unlikely scenario: https://eslint.org/docs/rules/no-prototype-builtins
     'no-prototype-builtins': 'off',

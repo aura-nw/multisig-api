@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { plainToInstance } from 'class-transformer';
 import { CustomError } from '../../common/custom-error';
 import { AccountInfo } from '../../common/dtos/account-info';
 import { ErrorMap } from '../../common/error.map';
-import { ConfigService } from './config.service';
 import { CommonUtil } from '../../utils/common.util';
 
 @Injectable()
@@ -83,13 +83,14 @@ export class IndexerClient {
     });
   }
 
-  async getAccountPubkey(chainId: string, address: string) {
+  async getAccountPubkey(chainId: string, address: string): Promise<any[]> {
     const accountInfo = await this.getAccountInfo(chainId, address);
 
     if (!accountInfo.account_auth)
       throw new CustomError(ErrorMap.MISSING_ACCOUNT_AUTH);
 
     const pubkeyInfo = accountInfo.account_auth.account.pub_key;
+    if (!pubkeyInfo) throw new CustomError(ErrorMap.MISSING_ACCOUNT_AUTH);
     return pubkeyInfo;
   }
 
