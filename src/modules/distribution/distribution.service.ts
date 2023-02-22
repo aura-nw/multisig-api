@@ -1,9 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
+import { ConfigService } from '@nestjs/config';
 import { ErrorMap } from '../../common/error.map';
-import { ConfigService } from '../../shared/services/config.service';
 import { CommonUtil } from '../../utils/common.util';
-import { IndexerClient } from '../../utils/apis/indexer-client.service';
 import { ChainRepository } from '../chain/chain.repository';
 import { Chain } from '../chain/entities/chain.entity';
 import {
@@ -23,6 +22,7 @@ import {
   ValidatorInfoDto,
 } from './dto';
 import { ResponseDto } from '../../common/dtos/response.dto';
+import { IndexerClient } from '../../shared/services/indexer.service';
 
 @Injectable()
 export class DistributionService {
@@ -30,16 +30,13 @@ export class DistributionService {
 
   private chains = new Map<string, Chain>();
 
-  private indexerClient = new IndexerClient(
-    this.configService.get('INDEXER_URL'),
-  );
-
   private validatorsPicture = new Map<string, string>();
 
   indexerUrl: string;
 
   constructor(
     private configService: ConfigService,
+    private indexer: IndexerClient,
     private chainRepo: ChainRepository,
   ) {
     this.logger.log(
@@ -109,7 +106,7 @@ export class DistributionService {
       const chain = await this.getChain(internalChainId);
 
       // Get all validators from indexer which status is active
-      const validators = await this.indexerClient.getValidators(
+      const validators = await this.indexer.getValidators(
         chain.chainId,
         status,
       );
@@ -144,13 +141,13 @@ export class DistributionService {
       const chain = await this.getChain(internalChainId);
 
       // get acccount info
-      const accountInfo = await this.indexerClient.getAccountInfo(
+      const accountInfo = await this.indexer.getAccountInfo(
         chain.chainId,
         delegatorAddress,
       );
 
       // get validator info
-      const validator = await this.indexerClient.getValidatorByOperatorAddress(
+      const validator = await this.indexer.getValidatorByOperatorAddress(
         chain.chainId,
         operatorAddress,
       );
@@ -217,7 +214,7 @@ export class DistributionService {
       const chain = await this.getChain(internalChainId);
 
       // Get account info
-      const accountInfo = await this.indexerClient.getAccountInfo(
+      const accountInfo = await this.indexer.getAccountInfo(
         chain.chainId,
         delegatorAddress,
       );
@@ -274,7 +271,7 @@ export class DistributionService {
       const chain = await this.getChain(internalChainId);
 
       // Get account undelegations
-      const accountUnbonding = await this.indexerClient.getAccountUnBonds(
+      const accountUnbonding = await this.indexer.getAccountUnBonds(
         chain.chainId,
         delegatorAddress,
       );
@@ -328,7 +325,7 @@ export class DistributionService {
   }
 
   private async getValidatorPicture(identity: string): Promise<string> {
-    let pictureUrl = this.configService.get('DEFAULT_VALIDATOR_IMG');
+    let pictureUrl = this.configService.get<string>('DEFAULT_VALIDATOR_IMG');
     try {
       if (!identity) return pictureUrl;
       // get picture in cache
@@ -336,7 +333,7 @@ export class DistributionService {
         pictureUrl = this.validatorsPicture.get(identity);
       } else {
         // get picture from keybase
-        const keybaseUrl = this.configService.get('KEYBASE');
+        const keybaseUrl = this.configService.get<string>('KEYBASE');
         const res = await CommonUtil.requestAPI(
           new URL(keybaseUrl + identity).href,
         );

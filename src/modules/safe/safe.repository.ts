@@ -9,11 +9,10 @@ import {
 import { fromBase64 } from '@cosmjs/encoding';
 import { plainToInstance } from 'class-transformer';
 import { In, Not, Repository } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
 import { CustomError } from '../../common/custom-error';
 import { ErrorMap } from '../../common/error.map';
 import { SafeStatus } from '../../common/constants/app.constant';
-import { IndexerClient } from '../../utils/apis/indexer-client.service';
-import { ConfigService } from '../../shared/services/config.service';
 import { CommonUtil } from '../../utils/common.util';
 import { createEvmosPubkey } from '../../chains/evmos';
 import { Safe } from './entities/safe.entity';
@@ -21,15 +20,14 @@ import { SafeOwnerRepository } from '../safe-owner/safe-owner.repository';
 import { ChainRepository } from '../chain/chain.repository';
 import { SafeOwner } from '../safe-owner/entities/safe-owner.entity';
 import { GetThresholdResDto } from './dto/request/get-threshold.res';
+import { IndexerClient } from '../../shared/services/indexer.service';
 
 @Injectable()
 export class SafeRepository {
   private readonly logger = new Logger(SafeRepository.name);
 
-  private indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
-
   constructor(
-    private configService: ConfigService,
+    private indexer: IndexerClient,
     @InjectRepository(Safe)
     private readonly repo: Repository<Safe>,
     private safeOwnerRepo: SafeOwnerRepository,
@@ -105,9 +103,9 @@ export class SafeRepository {
         newSafe.safePubkey = pubkey;
         newSafe.status = SafeStatus.CREATED;
       } catch (error) {
-        throw new CustomError(
+        throw CustomError.fromUnknown(
           ErrorMap.CANNOT_CREATE_SAFE_ADDRESS,
-          error.message,
+          error,
         );
       }
     }
@@ -115,7 +113,7 @@ export class SafeRepository {
       const result = await this.repo.save(newSafe);
       return result;
     } catch (error) {
-      throw new CustomError(ErrorMap.INSERT_SAFE_FAILED, error.message);
+      throw CustomError.fromUnknown(ErrorMap.INSERT_SAFE_FAILED, error);
     }
   }
 
@@ -224,7 +222,7 @@ export class SafeRepository {
       const result: Safe = await this.repo.save(newSafe);
       return result;
     } catch (error) {
-      throw new CustomError(ErrorMap.INSERT_SAFE_FAILED, error.message);
+      throw CustomError.fromUnknown(ErrorMap.INSERT_SAFE_FAILED, error);
     }
   }
 

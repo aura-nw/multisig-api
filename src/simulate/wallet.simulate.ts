@@ -65,7 +65,7 @@ export class WalletSimulate {
    * @param messages
    * @param totalOwner
    */
-  async simulate(messages: any[], safeInfo: Safe): Promise<SimulateResponse> {
+  async buildEncodedTxBytes(messages: any[], safeInfo: Safe): Promise<string> {
     const safePubkey = JSON.parse(safeInfo.safePubkey);
     const totalOwner = safePubkey.value.pubkeys.length;
 
@@ -93,11 +93,7 @@ export class WalletSimulate {
       authInfoBytes,
       fromBase64(safeSimulate.signature),
     );
-
-    // call simulate api
-    const lcdClient = new LcdClient(this.chain.rest);
-    const result = await lcdClient.simulate(toBase64(txBytes));
-    return result;
+    return toBase64(txBytes);
   }
 
   /**

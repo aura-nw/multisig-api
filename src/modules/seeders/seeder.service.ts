@@ -1,15 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
-import * as path from 'node:path';
-import { CommonUtil } from '../../utils/common.util';
-import { validateChainInfo } from '../../utils/validations/chain.validation';
+import { Injectable } from '@nestjs/common';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
+import { ChainInfo } from '../../utils/validations/chain.validation';
 import { ChainRepository } from '../chain/chain.repository';
+import networkConfig from '../../../chains.json';
 
 @Injectable()
 export class SeederService {
-  private readonly logger = new Logger(SeederService.name);
-
-  private commonUtil: CommonUtil = new CommonUtil();
-
   constructor(private chainRepo: ChainRepository) {}
 
   async seed() {
@@ -18,17 +15,15 @@ export class SeederService {
 
   async seedChain() {
     try {
-      this.commonUtil.jsonReader(
-        path.resolve('./chains.json'),
-        async (error, objects) => {
-          if (error) {
-            this.logger.warn('can not read chains.json');
-            return;
-          }
-          const chainInfos = await validateChainInfo(objects);
-          await this.chainRepo.createOrUpdate(chainInfos);
-        },
+      const chainInfos: ChainInfo[] = plainToInstance(ChainInfo, networkConfig);
+      const validateResult = await Promise.all(
+        chainInfos.map((chainInfo) => validate(chainInfo)),
       );
+      const errors = validateResult.filter((error) => error.length > 0);
+      if (errors.length > 0) {
+        throw new Error(errors.toString());
+      }
+      await this.chainRepo.createOrUpdate(chainInfos);
     } catch {
       throw new Error('seeding chain failed');
     }

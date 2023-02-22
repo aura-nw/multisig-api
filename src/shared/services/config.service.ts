@@ -1,68 +1,35 @@
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtModuleOptions } from '@nestjs/jwt';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import * as dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { DatabaseType } from '../../common/constants/app.constant';
 
 import { PascalCaseStrategy } from '../pascal-case.strategy';
 
-export class ConfigService {
-  constructor() {
-    dotenv.config({
-      path: '.env',
-    });
-
-    // Replace \\n with \n to support multiline strings in AWS
-    // for (const envName of Object.keys(process.env)) {
-    //   process.env[envName] = process.env[envName].replace(/\\n/g, '\n');
-    // }
-
-    // Replace \\n with \n to support multiline strings in AWS
-    Object.keys(process.env).forEach((key) => {
-      process.env[key] = process.env[key].replace(/\\n/g, '\n');
-    });
-  }
-
-  get isDevelopment(): boolean {
-    return this.nodeEnv === 'development';
-  }
-
-  get isProduction(): boolean {
-    return this.nodeEnv === 'production';
-  }
-
-  public get(key: string): string {
-    return process.env[key];
-  }
-
-  public getNumber(key: string): number {
-    return Number(this.get(key));
-  }
+@Injectable()
+export class CustomConfigService {
+  constructor(private configService: ConfigService) {}
 
   get nodeEnv(): string {
-    return this.get('NODE_ENV') || 'development';
-  }
-
-  get timezone(): string {
-    return this.get('APP_TIMEZONE');
-  }
-
-  get ENV_CONFIG() {
-    return {};
+    return this.configService.get<string>('NODE_ENV') || 'development';
   }
 
   get typeOrmConfig(): TypeOrmModuleOptions {
-    const entities = [`${__dirname}/../../entities/**/*.entity{.ts,.js}`];
-    const migrations = [`${__dirname}/../../migrations/*{.ts,.js}`];
+    const dirname = path.dirname(fileURLToPath(import.meta.url));
+    const entities = [`${dirname}/../../entities/**/*.entity{.ts,.js}`];
+    const migrations = [`${dirname}/../../migrations/*{.ts,.js}`];
 
     return {
       entities,
       migrations,
       type: DatabaseType.MYSQL,
-      host: this.get('DB_HOST'),
-      port: this.getNumber('DB_PORT'),
-      username: this.get('DB_USERNAME'),
-      password: this.get('DB_PASSWORD'),
-      database: this.get('DB_DATABASE'),
+      host: this.configService.get<string>('DB_HOST'),
+      port: this.configService.get<number>('DB_PORT'),
+      username: this.configService.get<string>('DB_USERNAME'),
+      password: this.configService.get<string>('DB_PASSWORD'),
+      database: this.configService.get<string>('DB_DATABASE'),
       timezone: 'utc',
       migrationsRun: true,
       connectTimeout: 1000,
@@ -76,10 +43,10 @@ export class ConfigService {
 
   get jwtConfig(): JwtModuleOptions {
     return {
-      secret: this.get('JWT_SECRET'),
-      signOptions: { expiresIn: this.get('JWT_EXPIRATION') },
+      secret: this.configService.get<string>('JWT_SECRET'),
+      signOptions: {
+        expiresIn: this.configService.get<string>('JWT_EXPIRATION'),
+      },
     };
   }
 }
-
-export const { ENV_CONFIG } = new ConfigService();

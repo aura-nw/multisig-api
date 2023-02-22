@@ -4,20 +4,17 @@ import { plainToInstance } from 'class-transformer';
 import { ChainRepository } from '../chain/chain.repository';
 import { NotificationRepository } from '../notification/notification.repository';
 import { UserRepository } from '../user/user.repository';
-import { ConfigService } from '../../shared/services/config.service';
-import { IndexerClient } from '../../utils/apis/indexer-client.service';
 import { Chain } from '../chain/entities/chain.entity';
 import { Notification } from '../notification/entities/notification.entity';
 import { User } from '../user/entities/user.entity';
+import { IndexerClient } from '../../shared/services/indexer.service';
 
 @Injectable()
 export class NotifyProposalJob {
   private readonly logger = new Logger(NotifyProposalJob.name);
 
-  private indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
-
   constructor(
-    private configService: ConfigService,
+    private indexer: IndexerClient,
     private readonly userRepo: UserRepository,
     private readonly chainRepo: ChainRepository,
     private readonly notificationRepo: NotificationRepository,

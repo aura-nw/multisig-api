@@ -107,7 +107,7 @@ export class CommonUtil {
         address: multiSigWalletAddress,
       };
     } catch (error) {
-      throw new CustomError(ErrorMap.CANNOT_CREATE_SAFE_ADDRESS, error.message);
+      throw CustomError.fromUnknown(ErrorMap.CANNOT_CREATE_SAFE_ADDRESS, error);
     }
   }
 

@@ -3,9 +3,7 @@ import { plainToInstance } from 'class-transformer';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { CommonUtil } from '../../utils/common.util';
-import { ConfigService } from '../../shared/services/config.service';
 import { ProposalStatus } from '../../common/constants/app.constant';
-import { IndexerClient } from '../../utils/apis/indexer-client.service';
 import { ChainRepository } from '../chain/chain.repository';
 import {
   GetProposalByIdDto,
@@ -23,6 +21,8 @@ import {
   ProposalDetailDto,
 } from './dto';
 import { Chain } from '../chain/entities/chain.entity';
+import { ConfigService } from '@nestjs/config';
+import { IndexerClient } from '../../shared/services/indexer.service';
 
 @Injectable()
 export class GovService {
@@ -30,13 +30,12 @@ export class GovService {
 
   private commonUtil: CommonUtil = new CommonUtil();
 
-  private indexer = new IndexerClient(this.configService.get('INDEXER_URL'));
-
   auraChain: Chain;
 
   constructor(
     private configService: ConfigService,
     private chainRepo: ChainRepository,
+    private indexer: IndexerClient,
   ) {
     this.logger.log('============== Constructor Gov Service ==============');
   }

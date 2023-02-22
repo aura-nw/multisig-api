@@ -1,10 +1,10 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { SeederModule } from './modules/seeders/seeder.module';
 import { SeederService } from './modules/seeders/seeder.service';
-import { ConfigService } from './shared/services/config.service';
 import { SharedModule } from './shared/shared.module';
 
 async function bootstrap() {
@@ -39,7 +39,7 @@ async function bootstrap() {
     .setTitle('Multisig Wallet API for Aura Network')
     .setVersion('0.1')
     .addServer('/')
-    .addServer(configService.get('SWAGGER_PATH'))
+    .addServer(configService.get<string>('SWAGGER_PATH'))
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);

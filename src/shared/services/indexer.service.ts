@@ -13,7 +13,7 @@ export class IndexerClient {
   indexerUrl: string;
 
   constructor(private configService: ConfigService) {
-    this.indexerUrl = this.configService.get('INDEXER_URL');
+    this.indexerUrl = this.configService.get<string>('INDEXER_URL');
   }
 
   async getValidators(chainId: string, status: string) {
