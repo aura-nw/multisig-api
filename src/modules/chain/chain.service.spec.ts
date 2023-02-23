@@ -19,7 +19,12 @@ describe('ChainService', () => {
   let indexerClient: IndexerClient;
 
   beforeEach(async () => {
-    const module: TestingModule = await chainTestingModule.compile();
+    const module: TestingModule = await chainTestingModule
+      .overrideProvider(IndexerClient)
+      .useValue({
+        getAccountNumberAndSequence: jest.fn(),
+      })
+      .compile();
 
     service = module.get<ChainService>(ChainService);
     chainRepo = module.get<ChainRepository>(ChainRepository);
