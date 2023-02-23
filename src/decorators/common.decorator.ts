@@ -17,10 +17,7 @@ import {
   ApiResponseOptions,
 } from '@nestjs/swagger';
 import { AuthUserInterceptor } from '../interceptors/auth-user-interceptor.service';
-import {
-  ResponseDto,
-  SwaggerBaseApiResponse,
-} from '../common/dtos/response.dto';
+import { ResponseDto } from '../common/dtos/response.dto';
 
 interface Options {
   url?: string;
@@ -73,7 +70,7 @@ export function Common(
     ApiOperation({ summary, description }),
     ApiOkResponse({
       status: 200,
-      type: SwaggerBaseApiResponse(ResponseDto),
+      type: ResponseDto,
       description: 'The result returned is the ResponseDto class',
       schema: {},
       ...apiOkResponseOptions,

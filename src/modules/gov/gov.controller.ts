@@ -4,8 +4,8 @@ import {
   CONTROLLER_CONSTANTS,
   URL_CONSTANTS,
 } from '../../common/constants/api.constant';
+import { ResponseDto } from '../../common/dtos/response.dto';
 import { CommonGet } from '../../decorators/common.decorator';
-import { SwaggerBaseApiResponse } from '../../common/dtos/response.dto';
 import {
   GetProposalByIdDto,
   GetProposalDepositsDto,
@@ -33,7 +33,7 @@ export class GovController {
     summary: 'Queries all proposals.',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(GetProposalsResponseDto),
+      type: ResponseDto<GetProposalsResponseDto>,
       description: 'List proposals',
       schema: {},
     },
@@ -48,7 +48,7 @@ export class GovController {
     summary: 'Queries a single proposal.',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(ProposalDetailDto),
+      type: ResponseDto<ProposalDetailDto>,
       description: 'Proposal Details',
       schema: {},
     },
@@ -62,7 +62,7 @@ export class GovController {
     summary: 'List votes by proposal Id.',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(GetVotesByProposalIdResponseDto),
+      type: ResponseDto<GetVotesByProposalIdResponseDto>,
       description: 'List votes by proposal Id',
       schema: {},
     },
@@ -79,7 +79,7 @@ export class GovController {
     summary: 'List validator votes by proposal Id.',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(GetValidatorVotesByProposalIdResponseDto),
+      type: ResponseDto<GetValidatorVotesByProposalIdResponseDto>,
       description: 'List validators votes by proposal Id',
       schema: {},
     },
@@ -93,7 +93,7 @@ export class GovController {
     summary: 'Queries deposit txs of a given proposal.',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(ProposalDepositResponseDto),
+      type: ResponseDto<ProposalDepositResponseDto>,
       description: 'List proposal deposits',
       schema: {},
     },

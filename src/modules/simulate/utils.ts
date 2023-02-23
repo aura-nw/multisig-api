@@ -1,4 +1,4 @@
-import * as Long from 'long';
+import Long from 'long';
 import { AuthInfo, SignerInfo, TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import {
   EncodeObject,
@@ -19,9 +19,9 @@ import {
   StdFee,
 } from '@cosmjs/stargate';
 import { coins } from '@cosmjs/amino';
-import { RegistryGeneratedTypes } from '../common/constants/app.constant';
-import { IndexerClient } from '../utils/apis/indexer-client.service';
-import { encodePubkeyEvmos } from '../chains/evmos';
+import { RegistryGeneratedTypes } from '../../common/constants/app.constant';
+import { encodePubkeyEvmos } from '../../chains/evmos';
+import { instanceToPlain } from 'class-transformer';
 
 export class SimulateUtils {
   public static makeBodyBytes(messages: any[], prefix: string): Uint8Array {
@@ -38,26 +38,12 @@ export class SimulateUtils {
   }
 
   static async makeAuthInfoBytes(
-    chain: Chain,
-    safeAddress: string,
+    chainId: string,
+    sequence: number,
     safePubkey: any,
     totalOwner: number,
     denom: string,
   ): Promise<Uint8Array> {
-    const indexerClient = new IndexerClient();
-    const ethermintHelper = new EthermintHelper();
-    let sequence = 0;
-    try {
-      sequence = (
-        await indexerClient.getAccountNumberAndSequence(
-          chain.chainId,
-          safeAddress,
-        )
-      ).sequence;
-    } catch (error) {
-      console.log(error);
-    }
-
     const defaultFee = SimulateUtils.getDefaultFee(denom);
     const signers: boolean[] = new Array(totalOwner).fill(false);
 
@@ -66,24 +52,24 @@ export class SimulateUtils {
         ? ethermintHelper.encodePubkeyEthermint(safePubkey)
         : encodePubkey(safePubkey);
 
-    const signerInfo: SignerInfo = {
-      publicKey: encodedPubkey,
-      modeInfo: {
-        multi: {
-          bitarray: makeCompactBitArray(signers),
-          modeInfos: safePubkey.value.pubkeys.map((_) => ({
-            single: { mode: SignMode.SIGN_MODE_LEGACY_AMINO_JSON },
-          })),
-        },
-      },
-      sequence: Long.fromNumber(sequence),
-    };
-
     const authInfo = AuthInfo.fromPartial({
-      signerInfos: [signerInfo],
+      signerInfos: [
+        {
+          publicKey: encodedPubkey,
+          modeInfo: {
+            multi: {
+              bitarray: makeCompactBitArray(signers),
+              modeInfos: safePubkey.value.pubkeys.map(() => ({
+                single: { mode: SignMode.SIGN_MODE_LEGACY_AMINO_JSON },
+              })),
+            },
+          },
+          sequence: sequence,
+        },
+      ],
       fee: {
         amount: [...defaultFee.amount],
-        gasLimit: Long.fromString(defaultFee.gas),
+        gasLimit: defaultFee.gas,
       },
     });
     return AuthInfo.encode(authInfo).finish();

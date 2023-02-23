@@ -4,7 +4,18 @@ import { plainToInstance } from 'class-transformer';
 import { CustomError } from '../../common/custom-error';
 import { AccountInfo } from '../../common/dtos/account-info';
 import { ErrorMap } from '../../common/error.map';
-import { CommonUtil } from '../../utils/common.util';
+import {
+  IAccountInfo,
+  IAccountUnbound,
+  IProposal,
+  IProposals,
+  IPubkey,
+  NetworkStatus,
+  Validator,
+  Validators,
+} from '../../interfaces';
+import { IVotes } from '../../interfaces/votes.interface';
+import { CommonService } from './common.service';
 
 @Injectable()
 export class IndexerClient {
@@ -12,52 +23,60 @@ export class IndexerClient {
 
   indexerUrl: string;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private commonService: CommonService,
+  ) {
     this.indexerUrl = this.configService.get<string>('INDEXER_URL');
   }
 
-  async getValidators(chainId: string, status: string) {
+  async getValidators(chainId: string, status: string): Promise<Validator[]> {
     let url = `api/v1/validator?chainid=${chainId}`;
     if (status) {
       url += `&status=${status}`;
     }
     url += '&pageOffset=0&pageLimit=1000';
-    const validatorsRes = await CommonUtil.requestAPI(
+    const validatorsRes = await this.commonService.requestGet<Validators>(
       new URL(url, this.indexerUrl).href,
     );
-    return validatorsRes.data.validators;
+    return validatorsRes.validators;
   }
 
   async getValidatorByOperatorAddress(
     chainId: string,
     operatorAddress: string,
-  ) {
-    const validatorRes = await CommonUtil.requestAPI(
+  ): Promise<Validator> {
+    const validatorRes = await this.commonService.requestGet<Validators>(
       new URL(
         `api/v1/validator?operatorAddress=${operatorAddress}&chainid=${chainId}`,
         this.indexerUrl,
       ).href,
     );
-    const validator = validatorRes.data.validators[0];
+    const validator = validatorRes.validators[0];
     return validator;
   }
 
-  async getNetwork(chainId: string) {
+  /**
+   * getNetwork
+   * @param chainId
+   * @returns
+   */
+  async getNetwork(chainId: string): Promise<NetworkStatus> {
     const url = `api/v1/network/status?chainid=${chainId}`;
-    const networkRes = await CommonUtil.requestAPI(
+    const networkRes = await this.commonService.requestGet<NetworkStatus>(
       new URL(url, this.indexerUrl).href,
     );
-    return networkRes.data;
+    return networkRes;
   }
 
   async getAccountInfo(chainId: string, address: string) {
-    const accountInfo = await CommonUtil.requestAPI(
+    const accountInfo = await this.commonService.requestGet<IAccountInfo>(
       new URL(
         `api/v1/account-info?address=${address}&chainId=${chainId}`,
         this.indexerUrl,
       ).href,
     );
-    return accountInfo.data;
+    return accountInfo;
   }
 
   async getAccountNumberAndSequence(
@@ -83,7 +102,7 @@ export class IndexerClient {
     });
   }
 
-  async getAccountPubkey(chainId: string, address: string): Promise<any[]> {
+  async getAccountPubkey(chainId: string, address: string): Promise<IPubkey> {
     const accountInfo = await this.getAccountInfo(chainId, address);
 
     if (!accountInfo.account_auth)
@@ -95,30 +114,31 @@ export class IndexerClient {
   }
 
   async getAccountUnBonds(chainId: string, delegatorAddress: string) {
-    const undelegationRes = await CommonUtil.requestAPI(
-      new URL(
-        `api/v1/account-unbonds?address=${delegatorAddress}&chainid=${chainId}`,
-        this.indexerUrl,
-      ).href,
-    );
-    return undelegationRes.data.account_unbonding;
+    const undelegationRes =
+      await this.commonService.requestGet<IAccountUnbound>(
+        new URL(
+          `api/v1/account-unbonds?address=${delegatorAddress}&chainid=${chainId}`,
+          this.indexerUrl,
+        ).href,
+      );
+    return undelegationRes.account_unbonding;
   }
 
-  async getProposals(chainId: string) {
-    const proposalsRes = await CommonUtil.requestAPI(
+  async getProposals(chainId: string): Promise<IProposal[]> {
+    const proposalsRes = await this.commonService.requestGet<IProposals>(
       new URL(`api/v1/proposal?chainid=${chainId}`, this.indexerUrl).href,
     );
-    return proposalsRes.data.proposals;
+    return proposalsRes.proposals;
   }
 
-  async getProposal(chainId: string, proposalId: number) {
-    const proposalRes = await CommonUtil.requestAPI(
+  async getProposal(chainId: string, proposalId: number): Promise<IProposal> {
+    const proposalRes = await this.commonService.requestGet<IProposals>(
       new URL(
         `api/v1/proposal?chainid=${chainId}&proposalId=${proposalId}`,
         this.indexerUrl,
       ).href,
     );
-    return proposalRes.data.proposals[0];
+    return proposalRes.proposals[0];
   }
 
   async getVotesByProposalId(
@@ -129,7 +149,7 @@ export class IndexerClient {
     pageOffset = 0,
     pageLimit = 45,
     reverse = false,
-  ) {
+  ): Promise<IVotes> {
     let url = `api/v1/votes?chainid=${chainId}&proposalid=${proposalId}`;
 
     url += answer ? `&answer=${answer}` : ''; // optional
@@ -138,21 +158,21 @@ export class IndexerClient {
     url += `&pageLimit=${pageLimit}`; // optional
     url += `&reverse=${reverse}`; // optional
 
-    const response = await CommonUtil.requestAPI(
+    const response = await this.commonService.requestGet<IVotes>(
       new URL(url, this.indexerUrl).href,
     );
-    return {
-      votes: response.data.votes,
-      nextKey: response.data.nextKey,
-    };
+    return response;
   }
 
-  async getValidatorVotesByProposalId(chainId: string, proposalId: number) {
+  async getValidatorVotesByProposalId(
+    chainId: string,
+    proposalId: number,
+  ): Promise<IVotes> {
     const url = `api/v1/votes/validators?chainid=${chainId}&proposalid=${proposalId}`;
-    const response = await CommonUtil.requestAPI(
+    const response = await this.commonService.requestGet<IVotes>(
       new URL(url, this.indexerUrl).href,
     );
-    return response.data;
+    return response;
   }
 
   async getProposalDepositByProposalId(chainId: string, proposalId: number) {
@@ -160,7 +180,9 @@ export class IndexerClient {
       `api/v1/transaction?chainid=${chainId}&searchType=proposal_deposit&searchKey=proposal_id&searchValue=${proposalId}&pageOffset=0&pageLimit=10&countTotal=false&reverse=false`,
       this.indexerUrl,
     ).href;
-    const response = await CommonUtil.requestAPI(getProposalDepositsURL);
+    const response = await this.commonService.requestGet<any>(
+      getProposalDepositsURL,
+    );
     return response.data.transactions;
   }
 
@@ -170,7 +192,9 @@ export class IndexerClient {
       this.indexerUrl,
     ).href;
     try {
-      const response = await CommonUtil.requestAPI(getProposalByChainIdURL);
+      const response = await this.commonService.requestGet<any>(
+        getProposalByChainIdURL,
+      );
       return response.data.proposals || [];
     } catch (error) {
       this.logger.error(error);

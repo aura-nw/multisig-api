@@ -16,8 +16,8 @@ import { ConfirmSafePathParamsDto } from './dto/request/confirm-multisig-wallet.
 import { DeleteSafePathParamsDto } from './dto/request/delete-multisig-wallet.req';
 import { CreateSafeResponseDto } from './dto/response/create-safe.res';
 import { GetMultisigWalletResponseDto } from './dto/response/get-multisig-wallet.res';
-import { SwaggerBaseApiResponse } from '../../common/dtos/response.dto';
 import { GetSafeQueryDto } from './dto/request/get-safe-query.req';
+import { ResponseDto } from '../../common/dtos/response.dto';
 
 @Controller(CONTROLLER_CONSTANTS.MULTISIG_WALLET)
 @ApiTags(CONTROLLER_CONSTANTS.MULTISIG_WALLET)
@@ -30,7 +30,7 @@ export class SafeController {
     summary: 'Create a multisig wallet',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(CreateSafeResponseDto),
+      type: ResponseDto<CreateSafeResponseDto>,
       description: 'Safe information',
       schema: {},
     },
@@ -45,7 +45,7 @@ export class SafeController {
     summary: 'Get status of the multisig wallet by safeId',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(GetMultisigWalletResponseDto),
+      type: ResponseDto<GetMultisigWalletResponseDto>,
       description: 'Status of multisig wallet',
       schema: {},
     },

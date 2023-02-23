@@ -15,6 +15,8 @@ import { ChainRepository } from '../chain/chain.repository';
 import { UserRepository } from '../user/user.repository';
 import { RequestAuthDto } from './dto/request-auth.dto';
 import { AuthUtil } from '../../utils/auth.util';
+import { ContextProvider } from '../../providers/contex.provider';
+import { UserInfoDto } from './dto';
 
 @Injectable()
 export class AuthService {
@@ -33,7 +35,7 @@ export class AuthService {
    * @param request
    * @returns
    */
-  async auth(request: RequestAuthDto): Promise<ResponseDto> {
+  async auth(request: RequestAuthDto): Promise<ResponseDto<any>> {
     try {
       const { pubkey, data, signature, internalChainId } = request;
       const plainData = Buffer.from(data, 'base64').toString('binary');
@@ -93,5 +95,21 @@ export class AuthService {
     } catch (error) {
       return ResponseDto.responseError(AuthService.name, error);
     }
+  }
+
+  /**
+   * getAuthUser
+   * @returns
+   */
+  static getAuthUser() {
+    return ContextProvider.getAuthUser();
+  }
+
+  /**
+   * setAuthUser
+   * @param user
+   */
+  static setAuthUser(user: UserInfoDto) {
+    ContextProvider.setAuthUser(user);
   }
 }

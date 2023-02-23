@@ -6,7 +6,7 @@ import { AuthController } from './auth.controller';
 import { ChainModule } from '../chain/chain.module';
 import { UserModule } from '../user/user.module';
 import { SharedModule } from '../../shared/shared.module';
-import { CustomConfigService } from '../../shared/services/config.service';
+import { CustomConfigService } from '../../shared/services/custom-config.service';
 import { JwtStrategy } from './jwt.strategy';
 
 @Module({

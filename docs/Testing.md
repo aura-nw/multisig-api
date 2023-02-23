@@ -169,7 +169,7 @@ npm i --save-dev @nestjs/testing
   ```ts
     async createMultisigWallet(
       request: MODULE_REQUEST.CreateMultisigWalletRequest,
-    ): Promise<ResponseDto> {
+    ): Promise<ResponseDto<any>> {
       const res = new ResponseDto();
       try {
         const { creatorAddress, creatorPubkey, threshold, internalChainId } =

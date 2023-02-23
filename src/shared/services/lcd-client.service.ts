@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CustomError } from '../../common/custom-error';
 import { ErrorMap } from '../../common/error.map';
-import { SimulateResponse } from '../../simulate/dtos/simulate-response';
+import { SimulateResponse } from '../../modules/simulate/dtos/simulate-response';
 import { CommonService } from './common.service';
 import { SimulateDto } from '../dtos';
 

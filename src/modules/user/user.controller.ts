@@ -5,10 +5,7 @@ import {
   URL_CONSTANTS,
 } from '../../common/constants/api.constant';
 import { CommonGet } from '../../decorators/common.decorator';
-import {
-  ResponseDto,
-  SwaggerBaseApiResponse,
-} from '../../common/dtos/response.dto';
+import { ResponseDto } from '../../common/dtos/response.dto';
 import { GetUserPathParamDto } from './dto/request/get-user.req';
 import { UserService } from './user.service';
 
@@ -24,7 +21,7 @@ export class UserController {
     summary: 'Get user by address',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(ResponseDto),
+      type: ResponseDto,
       description: 'User detail',
       schema: {},
     },

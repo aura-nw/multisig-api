@@ -16,11 +16,13 @@ import { SafeOwnerModule } from './modules/safe-owner/safe-owner.module';
 import { UserModule } from './modules/user/user.module';
 import { JwtStrategy } from './modules/auth/jwt.strategy';
 import { NotifyProposalModule } from './modules/jobs/notify-proposal.module';
-import { CustomConfigService } from './shared/services/config.service';
+import { CustomConfigService } from './shared/services/custom-config.service';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     HttpModule.registerAsync({
       useFactory: () => ({
         timeout: 5000,

@@ -17,9 +17,7 @@ import {
   StargateClient,
 } from '@cosmjs/stargate';
 import { fromBase64 } from '@cosmjs/encoding';
-import { ConfigService } from '@nestjs/config';
 import { AminoMsg, makeSignDoc } from '@cosmjs/amino';
-import { plainToInstance } from 'class-transformer';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import {
@@ -32,9 +30,7 @@ import {
 } from '../../common/constants/app.constant';
 
 import { makeMultisignedTxEvmos, verifyEvmosSig } from '../../chains/evmos';
-import { CommonUtil } from '../../utils/common.util';
-import { IndexerClient } from '../../utils/apis/indexer-client.service';
-import { Simulate } from '../../simulate';
+import { SimulateService } from '../simulate';
 import { CustomError } from '../../common/custom-error';
 import { CosmosUtil } from '../../chains/cosmos';
 import { MultisigTransactionRepository } from './multisig-transaction.repository';
@@ -51,6 +47,7 @@ import { AuraTxRepository } from '../aura-tx/aura-tx.repository';
 import { TxMessageResponseDto } from '../message/dto/response/tx-message.res';
 import { CreateTransactionRequestDto } from './dto/request/create-transaction.req';
 import {
+  CreateTxResDto,
   GetAllTransactionsRequestDto,
   GetMultisigSignaturesParamDto,
   GetSimulateAddressQueryDto,
@@ -68,6 +65,11 @@ import { Safe } from '../safe/entities/safe.entity';
 import { TransactionHistoryRepository } from '../transaction-history/transaction-history.repository';
 import { AccountInfo } from '../../common/dtos/account-info';
 import { UserInfoDto } from '../auth/dto/user-info.dto';
+import { CommonUtil } from '../../utils/common.util';
+import { IndexerClient } from '../../shared/services/indexer.service';
+import { GetListConfirmResDto } from '../multisig-confirm/dto';
+import { SimulateResponse } from '../simulate/dtos/simulate-response';
+import { SendTxResDto } from './dto/response/send-tx.res';
 
 @Injectable()
 export class MultisigTransactionService {
@@ -75,12 +77,7 @@ export class MultisigTransactionService {
 
   private readonly commonUtil: CommonUtil = new CommonUtil();
 
-  private readonly utils: CommonUtil = new CommonUtil();
-
-  private simulateFactory: Simulate;
-
   constructor(
-    private configService: ConfigService,
     private indexer: IndexerClient,
     private multisigTransactionRepos: MultisigTransactionRepository,
     private auraTxRepo: AuraTxRepository,
@@ -91,19 +88,16 @@ export class MultisigTransactionService {
     private messageRepos: MessageRepository,
     private notificationRepo: NotificationRepository,
     private txHistoryRepo: TransactionHistoryRepository,
+    private simulateService: SimulateService,
   ) {
     this.logger.log(
       '============== Constructor Multisig Transaction Service ==============',
-    );
-
-    this.simulateFactory = new Simulate(
-      this.configService.get<string>('SYS_MNEMONIC'),
     );
   }
 
   async getTransactionHistory(
     request: GetAllTransactionsRequestDto,
-  ): Promise<ResponseDto> {
+  ): Promise<ResponseDto<MultisigTransactionHistoryResponseDto[]>> {
     const { safeAddress, isHistory, pageSize, pageIndex, internalChainId } =
       request;
 
@@ -205,7 +199,7 @@ export class MultisigTransactionService {
   async getListMultisigConfirmById(
     param: GetMultisigSignaturesParamDto,
     status?: string,
-  ): Promise<ResponseDto> {
+  ): Promise<ResponseDto<GetListConfirmResDto[]>> {
     const { id } = param;
     try {
       const multisig = await this.multisigTransactionRepos.getMultisigTx(id);
@@ -230,7 +224,7 @@ export class MultisigTransactionService {
    */
   async changeSequence(
     request: ChangeSequenceTransactionRequestDto,
-  ): Promise<ResponseDto> {
+  ): Promise<ResponseDto<CreateTxResDto>> {
     const {
       from,
       to,
@@ -247,10 +241,7 @@ export class MultisigTransactionService {
     const requestDeleteTx: DeleteTxRequestDto = {
       id: oldTxId,
     };
-    const deleted = await this.deleteTransaction(requestDeleteTx);
-    if (deleted.ErrorCode !== ErrorMap.SUCCESSFUL.Code) {
-      return deleted;
-    }
+    await this.deleteTransaction(requestDeleteTx);
 
     // create new tx
     const requestCreateTx: CreateTransactionRequestDto = {
@@ -264,9 +255,6 @@ export class MultisigTransactionService {
       sequence,
     };
     const created = await this.createMultisigTransaction(requestCreateTx);
-    if (deleted.ErrorCode !== ErrorMap.SUCCESSFUL.Code) {
-      throw new CustomError(ErrorMap[deleted.ErrorCode], deleted.Data);
-    }
     return created;
   }
 
@@ -275,7 +263,9 @@ export class MultisigTransactionService {
    * @param request
    * @returns
    */
-  async deleteTransaction(request: DeleteTxRequestDto): Promise<ResponseDto> {
+  async deleteTransaction(
+    request: DeleteTxRequestDto,
+  ): Promise<ResponseDto<void>> {
     try {
       const { id } = request;
       const authInfo = this.commonUtil.getAuthInfo();
@@ -313,7 +303,9 @@ export class MultisigTransactionService {
     }
   }
 
-  async simulate(request: SimulateTxRequestDto): Promise<ResponseDto> {
+  async simulate(
+    request: SimulateTxRequestDto,
+  ): Promise<ResponseDto<SimulateResponse>> {
     try {
       const { encodedMsgs, safeId } = request;
       const messages = JSON.parse(
@@ -327,9 +319,9 @@ export class MultisigTransactionService {
 
       // get chain info
       const chain = await this.chainRepos.findChain(safeInfo.internalChainId);
-      await this.simulateFactory.simulateWithChain(chain);
+      await this.simulateService.simulateWithChain(chain);
 
-      const result = await this.simulateFactory.simulate(messages, safeInfo);
+      const result = await this.simulateService.simulate(messages, safeInfo);
       return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
     } catch (error) {
       return ResponseDto.responseError(MultisigTransactionService.name, error);
@@ -338,18 +330,18 @@ export class MultisigTransactionService {
 
   async getSimulateAddresses(
     request: GetSimulateAddressQueryDto,
-  ): Promise<ResponseDto> {
+  ): Promise<ResponseDto<string[]>> {
     const { internalChainId } = request;
     const chain = await this.chainRepos.findChain(internalChainId);
-    await this.simulateFactory.simulateWithChain(chain);
+    await this.simulateService.simulateWithChain(chain);
 
-    const wallet = await this.simulateFactory.getCurrentWallet();
+    const wallet = await this.simulateService.getCurrentWallet();
     return ResponseDto.response(ErrorMap.SUCCESSFUL, wallet.getAddresses());
   }
 
   async createMultisigTransaction(
     request: CreateTransactionRequestDto,
-  ): Promise<ResponseDto> {
+  ): Promise<ResponseDto<CreateTxResDto>> {
     const {
       from,
       to,
@@ -445,7 +437,7 @@ export class MultisigTransactionService {
         safe.id,
         safe.safeAddress,
         transactionResult.id,
-        transactionResult.sequence,
+        Number(transactionResult.sequence),
         creatorAddress,
         safeOwners
           .filter((safeOwner) => safeOwner.ownerAddress !== creatorAddress)
@@ -463,7 +455,7 @@ export class MultisigTransactionService {
 
   async confirmMultisigTransaction(
     request: ConfirmTransactionRequestDto,
-  ): Promise<ResponseDto> {
+  ): Promise<ResponseDto<void>> {
     try {
       const {
         transactionId,
@@ -505,11 +497,11 @@ export class MultisigTransactionService {
       // verify data
       await this.decodeAndVerifyTxInfo(txRawInfo, accountInfo, chain, authInfo);
 
-      // await this.multisigConfirmRepos.validateSafeOwner(
-      //   creatorAddress,
-      //   pendingTx.fromAddress,
-      //   internalChainId,
-      // );
+      await this.multisigConfirmRepos.validateSafeOwner(
+        creatorAddress,
+        pendingTx.fromAddress,
+        internalChainId,
+      );
 
       await this.confirmTx(pendingTx, internalChainId, safe);
 
@@ -521,7 +513,7 @@ export class MultisigTransactionService {
 
   async sendMultisigTransaction(
     request: SendTransactionRequestDto,
-  ): Promise<ResponseDto> {
+  ): Promise<ResponseDto<SendTxResDto>> {
     try {
       const { internalChainId, transactionId } = request;
       const authInfo = this.commonUtil.getAuthInfo();
@@ -548,23 +540,23 @@ export class MultisigTransactionService {
       const txBroadcast = await this.makeTx(safe, chain, multisigTransaction);
 
       // Record owner send transaction
-      // await this.multisigConfirmRepos.insertIntoMultisigConfirm(
-      //   request.transactionId,
-      //   creatorAddress,
-      //   '',
-      //   '',
-      //   internalChainId,
-      //   MultisigConfirmStatus.SEND,
-      // );
+      await this.multisigConfirmRepos.insertIntoMultisigConfirm(
+        request.transactionId,
+        creatorAddress,
+        '',
+        '',
+        internalChainId,
+        MultisigConfirmStatus.SEND,
+      );
       await this.safeRepos.updateQueuedTag(multisigTransaction.safeId);
 
       try {
         await client.broadcastTx(txBroadcast, 10);
       } catch (error) {
-        console.log('Error', error);
         // Update status and txhash
         // TxHash is encoded transaction when send it to network
-        if (error.txId === undefined || error.txId === null) {
+        const txId = CommonUtil.getStrProp(error, 'txId');
+        if (txId === undefined) {
           await this.multisigTransactionRepos.updateFailedTx(
             multisigTransaction,
           );
@@ -582,45 +574,46 @@ export class MultisigTransactionService {
             MultisigTransactionService.name,
             error,
           );
-        }
-        // update tx status to "pending"
-        await this.multisigTransactionRepos.updateTxBroadcastSuccess(
-          multisigTransaction.id,
-          error.txId,
-        );
+        } else {
+          // update tx status to "pending"
+          await this.multisigTransactionRepos.updateTxBroadcastSuccess(
+            multisigTransaction.id,
+            txId,
+          );
 
-        // update queue tx have same sequence to "replaced"
-        await this.multisigTransactionRepos.updateQueueTxToReplaced(
-          multisigTransaction.safeId,
-          Number(multisigTransaction.sequence),
-        );
+          // update queue tx have same sequence to "replaced"
+          await this.multisigTransactionRepos.updateQueueTxToReplaced(
+            multisigTransaction.safeId,
+            Number(multisigTransaction.sequence),
+          );
 
-        // update safe next queue sequence
-        safe.sequence = (Number(multisigTransaction.sequence) + 1).toString();
-        safe.nextQueueSeq = (
-          await this.calculateNextSeq(
+          // update safe next queue sequence
+          safe.sequence = (Number(multisigTransaction.sequence) + 1).toString();
+          safe.nextQueueSeq = (
+            await this.calculateNextSeq(
+              safe.id,
+              Number(multisigTransaction.sequence) + 1,
+            )
+          ).toString();
+
+          // notify tx broadcasted
+          const safeOwners = await this.safeOwnerRepo.getSafeOwnersWithError(
             safe.id,
-            Number(multisigTransaction.sequence) + 1,
-          )
-        ).toString();
+          );
+          await this.notificationRepo.notifyBroadcastedTx(
+            safe.id,
+            safe.safeAddress,
+            multisigTransaction.id,
+            Number(multisigTransaction.sequence),
+            safeOwners.map((safeOwner) => safeOwner.ownerAddress),
+            internalChainId,
+          );
+          await this.safeRepos.updateSafe(safe);
 
-        // notify tx broadcasted
-        const safeOwners = await this.safeOwnerRepo.getSafeOwnersWithError(
-          safe.id,
-        );
-        await this.notificationRepo.notifyBroadcastedTx(
-          safe.id,
-          safe.safeAddress,
-          multisigTransaction.id,
-          Number(multisigTransaction.sequence),
-          safeOwners.map((safeOwner) => safeOwner.ownerAddress),
-          internalChainId,
-        );
-        await this.safeRepos.updateSafe(safe);
-
-        return ResponseDto.response(ErrorMap.SUCCESSFUL, {
-          TxHash: error.txId,
-        });
+          return ResponseDto.response(ErrorMap.SUCCESSFUL, {
+            TxHash: txId,
+          });
+        }
       }
     } catch (error) {
       return ResponseDto.responseError(MultisigTransactionService.name, error);
@@ -629,7 +622,7 @@ export class MultisigTransactionService {
 
   async rejectMultisigTransaction(
     request: RejectTransactionRequestDto,
-  ): Promise<ResponseDto> {
+  ): Promise<ResponseDto<void>> {
     const { transactionId, internalChainId } = request;
     try {
       const authInfo = this.commonUtil.getAuthInfo();
@@ -646,25 +639,23 @@ export class MultisigTransactionService {
       await this.safeOwnerRepo.isSafeOwner(creatorAddress, safe.id);
 
       // Check user has rejected transaction before
-      // await this.multisigConfirmRepos.checkUserHasSigned(
-      //   transactionId,
-      //   creatorAddress,
-      // );
+      await this.multisigConfirmRepos.checkUserHasSigned(
+        transactionId,
+        creatorAddress,
+      );
 
-      // await this.multisigConfirmRepos.insertIntoMultisigConfirm(
-      //   request.transactionId,
-      //   creatorAddress,
-      //   '',
-      //   '',
-      //   request.internalChainId,
-      //   MultisigConfirmStatus.REJECT,
-      // );
+      await this.multisigConfirmRepos.insertIntoMultisigConfirm(
+        request.transactionId,
+        creatorAddress,
+        '',
+        '',
+        request.internalChainId,
+        MultisigConfirmStatus.REJECT,
+      );
 
       // count number of reject
       const rejectConfirms = [];
-      // await this.multisigConfirmRepos.getRejects(
-      //   request.transactionId,
-      // );
+      await this.multisigConfirmRepos.getRejects(request.transactionId);
 
       // count number of owner
       const safeOwner = await this.safeOwnerRepo.getOwnersBySafeId(
@@ -758,7 +749,7 @@ export class MultisigTransactionService {
     const accountInfo = await this.indexer.getAccountInfo(chainId, address);
     const balance = accountInfo.account_balances.filter(
       (item: { denom: string }) => item.denom === denom,
-    );
+    )[0];
     if (Number(balance.amount) < expectedBalance) {
       throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
     }
@@ -814,9 +805,7 @@ export class MultisigTransactionService {
   ): Promise<any> {
     // Get all signature of transaction
     const multisigConfirmArr = [];
-    // await this.multisigConfirmRepos.getConfirmedByTxId(
-    //   multisigTransaction.id,
-    // );
+    await this.multisigConfirmRepos.getConfirmedByTxId(multisigTransaction.id);
 
     const addressSignarureMap = new Map<string, Uint8Array>();
 
@@ -917,7 +906,7 @@ export class MultisigTransactionService {
 
   async getTransactionDetails(
     query: GetTxDetailQueryDto,
-  ): Promise<ResponseDto> {
+  ): Promise<ResponseDto<TxDetailDto>> {
     const { multisigTxId, auraTxId, safeAddress } = query;
     try {
       // get multisig tx from db
@@ -966,12 +955,8 @@ export class MultisigTransactionService {
         txDetail.AutoClaimAmount = this.calculateAutoClaimAmount(autoClaimMsgs);
       } else {
         // case: receive token from other wallet
-        const messages = await this.messageRepos.getMsgsByAuraTxId(
+        txDetail.Messages = await this.messageRepos.getMsgsByAuraTxId(
           txDetail.AuraTxId,
-        );
-        txDetail.Messages = plainToInstance(
-          TxMessageResponseDto,
-          messages.map((msg) => this.utils.omitByNil(msg)),
         );
 
         txDetail.Status = this.parseStatus(txDetail.Status);
@@ -990,7 +975,7 @@ export class MultisigTransactionService {
   buildMessages(
     multisigMsgs: TxMessageResponseDto[],
     autoClaimMsgs: TxMessageResponseDto[],
-  ) {
+  ): TxMessageResponseDto[] {
     return multisigMsgs.map((msg) => {
       // get amount from auraTx tbl when msg type is withdraw reward
       if (msg.typeUrl === TxTypeUrl.WITHDRAW_REWARD) {
@@ -1001,7 +986,7 @@ export class MultisigTransactionService {
         );
         if (withdrawMsg.length > 0) msg.amount = withdrawMsg[0].amount;
       }
-      return plainToInstance(TxMessageResponseDto, this.utils.omitByNil(msg));
+      return msg;
     });
   }
 

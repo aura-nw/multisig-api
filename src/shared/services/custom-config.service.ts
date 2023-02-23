@@ -2,8 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtModuleOptions } from '@nestjs/jwt';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { DatabaseType } from '../../common/constants/app.constant';
 
 import { PascalCaseStrategy } from '../pascal-case.strategy';
@@ -17,9 +15,8 @@ export class CustomConfigService {
   }
 
   get typeOrmConfig(): TypeOrmModuleOptions {
-    const dirname = path.dirname(fileURLToPath(import.meta.url));
-    const entities = [`${dirname}/../../entities/**/*.entity{.ts,.js}`];
-    const migrations = [`${dirname}/../../migrations/*{.ts,.js}`];
+    const entities = [`${__dirname}/../../entities/**/*.entity{.ts,.js}`];
+    const migrations = [`${__dirname}/../../migrations/*{.ts,.js}`];
 
     return {
       entities,
