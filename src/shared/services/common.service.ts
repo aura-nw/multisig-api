@@ -20,4 +20,16 @@ export class CommonService {
     );
     return result;
   }
+
+  public async requestGet<T>(url: string): Promise<T> {
+    const result = await firstValueFrom<T>(
+      this.httpService.get<T>(url).pipe(
+        map((res) => res.data),
+        catchError((err: AxiosError) => {
+          throw CustomError.fromUnknown(ErrorMap.REQUEST_ERROR, err);
+        }),
+      ),
+    );
+    return result;
+  }
 }

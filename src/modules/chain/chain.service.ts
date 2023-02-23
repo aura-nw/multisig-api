@@ -6,6 +6,7 @@ import { ChainRepository } from './chain.repository';
 import { GasRepository } from '../gas/gas.repository';
 import { GetAccountOnchainParamDto, NetworkListResponseDto } from './dto';
 import { IndexerClient } from '../../shared/services/indexer.service';
+import { AccountInfo } from '../../common/dtos/account-info';
 
 @Injectable()
 export class ChainService {
@@ -23,7 +24,7 @@ export class ChainService {
    * showNetworkList
    * @returns
    */
-  async showNetworkList(): Promise<ResponseDto> {
+  async showNetworkList(): Promise<ResponseDto<NetworkListResponseDto[]>> {
     try {
       const chains = await this.chainRepo.showNetworkList();
       const networkInfo = await Promise.all(
@@ -49,7 +50,7 @@ export class ChainService {
    */
   async getAccountOnchain(
     param: GetAccountOnchainParamDto,
-  ): Promise<ResponseDto> {
+  ): Promise<ResponseDto<AccountInfo>> {
     try {
       const { safeAddress, internalChainId } = param;
 

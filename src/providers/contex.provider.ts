@@ -1,4 +1,5 @@
 import { getValue, setValue } from 'express-ctx';
+import { UserInfoDto } from '../modules/auth/dto';
 import { User } from '../modules/user/entities/user.entity';
 
 export class ContextProvider {
@@ -19,11 +20,11 @@ export class ContextProvider {
     return `${ContextProvider.nameSpace}.${key}`;
   }
 
-  static setAuthUser(user: User): void {
+  static setAuthUser(user: UserInfoDto): void {
     ContextProvider.set(ContextProvider.authUserKey, user);
   }
 
-  static getAuthUser(): User | undefined {
-    return ContextProvider.get<User>(ContextProvider.authUserKey);
+  static getAuthUser(): UserInfoDto | undefined {
+    return ContextProvider.get<UserInfoDto>(ContextProvider.authUserKey);
   }
 }

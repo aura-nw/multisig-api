@@ -23,6 +23,8 @@ import {
 } from './dto';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { IndexerClient } from '../../shared/services/indexer.service';
+import { CommonService } from '../../shared/services/common.service';
+import { KeyBaseIdentity, Validators } from '../../interfaces';
 
 @Injectable()
 export class DistributionService {
@@ -38,6 +40,7 @@ export class DistributionService {
     private configService: ConfigService,
     private indexer: IndexerClient,
     private chainRepo: ChainRepository,
+    private commonSvc: CommonService,
   ) {
     this.logger.log(
       '============== Constructor Distribution Service ==============',
@@ -62,18 +65,20 @@ export class DistributionService {
    * @param param
    * @returns
    */
-  async getValidatorInfo(param: GetValidatorDetailDto): Promise<ResponseDto> {
+  async getValidatorInfo(
+    param: GetValidatorDetailDto,
+  ): Promise<ResponseDto<GetValidatorInfoResDto>> {
     const { operatorAddress, internalChainId } = param;
     const chain = await this.getChain(internalChainId);
     const url = new URL(
       `api/v1/validator?operatorAddress=${operatorAddress}&chainid=${chain.chainId}`,
       this.indexerUrl,
     );
-    const validatorRes = await CommonUtil.requestAPI(
+    const validatorRes = await this.commonSvc.requestGet<Validators>(
       new URL(url, this.indexerUrl).href,
     );
 
-    const validator = validatorRes.data.validators[0];
+    const validator = validatorRes.validators[0];
     const picture = await this.getValidatorPicture(
       validator.description.identity,
     );
@@ -98,7 +103,7 @@ export class DistributionService {
   async getValidators(
     param: GetValidatorsParamDto,
     query: GetValidatorsQueryDto,
-  ): Promise<ResponseDto> {
+  ): Promise<ResponseDto<GetValidatorsResponseDto>> {
     const { internalChainId } = param;
     const { status } = query;
     try {
@@ -134,13 +139,15 @@ export class DistributionService {
    * @param query
    * @returns
    */
-  async getDelegation(query: GetDelegationDto): Promise<ResponseDto> {
+  async getDelegation(
+    query: GetDelegationDto,
+  ): Promise<ResponseDto<GetDelegationResponseDto>> {
     const { internalChainId, delegatorAddress, operatorAddress } = query;
     try {
       // Get chain
       const chain = await this.getChain(internalChainId);
 
-      // get acccount info
+      // get account info
       const accountInfo = await this.indexer.getAccountInfo(
         chain.chainId,
         delegatorAddress,
@@ -207,7 +214,9 @@ export class DistributionService {
     }
   }
 
-  async getDelegations(param: GetDelegationsParamDto): Promise<ResponseDto> {
+  async getDelegations(
+    param: GetDelegationsParamDto,
+  ): Promise<ResponseDto<GetDelegationsResponseDto>> {
     const { internalChainId, delegatorAddress } = param;
     try {
       // Get chain
@@ -221,8 +230,7 @@ export class DistributionService {
 
       // Get delegate info
       const delegations = accountInfo.account_delegations.filter(
-        (delegation: { balance: { amount: any } }) =>
-          Number(delegation.balance.amount) > 0,
+        (delegation) => Number(delegation.balance.amount) > 0,
       );
       const delegateRewards = accountInfo.account_delegate_rewards;
       const { rewards } = delegateRewards;
@@ -245,13 +253,13 @@ export class DistributionService {
       // Build delegations
       for (const delegation of delegations) {
         const reward = rewards.find(
-          (r: { validator_address: any }) =>
+          (r) =>
             r.validator_address === delegation.delegation.validator_address,
         );
         const result: DelegationDetailDto = {
           operatorAddress: delegation.delegation.validator_address,
           balance: delegation.balance,
-          reward: reward ? reward.reward : [],
+          reward: reward ? reward.reward : undefined,
         };
         results.delegations.push(result);
       }
@@ -264,7 +272,7 @@ export class DistributionService {
 
   async getUndelegations(
     param: GetUndelegationsParamDto,
-  ): Promise<ResponseDto> {
+  ): Promise<ResponseDto<GetUndelegationsResponseDto>> {
     const { internalChainId, delegatorAddress } = param;
     try {
       // Get chain
@@ -334,7 +342,7 @@ export class DistributionService {
       } else {
         // get picture from keybase
         const keybaseUrl = this.configService.get<string>('KEYBASE');
-        const res = await CommonUtil.requestAPI(
+        const res = await this.commonSvc.requestGet<KeyBaseIdentity>(
           new URL(keybaseUrl + identity).href,
         );
         if (res.them && res.them.length > 0 && res.them[0].pictures.primary)

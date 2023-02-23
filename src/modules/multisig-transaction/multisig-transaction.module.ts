@@ -12,6 +12,7 @@ import { SafeOwnerModule } from '../safe-owner/safe-owner.module';
 import { MessageModule } from '../message/message.module';
 import { NotificationModule } from '../notification/notification.module';
 import { TransactionHistoryModule } from '../transaction-history/transaction-history.module';
+import { SimulateModule } from '../simulate/simulate.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { TransactionHistoryModule } from '../transaction-history/transaction-his
     MessageModule,
     NotificationModule,
     TransactionHistoryModule,
+    SimulateModule,
   ],
   controllers: [MultisigTransactionController],
   providers: [MultisigTransactionService, MultisigTransactionRepository],

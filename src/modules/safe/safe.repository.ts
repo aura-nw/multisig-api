@@ -316,7 +316,7 @@ export class SafeRepository {
           this.safeOwnerRepo.recoverSafeOwner(
             safeId,
             ownersAddress,
-            pubkeyInfo.public_keys[i].value,
+            pubkeyInfo.public_keys[i].key,
             internalChainId,
           ),
         );

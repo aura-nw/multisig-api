@@ -5,7 +5,7 @@ import type {
 } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { Request } from 'express';
-import { User } from '../modules/user/entities/user.entity';
+import { UserInfoDto } from '../modules/auth/dto';
 import { ContextProvider } from '../providers/contex.provider';
 
 @Injectable()
@@ -14,7 +14,7 @@ export class AuthUserInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler) {
     const request = context.switchToHttp().getRequest<Request>();
 
-    const user = <User>request.user;
+    const user = <UserInfoDto>request.user;
     ContextProvider.setAuthUser(user);
 
     return next.handle();

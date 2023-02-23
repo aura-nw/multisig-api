@@ -43,7 +43,7 @@ export class SafeService {
 
   async createMultisigWallet(
     request: CreateMultisigWalletRequestDto,
-  ): Promise<ResponseDto> {
+  ): Promise<ResponseDto<any>> {
     try {
       const { threshold, internalChainId } = request;
       let { otherOwnersAddress } = request;
@@ -119,7 +119,7 @@ export class SafeService {
   async getMultisigWallet(
     param: GetSafePathParamsDto,
     query: GetSafeQueryDto,
-  ): Promise<ResponseDto> {
+  ): Promise<ResponseDto<any>> {
     try {
       const { safeId } = param;
       const { internalChainId } = query;
@@ -184,7 +184,7 @@ export class SafeService {
     }
   }
 
-  async confirm(param: ConfirmSafePathParamsDto): Promise<ResponseDto> {
+  async confirm(param: ConfirmSafePathParamsDto): Promise<ResponseDto<any>> {
     try {
       const { safeId } = param;
       const authInfo = this.commonUtil.getAuthInfo();
@@ -235,7 +235,9 @@ export class SafeService {
     }
   }
 
-  async deletePending(param: DeleteSafePathParamsDto): Promise<ResponseDto> {
+  async deletePending(
+    param: DeleteSafePathParamsDto,
+  ): Promise<ResponseDto<any>> {
     try {
       const { safeId } = param;
       const authInfo = this.commonUtil.getAuthInfo();

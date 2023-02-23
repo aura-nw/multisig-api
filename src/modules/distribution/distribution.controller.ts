@@ -1,6 +1,9 @@
 import { Controller, Param, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { URL_CONSTANTS , CONTROLLER_CONSTANTS } from '../../common/constants/api.constant';
+import {
+  URL_CONSTANTS,
+  CONTROLLER_CONSTANTS,
+} from '../../common/constants/api.constant';
 import { CommonGet } from '../../decorators/common.decorator';
 import { DistributionService } from './distribution.service';
 import {
@@ -15,7 +18,7 @@ import {
   GetValidatorsQueryDto,
   GetValidatorsResponseDto,
 } from './dto';
-import { SwaggerBaseApiResponse } from '../../common/dtos/response.dto';
+import { ResponseDto } from '../../common/dtos/response.dto';
 
 @Controller(CONTROLLER_CONSTANTS.DISTRIBUTION)
 @ApiTags(CONTROLLER_CONSTANTS.DISTRIBUTION)
@@ -27,7 +30,7 @@ export class DistributionController {
     summary: 'Queries all validators.',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(GetValidatorsResponseDto),
+      type: ResponseDto<GetValidatorsResponseDto>,
       description: 'List validators',
       schema: {},
     },
@@ -57,7 +60,7 @@ export class DistributionController {
     summary: 'Queries all delegations of a user.',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(GetDelegationsResponseDto),
+      type: ResponseDto<GetDelegationsResponseDto>,
       description: 'List delegations of a user',
       schema: {},
     },
@@ -71,7 +74,7 @@ export class DistributionController {
     summary: 'Get single validator info and delegation from user.',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(GetDelegationResponseDto),
+      type: ResponseDto<GetDelegationResponseDto>,
       description: 'List delegation and validator of a user',
       schema: {},
     },
@@ -85,7 +88,7 @@ export class DistributionController {
     summary: 'Queries all undelegations of a user.',
     apiOkResponseOptions: {
       status: 200,
-      type: SwaggerBaseApiResponse(GetUndelegationsResponseDto),
+      type: ResponseDto<GetUndelegationsResponseDto>,
       description: 'List undelegations of a user',
       schema: {},
     },

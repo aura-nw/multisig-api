@@ -10,11 +10,12 @@ import { makeMultisignedTx } from '@cosmjs/stargate';
 import { fromBase64, toBase64 } from '@cosmjs/encoding';
 import { OwnerSimulate } from './owner.simulate';
 import { SimulateUtils } from './utils';
-import { IndexerClient } from '../utils/apis/indexer-client.service';
-import { TxTypeUrl } from '../common/constants/app.constant';
-import { makeMultisignedTxEvmos } from '../chains/evmos';
-import { Chain } from '../modules/chain/entities/chain.entity';
+import { TxTypeUrl } from '../../common/constants/app.constant';
+import { makeMultisignedTxEvmos } from '../../chains/evmos';
+import { Chain } from '../chain/entities/chain.entity';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class SafeSimulate {
   signature: string;
 
@@ -24,22 +25,33 @@ export class SafeSimulate {
 
   address: string;
 
-  constructor(
-    public ownerSimulates: OwnerSimulate[],
-    public threshold: number,
-    public chain: Chain,
-  ) {
+  accountNumber: number;
+
+  sequence: number;
+
+  public ownerSimulates: OwnerSimulate[];
+
+  public threshold: number;
+
+  public chain: Chain;
+
+  setAccountInfo(accountNumber: number, sequence: number) {
+    this.accountNumber = accountNumber;
+    this.sequence = sequence;
+  }
+
+  setOwners(ownerSimulates: OwnerSimulate[], threshold: number, chain: Chain) {
     // create pubkey and address
     this.pubkey = createMultisigThresholdPubkey(
       ownerSimulates.map((owner) => owner.pubkey),
       threshold,
     );
+    this.chain = chain;
     this.address = pubkeyToAddress(this.pubkey, this.chain.prefix);
   }
 
   /**
    *  initialize safe
-   * @returns
    */
   public async initialize(): Promise<void> {
     // if already initialized, return
@@ -49,22 +61,14 @@ export class SafeSimulate {
     const msgs = SimulateUtils.getDefaultMsgs(this.address, this.chain.denom);
     const fee = SimulateUtils.getDefaultFee(this.chain.denom);
 
-    // get account number and sequence
-    const indexerClient = new IndexerClient();
-    const { accountNumber, sequence } =
-      await indexerClient.getAccountNumberAndSequence(
-        this.chain.chainId,
-        this.address,
-      );
-
     // sign with all owners
     const result = await Promise.all(
       this.ownerSimulates.map(async (ownerSimulate) =>
         ownerSimulate.sign(
           msgs,
           fee,
-          accountNumber,
-          sequence,
+          this.accountNumber,
+          this.sequence,
           this.chain.chainId,
         ),
       ),
@@ -80,12 +84,18 @@ export class SafeSimulate {
     const multisignedTx = this.chain.chainId.startsWith('evmos')
       ? makeMultisignedTxEvmos(
           this.pubkey,
-          sequence,
+          this.sequence,
           fee,
           bodyBytes,
           signatures,
         )
-      : makeMultisignedTx(this.pubkey, sequence, fee, bodyBytes, signatures);
+      : makeMultisignedTx(
+          this.pubkey,
+          this.sequence,
+          fee,
+          bodyBytes,
+          signatures,
+        );
 
     this.signature = toBase64(multisignedTx.signatures[0]);
     this.authInfo = toBase64(multisignedTx.authInfoBytes);
@@ -93,7 +103,7 @@ export class SafeSimulate {
 
   public async makeSimulateBodyBytesAndAuthInfo(
     messages: any[],
-    safeAddress: string,
+    sequence: number,
     safePubkey: any,
     prefix: string,
   ) {
@@ -126,7 +136,7 @@ export class SafeSimulate {
       ? fromBase64(simulateAuthInfo)
       : await SimulateUtils.makeAuthInfoBytes(
           this.chain.chainId,
-          safeAddress,
+          sequence,
           safePubkey,
           this.threshold,
           this.chain.denom,

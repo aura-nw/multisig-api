@@ -3,7 +3,7 @@ import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { ChainInfo } from '../../utils/validations/chain.validation';
 import { ChainRepository } from '../chain/chain.repository';
-import networkConfig from '../../../chains.json';
+import networkConfig from '../../chains.json';
 
 @Injectable()
 export class SeederService {

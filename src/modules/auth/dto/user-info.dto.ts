@@ -4,7 +4,4 @@ export class UserInfoDto {
   address: string;
 
   pubkey: string;
-
-  // data: string;
-  signature: string;
 }

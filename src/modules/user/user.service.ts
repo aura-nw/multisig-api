@@ -18,7 +18,9 @@ export class UserService {
     this.logger.log('============== Constructor User Service ==============');
   }
 
-  async getUserByAddress(param: GetUserPathParamDto): Promise<ResponseDto> {
+  async getUserByAddress(
+    param: GetUserPathParamDto,
+  ): Promise<ResponseDto<any>> {
     const { address } = param;
     try {
       const user = await this.userRepo.getUserByAddress(address);

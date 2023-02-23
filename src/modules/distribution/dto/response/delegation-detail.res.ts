@@ -4,11 +4,13 @@ export class DelegationDetailDto {
 
   balance: {
     denom: string;
-    amount: string;
+    amount: number;
   };
 
-  reward: {
-    denom: string;
-    amount: string;
-  };
+  reward: [
+    {
+      denom: string;
+      amount: string;
+    },
+  ];
 }

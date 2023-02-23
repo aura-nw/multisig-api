@@ -3,8 +3,8 @@ import { fromBase64, toBase64 } from '@cosmjs/encoding';
 import { SafeSimulate } from './safe.simulate';
 import { OwnerSimulate } from './owner.simulate';
 import { SimulateUtils } from './utils';
-import { Chain } from '../modules/chain/entities/chain.entity';
-import { Safe } from '../modules/safe/entities/safe.entity';
+import { Chain } from '../chain/entities/chain.entity';
+import { Safe } from '../safe/entities/safe.entity';
 
 export class WalletSimulate {
   safeOwnerMap = new Map<number, SafeSimulate>();
@@ -44,18 +44,10 @@ export class WalletSimulate {
       );
       this.ownerWallets.push(ownerWallet);
     }
+  }
 
-    // create safe with owner from 1 -> 20
-    for (let i = 1; i <= 20; i += 1) {
-      const safe = new SafeSimulate(
-        this.ownerWallets.slice(0, i),
-        i,
-        this.chain,
-      );
-
-      // save to map
-      this.safeOwnerMap.set(i, safe);
-    }
+  setSafeOwnerMap(index: number, safe: SafeSimulate): void {
+    this.safeOwnerMap.set(index, safe);
   }
 
   /**
@@ -63,7 +55,11 @@ export class WalletSimulate {
    * @param messages
    * @param totalOwner
    */
-  async buildEncodedTxBytes(messages: any[], safeInfo: Safe): Promise<string> {
+  async buildEncodedTxBytes(
+    messages: any[],
+    safeInfo: Safe,
+    sequence: number,
+  ): Promise<string> {
     const safePubkey = JSON.parse(safeInfo.safePubkey);
     const totalOwner = safePubkey.value.pubkeys.length;
 
@@ -80,7 +76,7 @@ export class WalletSimulate {
     const { bodyBytes, authInfoBytes } =
       await safeSimulate.makeSimulateBodyBytesAndAuthInfo(
         messages,
-        safeInfo.safeAddress,
+        sequence,
         safePubkey,
         this.chain.prefix,
       );

@@ -85,7 +85,7 @@ export class GovService {
   async getVotesByProposalId(
     param: GetVotesByProposalIdParamDto,
     query: GetVotesByProposalIdQueryDto,
-  ): Promise<ResponseDto> {
+  ): Promise<ResponseDto<any>> {
     const { internalChainId, proposalId } = param;
     const {
       answer,
@@ -123,7 +123,7 @@ export class GovService {
 
   async getValidatorVotesByProposalId(
     param: GetValidatorVotesDto,
-  ): Promise<ResponseDto> {
+  ): Promise<ResponseDto<any>> {
     const { internalChainId, proposalId } = param;
     try {
       const chain = await this.chainRepo.findChain(internalChainId);
@@ -160,7 +160,7 @@ export class GovService {
 
   async getProposalDepositById(
     param: GetProposalDepositsDto,
-  ): Promise<ResponseDto> {
+  ): Promise<ResponseDto<any>> {
     const { internalChainId, proposalId } = param;
     try {
       const chain = await this.chainRepo.findChain(internalChainId);

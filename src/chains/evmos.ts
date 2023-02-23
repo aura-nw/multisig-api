@@ -31,9 +31,10 @@ import {
   toHex,
 } from '@cosmjs/encoding';
 import { makeCompactBitArray } from '@cosmjs/stargate/build/multisignature';
-import * as Long from 'long';
+import Long from 'long';
 import { ethToEvmos } from '@evmos/address-converter';
 import * as ethUtils from 'ethereumjs-util';
+import { instanceToPlain } from 'class-transformer';
 
 // As discussed in https://github.com/binance-chain/javascript-sdk/issues/163
 // Prefixes listed here: https://github.com/tendermint/tendermint/blob/d419fffe18531317c28c29a292ad7d253f6cafdf/docs/spec/blockchain/encoding.md#public-key-cryptography
@@ -173,7 +174,7 @@ export function makeMultisignedTxEvmos(
   const addresses = [...signatures.keys()];
   const { prefix } = fromBech32(addresses[0]);
 
-  const signers: boolean[] = Array.from({
+  const signers: boolean[] = Array.from<boolean>({
     length: multisigPubkey.value.pubkeys.length,
   }).fill(false);
   const signaturesList = new Array<Uint8Array>();
@@ -189,24 +190,24 @@ export function makeMultisignedTxEvmos(
     }
   }
 
-  const signerInfo: SignerInfo = {
-    publicKey: encodePubkeyEvmos(multisigPubkey),
-    modeInfo: {
-      multi: {
-        bitarray: makeCompactBitArray(signers),
-        modeInfos: signaturesList.map(() => ({
-          single: { mode: SignMode.SIGN_MODE_LEGACY_AMINO_JSON },
-        })),
-      },
-    },
-    sequence: Long.fromNumber(sequence),
-  };
-
   const authInfo = AuthInfo.fromPartial({
-    signerInfos: [signerInfo],
+    signerInfos: [
+      {
+        publicKey: encodePubkeyEvmos(multisigPubkey),
+        modeInfo: {
+          multi: {
+            bitarray: makeCompactBitArray(signers),
+            modeInfos: signaturesList.map(() => ({
+              single: { mode: SignMode.SIGN_MODE_LEGACY_AMINO_JSON },
+            })),
+          },
+        },
+        sequence: sequence,
+      },
+    ],
     fee: {
       amount: [...fee.amount],
-      gasLimit: Long.fromString(fee.gas),
+      gasLimit: fee.gas,
     },
   });
 

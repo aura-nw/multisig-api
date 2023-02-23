@@ -36,6 +36,25 @@ interface ISafe {
 }
 export class CommonUtil {
   /**
+   * getStrProp https://stackoverflow.com/a/70031969/8461456
+   * @param o
+   * @param prop
+   * @returns
+   */
+  public static getStrProp(o: unknown, prop: string): string {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const p = (o as any)[prop];
+      if (typeof p === 'string') {
+        return p;
+      }
+    } catch {
+      // ignore
+    }
+    return undefined;
+  }
+
+  /**
    * Calculate address from public key
    * @param pubkey public key
    * @returns address string
@@ -205,29 +224,6 @@ export class CommonUtil {
         return cb && cb(error);
       }
     });
-  }
-
-  public static async requestAPI(url: string, method = 'GET', body?: any) {
-    const options = {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    };
-    if (body) {
-      options.body = JSON.stringify(body);
-    }
-    const result = await fetch(url, options);
-
-    const data = await result.json();
-    if (result.status !== 200) {
-      throw new CustomError(
-        ErrorMap.REQUEST_ERROR,
-        `${new URL(url).host} ${result.status} ${data.message} `,
-      );
-    }
-
-    return data;
   }
 
   getPercentage(number: any, sum: any): string {
