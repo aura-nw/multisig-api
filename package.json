@@ -115,7 +115,7 @@
       "ts"
     ],
     "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
+    "testRegex": ".spec.ts$",
     "coveragePathIgnorePatterns": [
       "/node_modules/",
       "/migrations/"
