@@ -15,6 +15,7 @@ import {
   Validators,
 } from '../../interfaces';
 import { IVotes } from '../../interfaces/votes.interface';
+import { IndexerResponseDto } from '../dtos';
 import { CommonService } from './common.service';
 
 @Injectable()
@@ -36,23 +37,25 @@ export class IndexerClient {
       url += `&status=${status}`;
     }
     url += '&pageOffset=0&pageLimit=1000';
-    const validatorsRes = await this.commonService.requestGet<Validators>(
-      new URL(url, this.indexerUrl).href,
-    );
-    return validatorsRes.validators;
+    const validatorsRes = await this.commonService.requestGet<
+      IndexerResponseDto<Validators>
+    >(new URL(url, this.indexerUrl).href);
+    return validatorsRes.data.validators;
   }
 
   async getValidatorByOperatorAddress(
     chainId: string,
     operatorAddress: string,
   ): Promise<Validator> {
-    const validatorRes = await this.commonService.requestGet<Validators>(
+    const validatorRes = await this.commonService.requestGet<
+      IndexerResponseDto<Validators>
+    >(
       new URL(
         `api/v1/validator?operatorAddress=${operatorAddress}&chainid=${chainId}`,
         this.indexerUrl,
       ).href,
     );
-    const validator = validatorRes.validators[0];
+    const validator = validatorRes.data.validators[0];
     return validator;
   }
 
@@ -63,20 +66,25 @@ export class IndexerClient {
    */
   async getNetwork(chainId: string): Promise<NetworkStatus> {
     const url = `api/v1/network/status?chainid=${chainId}`;
-    const networkRes = await this.commonService.requestGet<NetworkStatus>(
-      new URL(url, this.indexerUrl).href,
-    );
-    return networkRes;
+    const networkRes = await this.commonService.requestGet<
+      IndexerResponseDto<NetworkStatus>
+    >(new URL(url, this.indexerUrl).href);
+    return networkRes.data;
   }
 
-  async getAccountInfo(chainId: string, address: string) {
-    const accountInfo = await this.commonService.requestGet<IAccountInfo>(
+  async getAccountInfo(
+    chainId: string,
+    address: string,
+  ): Promise<IAccountInfo> {
+    const accountInfo = await this.commonService.requestGet<
+      IndexerResponseDto<IAccountInfo>
+    >(
       new URL(
         `api/v1/account-info?address=${address}&chainId=${chainId}`,
         this.indexerUrl,
       ).href,
     );
-    return accountInfo;
+    return accountInfo.data;
   }
 
   async getAccountNumberAndSequence(
@@ -114,31 +122,34 @@ export class IndexerClient {
   }
 
   async getAccountUnBonds(chainId: string, delegatorAddress: string) {
-    const undelegationRes =
-      await this.commonService.requestGet<IAccountUnbound>(
-        new URL(
-          `api/v1/account-unbonds?address=${delegatorAddress}&chainid=${chainId}`,
-          this.indexerUrl,
-        ).href,
-      );
-    return undelegationRes.account_unbonding;
+    const undelegationRes = await this.commonService.requestGet<
+      IndexerResponseDto<IAccountUnbound>
+    >(
+      new URL(
+        `api/v1/account-unbonds?address=${delegatorAddress}&chainid=${chainId}`,
+        this.indexerUrl,
+      ).href,
+    );
+    return undelegationRes.data.account_unbonding;
   }
 
   async getProposals(chainId: string): Promise<IProposal[]> {
-    const proposalsRes = await this.commonService.requestGet<IProposals>(
-      new URL(`api/v1/proposal?chainid=${chainId}`, this.indexerUrl).href,
-    );
-    return proposalsRes.proposals;
+    const proposalsRes = await this.commonService.requestGet<
+      IndexerResponseDto<IProposals>
+    >(new URL(`api/v1/proposal?chainid=${chainId}`, this.indexerUrl).href);
+    return proposalsRes.data.proposals;
   }
 
   async getProposal(chainId: string, proposalId: number): Promise<IProposal> {
-    const proposalRes = await this.commonService.requestGet<IProposals>(
+    const proposalRes = await this.commonService.requestGet<
+      IndexerResponseDto<IProposals>
+    >(
       new URL(
         `api/v1/proposal?chainid=${chainId}&proposalId=${proposalId}`,
         this.indexerUrl,
       ).href,
     );
-    return proposalRes.proposals[0];
+    return proposalRes.data.proposals[0];
   }
 
   async getVotesByProposalId(
@@ -158,10 +169,10 @@ export class IndexerClient {
     url += `&pageLimit=${pageLimit}`; // optional
     url += `&reverse=${reverse}`; // optional
 
-    const response = await this.commonService.requestGet<IVotes>(
-      new URL(url, this.indexerUrl).href,
-    );
-    return response;
+    const response = await this.commonService.requestGet<
+      IndexerResponseDto<IVotes>
+    >(new URL(url, this.indexerUrl).href);
+    return response.data;
   }
 
   async getValidatorVotesByProposalId(
@@ -169,10 +180,10 @@ export class IndexerClient {
     proposalId: number,
   ): Promise<IVotes> {
     const url = `api/v1/votes/validators?chainid=${chainId}&proposalid=${proposalId}`;
-    const response = await this.commonService.requestGet<IVotes>(
-      new URL(url, this.indexerUrl).href,
-    );
-    return response;
+    const response = await this.commonService.requestGet<
+      IndexerResponseDto<IVotes>
+    >(new URL(url, this.indexerUrl).href);
+    return response.data;
   }
 
   async getProposalDepositByProposalId(chainId: string, proposalId: number) {

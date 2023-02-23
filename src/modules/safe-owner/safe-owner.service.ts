@@ -27,7 +27,7 @@ export class SafeOwnerService {
   async getMultisigWalletsByOwner(
     param: GetSafesByOwnerAddressParamsDto,
     query: GetSafesByOwnerAddressQueryDto,
-  ): Promise<ResponseDto<any>> {
+  ): Promise<ResponseDto<ListSafeByOwnerResponseDto[]>> {
     try {
       const { address } = param;
       const { internalChainId } = query;
