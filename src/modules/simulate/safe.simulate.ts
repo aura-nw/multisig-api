@@ -8,12 +8,12 @@ import {
 import { makeMultisignedTx } from '@cosmjs/stargate';
 
 import { fromBase64, toBase64 } from '@cosmjs/encoding';
+import { Injectable } from '@nestjs/common';
 import { OwnerSimulate } from './owner.simulate';
 import { SimulateUtils } from './utils';
 import { TxTypeUrl } from '../../common/constants/app.constant';
 import { makeMultisignedTxEvmos } from '../../chains/evmos';
 import { Chain } from '../chain/entities/chain.entity';
-import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class SafeSimulate {

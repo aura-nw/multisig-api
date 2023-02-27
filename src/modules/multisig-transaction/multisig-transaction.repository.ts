@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
-import { plainToInstance } from 'class-transformer';
 import {
   MultisigConfirmStatus,
   TransactionStatus,

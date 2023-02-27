@@ -38,8 +38,8 @@ export class SimulateService {
 
   async generateSimulateSafe() {
     // create safe with owner from 1 -> 20
-    const chain = this.currentWallet.chain;
-    const ownerWallets = this.currentWallet.ownerWallets;
+    const {chain} = this.currentWallet;
+    const {ownerWallets} = this.currentWallet;
 
     for (let i = 1; i <= 20; i += 1) {
       const safe = new SafeSimulate();
@@ -65,12 +65,10 @@ export class SimulateService {
 
   async simulate(messages: any[], safeInfo: Safe): Promise<SimulateResponse> {
     // Get sequence of safe account
-    const sequence = (
-      await this.indexerClient.getAccountNumberAndSequence(
+    const {sequence} = await this.indexerClient.getAccountNumberAndSequence(
         this.currentWallet.chain.chainId,
         safeInfo.safeAddress,
-      )
-    ).sequence;
+      );
 
     const encodedBodyBytes = await this.currentWallet.buildEncodedTxBytes(
       messages,

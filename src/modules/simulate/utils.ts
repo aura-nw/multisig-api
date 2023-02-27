@@ -19,9 +19,9 @@ import {
   StdFee,
 } from '@cosmjs/stargate';
 import { coins } from '@cosmjs/amino';
+import { instanceToPlain } from 'class-transformer';
 import { RegistryGeneratedTypes } from '../../common/constants/app.constant';
 import { encodePubkeyEvmos } from '../../chains/evmos';
-import { instanceToPlain } from 'class-transformer';
 
 export class SimulateUtils {
   public static makeBodyBytes(messages: any[], prefix: string): Uint8Array {
@@ -64,7 +64,7 @@ export class SimulateUtils {
               })),
             },
           },
-          sequence: sequence,
+          sequence,
         },
       ],
       fee: {
