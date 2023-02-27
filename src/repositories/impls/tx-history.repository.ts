@@ -48,14 +48,14 @@ export class TransactionHistoryRepository
 
     const result: any[] = await this.repos.query(
       `
-      SELECT AT.Id as AuraTxId, MT.Id as MultisigTxId, AT.TxHash as TxHash, MT.TypeUrl as TypeUrl, AT.FromAddress as FromAddress, AT.Amount as AuraTxAmount, AT.RewardAmount as AuraTxRewardAmount, MT.Amount as MultisigTxAmount, AT.Code as Status, MT.Sequence as Sequence, AT.CreatedAt as CreatedAt, AT.UpdatedAt as UpdatedAt 
+      SELECT AT.Id as AuraTxId, MT.Id as MultisigTxId, AT.TxHash as TxHash, MT.TypeUrl as TypeUrl, AT.FromAddress as FromAddress, AT.Amount as AuraTxAmount, AT.RewardAmount as AuraTxRewardAmount, MT.Amount as MultisigTxAmount, AT.Code as Status, MT.Sequence as Sequence, AT.CreatedAt as CreatedAt, AT.UpdatedAt as UpdatedAt, AT.Timestamp as Timestamp 
       FROM TransactionHistory TH
         INNER JOIN AuraTx AT on TH.TxHash = AT.TxHash
         LEFT JOIN MultisigTransaction MT on TH.TxHash = MT.TxHash
         WHERE TH.InternalChainId = ?
         AND  TH.SafeAddress = ?
       UNION
-      SELECT NULL as AuraTxId,  MT.ID as MultisigTxId, MT.TxHash as TxHash, MT.TypeUrl as TypeUrl, MT.FromAddress as FromAddress, NULL as AuraTxAmount,NULL as AuraTxRewardAmount, MT.Amount as MultisigTxAmount, MT.Status, MT.Sequence as Sequence, MT.CreatedAt as CreatedAt, MT.UpdatedAt as UpdateAt  FROM MultisigTransaction MT
+      SELECT NULL as AuraTxId,  MT.ID as MultisigTxId, MT.TxHash as TxHash, MT.TypeUrl as TypeUrl, MT.FromAddress as FromAddress, NULL as AuraTxAmount,NULL as AuraTxRewardAmount, MT.Amount as MultisigTxAmount, MT.Status, MT.Sequence as Sequence, MT.CreatedAt as CreatedAt, MT.UpdatedAt as UpdateAt, NULL as Timestamp  FROM MultisigTransaction MT
         WHERE MT.InternalChainId = ?
         AND MT.FromAddress = ?
         AND Status In(?,?,?,?,?)

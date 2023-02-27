@@ -86,6 +86,11 @@ export class MultisigTransactionHistoryResponse {
   UpdatedAt: Date;
 
   @ApiProperty({
+    example: '2022-02-24T09:44:52.935Z',
+  })
+  Timestamp: Date;
+
+  @ApiProperty({
     example: TRANSFER_DIRECTION.OUTGOING,
   })
   Direction: string;
