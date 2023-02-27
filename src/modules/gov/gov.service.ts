@@ -227,10 +227,12 @@ export class GovService {
     // calculate sum to determine percentage
     let sum = 0;
     for (const key in tally) {
-      if (+tally[key] > +tally[mostVotedOptionKey]) {
-        mostVotedOptionKey = key;
+      if (Object.prototype.hasOwnProperty.call(tally, key)) {
+        if (+tally[key] > +tally[mostVotedOptionKey]) {
+          mostVotedOptionKey = key;
+        }
+        sum += +tally[key];
       }
-      sum += +tally[key];
     }
 
     const result: GetProposalsTally = {

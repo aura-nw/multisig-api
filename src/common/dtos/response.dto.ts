@@ -43,14 +43,12 @@ export class ResponseDto<T> {
     return new ResponseDto<T>(errorMap, data, additionalData);
   }
 
-  public static responseError(moduleName: string, error: any) {
+  public static responseError<T>(moduleName: string, error: unknown) {
     if (error instanceof CustomError)
-      return this.response(error.errorMap, error.msg);
+      return this.response<T>(error.errorMap, undefined, error.msg);
 
     const logger = new Logger(moduleName);
     logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
-    logger.error(`${error.name}: ${error.message}`);
-    logger.error(`${error.stack}`);
-    return ResponseDto.response(ErrorMap.E500, error.message);
+    return ResponseDto.response<T>(ErrorMap.E500);
   }
 }

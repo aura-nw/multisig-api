@@ -65,7 +65,7 @@ export class DistributionController {
       schema: {},
     },
   })
-  async getDelegations(@Param() param: GetDelegationsParamDto) {
+  getDelegations(@Param() param: GetDelegationsParamDto) {
     return this.distributionService.getDelegations(param);
   }
 
@@ -79,7 +79,7 @@ export class DistributionController {
       schema: {},
     },
   })
-  async getDelegation(@Query() query: GetDelegationDto) {
+  getDelegation(@Query() query: GetDelegationDto) {
     return this.distributionService.getDelegation(query);
   }
 
@@ -93,7 +93,7 @@ export class DistributionController {
       schema: {},
     },
   })
-  async getUndelegations(@Param() param: GetUndelegationsParamDto) {
+  getUndelegations(@Param() param: GetUndelegationsParamDto) {
     return this.distributionService.getUndelegations(param);
   }
 }

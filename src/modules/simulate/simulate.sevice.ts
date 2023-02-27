@@ -7,6 +7,7 @@ import { SimulateResponse } from './dtos/simulate-response';
 import { WalletSimulate } from './wallet.simulate';
 import { IndexerClient } from '../../shared/services/indexer.service';
 import { SafeSimulate } from './safe.simulate';
+import { AccountInfo } from '../../common/dtos/account-info';
 
 @Injectable()
 export class SimulateService {
@@ -38,24 +39,31 @@ export class SimulateService {
 
   async generateSimulateSafe() {
     // create safe with owner from 1 -> 20
-    const {chain} = this.currentWallet;
-    const {ownerWallets} = this.currentWallet;
+    const { chain } = this.currentWallet;
+    const { ownerWallets } = this.currentWallet;
 
+    const listSafe: SafeSimulate[] = [];
+    const promises: Promise<AccountInfo>[] = [];
     for (let i = 1; i <= 20; i += 1) {
       const safe = new SafeSimulate();
       safe.setOwners(ownerWallets.slice(0, i), i, chain);
+      listSafe.push(safe);
 
-      // get account number and sequence
-      const { accountNumber, sequence } =
-        await this.indexerClient.getAccountNumberAndSequence(
+      promises.push(
+        this.indexerClient.getAccountNumberAndSequence(
           chain.chainId,
           safe.address,
-        );
+        ),
+      );
+    }
 
-      safe.setAccountInfo(accountNumber, sequence);
+    const result = await Promise.all(promises);
+    for (let i = 0; i < 20; i += 1) {
+      const { accountNumber, sequence } = result[i];
+      listSafe[i].setAccountInfo(accountNumber, sequence);
 
       // save to map
-      this.currentWallet.setSafeOwnerMap(i, safe);
+      this.currentWallet.setSafeOwnerMap(i, listSafe[i]);
     }
   }
 
@@ -65,10 +73,10 @@ export class SimulateService {
 
   async simulate(messages: any[], safeInfo: Safe): Promise<SimulateResponse> {
     // Get sequence of safe account
-    const {sequence} = await this.indexerClient.getAccountNumberAndSequence(
-        this.currentWallet.chain.chainId,
-        safeInfo.safeAddress,
-      );
+    const { sequence } = await this.indexerClient.getAccountNumberAndSequence(
+      this.currentWallet.chain.chainId,
+      safeInfo.safeAddress,
+    );
 
     const encodedBodyBytes = await this.currentWallet.buildEncodedTxBytes(
       messages,

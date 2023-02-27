@@ -28,7 +28,7 @@ export class WalletSimulate {
         }),
       );
     }
-    const wallets = await Promise.all(promises);
+    const wallets: Secp256k1HdWallet[] = await Promise.all(promises);
 
     // create account
     const accounts = await Promise.all(
@@ -74,7 +74,7 @@ export class WalletSimulate {
 
     // build bodyByte & authInfoBytes
     const { bodyBytes, authInfoBytes } =
-      await safeSimulate.makeSimulateBodyBytesAndAuthInfo(
+      safeSimulate.makeSimulateBodyBytesAndAuthInfo(
         messages,
         sequence,
         safePubkey,

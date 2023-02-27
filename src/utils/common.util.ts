@@ -106,14 +106,12 @@ export class CommonUtil {
   } {
     const ethermintHelper = new EthermintHelper();
     try {
-      let arrPubkeys;
-      arrPubkeys =
+      const arrPubkeys =
         prefix === 'evmos'
-          ? pubKeyArrString.map(this.createPubkeyEvmos)
-          : pubKeyArrString.map(this.createPubkeys);
+          ? pubKeyArrString.map((pk) => this.createPubkeyEvmos(pk))
+          : pubKeyArrString.map((pk) => this.createPubkeys(pk));
 
-      let multisigPubkey;
-      multisigPubkey =
+      const multisigPubkey =
         prefix === 'evmos'
           ? createMultisigThresholdPubkeyEvmos(arrPubkeys, threshold)
           : createMultisigThresholdPubkey(arrPubkeys, threshold);
@@ -177,7 +175,7 @@ export class CommonUtil {
         msgs: [send],
         fee: new Fee(
           multisigTransaction.gas,
-          multisigTransaction.fee + multisigTransaction.denom,
+          String(multisigTransaction.fee) + multisigTransaction.denom,
         ),
         gas: multisigTransaction.gas.toString(),
       },
@@ -216,15 +214,15 @@ export class CommonUtil {
   }
 
   jsonReader(filePath, cb) {
-    readFile(filePath, 'utf-8', (error, fileData) => {
+    readFile(filePath, 'utf8', (error, fileData) => {
       if (error) {
         return cb && cb(error);
       }
       try {
         const object = JSON.parse(fileData);
-        return cb && cb(null, object);
-      } catch (error) {
-        return cb && cb(error);
+        return cb && cb(undefined, object);
+      } catch (error_) {
+        return cb && cb(error_);
       }
     });
   }
