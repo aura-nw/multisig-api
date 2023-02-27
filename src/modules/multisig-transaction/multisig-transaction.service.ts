@@ -574,7 +574,7 @@ export class MultisigTransactionService {
             MultisigTransactionService.name,
             error,
           );
-        } else {
+        } 
           // update tx status to "pending"
           await this.multisigTransactionRepos.updateTxBroadcastSuccess(
             multisigTransaction.id,
@@ -613,7 +613,7 @@ export class MultisigTransactionService {
           return ResponseDto.response(ErrorMap.SUCCESSFUL, {
             TxHash: txId,
           });
-        }
+        
       }
     } catch (error) {
       return ResponseDto.responseError(MultisigTransactionService.name, error);
@@ -747,9 +747,9 @@ export class MultisigTransactionService {
     expectedBalance: number,
   ): Promise<boolean> {
     const accountInfo = await this.indexer.getAccountInfo(chainId, address);
-    const balance = accountInfo.account_balances.filter(
+    const balance = accountInfo.account_balances.find(
       (item: { denom: string }) => item.denom === denom,
-    )[0];
+    );
     if (Number(balance.amount) < expectedBalance) {
       throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
     }

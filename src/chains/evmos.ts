@@ -202,7 +202,7 @@ export function makeMultisignedTxEvmos(
             })),
           },
         },
-        sequence: sequence,
+        sequence,
       },
     ],
     fee: {
