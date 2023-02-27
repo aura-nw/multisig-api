@@ -167,7 +167,7 @@ export class IndexerClient {
     url += nextKey ? `&nextKey=${nextKey}` : ''; // optional
     url += `&pageOffset=${pageOffset}`; // optional
     url += `&pageLimit=${pageLimit}`; // optional
-    url += `&reverse=${reverse}`; // optional
+    url += `&reverse=${String(reverse)}`; // optional
 
     const response = await this.commonService.requestGet<
       IndexerResponseDto<IVotes>

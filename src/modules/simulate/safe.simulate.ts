@@ -101,7 +101,7 @@ export class SafeSimulate {
     this.authInfo = toBase64(multisignedTx.authInfoBytes);
   }
 
-  public async makeSimulateBodyBytesAndAuthInfo(
+  public makeSimulateBodyBytesAndAuthInfo(
     messages: any[],
     sequence: number,
     safePubkey: any,
@@ -134,7 +134,7 @@ export class SafeSimulate {
 
     const authInfoBytes = simulateAuthInfo
       ? fromBase64(simulateAuthInfo)
-      : await SimulateUtils.makeAuthInfoBytes(
+      : SimulateUtils.makeAuthInfoBytes(
           this.chain.chainId,
           sequence,
           safePubkey,

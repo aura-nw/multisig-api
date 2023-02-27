@@ -1,5 +1,4 @@
-import Long from 'long';
-import { AuthInfo, SignerInfo, TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
+import { AuthInfo, TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import {
   EncodeObject,
   encodePubkey,
@@ -19,7 +18,6 @@ import {
   StdFee,
 } from '@cosmjs/stargate';
 import { coins } from '@cosmjs/amino';
-import { instanceToPlain } from 'class-transformer';
 import { RegistryGeneratedTypes } from '../../common/constants/app.constant';
 import { encodePubkeyEvmos } from '../../chains/evmos';
 
@@ -37,15 +35,15 @@ export class SimulateUtils {
     return registry.encode(signedTxBodyEncodeObject);
   }
 
-  static async makeAuthInfoBytes(
+  static makeAuthInfoBytes(
     chainId: string,
     sequence: number,
     safePubkey: any,
     totalOwner: number,
     denom: string,
-  ): Promise<Uint8Array> {
+  ): Uint8Array {
     const defaultFee = SimulateUtils.getDefaultFee(denom);
-    const signers: boolean[] = new Array(totalOwner).fill(false);
+    const signers: boolean[] = Array.from({ length: totalOwner }).map(Boolean);
 
     const encodedPubkey = chainId.startsWith('evmos')
       ? encodePubkeyEvmos(safePubkey)

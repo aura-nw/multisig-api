@@ -197,15 +197,15 @@ export class DistributionService {
                   denom: claimedReward.denom,
                   amount: claimedReward.amount,
                 }
-              : null,
+              : undefined,
             delegatableBalance: accountInfo.account_balances[0]
               ? {
                   denom: accountInfo.account_balances[0].denom,
                   amount: accountInfo.account_balances[0].amount,
                 }
-              : null,
-            delegationBalance: delegationBalance || null,
-            pendingReward: pendingReward || null,
+              : undefined,
+            delegationBalance: delegationBalance || undefined,
+            pendingReward: pendingReward || undefined,
           },
         }),
       );
@@ -233,20 +233,18 @@ export class DistributionService {
         (delegation) => Number(delegation.balance.amount) > 0,
       );
       const delegateRewards = accountInfo.account_delegate_rewards;
-      const { rewards } = delegateRewards;
+      const { rewards, total: reward } = delegateRewards;
 
       // Build response
       const results: GetDelegationsResponseDto = {
-        availableBalance: accountInfo.account_balances[0]
-          ? accountInfo.account_balances[0]
-          : null,
+        availableBalance: accountInfo.account_balances[0] || undefined,
         delegations: [],
         total: {
           staked:
             delegations.length > 0
               ? this.calculateTotalStaked(delegations)
-              : null,
-          reward: delegateRewards.total,
+              : undefined,
+          reward,
         },
       };
 

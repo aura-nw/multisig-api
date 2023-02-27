@@ -2,12 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { plainToInstance } from 'class-transformer';
 import { ChainRepository } from '../chain/chain.repository';
-import { NotificationRepository } from '../notification/notification.repository';
 import { UserRepository } from '../user/user.repository';
 import { Chain } from '../chain/entities/chain.entity';
 import { Notification } from '../notification/entities/notification.entity';
 import { User } from '../user/entities/user.entity';
 import { IndexerClient } from '../../shared/services/indexer.service';
+import { NotificationRepository } from '../notification/notification.repository';
 
 @Injectable()
 export class NotifyProposalJob {
@@ -17,7 +17,7 @@ export class NotifyProposalJob {
     private indexer: IndexerClient,
     private readonly userRepo: UserRepository,
     private readonly chainRepo: ChainRepository,
-    private readonly notificationRepo: NotificationRepository,
+    private readonly notifyRepo: NotificationRepository,
   ) {
     this.logger.log(
       '============== Constructor Notify Proposal Job ==============',
@@ -69,7 +69,7 @@ export class NotifyProposalJob {
 
     // TODO: send a notification to the safe owner by a chain instead of reporting to all user
     // Notify to all users
-    templates.forEach(async (template) => {
+    const promises = templates.map((template) => {
       const notifications = users.map((user) => {
         const newNotification = { ...template };
         newNotification.userId = user.id;
@@ -77,12 +77,14 @@ export class NotifyProposalJob {
       });
 
       // Save notifications to DB
-      const result = await this.notificationRepo.saveNotification(
-        notifications,
-      );
-      this.logger.log(
-        `Notified proposal ${template.proposalNumber} to ${result.length} users successfully!`,
-      );
+      return this.notifyRepo.saveNotification(notifications);
     });
+
+    await Promise.all(promises);
+    this.logger.log(
+      `Notified proposal ${templates.map((t) => t.id).toString()} to ${
+        users.length
+      } users successfully!`,
+    );
   }
 }

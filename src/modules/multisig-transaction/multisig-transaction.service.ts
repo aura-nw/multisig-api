@@ -126,7 +126,7 @@ export class MultisigTransactionService {
       }
       const response = result.map((item) => {
         const updatedItem = item;
-        if (item.TypeUrl === null || item.FromAddress !== safeAddress)
+        if (item.TypeUrl === undefined || item.FromAddress !== safeAddress)
           updatedItem.TypeUrl = TxTypeUrl.RECEIVE;
 
         updatedItem.Direction = this.getDirection(
@@ -423,9 +423,11 @@ export class MultisigTransactionService {
           chain.chainId,
           safe.safeAddress,
         );
-      safe.nextQueueSeq = (
-        await this.calculateNextSeq(safe.id, sequenceInIndexer)
-      ).toString();
+      safe.nextQueueSeq = await this.calculateNextSeq(
+        safe.id,
+        sequenceInIndexer,
+      );
+
       safe.accountNumber = accountInfo.accountNumber.toString();
       await this.safeRepos.updateSafe(safe);
 
@@ -541,7 +543,7 @@ export class MultisigTransactionService {
 
       // Record owner send transaction
       await this.multisigConfirmRepos.insertIntoMultisigConfirm(
-        request.transactionId,
+        transactionId,
         creatorAddress,
         '',
         '',
@@ -562,58 +564,54 @@ export class MultisigTransactionService {
           );
 
           // re calculate next seq
-          safe.nextQueueSeq = (
-            await this.calculateNextSeq(
-              safe.id,
-              Number(multisigTransaction.sequence),
-            )
-          ).toString();
+          safe.nextQueueSeq = await this.calculateNextSeq(
+            safe.id,
+            Number(multisigTransaction.sequence),
+          );
+
           await this.safeRepos.updateSafe(safe);
 
           return ResponseDto.responseError(
             MultisigTransactionService.name,
             error,
           );
-        } 
-          // update tx status to "pending"
-          await this.multisigTransactionRepos.updateTxBroadcastSuccess(
-            multisigTransaction.id,
-            txId,
-          );
+        }
+        // update tx status to "pending"
+        await this.multisigTransactionRepos.updateTxBroadcastSuccess(
+          multisigTransaction.id,
+          txId,
+        );
 
-          // update queue tx have same sequence to "replaced"
-          await this.multisigTransactionRepos.updateQueueTxToReplaced(
-            multisigTransaction.safeId,
-            Number(multisigTransaction.sequence),
-          );
+        // update queue tx have same sequence to "replaced"
+        await this.multisigTransactionRepos.updateQueueTxToReplaced(
+          multisigTransaction.safeId,
+          Number(multisigTransaction.sequence),
+        );
 
-          // update safe next queue sequence
-          safe.sequence = (Number(multisigTransaction.sequence) + 1).toString();
-          safe.nextQueueSeq = (
-            await this.calculateNextSeq(
-              safe.id,
-              Number(multisigTransaction.sequence) + 1,
-            )
-          ).toString();
+        // update safe next queue sequence
+        safe.sequence = (Number(multisigTransaction.sequence) + 1).toString();
+        safe.nextQueueSeq = await this.calculateNextSeq(
+          safe.id,
+          Number(multisigTransaction.sequence) + 1,
+        );
 
-          // notify tx broadcasted
-          const safeOwners = await this.safeOwnerRepo.getSafeOwnersWithError(
-            safe.id,
-          );
-          await this.notificationRepo.notifyBroadcastedTx(
-            safe.id,
-            safe.safeAddress,
-            multisigTransaction.id,
-            Number(multisigTransaction.sequence),
-            safeOwners.map((safeOwner) => safeOwner.ownerAddress),
-            internalChainId,
-          );
-          await this.safeRepos.updateSafe(safe);
+        // notify tx broadcasted
+        const safeOwners = await this.safeOwnerRepo.getSafeOwnersWithError(
+          safe.id,
+        );
+        await this.notificationRepo.notifyBroadcastedTx(
+          safe.id,
+          safe.safeAddress,
+          multisigTransaction.id,
+          Number(multisigTransaction.sequence),
+          safeOwners.map((safeOwner) => safeOwner.ownerAddress),
+          internalChainId,
+        );
+        await this.safeRepos.updateSafe(safe);
 
-          return ResponseDto.response(ErrorMap.SUCCESSFUL, {
-            TxHash: txId,
-          });
-        
+        return ResponseDto.response(ErrorMap.SUCCESSFUL, {
+          TxHash: txId,
+        });
       }
     } catch (error) {
       return ResponseDto.responseError(MultisigTransactionService.name, error);
@@ -645,11 +643,11 @@ export class MultisigTransactionService {
       );
 
       await this.multisigConfirmRepos.insertIntoMultisigConfirm(
-        request.transactionId,
+        transactionId,
         creatorAddress,
         '',
         '',
-        request.internalChainId,
+        internalChainId,
         MultisigConfirmStatus.REJECT,
       );
 
@@ -892,14 +890,15 @@ export class MultisigTransactionService {
 
     // get safe account info
     const accountInfo: AccountInfo = await this.getAccountInfoWithNewSeq(
-      null,
+      undefined,
       safe,
       chain.chainId,
     );
 
-    safe.nextQueueSeq = (
-      await this.calculateNextSeq(safe.id, accountInfo.sequence)
-    ).toString();
+    safe.nextQueueSeq = await this.calculateNextSeq(
+      safe.id,
+      accountInfo.sequence,
+    );
 
     await this.safeRepos.updateSafe(safe);
   }
@@ -917,7 +916,7 @@ export class MultisigTransactionService {
         const confirmations =
           await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
             txDetail.MultisigTxId,
-            null,
+            undefined,
             MultisigConfirmStatus.CONFIRM,
           );
 
@@ -925,15 +924,15 @@ export class MultisigTransactionService {
         const rejections =
           await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
             txDetail.MultisigTxId,
-            null,
+            undefined,
             MultisigConfirmStatus.REJECT,
           );
 
         // get execution info
-        const executors =
+        const [executor] =
           await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
             txDetail.MultisigTxId,
-            null,
+            undefined,
             MultisigConfirmStatus.SEND,
           );
 
@@ -950,7 +949,7 @@ export class MultisigTransactionService {
 
         txDetail.Confirmations = confirmations;
         txDetail.Rejectors = rejections;
-        txDetail.Executor = executors[0];
+        txDetail.Executor = executor;
 
         txDetail.AutoClaimAmount = this.calculateAutoClaimAmount(autoClaimMsgs);
       } else {
@@ -977,6 +976,7 @@ export class MultisigTransactionService {
     autoClaimMsgs: TxMessageResponseDto[],
   ): TxMessageResponseDto[] {
     return multisigMsgs.map((msg) => {
+      const adjustMsg = msg;
       // get amount from auraTx tbl when msg type is withdraw reward
       if (msg.typeUrl === TxTypeUrl.WITHDRAW_REWARD) {
         const withdrawMsg = autoClaimMsgs.filter(
@@ -984,24 +984,26 @@ export class MultisigTransactionService {
             x.typeUrl === TxTypeUrl.WITHDRAW_REWARD &&
             x.fromAddress === msg.validatorAddress,
         );
-        if (withdrawMsg.length > 0) msg.amount = withdrawMsg[0].amount;
+        if (withdrawMsg.length > 0) adjustMsg.amount = withdrawMsg[0].amount;
       }
-      return msg;
+      return adjustMsg;
     });
   }
 
   calculateAutoClaimAmount(autoClaimMsgs: TxMessageResponseDto[]): number {
-    return autoClaimMsgs.reduce((totalAmount, item) => {
+    let result = 0;
+    for (const item of autoClaimMsgs) {
       const ignoreTypeUrl = [
         TxTypeUrl.SEND.toString(),
         TxTypeUrl.MULTI_SEND.toString(),
         TxTypeUrl.WITHDRAW_REWARD.toString(),
       ];
-      if (ignoreTypeUrl.includes(item.typeUrl)) {
-        return totalAmount;
+
+      if (!ignoreTypeUrl.includes(item.typeUrl)) {
+        result += Number(item.amount);
       }
-      return Number(totalAmount + item.amount);
-    }, 0);
+    }
+    return result;
   }
 
   parseStatus(status: string): string {
@@ -1039,7 +1041,7 @@ export class MultisigTransactionService {
       sequence: 0,
     };
 
-    if (safe.accountNumber !== null && safe.nextQueueSeq !== null) {
+    if (safe.accountNumber !== undefined && safe.nextQueueSeq !== undefined) {
       accountInfo.accountNumber = Number(safe.accountNumber);
       accountInfo.sequence = sequence || Number(safe.nextQueueSeq);
       return accountInfo;
@@ -1058,17 +1060,17 @@ export class MultisigTransactionService {
   async calculateNextSeq(
     safeId: number,
     currentSequence: number,
-  ): Promise<number> {
+  ): Promise<string> {
     const queueSequences =
       await this.multisigTransactionRepos.findSequenceInQueue(safeId);
 
     let nextSeq = currentSequence;
-    for (const i in queueSequences) {
-      if (queueSequences[i] !== nextSeq) {
+    for (const seq of queueSequences) {
+      if (seq !== nextSeq) {
         break;
       }
       nextSeq += 1;
     }
-    return nextSeq;
+    return nextSeq.toString();
   }
 }
