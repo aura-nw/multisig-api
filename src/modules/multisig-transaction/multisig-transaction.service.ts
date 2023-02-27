@@ -850,30 +850,31 @@ export class MultisigTransactionService {
   }
 
   calculateAmount(aminoMsgs: AminoMsg[]): number {
-    return aminoMsgs.reduce((acc, cur) => {
+    let total = 0;
+
+    for (const msg of aminoMsgs) {
       switch (true) {
-        case isAminoMsgSend(cur): {
-          return acc + Number(cur.value.amount[0].amount);
+        case isAminoMsgSend(msg): {
+          total += Number(msg.value.amount[0].amount);
+          break;
         }
-        case isAminoMsgMultiSend(cur): {
-          return (
-            acc +
-            cur.value.outputs.reduce(
-              (acc, cur) => acc + Number(cur.coins[0].amount),
-              0,
-            )
+        case isAminoMsgMultiSend(msg): {
+          total += msg.value.outputs.reduce(
+            (acc, msg) => acc + Number(msg.coins[0].amount),
+            0,
           );
         }
-        case isAminoMsgDelegate(cur):
-        case isAminoMsgBeginRedelegate(cur):
-        case isAminoMsgUndelegate(cur): {
-          return acc + Number(cur.value.amount.amount);
+        case isAminoMsgDelegate(msg):
+        case isAminoMsgBeginRedelegate(msg):
+        case isAminoMsgUndelegate(msg): {
+          total += Number(msg.value.amount.amount);
         }
         default: {
-          return acc;
+          break;
         }
       }
-    }, 0);
+    }
+    return total;
   }
 
   /**

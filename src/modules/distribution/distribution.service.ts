@@ -250,14 +250,14 @@ export class DistributionService {
 
       // Build delegations
       for (const delegation of delegations) {
-        const reward = rewards.find(
+        const rw = rewards.find(
           (r) =>
             r.validator_address === delegation.delegation.validator_address,
         );
         const result: DelegationDetailDto = {
           operatorAddress: delegation.delegation.validator_address,
           balance: delegation.balance,
-          reward: reward ? reward.reward : undefined,
+          reward: rw ? rw.reward : undefined,
         };
         results.delegations.push(result);
       }
