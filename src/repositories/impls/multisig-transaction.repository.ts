@@ -203,6 +203,7 @@ export class MultisigTransactionRepository
         'MT.Sequence as Sequence',
         'MT.CreatedAt as CreatedAt',
         'MT.UpdatedAt as UpdatedAt',
+        'AT.Timestamp as Timestamp',
       ])
       .getRawOne();
 
