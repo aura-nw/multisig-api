@@ -4,7 +4,7 @@ export type MockType<T> = {
 
 export const MockFactory = {
   getMock<T>(
-    type: new (...args: any[]) => T,
+    type: new (...args: unknown[]) => T,
     includes?: string[],
   ): MockType<T> {
     const mock: MockType<T> = {};

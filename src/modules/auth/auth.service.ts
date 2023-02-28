@@ -2,13 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { fromBase64 } from '@cosmjs/encoding';
 import { JwtService } from '@nestjs/jwt';
 import { encodeSecp256k1Pubkey, pubkeyToAddress } from '@cosmjs/amino';
+import { plainToInstance } from 'class-transformer';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { CustomError } from '../../common/custom-error';
-import {
-  AppConstants,
-  COMMON_CONSTANTS,
-} from '../../common/constants/app.constant';
+import { COMMON_CONSTANTS } from '../../common/constants/app.constant';
 import { pubkeyToAddressEvmos, verifyEvmosSig } from '../../chains/evmos';
 import { CosmosUtil } from '../../chains/cosmos';
 import { ChainRepository } from '../chain/chain.repository';
@@ -16,7 +14,7 @@ import { UserRepository } from '../user/user.repository';
 import { RequestAuthDto } from './dto/request-auth.dto';
 import { AuthUtil } from '../../utils/auth.util';
 import { ContextProvider } from '../../providers/contex.provider';
-import { UserInfoDto } from './dto';
+import { AuthResponseDto, UserInfoDto } from './dto';
 
 @Injectable()
 export class AuthService {
@@ -35,7 +33,7 @@ export class AuthService {
    * @param request
    * @returns
    */
-  async auth(request: RequestAuthDto): Promise<ResponseDto<any>> {
+  async auth(request: RequestAuthDto): Promise<ResponseDto<AuthResponseDto>> {
     try {
       const { pubkey, data, signature, internalChainId } = request;
       const plainData = Buffer.from(data, 'base64').toString('binary');
@@ -88,10 +86,13 @@ export class AuthService {
       };
       const accessToken = this.jwtService.sign(payload);
 
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, {
-        AccessToken: `${accessToken}`,
-        user,
-      });
+      return ResponseDto.response(
+        ErrorMap.SUCCESSFUL,
+        plainToInstance(AuthResponseDto, {
+          AccessToken: `${accessToken}`,
+          user,
+        }),
+      );
     } catch (error) {
       return ResponseDto.responseError(AuthService.name, error);
     }

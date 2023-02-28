@@ -18,7 +18,7 @@ export class NotificationService {
     );
   }
 
-  async getNotifications(): Promise<ResponseDto<any>> {
+  async getNotifications(): Promise<ResponseDto<unknown>> {
     const authInfo = this.utils.getAuthInfo();
     const result = await this.repo.getNotificationsByUser(authInfo.userId);
     return ResponseDto.response(
@@ -32,7 +32,7 @@ export class NotificationService {
 
   async markAsRead(
     request: MarkAsReadNotificationReq,
-  ): Promise<ResponseDto<any>> {
+  ): Promise<ResponseDto<{ affected: number }>> {
     try {
       const authInfo = this.utils.getAuthInfo();
 

@@ -1,5 +1,5 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AxiosError } from 'axios';
 import { catchError, firstValueFrom, map } from 'rxjs';
 import { CustomError } from '../../common/custom-error';
@@ -9,7 +9,7 @@ import { ErrorMap } from '../../common/error.map';
 export class CommonService {
   constructor(private readonly httpService: HttpService) {}
 
-  public async requestPost<T>(url: string, body: any): Promise<T> {
+  public async requestPost<T>(url: string, body: unknown): Promise<T> {
     const result = await firstValueFrom<T>(
       this.httpService.post<T>(url, body).pipe(
         map((res) => res.data),

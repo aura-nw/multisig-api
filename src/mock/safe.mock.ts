@@ -1,4 +1,4 @@
-export const mockCreateRequest: any[] = [
+export const mockCreateRequest = [
   {
     // creatorAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
     // creatorPubkey: 'A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8k',
@@ -38,7 +38,7 @@ export const mockCreateRequest: any[] = [
     internalChainId: 21,
   },
 ];
-export const mockSafe: any[] = [
+export const mockSafe = [
   {
     id: 2,
   },
@@ -78,7 +78,7 @@ export const mockSafe: any[] = [
   },
 ];
 
-export const mockSafeOwner: any[] = [
+export const mockSafeOwner = [
   {
     ownerAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
   },
@@ -110,7 +110,7 @@ export const mockSafeOwner: any[] = [
   },
 ];
 
-export const mockChain: any[] = [
+export const mockChain = [
   {
     rpc: 'https://localhost:26657',
     prefix: 'aura',

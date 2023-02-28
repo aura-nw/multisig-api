@@ -16,7 +16,7 @@
     "start:prod": "node dist/main.js",
     "watch:dev": "ts-node-dev src/main.ts",
     "debug:dev": "cross-env TS_NODE_CACHE=false ts-node-dev --inspect --ignore '/^src/.*\\.spec\\.ts$/' src/main.ts",
-    "lint": "eslint --ext .ts --format=pretty --quiet ./",
+    "lint": "eslint --ext .ts --format=pretty ./",
     "lint:fix": "eslint --fix --ext .ts ./",
     "test": "jest",
     "test:watch": "jest --watch",
