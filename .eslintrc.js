@@ -27,13 +27,7 @@ module.exports = {
     project: ['./tsconfig.json'],
   },
   rules: {
-    // TODO: Remove this rule once the following issue is resolved:
-    '@typescript-eslint/no-unsafe-assignment': 'off',
-    '@typescript-eslint/no-unsafe-member-access': 'off',
-    '@typescript-eslint/no-unsafe-argument': 'off',
-    '@typescript-eslint/no-unsafe-call': 'off',
     'class-methods-use-this': 'off',
-    '@typescript-eslint/no-unsafe-return': 'off',
     'unicorn/prefer-module': 'off',
 
     'unicorn/prefer-top-level-await': 'off',

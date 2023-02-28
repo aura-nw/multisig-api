@@ -1,8 +1,9 @@
-export interface Validator {
-  description: {
-    identity: string;
-    moniker: string;
-  };
+export interface IValidatorDescription {
+  identity: string;
+  moniker: string;
+}
+export interface IValidator {
+  description: IValidatorDescription;
   operator_address: string;
   status: string;
   percent_voting_power: string;
@@ -13,4 +14,5 @@ export interface Validator {
     };
   };
   number_delegators: string;
+  uptime: number;
 }

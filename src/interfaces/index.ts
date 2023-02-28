@@ -5,3 +5,5 @@ export * from './network-status.interface';
 export * from './account-info.interface';
 export * from './account-unbound.interface';
 export * from './proposal.interface';
+export * from './transaction.interface';
+export * from './message.interface';

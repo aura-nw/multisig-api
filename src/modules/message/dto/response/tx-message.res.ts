@@ -92,6 +92,7 @@ export class TxMessageResponseDto {
     ],
   })
   @Transform(({ value }) =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     typeof value === 'string' ? JSON.parse(value) : value,
   )
   @Type(() => MultiSendInOutput)
@@ -100,6 +101,7 @@ export class TxMessageResponseDto {
   @Expose()
   @ApiProperty({ example: '' })
   @Transform(({ value }) =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     typeof value === 'string' ? JSON.parse(value) : value,
   )
   outputs: MultiSendInOutput[];

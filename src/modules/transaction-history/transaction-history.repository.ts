@@ -40,7 +40,8 @@ export class TransactionHistoryRepository {
     // query transactions from aura_tx
     // set direction of transaction
 
-    const result: any[] = await this.repos.query(
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const result: unknown[] = await this.repos.query(
       `
       SELECT AT.Id as AuraTxId, MT.Id as MultisigTxId, AT.TxHash as TxHash, MT.TypeUrl as TypeUrl, AT.FromAddress as FromAddress, AT.Amount as AuraTxAmount, AT.RewardAmount as AuraTxRewardAmount, MT.Amount as MultisigTxAmount, AT.Code as Status, MT.Sequence as Sequence, AT.CreatedAt as CreatedAt, AT.UpdatedAt as UpdatedAt 
       FROM TransactionHistory TH

@@ -17,7 +17,7 @@ import {
   StargateClient,
 } from '@cosmjs/stargate';
 import { fromBase64 } from '@cosmjs/encoding';
-import { AminoMsg, makeSignDoc } from '@cosmjs/amino';
+import { AminoMsg, makeSignDoc, MultisigThresholdPubkey } from '@cosmjs/amino';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import {
@@ -70,6 +70,8 @@ import { IndexerClient } from '../../shared/services/indexer.service';
 import { GetListConfirmResDto } from '../multisig-confirm/dto';
 import { SimulateResponse } from '../simulate/dtos/simulate-response';
 import { SendTxResDto } from './dto/response/send-tx.res';
+import { IMessage, IMsgMultiSend } from './interfaces';
+import { IMessageUnknown } from '../../interfaces';
 
 @Injectable()
 export class MultisigTransactionService {
@@ -122,7 +124,7 @@ export class MultisigTransactionService {
           pageIndex,
           pageSize,
         );
-        result = await this.getConfirmationStatus(txs, safe[0].threshold);
+        result = await this.getConfirmationStatus(txs, safe.threshold);
       }
       const response = result.map((item) => {
         const updatedItem = item;
@@ -163,9 +165,11 @@ export class MultisigTransactionService {
         return TransferDirection.OUTGOING;
       }
       case TxTypeUrl.UNDELEGATE:
-      case TxTypeUrl.WITHDRAW_REWARD:
-      default: {
+      case TxTypeUrl.WITHDRAW_REWARD: {
         return TransferDirection.INCOMING;
+      }
+      default: {
+        return undefined;
       }
     }
   }
@@ -177,7 +181,7 @@ export class MultisigTransactionService {
     const result = await Promise.all(
       txs.map(async (tx) => {
         const updatedTx = tx;
-        const confirmations: any[] =
+        const confirmations: GetListConfirmResDto[] =
           await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
             tx.MultisigTxId,
             tx.TxHash,
@@ -310,7 +314,7 @@ export class MultisigTransactionService {
       const { encodedMsgs, safeId } = request;
       const messages = JSON.parse(
         Buffer.from(encodedMsgs, 'base64').toString('binary'),
-      );
+      ) as IMessageUnknown[];
 
       // get safe info
       const safeInfo = await this.safeRepos.getSafeById(safeId);
@@ -335,7 +339,7 @@ export class MultisigTransactionService {
     const chain = await this.chainRepos.findChain(internalChainId);
     await this.simulateService.simulateWithChain(chain);
 
-    const wallet = await this.simulateService.getCurrentWallet();
+    const wallet = this.simulateService.getCurrentWallet();
     return ResponseDto.response(ErrorMap.SUCCESSFUL, wallet.getAddresses());
   }
 
@@ -412,7 +416,10 @@ export class MultisigTransactionService {
         );
 
       // save msgs
-      await this.messageRepos.saveMsgs(transactionResult.id, messages);
+      await this.messageRepos.saveMsgs(
+        transactionResult.id,
+        messages as IMessageUnknown[],
+      );
 
       // confirm tx
       await this.confirmTx(transactionResult, internalChainId, safe);
@@ -522,10 +529,7 @@ export class MultisigTransactionService {
       const creatorAddress = authInfo.address;
 
       const chain = await this.chainRepos.findChain(internalChainId);
-      let client: StargateClient;
-      try {
-        client = await StargateClient.connect(chain.rpc);
-      } catch {}
+      const client: StargateClient = await StargateClient.connect(chain.rpc);
 
       // get tx
       const multisigTransaction =
@@ -554,7 +558,7 @@ export class MultisigTransactionService {
 
       try {
         await client.broadcastTx(txBroadcast, 10);
-      } catch (error) {
+      } catch (error: unknown) {
         // Update status and txhash
         // TxHash is encoded transaction when send it to network
         const txId = CommonUtil.getStrProp(error, 'txId');
@@ -613,6 +617,7 @@ export class MultisigTransactionService {
           TxHash: txId,
         });
       }
+      return undefined;
     } catch (error) {
       return ResponseDto.responseError(MultisigTransactionService.name, error);
     }
@@ -653,7 +658,7 @@ export class MultisigTransactionService {
 
       // count number of reject
       const rejectConfirms = [];
-      await this.multisigConfirmRepos.getRejects(request.transactionId);
+      await this.multisigConfirmRepos.getRejects(transactionId);
 
       // count number of owner
       const safeOwner = await this.safeOwnerRepo.getOwnersBySafeId(
@@ -700,10 +705,12 @@ export class MultisigTransactionService {
       ...createDistributionAminoConverters(),
       ...createGovAminoConverters(),
     });
-    const msgs = messages.map((msg: any) => {
+    const msgs = messages.map((msg: IMessage) => {
+      const decodedMsg = msg;
       const decoder = registry.lookupType(msg.typeUrl);
-      msg.value = decoder.decode(msg.value);
-      return aminoTypes.toAmino(msg);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      decodedMsg.value = decoder.decode(msg.value);
+      return aminoTypes.toAmino(decodedMsg);
     });
     const stdFee = {
       amount: decodedAuthInfo.fee.amount,
@@ -800,16 +807,18 @@ export class MultisigTransactionService {
     safeInfo: Safe,
     chainInfo: Chain,
     multisigTransaction: MultisigTransaction,
-  ): Promise<any> {
+  ): Promise<Uint8Array> {
     // Get all signature of transaction
-    const multisigConfirmArr = [];
-    await this.multisigConfirmRepos.getConfirmedByTxId(multisigTransaction.id);
+    const multisigConfirmArr =
+      await this.multisigConfirmRepos.getConfirmedByTxId(
+        multisigTransaction.id,
+      );
 
-    const addressSignarureMap = new Map<string, Uint8Array>();
+    const addressSignatureMap = new Map<string, Uint8Array>();
 
     multisigConfirmArr.forEach((x) => {
       const encodeSignature = fromBase64(x.signature);
-      addressSignarureMap.set(x.ownerAddress, encodeSignature);
+      addressSignatureMap.set(x.ownerAddress, encodeSignature);
     });
 
     // Fee
@@ -824,23 +833,24 @@ export class MultisigTransactionService {
     const encodedBodyBytes = fromBase64(multisigConfirmArr[0].bodyBytes);
 
     // Pubkey
-    const safePubkey = JSON.parse(safeInfo.safePubkey);
+    const safePubkey = JSON.parse(
+      safeInfo.safePubkey,
+    ) as MultisigThresholdPubkey;
 
-    let executeTransaction;
-    executeTransaction = chainInfo.chainId.startsWith('evmos_')
+    const executeTransaction = chainInfo.chainId.startsWith('evmos_')
       ? makeMultisignedTxEvmos(
           safePubkey,
           Number(multisigTransaction.sequence),
           sendFee,
           encodedBodyBytes,
-          addressSignarureMap,
+          addressSignatureMap,
         )
       : makeMultisignedTx(
           safePubkey,
           Number(multisigTransaction.sequence),
           sendFee,
           encodedBodyBytes,
-          addressSignarureMap,
+          addressSignatureMap,
         );
 
     const encodeTransaction = Uint8Array.from(
@@ -855,19 +865,24 @@ export class MultisigTransactionService {
     for (const msg of aminoMsgs) {
       switch (true) {
         case isAminoMsgSend(msg): {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           total += Number(msg.value.amount[0].amount);
           break;
         }
         case isAminoMsgMultiSend(msg): {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
           total += msg.value.outputs.reduce(
-            (acc, msg) => acc + Number(msg.coins[0].amount),
+            (acc: number, m: IMsgMultiSend) => acc + Number(m.coins[0].amount),
             0,
           );
+          break;
         }
         case isAminoMsgDelegate(msg):
         case isAminoMsgBeginRedelegate(msg):
         case isAminoMsgUndelegate(msg): {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           total += Number(msg.value.amount.amount);
+          break;
         }
         default: {
           break;

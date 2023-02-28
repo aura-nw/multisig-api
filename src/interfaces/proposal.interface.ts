@@ -1,9 +1,12 @@
 export interface IProposal {
+  custom_info: {
+    chain_id: string;
+  };
+  proposer_address: string;
   content: {
     '@type': string;
     title: string;
     description: string;
-    changes: any[];
   };
   tally: {
     yes: string;
@@ -23,6 +26,7 @@ export interface IProposal {
   deposit_end_time: string;
   total_deposit: [
     {
+      id: string;
       amount: string;
       denom: string;
     },

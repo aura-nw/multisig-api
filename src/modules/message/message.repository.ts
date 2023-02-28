@@ -8,6 +8,7 @@ import { TxTypeUrl } from '../../common/constants/app.constant';
 import { Message } from './entities/message.entity';
 import { TxMessageResponseDto } from './dto';
 import { TxMessageHistoryResponseDto } from './dto/response/tx-message-history.res';
+import { IMessageUnknown } from '../../interfaces';
 
 @Injectable()
 export class MessageRepository {
@@ -22,43 +23,50 @@ export class MessageRepository {
     );
   }
 
-  async saveMsgs(txId: number, msgs: any[]): Promise<Message[]> {
-    const newMsgs = msgs.map((msg) => {
-      const newMsg = plainToClass(Message, msg.value, {
-        excludeExtraneousValues: true,
-      });
-      newMsg.txId = txId;
-      newMsg.typeUrl = msg.typeUrl;
-      switch (msg.typeUrl) {
-        case TxTypeUrl.SEND: {
-          newMsg.amount = msg.value.amount
-            ? msg.value.amount[0].amount
-            : undefined;
-          break;
+  async saveMsgs(txId: number, msgs: IMessageUnknown[]): Promise<Message[]> {
+    const newMsgs: Message[] = [];
+    for (const msg of msgs) {
+      if (msg.value instanceof Uint8Array) {
+        this.logger.log('Unexpected type Uint8Array of msg.value');
+      } else {
+        const newMsg = plainToClass(Message, msg.value, {
+          excludeExtraneousValues: true,
+        });
+        newMsg.txId = txId;
+        newMsg.typeUrl = msg.typeUrl;
+        switch (msg.typeUrl) {
+          case TxTypeUrl.SEND: {
+            newMsg.amount =
+              msg.value.amount && Array.isArray(msg.value.amount)
+                ? msg.value.amount[0].amount
+                : undefined;
+            break;
+          }
+          case TxTypeUrl.MULTI_SEND: {
+            newMsg.inputs = JSON.stringify(msg.value.inputs);
+            newMsg.outputs = JSON.stringify(msg.value.outputs);
+            break;
+          }
+          case TxTypeUrl.DELEGATE:
+          case TxTypeUrl.REDELEGATE:
+          case TxTypeUrl.UNDELEGATE: {
+            newMsg.amount =
+              msg.value.amount && !Array.isArray(msg.value.amount)
+                ? msg.value.amount?.amount
+                : undefined;
+            break;
+          }
+          default: {
+            break;
+          }
         }
-        case TxTypeUrl.MULTI_SEND: {
-          newMsg.inputs = JSON.stringify(msg.value.inputs);
-          newMsg.outputs = JSON.stringify(msg.value.outputs);
-          break;
-        }
-        case TxTypeUrl.DELEGATE:
-        case TxTypeUrl.REDELEGATE:
-        case TxTypeUrl.UNDELEGATE: {
-          newMsg.amount = msg.value.amount
-            ? msg.value.amount?.amount
-            : undefined;
-          break;
-        }
-        default: {
-          break;
-        }
+        newMsg.voteOption = msg.value.option || undefined;
+        newMsg.proposalId = msg.value.proposalId
+          ? Number(msg.value.proposalId)
+          : undefined;
+        newMsgs.push(newMsg);
       }
-      newMsg.voteOption = msg.value.option || undefined;
-      newMsg.proposalId = msg.value.proposalId
-        ? Number(msg.value.proposalId)
-        : undefined;
-      return newMsg;
-    });
+    }
     const result = await this.repos.save(newMsgs);
     return result;
   }
