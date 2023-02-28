@@ -1,6 +1,5 @@
 import { getValue, setValue } from 'express-ctx';
 import { UserInfoDto } from '../modules/auth/dto';
-import { User } from '../modules/user/entities/user.entity';
 
 export class ContextProvider {
   private static readonly nameSpace = 'request';

@@ -1,4 +1,4 @@
-export const mockCreateTransactionRequest: any[] = [
+export const mockCreateTransactionRequest: unknown[] = [
   {
     from: 'aura1328x7tacz28w96zl4j50qnfg4gqjdd56wqd3ke',
     to: 'aura136v0nmlv0saryev8wqz89w80edzdu3quzm0ve9',
@@ -13,7 +13,7 @@ export const mockCreateTransactionRequest: any[] = [
   },
 ];
 
-export const mockChain: any[] = [
+export const mockChain: unknown[] = [
   {
     rpc: 'https://localhost:26657',
     prefix: 'aura',
@@ -31,7 +31,7 @@ export const mockChain: any[] = [
   },
 ];
 
-export const mockTransaction: any[] = [
+export const mockTransaction: unknown[] = [
   {
     Id: 42,
     CreatedAt: '2022-02-24T09:26:20.921Z',

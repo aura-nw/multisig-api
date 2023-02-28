@@ -15,7 +15,11 @@ export class ValidatorInfoDto {
     picture: string;
   };
 
-  commission: any;
+  commission: {
+    commission_rates: {
+      rate: number;
+    };
+  };
 
   // participation:
   uptime: number;

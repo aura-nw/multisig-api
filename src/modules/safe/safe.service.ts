@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { encodeSecp256k1Pubkey, pubkeyToAddress } from '@cosmjs/amino';
 import { fromBase64 } from '@cosmjs/encoding';
-import { ConfigService } from '@nestjs/config';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { SafeStatus } from '../../common/constants/app.constant';
@@ -20,6 +19,7 @@ import { GetMultisigWalletResponseDto } from './dto/response/get-multisig-wallet
 import { Chain } from '../chain/entities/chain.entity';
 import { GetSafeQueryDto } from './dto/request/get-safe-query.req';
 import { IndexerClient } from '../../shared/services/indexer.service';
+import { Safe } from './entities/safe.entity';
 
 @Injectable()
 export class SafeService {
@@ -41,7 +41,7 @@ export class SafeService {
 
   async createMultisigWallet(
     request: CreateMultisigWalletRequestDto,
-  ): Promise<ResponseDto<any>> {
+  ): Promise<ResponseDto<unknown>> {
     try {
       const { threshold, internalChainId } = request;
       let { otherOwnersAddress } = request;
@@ -117,7 +117,7 @@ export class SafeService {
   async getMultisigWallet(
     param: GetSafePathParamsDto,
     query: GetSafeQueryDto,
-  ): Promise<ResponseDto<any>> {
+  ): Promise<ResponseDto<GetMultisigWalletResponseDto>> {
     try {
       const { safeId } = param;
       const { internalChainId } = query;
@@ -182,7 +182,7 @@ export class SafeService {
     }
   }
 
-  async confirm(param: ConfirmSafePathParamsDto): Promise<ResponseDto<any>> {
+  async confirm(param: ConfirmSafePathParamsDto): Promise<ResponseDto<Safe>> {
     try {
       const { safeId } = param;
       const authInfo = this.commonUtil.getAuthInfo();
@@ -235,7 +235,7 @@ export class SafeService {
 
   async deletePending(
     param: DeleteSafePathParamsDto,
-  ): Promise<ResponseDto<any>> {
+  ): Promise<ResponseDto<Safe>> {
     try {
       const { safeId } = param;
       const authInfo = this.commonUtil.getAuthInfo();

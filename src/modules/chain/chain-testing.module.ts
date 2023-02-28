@@ -1,9 +1,6 @@
-import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { CommonService } from '../../shared/services';
 import { IndexerClient } from '../../shared/services/indexer.service';
-import { SharedModule } from '../../shared/shared.module';
 import { Gas } from '../gas/entities/gas.entity';
 import { GasRepository } from '../gas/gas.repository';
 import { ChainController } from './chain.controller';

@@ -1,4 +1,4 @@
-import { CacheModule, MiddlewareConsumer, Module } from '@nestjs/common';
+import { CacheModule, Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';

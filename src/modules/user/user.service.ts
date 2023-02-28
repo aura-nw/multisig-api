@@ -4,7 +4,7 @@ import { ErrorMap } from '../../common/error.map';
 import { UserRepository } from './user.repository';
 import { GetUserPathParamDto } from './dto/request/get-user.req';
 import { Chain } from '../chain/entities/chain.entity';
-import { CustomError } from '../../common/custom-error';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class UserService {
@@ -20,7 +20,7 @@ export class UserService {
 
   async getUserByAddress(
     param: GetUserPathParamDto,
-  ): Promise<ResponseDto<any>> {
+  ): Promise<ResponseDto<User>> {
     const { address } = param;
     try {
       const user = await this.userRepo.getUserByAddress(address);
