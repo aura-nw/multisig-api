@@ -1,6 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional } from 'class-validator';
-import { VoteAnswer } from '../../../../common/constants/app.constant';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class GetVotesByProposalIdParamDto {
   @ApiProperty({

@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { TxMessageResponseDto } from '../../../message/dto/response/tx-message.res';
+import { GetListConfirmResDto } from '../../../multisig-confirm/dto';
 
 export class TxDetailDto {
   @ApiProperty({
@@ -50,12 +51,12 @@ export class TxDetailDto {
       },
     ],
   })
-  Confirmations: any[];
+  Confirmations: GetListConfirmResDto[];
 
   @ApiProperty({
     example: [],
   })
-  Rejectors: any[];
+  Rejectors: GetListConfirmResDto[];
 
   @ApiProperty({
     example: [
@@ -69,7 +70,7 @@ export class TxDetailDto {
       },
     ],
   })
-  Executor: any;
+  Executor: GetListConfirmResDto;
 
   @ApiProperty({
     example: [
