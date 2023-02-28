@@ -3,7 +3,7 @@ import { MultiSignature } from 'cosmjs-types/cosmos/crypto/multisig/v1beta1/mult
 import { SignMode } from 'cosmjs-types/cosmos/tx/signing/v1beta1/signing';
 import { Any } from 'cosmjs-types/google/protobuf/any';
 import { PubKey } from 'cosmjs-types/cosmos/crypto/secp256k1/keys';
-import { AuthInfo, SignerInfo, TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
+import { AuthInfo, TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { Uint53 } from '@cosmjs/math';
 import {
   isEd25519Pubkey,
@@ -31,10 +31,8 @@ import {
   toHex,
 } from '@cosmjs/encoding';
 import { makeCompactBitArray } from '@cosmjs/stargate/build/multisignature';
-import Long from 'long';
 import { ethToEvmos } from '@evmos/address-converter';
 import * as ethUtils from 'ethereumjs-util';
-import { instanceToPlain } from 'class-transformer';
 
 // As discussed in https://github.com/binance-chain/javascript-sdk/issues/163
 // Prefixes listed here: https://github.com/tendermint/tendermint/blob/d419fffe18531317c28c29a292ad7d253f6cafdf/docs/spec/blockchain/encoding.md#public-key-cryptography
@@ -287,7 +285,7 @@ function isValidAddress(address: string): boolean {
 
 export function toChecksummedAddress(address: string | Uint8Array): string {
   // 40 low hex characters
-  let addressLower;
+  let addressLower: string;
   if (typeof address === 'string') {
     if (!isValidAddress(address)) {
       throw new Error('Input is not a valid Ethereum address');

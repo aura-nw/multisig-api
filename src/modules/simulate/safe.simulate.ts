@@ -14,6 +14,8 @@ import { SimulateUtils } from './utils';
 import { TxTypeUrl } from '../../common/constants/app.constant';
 import { makeMultisignedTxEvmos } from '../../chains/evmos';
 import { Chain } from '../chain/entities/chain.entity';
+import { IEncodedObjectMsg, ISafePubkey } from './interfaces';
+import { IMessageUnknown } from '../../interfaces';
 
 @Injectable()
 export class SafeSimulate {
@@ -102,22 +104,22 @@ export class SafeSimulate {
   }
 
   public makeSimulateBodyBytesAndAuthInfo(
-    messages: any[],
+    messages: IMessageUnknown[],
     sequence: number,
-    safePubkey: any,
+    safePubkey: ISafePubkey,
     prefix: string,
   ) {
-    let simulateAuthInfo;
+    let simulateAuthInfo: string;
 
     // get simulate msgs base typeUrl and the messages given by user
     const encodeMsgs = SimulateUtils.anyToEncodeMsgs(messages, prefix);
     const updatedEncodeMsgs = encodeMsgs.map((msg) => {
-      const updatedMsg = msg;
+      const updatedMsg = msg as IEncodedObjectMsg;
       switch (msg.typeUrl) {
         case TxTypeUrl.SEND: {
           simulateAuthInfo = this.authInfo;
           updatedMsg.value.fromAddress = this.address;
-          updatedMsg.value.amount = coins(1, msg.value.amount[0].denom);
+          updatedMsg.value.amount = coins(1, updatedMsg.value.amount[0].denom);
           break;
         }
         case TxTypeUrl.VOTE: {

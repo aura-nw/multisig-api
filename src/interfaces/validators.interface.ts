@@ -1,5 +1,5 @@
-import { Validator } from './validator.interface';
+import { IValidator } from './validator.interface';
 
-export interface Validators {
-  validators: Validator[];
+export interface IValidators {
+  validators: IValidator[];
 }

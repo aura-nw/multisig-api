@@ -10,6 +10,18 @@ export interface IPubkey {
   ];
 }
 
+export interface IAccountDelegation {
+  delegation: {
+    delegator_address: string;
+    validator_address: string;
+    shares: string;
+  };
+  balance: {
+    amount: number;
+    denom: string;
+  };
+}
+
 export interface IAccountInfo {
   account_auth: {
     account: {
@@ -27,19 +39,7 @@ export interface IAccountInfo {
       amount: string;
     },
   ];
-  account_delegations: [
-    {
-      delegation: {
-        delegator_address: string;
-        validator_address: string;
-        shares: string;
-      };
-      balance: {
-        amount: number;
-        denom: string;
-      };
-    },
-  ];
+  account_delegations: IAccountDelegation[];
   account_delegate_rewards: {
     rewards: [
       {

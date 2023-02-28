@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { ConfigService } from '@nestjs/config';
 import { ErrorMap } from '../../common/error.map';
-import { CommonUtil } from '../../utils/common.util';
 import { ChainRepository } from '../chain/chain.repository';
 import { Chain } from '../chain/entities/chain.entity';
 import {
@@ -24,7 +23,13 @@ import {
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { IndexerClient } from '../../shared/services/indexer.service';
 import { CommonService } from '../../shared/services/common.service';
-import { KeyBaseIdentity, Validators } from '../../interfaces';
+import {
+  IAccountDelegation,
+  IValidator,
+  IValidators,
+  KeyBaseIdentity,
+} from '../../interfaces';
+import { IndexerResponseDto } from '../../shared/dtos';
 
 @Injectable()
 export class DistributionService {
@@ -74,11 +79,11 @@ export class DistributionService {
       `api/v1/validator?operatorAddress=${operatorAddress}&chainid=${chain.chainId}`,
       this.indexerUrl,
     );
-    const validatorRes = await this.commonSvc.requestGet<Validators>(
-      new URL(url, this.indexerUrl).href,
-    );
+    const result = await this.commonSvc.requestGet<
+      IndexerResponseDto<IValidators>
+    >(new URL(url, this.indexerUrl).href);
 
-    const validator = validatorRes.validators[0];
+    const validator = result.data.validators[0];
     const picture = await this.getValidatorPicture(
       validator.description.identity,
     );
@@ -111,7 +116,7 @@ export class DistributionService {
       const chain = await this.getChain(internalChainId);
 
       // Get all validators from indexer which status is active
-      const validators = await this.indexer.getValidators(
+      const validators: IValidator[] = await this.indexer.getValidators(
         chain.chainId,
         status,
       );
@@ -119,8 +124,8 @@ export class DistributionService {
       // Build response
       const validatorsResponse = await Promise.all(
         validators
-          .filter((validator: { description: any }) => validator.description)
-          .map((validator: any) => this.formatValidator(validator)),
+          .filter((validator) => validator.description)
+          .map((validator) => this.formatValidator(validator)),
       );
 
       return ResponseDto.response(
@@ -161,16 +166,13 @@ export class DistributionService {
 
       // combine info from two api
       const claimedReward = accountInfo.account_claimed_rewards.find(
-        (r: { validator_address: any }) =>
-          r.validator_address === validator.operator_address,
+        (r) => r.validator_address === validator.operator_address,
       );
       const delegationBalance = accountInfo.account_delegations.find(
-        (r: { delegation: { validator_address: any } }) =>
-          r.delegation.validator_address === validator.operator_address,
+        (r) => r.delegation.validator_address === validator.operator_address,
       )?.balance;
       const pendingReward = accountInfo.account_delegate_rewards.rewards.find(
-        (r: { validator_address: any }) =>
-          r.validator_address === validator.operator_address,
+        (r) => r.validator_address === validator.operator_address,
       )?.reward[0];
 
       return ResponseDto.response(
@@ -303,7 +305,9 @@ export class DistributionService {
     }
   }
 
-  private async formatValidator(validator: any): Promise<ValidatorInfoDto> {
+  private async formatValidator(
+    validator: IValidator,
+  ): Promise<ValidatorInfoDto> {
     const picture = await this.getValidatorPicture(
       validator.description.identity,
     );
@@ -356,7 +360,7 @@ export class DistributionService {
     return pictureUrl;
   }
 
-  calculateTotalStaked(delegations: any) {
+  calculateTotalStaked(delegations: IAccountDelegation[]) {
     let total = 0;
     for (const delegation of delegations) {
       total += +delegation.balance.amount;

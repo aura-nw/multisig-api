@@ -10,9 +10,10 @@ import {
   IProposal,
   IProposals,
   IPubkey,
+  ITransactions,
+  IValidator,
+  IValidators,
   NetworkStatus,
-  Validator,
-  Validators,
 } from '../../interfaces';
 import { IVotes } from '../../interfaces/votes.interface';
 import { IndexerResponseDto } from '../dtos';
@@ -31,14 +32,14 @@ export class IndexerClient {
     this.indexerUrl = this.configService.get<string>('INDEXER_URL');
   }
 
-  async getValidators(chainId: string, status: string): Promise<Validator[]> {
+  async getValidators(chainId: string, status: string): Promise<IValidator[]> {
     let url = `api/v1/validator?chainid=${chainId}`;
     if (status) {
       url += `&status=${status}`;
     }
     url += '&pageOffset=0&pageLimit=1000';
     const validatorsRes = await this.commonService.requestGet<
-      IndexerResponseDto<Validators>
+      IndexerResponseDto<IValidators>
     >(new URL(url, this.indexerUrl).href);
     return validatorsRes.data.validators;
   }
@@ -46,9 +47,9 @@ export class IndexerClient {
   async getValidatorByOperatorAddress(
     chainId: string,
     operatorAddress: string,
-  ): Promise<Validator> {
+  ): Promise<IValidator> {
     const validatorRes = await this.commonService.requestGet<
-      IndexerResponseDto<Validators>
+      IndexerResponseDto<IValidators>
     >(
       new URL(
         `api/v1/validator?operatorAddress=${operatorAddress}&chainid=${chainId}`,
@@ -191,21 +192,21 @@ export class IndexerClient {
       `api/v1/transaction?chainid=${chainId}&searchType=proposal_deposit&searchKey=proposal_id&searchValue=${proposalId}&pageOffset=0&pageLimit=10&countTotal=false&reverse=false`,
       this.indexerUrl,
     ).href;
-    const response = await this.commonService.requestGet<any>(
-      getProposalDepositsURL,
-    );
+    const response = await this.commonService.requestGet<
+      IndexerResponseDto<ITransactions>
+    >(getProposalDepositsURL);
     return response.data.transactions;
   }
 
-  async getProposalsByChainId(chainId: string): Promise<any[]> {
+  async getProposalsByChainId(chainId: string): Promise<IProposal[]> {
     const getProposalByChainIdURL = new URL(
       `api/v1/proposal?chainid=${chainId}&pageLimit=10&pageOffset=0&reverse=false`,
       this.indexerUrl,
     ).href;
     try {
-      const response = await this.commonService.requestGet<any>(
-        getProposalByChainIdURL,
-      );
+      const response = await this.commonService.requestGet<
+        IndexerResponseDto<IProposals>
+      >(getProposalByChainIdURL);
       return response.data.proposals || [];
     } catch (error) {
       this.logger.error(error);

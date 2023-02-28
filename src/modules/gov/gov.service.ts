@@ -22,6 +22,7 @@ import {
 } from './dto';
 import { Chain } from '../chain/entities/chain.entity';
 import { IndexerClient } from '../../shared/services/indexer.service';
+import { IProposal, ITransaction } from '../../interfaces';
 
 @Injectable()
 export class GovService {
@@ -74,7 +75,7 @@ export class GovService {
       result.description = proposal.content.description;
       result.type = proposal.content['@type'];
       result.depositEndTime = proposal.deposit_end_time;
-      result.turnout = this.calculateProposalTunrout(proposal, bondedTokens);
+      result.turnout = this.calculateProposalTurnout(proposal, bondedTokens);
 
       return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
     } catch (error) {
@@ -85,7 +86,7 @@ export class GovService {
   async getVotesByProposalId(
     param: GetVotesByProposalIdParamDto,
     query: GetVotesByProposalIdQueryDto,
-  ): Promise<ResponseDto<any>> {
+  ): Promise<ResponseDto<GetVotesByProposalIdResponseDto>> {
     const { internalChainId, proposalId } = param;
     const {
       answer,
@@ -123,7 +124,7 @@ export class GovService {
 
   async getValidatorVotesByProposalId(
     param: GetValidatorVotesDto,
-  ): Promise<ResponseDto<any>> {
+  ): Promise<ResponseDto<GetValidatorVotesByProposalIdResponseDto>> {
     const { internalChainId, proposalId } = param;
     try {
       const chain = await this.chainRepo.findChain(internalChainId);
@@ -160,13 +161,13 @@ export class GovService {
 
   async getProposalDepositById(
     param: GetProposalDepositsDto,
-  ): Promise<ResponseDto<any>> {
+  ): Promise<ResponseDto<ProposalDepositResponseDto[]>> {
     const { internalChainId, proposalId } = param;
     try {
       const chain = await this.chainRepo.findChain(internalChainId);
 
       // Get proposal deposit txs
-      const proposalDepositTxs =
+      const proposalDepositTxs: ITransaction[] =
         await this.indexer.getProposalDepositByProposalId(
           chain.chainId,
           proposalId,
@@ -176,6 +177,7 @@ export class GovService {
           const proposalDepositEvent = tx.tx_response.logs[0].events.find(
             (x) => x.type === 'proposal_deposit',
           );
+
           const proposalDepositResponse: ProposalDepositResponseDto = {
             proposal_id: Number(
               proposalDepositEvent?.attributes.find(
@@ -189,6 +191,7 @@ export class GovService {
                 tx.tx_response.tx.body.messages[0].amount[0]?.amount ||
                 0,
             ),
+
             timestamp: tx.tx_response.timestamp,
           };
           return proposalDepositResponse;
@@ -201,7 +204,7 @@ export class GovService {
     }
   }
 
-  mapProposal(proposal: any) {
+  mapProposal(proposal: IProposal) {
     const result: ProposalDetailDto = {
       id: proposal.proposal_id,
       title: proposal.content.title,
@@ -216,7 +219,7 @@ export class GovService {
     return result;
   }
 
-  calculateProposalTally(proposal: any): GetProposalsTally {
+  calculateProposalTally(proposal: IProposal): GetProposalsTally {
     // default to final result of tally property
     let tally = proposal.final_tally_result;
     if (proposal.status === ProposalStatus.VOTING_PERIOD) {
@@ -254,13 +257,16 @@ export class GovService {
       },
       mostVotedOn: {
         name: mostVotedOptionKey,
-        percent: this.commonUtil.getPercentage(tally[mostVotedOptionKey], sum),
+        percent: this.commonUtil.getPercentage(
+          tally[mostVotedOptionKey] as string,
+          sum,
+        ),
       },
     };
     return result;
   }
 
-  calculateProposalTunrout(proposal: any, bondedTokens: string) {
+  calculateProposalTurnout(proposal: IProposal, bondedTokens: string) {
     // default to final result of tally property
     let tally = proposal.final_tally_result;
     if (proposal.status === ProposalStatus.VOTING_PERIOD) {

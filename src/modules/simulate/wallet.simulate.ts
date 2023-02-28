@@ -5,6 +5,8 @@ import { OwnerSimulate } from './owner.simulate';
 import { SimulateUtils } from './utils';
 import { Chain } from '../chain/entities/chain.entity';
 import { Safe } from '../safe/entities/safe.entity';
+import { ISafePubkey } from './interfaces';
+import { IMessageUnknown } from '../../interfaces';
 
 export class WalletSimulate {
   safeOwnerMap = new Map<number, SafeSimulate>();
@@ -18,7 +20,7 @@ export class WalletSimulate {
    */
   async initialize(): Promise<void> {
     // generate owners
-    const promises = [];
+    const promises: Promise<Secp256k1HdWallet>[] = [];
     for (let i = 0; i < 20; i += 1) {
       // create wallet
       promises.push(
@@ -28,7 +30,7 @@ export class WalletSimulate {
         }),
       );
     }
-    const wallets: Secp256k1HdWallet[] = await Promise.all(promises);
+    const wallets = await Promise.all(promises);
 
     // create account
     const accounts = await Promise.all(
@@ -56,11 +58,11 @@ export class WalletSimulate {
    * @param totalOwner
    */
   async buildEncodedTxBytes(
-    messages: any[],
+    messages: IMessageUnknown[],
     safeInfo: Safe,
     sequence: number,
   ): Promise<string> {
-    const safePubkey = JSON.parse(safeInfo.safePubkey);
+    const safePubkey = JSON.parse(safeInfo.safePubkey) as ISafePubkey;
     const totalOwner = safePubkey.value.pubkeys.length;
 
     // get safe from map

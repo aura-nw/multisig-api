@@ -22,12 +22,12 @@ export class ResponseDto<T> {
   Data: T;
 
   @ApiProperty({ description: 'Data return' })
-  AdditionalData: any;
+  AdditionalData: unknown;
 
   constructor(
     errorMap: typeof ErrorMap.SUCCESSFUL,
     data?: T,
-    additionalData?: any,
+    additionalData?: unknown,
   ) {
     this.ErrorCode = errorMap.Code;
     this.Message = errorMap.Message;
@@ -38,7 +38,7 @@ export class ResponseDto<T> {
   public static response<T>(
     errorMap: typeof ErrorMap.SUCCESSFUL,
     data?: T,
-    additionalData?: any,
+    additionalData?: unknown,
   ) {
     return new ResponseDto<T>(errorMap, data, additionalData);
   }

@@ -6,6 +6,7 @@
     "delegators",
     "dtos",
     "keybase",
+    "Multisigned",
     "Unbonding",
     "Undelegations"
   ]

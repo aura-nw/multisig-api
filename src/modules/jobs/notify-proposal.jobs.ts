@@ -8,6 +8,7 @@ import { Notification } from '../notification/entities/notification.entity';
 import { User } from '../user/entities/user.entity';
 import { IndexerClient } from '../../shared/services/indexer.service';
 import { NotificationRepository } from '../notification/notification.repository';
+import { IProposal } from '../../interfaces';
 
 @Injectable()
 export class NotifyProposalJob {
@@ -38,7 +39,7 @@ export class NotifyProposalJob {
     );
 
     // Get proposal in voting period
-    const inVotingProposal = [];
+    const inVotingProposal: IProposal[] = [];
     latestProposals.forEach((proposals) => {
       inVotingProposal.push(
         ...proposals.filter(
@@ -60,7 +61,7 @@ export class NotifyProposalJob {
       Notification.newProposalNotification(
         Number(proposal.proposal_id),
         proposal.content.title,
-        proposal.voting_end_time,
+        new Date(proposal.voting_end_time),
         supportedChains.find(
           (chain) => chain.chainId === proposal.custom_info.chain_id,
         ).id,

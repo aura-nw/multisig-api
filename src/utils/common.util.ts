@@ -1,39 +1,22 @@
 import { isNil, omitBy } from 'lodash';
-import fetch from 'node-fetch';
 import {
   createMultisigThresholdPubkey,
-  encodeAminoPubkey,
   Pubkey,
   pubkeyToAddress,
   SinglePubkey,
 } from '@cosmjs/amino';
 import { sha256 } from '@cosmjs/crypto';
-import { toBech32, toHex } from '@cosmjs/encoding';
-import {
-  Fee,
-  LCDClient,
-  LegacyAminoMultisigPublicKey,
-  MsgSend,
-  MultiSignature,
-  SignatureV2,
-  SimplePublicKey,
-} from '@terra-money/terra.js';
+import { toBech32 } from '@cosmjs/encoding';
 import { plainToInstance } from 'class-transformer';
-import { readFile } from 'graceful-fs';
 import {
   createMultisigThresholdPubkeyEvmos,
   encodeAminoPubkeySupportEvmos,
 } from '../chains/evmos';
-import { PubkeyTypes } from '../common/constants/app.constant';
 import { CustomError } from '../common/custom-error';
 import { ErrorMap } from '../common/error.map';
 import { AuthService } from '../modules/auth/auth.service';
-import { MultisigTransaction } from '../modules/multisig-transaction/entities/multisig-transaction.entity';
 import { UserInfoDto } from '../modules/auth/dto/user-info.dto';
 
-interface ISafe {
-  safePubkey;
-}
 export class CommonUtil {
   /**
    * getStrProp https://stackoverflow.com/a/70031969/8461456
@@ -43,7 +26,7 @@ export class CommonUtil {
    */
   public static getStrProp(o: unknown, prop: string): string {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       const p = (o as any)[prop];
       if (typeof p === 'string') {
         return p;
@@ -62,16 +45,18 @@ export class CommonUtil {
   public static pubkeyToAddress(pubkey: Pubkey, prefix: string): string {
     if (prefix === 'evmos') {
       const pubkeyAmino = encodeAminoPubkeySupportEvmos(pubkey);
-      console.log(toHex(pubkeyAmino));
+
       const rawAddress = sha256(pubkeyAmino).slice(0, 20);
       const address = toBech32(prefix, rawAddress);
       return address;
     }
-    const pubkeyData = encodeAminoPubkey(pubkey);
 
-    const rawAddress = sha256(pubkeyData).slice(0, 20);
-    const address = toBech32(prefix, rawAddress);
-    console.log(address);
+    /**
+     * Another way to get bech32 address:
+     * const pubkeyData = encodeAminoPubkey(pubkey);
+     * const rawAddress = sha256(pubkeyData).slice(0, 20);
+     * toBech32(prefix, rawAddress);
+     */
 
     return pubkeyToAddress(pubkey, prefix);
   }
@@ -81,7 +66,7 @@ export class CommonUtil {
    * @param arr
    * @returns boolean
    */
-  public static checkIfDuplicateExists(arr): boolean {
+  public static checkIfDuplicateExists(arr: unknown[]): boolean {
     return new Set(arr).size !== arr.length;
   }
 
@@ -141,95 +126,20 @@ export class CommonUtil {
     return result;
   }
 
-  async makeTerraTx(
-    multisigTransaction: MultisigTransaction,
-    safe: ISafe,
-    multisigConfirmArr: any[],
-    client: LCDClient,
-  ) {
-    const multisigPubkey = LegacyAminoMultisigPublicKey.fromAmino(
-      JSON.parse(safe.safePubkey),
-    );
-    const multisig = new MultiSignature(multisigPubkey);
-
-    const amount = {};
-    amount[multisigTransaction.denom] = multisigTransaction.amount;
-    const send = new MsgSend(
-      multisigTransaction.fromAddress,
-      multisigTransaction.toAddress,
-      amount,
-    );
-
-    const tx = await client.tx.create(
-      [
-        {
-          address: multisigTransaction.fromAddress,
-          sequenceNumber: Number(multisigTransaction.sequence),
-          publicKey: multisigPubkey,
-        },
-      ],
-      {
-        msgs: [send],
-        fee: new Fee(
-          multisigTransaction.gas,
-          String(multisigTransaction.fee) + multisigTransaction.denom,
-        ),
-        gas: multisigTransaction.gas.toString(),
-      },
-    );
-
-    const addressSignarureMap = [];
-    multisigConfirmArr.forEach((x) => {
-      const pubkeyAmino: SimplePublicKey.Amino = {
-        type: PubkeyTypes.SECP256K1,
-        value: x.pubkey,
-      };
-      const amino: SignatureV2.Amino = {
-        signature: x.signature,
-        pub_key: pubkeyAmino,
-      };
-      const sig = SignatureV2.fromAmino(amino);
-      addressSignarureMap.push(sig);
-    });
-
-    multisig.appendSignatureV2s(addressSignarureMap);
-    tx.appendSignatures([
-      new SignatureV2(
-        multisigPubkey,
-        multisig.toSignatureDescriptor(),
-        Number(multisigTransaction.sequence),
-      ),
-    ]);
-
-    return tx;
-  }
-
   getAuthInfo(): UserInfoDto {
     const currentUser = AuthService.getAuthUser();
     if (!currentUser) throw new CustomError(ErrorMap.UNAUTHRORIZED);
     return plainToInstance(UserInfoDto, currentUser);
   }
 
-  jsonReader(filePath, cb) {
-    readFile(filePath, 'utf8', (error, fileData) => {
-      if (error) {
-        return cb && cb(error);
-      }
-      try {
-        const object = JSON.parse(fileData);
-        return cb && cb(undefined, object);
-      } catch (error_) {
-        return cb && cb(error_);
-      }
-    });
-  }
-
-  getPercentage(number: any, sum: any): string {
-    if (number === 0) {
+  getPercentage(value: number | string, total: number | string): string {
+    const convertedValue = Number(value);
+    const convertedTotal = Number(total);
+    if (convertedValue === 0) {
       return '0';
     }
-    return ((+number * 100) / sum).toFixed(2);
+    return ((+convertedValue * 100) / convertedTotal).toFixed(2);
   }
 
-  omitByNil = (obj: any) => omitBy(obj, isNil);
+  omitByNil = (obj: unknown) => omitBy(obj, isNil);
 }

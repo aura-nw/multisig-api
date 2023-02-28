@@ -8,6 +8,7 @@ import { WalletSimulate } from './wallet.simulate';
 import { IndexerClient } from '../../shared/services/indexer.service';
 import { SafeSimulate } from './safe.simulate';
 import { AccountInfo } from '../../common/dtos/account-info';
+import { IMessageUnknown } from '../../interfaces';
 
 @Injectable()
 export class SimulateService {
@@ -71,7 +72,10 @@ export class SimulateService {
     return this.currentWallet;
   }
 
-  async simulate(messages: any[], safeInfo: Safe): Promise<SimulateResponse> {
+  async simulate(
+    messages: IMessageUnknown[],
+    safeInfo: Safe,
+  ): Promise<SimulateResponse> {
     // Get sequence of safe account
     const { sequence } = await this.indexerClient.getAccountNumberAndSequence(
       this.currentWallet.chain.chainId,

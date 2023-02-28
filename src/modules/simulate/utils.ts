@@ -20,9 +20,14 @@ import {
 import { coins } from '@cosmjs/amino';
 import { RegistryGeneratedTypes } from '../../common/constants/app.constant';
 import { encodePubkeyEvmos } from '../../chains/evmos';
+import { ISafePubkey } from './interfaces';
+import { IMessageUnknown } from '../../interfaces';
 
 export class SimulateUtils {
-  public static makeBodyBytes(messages: any[], prefix: string): Uint8Array {
+  public static makeBodyBytes(
+    messages: IMessageUnknown[],
+    prefix: string,
+  ): Uint8Array {
     const signedTxBody = {
       messages: this.anyToEncodeMsgs(messages, prefix),
       memo: '',
@@ -38,7 +43,7 @@ export class SimulateUtils {
   static makeAuthInfoBytes(
     chainId: string,
     sequence: number,
-    safePubkey: any,
+    safePubkey: ISafePubkey,
     totalOwner: number,
     denom: string,
   ): Uint8Array {
@@ -101,7 +106,7 @@ export class SimulateUtils {
     return [msg];
   }
 
-  static getDefaultFee(denom): StdFee {
+  static getDefaultFee(denom: string): StdFee {
     return {
       amount: coins(1, denom),
       gas: '200000',
@@ -126,7 +131,10 @@ export class SimulateUtils {
       },
     ]
    */
-  static anyToEncodeMsgs(messages: any[], prefix: string): EncodeObject[] {
+  static anyToEncodeMsgs(
+    messages: IMessageUnknown[],
+    prefix: string,
+  ): EncodeObject[] {
     const aminoTypes = new AminoTypes({
       ...createBankAminoConverters(),
       ...createStakingAminoConverters(prefix),

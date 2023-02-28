@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { encodeSecp256k1Pubkey, pubkeyToAddress } from '@cosmjs/amino';
 import { fromBase64 } from '@cosmjs/encoding';
 import { ConfigService } from '@nestjs/config';
-import { SimplePublicKey } from '@terra-money/terra.js';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { SafeStatus } from '../../common/constants/app.constant';
@@ -29,7 +28,6 @@ export class SafeService {
   private commonUtil: CommonUtil = new CommonUtil();
 
   constructor(
-    private configService: ConfigService,
     private indexer: IndexerClient,
     private safeRepo: SafeRepository,
     private safeOwnerRepo: SafeOwnerRepository,
@@ -256,10 +254,7 @@ export class SafeService {
   checkAddressPubkeyMismatch(address: string, pubkey: string, chain: Chain) {
     let generatedAddress;
 
-    if (chain.name === 'Terra Testnet') {
-      const simplePubkey = new SimplePublicKey(pubkey);
-      generatedAddress = simplePubkey.address();
-    } else if (chain.prefix.startsWith('evmos')) {
+    if (chain.prefix.startsWith('evmos')) {
       generatedAddress = pubkeyToAddressEvmos(pubkey);
     } else {
       // get address from pubkey
