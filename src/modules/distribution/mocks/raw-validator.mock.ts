@@ -1,0 +1,51 @@
+export const rawValidatorMock = {
+  consensus_pubkey: {
+    '@type': '/cosmos.crypto.ed25519.PubKey',
+    key: 'mSDhmny4Tm41quCFpJ3wbp67ba+YfwhCGcbZoj0G/Yw=',
+  },
+  description: {
+    moniker: 'mynode',
+    identity: '',
+    website: '',
+    security_contact: '',
+    details: '',
+  },
+  commission: {
+    commission_rates: {
+      rate: '0.100000000000000000',
+      max_rate: '0.200000000000000000',
+      max_change_rate: '0.010000000000000000',
+    },
+    update_time: '2022-07-08T09:28:38.086398576Z',
+  },
+  val_signing_info: {
+    address: 'auravalcons1s6gzw2kyrduq60cqnj04psmyv8yk0vxp7m2chr',
+    start_height: '0',
+    index_offset: '4994646',
+    jailed_until: '1970-01-01T00:00:00Z',
+    tombstoned: false,
+    missed_blocks_counter: '0',
+  },
+  self_delegation_balance: {
+    denom: 'utaura',
+    amount: '102469134',
+  },
+  custom_info: {
+    chain_id: 'aura-testnet-2',
+    chain_name: 'Aura devnet',
+  },
+  _id: '637d9a8efb79e60012ee1e81',
+  operator_address: 'auravaloper1edw4lwcz3esnlgzcw60ra8m38k3zygz2xtl2qh',
+  jailed: false,
+  status: 'BOND_STATUS_BONDED',
+  tokens: '107861988264',
+  delegator_shares: '107861988264.000000000000000000',
+  unbonding_height: '0',
+  unbonding_time: '1970-01-01T00:00:00Z',
+  min_self_delegation: '1',
+  consensus_hex_address: '8690272AC41B780D3F009C9F50C36461C967B0C1',
+  uptime: 100,
+  account_address: 'aura1edw4lwcz3esnlgzcw60ra8m38k3zygz2aewzcf',
+  percent_voting_power: 83.517_56,
+  number_delegators: 0,
+};

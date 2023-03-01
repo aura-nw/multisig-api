@@ -3,7 +3,6 @@ import { plainToInstance } from 'class-transformer';
 import { ConfigService } from '@nestjs/config';
 import { ErrorMap } from '../../common/error.map';
 import { ChainRepository } from '../chain/chain.repository';
-import { Chain } from '../chain/entities/chain.entity';
 import {
   DelegationDetailDto,
   GetDelegationDto,
@@ -35,8 +34,6 @@ import { IndexerResponseDto } from '../../shared/dtos';
 export class DistributionService {
   private readonly logger = new Logger(DistributionService.name);
 
-  private chains = new Map<string, Chain>();
-
   private validatorsPicture = new Map<string, string>();
 
   indexerUrl: string;
@@ -53,19 +50,6 @@ export class DistributionService {
   }
 
   /**
-   * getChain
-   * @param internalChainId
-   * @returns
-   */
-  private async getChain(internalChainId: number): Promise<Chain> {
-    if (!this.chains.has(internalChainId.toString())) {
-      const chain = await this.chainRepo.findChain(internalChainId);
-      this.chains.set(internalChainId.toString(), chain);
-    }
-    return this.chains.get(internalChainId.toString());
-  }
-
-  /**
    * getValidatorInfo
    * @param param
    * @returns
@@ -74,7 +58,7 @@ export class DistributionService {
     param: GetValidatorDetailDto,
   ): Promise<ResponseDto<GetValidatorInfoResDto>> {
     const { operatorAddress, internalChainId } = param;
-    const chain = await this.getChain(internalChainId);
+    const chain = await this.chainRepo.findChain(internalChainId);
     const url = new URL(
       `api/v1/validator?operatorAddress=${operatorAddress}&chainid=${chain.chainId}`,
       this.indexerUrl,
@@ -113,7 +97,7 @@ export class DistributionService {
     const { status } = query;
     try {
       // Get chain
-      const chain = await this.getChain(internalChainId);
+      const chain = await this.chainRepo.findChain(internalChainId);
 
       // Get all validators from indexer which status is active
       const validators: IValidator[] = await this.indexer.getValidators(
@@ -150,7 +134,7 @@ export class DistributionService {
     const { internalChainId, delegatorAddress, operatorAddress } = query;
     try {
       // Get chain
-      const chain = await this.getChain(internalChainId);
+      const chain = await this.chainRepo.findChain(internalChainId);
 
       // get account info
       const accountInfo = await this.indexer.getAccountInfo(
@@ -222,7 +206,7 @@ export class DistributionService {
     const { internalChainId, delegatorAddress } = param;
     try {
       // Get chain
-      const chain = await this.getChain(internalChainId);
+      const chain = await this.chainRepo.findChain(internalChainId);
 
       // Get account info
       const accountInfo = await this.indexer.getAccountInfo(
@@ -276,7 +260,7 @@ export class DistributionService {
     const { internalChainId, delegatorAddress } = param;
     try {
       // Get chain
-      const chain = await this.getChain(internalChainId);
+      const chain = await this.chainRepo.findChain(internalChainId);
 
       // Get account undelegations
       const accountUnbonding = await this.indexer.getAccountUnBonds(
