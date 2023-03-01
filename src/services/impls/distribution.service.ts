@@ -94,7 +94,9 @@ export class DistributionService implements IDistributionService {
       const validatorsResponse = await Promise.all(
         validators
           .filter((validator) => validator.description)
-          .map((validator) => this.formatValidator(validator)),
+          .map((validator) =>
+            this.formatValidator(validator, chain.coinDecimals),
+          ),
       );
       const results: GetValidatorsResponse = {
         validators: validatorsResponse,
@@ -271,6 +273,7 @@ export class DistributionService implements IDistributionService {
 
   private async formatValidator(
     validator: any,
+    coinDecimals: number,
   ): Promise<GetValidatorsValidator> {
     const picture = await this.getValidatorPicture(
       validator.description.identity,
@@ -289,7 +292,7 @@ export class DistributionService implements IDistributionService {
         picture: picture,
       },
       votingPower: {
-        number: (+validator.tokens / 10 ** 6).toFixed(3),
+        number: (+validator.tokens / 10 ** coinDecimals).toFixed(3),
         percentage: String(
           Math.round(Number(validator.percent_voting_power) * 100) / 100,
         ),
