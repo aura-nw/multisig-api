@@ -2,8 +2,8 @@ import { TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ErrorMap } from '../../common/error.map';
-import { MockFactory, MockType } from '../../common/mock';
-import { mockChain } from '../../mock/safe.mock';
+import { MockFactory } from '../../common/mock';
+import { mockChain, chainList } from '../../mock';
 import { chainTestingModule } from './chain-testing.module';
 import { ChainRepository } from './chain.repository';
 import { Chain } from './entities/chain.entity';
@@ -47,7 +47,7 @@ describe('ChainRepository', () => {
       }
     });
 
-    it(`should return: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
+    it('should successful', async () => {
       const internalChainId = 22;
       mockRepo.findOne = jest.fn().mockResolvedValue(mockChain[0]);
 
@@ -71,7 +71,7 @@ describe('ChainRepository', () => {
       }
     });
 
-    it(`should return: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
+    it('should successful', async () => {
       const chainId = 'aura-testnet-2';
       mockRepo.findOne = jest.fn().mockResolvedValue(mockChain);
 
@@ -81,22 +81,14 @@ describe('ChainRepository', () => {
     });
   });
 
-  // describe('createOrUpdate', () => {
-  //   const chainInfos = [
-  //     {
-  //       name: 'Aura Devnet',
-  //       rest: 'https://lcd.dev.aura.network/',
-  //       rpc: 'https://rpc.dev.aura.network/',
-  //       webSocket: 'https://explorer.dev.aura.network',
-  //       explorer,
-  //       symbol,
-  //       denom,
-  //       chainId,
-  //       prefix,
-  //       coinDecimals,
-  //       gasPrice,
-  //       tokenImg
-  //     }
-  //   ]
-  // })
+  describe('createOrUpdate', () => {
+    it('should successful', async () => {
+      const chainInfos = chainList;
+      mockRepo.save = jest.fn().mockResolvedValue(mockChain);
+
+      expect(await chainRepository.createOrUpdate(chainInfos)).toEqual(
+        mockChain,
+      );
+    });
+  });
 });

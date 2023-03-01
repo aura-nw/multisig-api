@@ -109,14 +109,3 @@ export const mockSafeOwner = [
     ownerAddress: 'aura1m92zhmujw5ndche9avqt5cj59cfrta96gmqs9a',
   },
 ];
-
-export const mockChain = [
-  {
-    rpc: 'https://localhost:26657',
-    prefix: 'aura',
-  },
-  {
-    rpc: 'https://rpc.dev.aura.network',
-    prefix: 'aura',
-  },
-];

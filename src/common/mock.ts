@@ -1,10 +1,11 @@
 export type MockType<T> = {
-  [P in keyof T]?: jest.Mock<unknown>;
+  [P in keyof T]?: jest.Mock;
 };
 
 export const MockFactory = {
   getMock<T>(
-    type: new (...args: unknown[]) => T,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    type: new (...args: any[]) => T,
     includes?: string[],
   ): MockType<T> {
     const mock: MockType<T> = {};
