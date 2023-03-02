@@ -1,14 +1,35 @@
 import { ConfigService } from '@nestjs/config';
 import { TestingModule } from '@nestjs/testing';
+import { plainToInstance } from 'class-transformer';
+import { ValidatorStatus } from '../../common/constants/app.constant';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
-import { chainList, defaultGas } from '../../mock/chain/chain.mock';
+import { IAccountInfo, IValidator, IValidators } from '../../interfaces';
+import {
+  accountInfoIndexerMock,
+  chainList,
+  validatorIndexerResponseMock,
+} from '../../mock';
 import { CommonService } from '../../shared/services';
 import { IndexerClient } from '../../shared/services/indexer.service';
 import { ChainRepository } from '../chain/chain.repository';
 import { distributionTestingModule } from './distribution-testing.module';
 import { DistributionService } from './distribution.service';
-import { mockValidators, rawValidatorMock } from './mocks';
+import {
+  GetDelegationDto,
+  GetDelegationResponseDto,
+  GetValidatorDetailDto,
+  GetValidatorsParamDto,
+  GetValidatorsQueryDto,
+  GetValidatorsResponseDto,
+} from './dto';
+import {
+  delegationResponseMock,
+  keyBaseResponseMock,
+  keybaseUrlMock,
+  mockValidators,
+  validatorInfoMock,
+} from './mocks';
 
 describe('ChainService', () => {
   let service: DistributionService;
@@ -33,23 +54,113 @@ describe('ChainService', () => {
 
   describe('getValidatorInfo', () => {
     it(`should return: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
-      const expectedResult = ResponseDto.response(ErrorMap.SUCCESSFUL, {
-        validators: mockValidators,
-      });
+      const param: GetValidatorDetailDto = {
+        internalChainId: 22,
+        operatorAddress: 'auravaloper1edw4lwcz3esnlgzcw60ra8m38k3zygz2xtl2qh',
+      };
+      const expectedResult = ResponseDto.response(
+        ErrorMap.SUCCESSFUL,
+        validatorInfoMock,
+      );
 
       jest
         .spyOn(chainRepo, 'findChain')
         .mockImplementation(async () => chainList[0]);
 
-      jest.spyOn(commonSvc, 'requestGet').mockImplementation(async () => ({
-        data: {
-          validators: [rawValidatorMock];
-        }
-      }));
+      jest
+        .spyOn(indexerClient, 'getValidatorInfo')
+        .mockImplementation(
+          async () =>
+            validatorIndexerResponseMock.validators[0] as unknown as IValidator,
+        );
 
-      jest.spyOn(configService, 'get').mockImplementation(() => defaultGas);
+      jest.spyOn(configService, 'get').mockImplementation(() => keybaseUrlMock);
+      jest
+        .spyOn(commonSvc, 'requestGet')
+        .mockImplementation(async () => keyBaseResponseMock);
 
-      const result = await service.showNetworkList();
+      const result = await service.getValidatorInfo(param);
+
+      expect(result).toEqual(expectedResult);
+    });
+  });
+
+  describe('getValidators', () => {
+    it(`should return: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
+      const param: GetValidatorsParamDto = {
+        internalChainId: 22,
+      };
+
+      const query: GetValidatorsQueryDto = {
+        status: ValidatorStatus.BOND_STATUS_BONDED,
+      };
+
+      const expectedData = plainToInstance(GetValidatorsResponseDto, {
+        validators: mockValidators,
+      });
+      const expectedResult = ResponseDto.response(
+        ErrorMap.SUCCESSFUL,
+        expectedData,
+      );
+
+      jest
+        .spyOn(chainRepo, 'findChain')
+        .mockImplementation(async () => chainList[0]);
+
+      jest
+        .spyOn(indexerClient, 'getValidators')
+        .mockImplementation(
+          async () =>
+            validatorIndexerResponseMock.validators as unknown as IValidator[],
+        );
+
+      jest.spyOn(configService, 'get').mockImplementation(() => keybaseUrlMock);
+
+      jest
+        .spyOn(commonSvc, 'requestGet')
+        .mockImplementation(async () => keyBaseResponseMock);
+
+      const result = await service.getValidators(param, query);
+
+      expect(result).toEqual(expectedResult);
+    });
+  });
+
+  describe('getDelegation', () => {
+    it(`should return: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
+      const query: GetDelegationDto = {
+        internalChainId: 22,
+        operatorAddress: 'auravaloper1edw4lwcz3esnlgzcw60ra8m38k3zygz2xtl2qh',
+        delegatorAddress: 'aura1522aavcagyrahayuspe47ndje7s694dkzcup6x',
+      };
+
+      const expectedData = plainToInstance(
+        GetDelegationResponseDto,
+        delegationResponseMock,
+      );
+      const expectedResult = ResponseDto.response(
+        ErrorMap.SUCCESSFUL,
+        expectedData,
+      );
+
+      jest
+        .spyOn(chainRepo, 'findChain')
+        .mockImplementation(async () => chainList[0]);
+
+      jest
+        .spyOn(indexerClient, 'getAccountInfo')
+        .mockImplementation(
+          async () => accountInfoIndexerMock as unknown as IAccountInfo,
+        );
+
+      jest
+        .spyOn(indexerClient, 'getValidatorByOperatorAddress')
+        .mockImplementation(
+          async () =>
+            validatorIndexerResponseMock.validators[0] as unknown as IValidator,
+        );
+
+      const result = await service.getDelegation(query);
 
       expect(result).toEqual(expectedResult);
     });

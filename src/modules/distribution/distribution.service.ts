@@ -25,10 +25,8 @@ import { CommonService } from '../../shared/services/common.service';
 import {
   IAccountDelegation,
   IValidator,
-  IValidators,
   KeyBaseIdentity,
 } from '../../interfaces';
-import { IndexerResponseDto } from '../../shared/dtos';
 
 @Injectable()
 export class DistributionService {
@@ -58,16 +56,13 @@ export class DistributionService {
     param: GetValidatorDetailDto,
   ): Promise<ResponseDto<GetValidatorInfoResDto>> {
     const { operatorAddress, internalChainId } = param;
-    const chain = await this.chainRepo.findChain(internalChainId);
-    const url = new URL(
-      `api/v1/validator?operatorAddress=${operatorAddress}&chainid=${chain.chainId}`,
-      this.indexerUrl,
-    );
-    const result = await this.commonSvc.requestGet<
-      IndexerResponseDto<IValidators>
-    >(new URL(url, this.indexerUrl).href);
+    const { chainId } = await this.chainRepo.findChain(internalChainId);
 
-    const validator = result.data.validators[0];
+    const validator = await this.indexer.getValidatorInfo(
+      chainId,
+      operatorAddress,
+    );
+
     const picture = await this.getValidatorPicture(
       validator.description.identity,
     );
@@ -109,7 +104,9 @@ export class DistributionService {
       const validatorsResponse = await Promise.all(
         validators
           .filter((validator) => validator.description)
-          .map((validator) => this.formatValidator(validator)),
+          .map((validator) =>
+            this.formatValidator(validator, chain.coinDecimals),
+          ),
       );
 
       return ResponseDto.response(
@@ -291,6 +288,7 @@ export class DistributionService {
 
   private async formatValidator(
     validator: IValidator,
+    coinDecimals: number,
   ): Promise<ValidatorInfoDto> {
     const picture = await this.getValidatorPicture(
       validator.description.identity,
@@ -309,7 +307,7 @@ export class DistributionService {
         picture,
       },
       votingPower: {
-        number: (+validator.tokens / 10 ** 6).toFixed(3),
+        number: (+validator.tokens / 10 ** coinDecimals).toFixed(3),
         percentage: String(
           Math.round(Number(validator.percent_voting_power) * 100) / 100,
         ),
