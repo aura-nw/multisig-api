@@ -39,7 +39,9 @@ export class GovService {
     this.logger.log('============== Constructor Gov Service ==============');
   }
 
-  async getProposals(param: GetProposalsParamDto) {
+  async getProposals(
+    param: GetProposalsParamDto,
+  ): Promise<ResponseDto<GetProposalsResponseDto>> {
     const { internalChainId } = param;
     try {
       const chain = await this.chainRepo.findChain(internalChainId);
@@ -58,7 +60,9 @@ export class GovService {
     }
   }
 
-  async getProposalById(param: GetProposalByIdDto) {
+  async getProposalById(
+    param: GetProposalByIdDto,
+  ): Promise<ResponseDto<ProposalDetailDto>> {
     const { internalChainId, proposalId } = param;
     try {
       const chain = await this.chainRepo.findChain(internalChainId);
@@ -67,17 +71,30 @@ export class GovService {
         proposalId,
       );
 
-      const result = this.mapProposal(proposal);
       // add additional properties for proposal details page
       const networkStatus = await this.indexer.getNetwork(chain.chainId);
       const bondedTokens = networkStatus.pool.bonded_tokens;
 
-      result.description = proposal.content.description;
-      result.type = proposal.content['@type'];
-      result.depositEndTime = proposal.deposit_end_time;
-      result.turnout = this.calculateProposalTurnout(proposal, bondedTokens);
+      const result = {
+        id: proposal.proposal_id,
+        title: proposal.content.title,
+        proposer: proposal.proposer_address,
+        status: proposal.status,
+        votingStart: proposal.voting_start_time,
+        votingEnd: proposal.voting_end_time,
+        submitTime: proposal.submit_time,
+        totalDeposit: proposal.total_deposit,
+        tally: this.calculateProposalTally(proposal),
+        description: proposal.content.description,
+        type: proposal.content['@type'],
+        depositEndTime: proposal.deposit_end_time,
+        turnout: this.calculateProposalTurnout(proposal, bondedTokens),
+      };
 
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
+      return ResponseDto.response(
+        ErrorMap.SUCCESSFUL,
+        plainToInstance(ProposalDetailDto, result),
+      );
     } catch (error) {
       return ResponseDto.responseError(GovService.name, error);
     }
@@ -204,7 +221,7 @@ export class GovService {
     }
   }
 
-  mapProposal(proposal: IProposal) {
+  mapProposal(proposal: IProposal): ProposalDetailDto {
     const result: ProposalDetailDto = {
       id: proposal.proposal_id,
       title: proposal.content.title,
@@ -241,26 +258,23 @@ export class GovService {
     const result: GetProposalsTally = {
       yes: {
         number: tally.yes,
-        percent: this.commonUtil.getPercentage(tally.yes, sum),
+        percent: this.getPercentage(tally.yes, sum),
       },
       abstain: {
         number: tally.abstain,
-        percent: this.commonUtil.getPercentage(tally.abstain, sum),
+        percent: this.getPercentage(tally.abstain, sum),
       },
       no: {
         number: tally.no,
-        percent: this.commonUtil.getPercentage(tally.no, sum),
+        percent: this.getPercentage(tally.no, sum),
       },
       noWithVeto: {
         number: tally.no_with_veto,
-        percent: this.commonUtil.getPercentage(tally.no_with_veto, sum),
+        percent: this.getPercentage(tally.no_with_veto, sum),
       },
       mostVotedOn: {
         name: mostVotedOptionKey,
-        percent: this.commonUtil.getPercentage(
-          tally[mostVotedOptionKey] as string,
-          sum,
-        ),
+        percent: this.getPercentage(tally[mostVotedOptionKey] as string, sum),
       },
     };
     return result;
@@ -277,17 +291,26 @@ export class GovService {
     const result: GetProposalsTurnout = {
       voted: {
         number: numberOfVoted.toString(),
-        percent: this.commonUtil.getPercentage(numberOfVoted, bondedTokens),
+        percent: this.getPercentage(numberOfVoted, bondedTokens),
       },
       votedAbstain: {
         number: tally.abstain,
-        percent: this.commonUtil.getPercentage(tally.abstain, bondedTokens),
+        percent: this.getPercentage(tally.abstain, bondedTokens),
       },
       didNotVote: {
         number: numberOfNotVoted.toString(),
-        percent: this.commonUtil.getPercentage(numberOfNotVoted, bondedTokens),
+        percent: this.getPercentage(numberOfNotVoted, bondedTokens),
       },
     };
     return result;
+  }
+
+  getPercentage(value: number | string, total: number | string): string {
+    const convertedValue = Number(value);
+    const convertedTotal = Number(total);
+    if (convertedValue === 0) {
+      return '0';
+    }
+    return ((+convertedValue * 100) / convertedTotal).toFixed(2);
   }
 }
