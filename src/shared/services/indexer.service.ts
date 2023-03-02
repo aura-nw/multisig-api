@@ -6,6 +6,7 @@ import { AccountInfo } from '../../common/dtos/account-info';
 import { ErrorMap } from '../../common/error.map';
 import {
   IAccountInfo,
+  IAccountUnbonding,
   IAccountUnbound,
   IProposal,
   IProposals,
@@ -133,7 +134,10 @@ export class IndexerClient {
     return pubkeyInfo;
   }
 
-  async getAccountUnBonds(chainId: string, delegatorAddress: string) {
+  async getAccountUnBonds(
+    chainId: string,
+    delegatorAddress: string,
+  ): Promise<IAccountUnbonding[]> {
     const undelegationRes = await this.commonService.requestGet<
       IndexerResponseDto<IAccountUnbound>
     >(
