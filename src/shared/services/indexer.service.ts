@@ -8,15 +8,15 @@ import {
   IAccountInfo,
   IAccountUnbonding,
   IAccountUnbound,
+  INetworkStatus,
   IProposal,
   IProposals,
   IPubkey,
   ITransactions,
   IValidator,
   IValidators,
-  NetworkStatus,
+  IVotes,
 } from '../../interfaces';
-import { IVotes } from '../../interfaces/votes.interface';
 import { IndexerResponseDto } from '../dtos';
 import { CommonService } from './common.service';
 
@@ -77,10 +77,10 @@ export class IndexerClient {
    * @param chainId
    * @returns
    */
-  async getNetwork(chainId: string): Promise<NetworkStatus> {
+  async getNetwork(chainId: string): Promise<INetworkStatus> {
     const url = `api/v1/network/status?chainid=${chainId}`;
     const networkRes = await this.commonService.requestGet<
-      IndexerResponseDto<NetworkStatus>
+      IndexerResponseDto<INetworkStatus>
     >(new URL(url, this.indexerUrl).href);
     return networkRes.data;
   }

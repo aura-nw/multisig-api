@@ -132,14 +132,5 @@ export class CommonUtil {
     return plainToInstance(UserInfoDto, currentUser);
   }
 
-  getPercentage(value: number | string, total: number | string): string {
-    const convertedValue = Number(value);
-    const convertedTotal = Number(total);
-    if (convertedValue === 0) {
-      return '0';
-    }
-    return ((+convertedValue * 100) / convertedTotal).toFixed(2);
-  }
-
   omitByNil = (obj: unknown) => omitBy(obj, isNil);
 }
