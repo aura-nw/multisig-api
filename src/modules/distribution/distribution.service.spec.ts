@@ -4,9 +4,10 @@ import { plainToInstance } from 'class-transformer';
 import { ValidatorStatus } from '../../common/constants/app.constant';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
-import { IAccountInfo, IValidator, IValidators } from '../../interfaces';
+import { IAccountInfo, IAccountUnbonding, IValidator } from '../../interfaces';
 import {
   accountInfoIndexerMock,
+  accountUnbondIndexerMock,
   chainList,
   validatorIndexerResponseMock,
 } from '../../mock';
@@ -18,6 +19,10 @@ import { DistributionService } from './distribution.service';
 import {
   GetDelegationDto,
   GetDelegationResponseDto,
+  GetDelegationsParamDto,
+  GetDelegationsResponseDto,
+  GetUndelegationsParamDto,
+  GetUndelegationsResponseDto,
   GetValidatorDetailDto,
   GetValidatorsParamDto,
   GetValidatorsQueryDto,
@@ -25,9 +30,11 @@ import {
 } from './dto';
 import {
   delegationResponseMock,
+  delegationsResponseMock,
   keyBaseResponseMock,
   keybaseUrlMock,
   mockValidators,
+  UnDelegationsResponseMock,
   validatorInfoMock,
 } from './mocks';
 
@@ -161,6 +168,71 @@ describe('ChainService', () => {
         );
 
       const result = await service.getDelegation(query);
+
+      expect(result).toEqual(expectedResult);
+    });
+  });
+
+  describe('getDelegations', () => {
+    it(`should return: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
+      const param: GetDelegationsParamDto = {
+        internalChainId: 22,
+        delegatorAddress: 'aura1522aavcagyrahayuspe47ndje7s694dkzcup6x',
+      };
+
+      const expectedData = plainToInstance(
+        GetDelegationsResponseDto,
+        delegationsResponseMock,
+      );
+      const expectedResult = ResponseDto.response(
+        ErrorMap.SUCCESSFUL,
+        expectedData,
+      );
+
+      jest
+        .spyOn(chainRepo, 'findChain')
+        .mockImplementation(async () => chainList[0]);
+
+      jest
+        .spyOn(indexerClient, 'getAccountInfo')
+        .mockImplementation(
+          async () => accountInfoIndexerMock as unknown as IAccountInfo,
+        );
+
+      const result = await service.getDelegations(param);
+
+      expect(result).toEqual(expectedResult);
+    });
+  });
+
+  describe('getUndelegations', () => {
+    it(`should return: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
+      const param: GetUndelegationsParamDto = {
+        internalChainId: 22,
+        delegatorAddress: 'aura1522aavcagyrahayuspe47ndje7s694dkzcup6x',
+      };
+
+      const expectedData = plainToInstance(
+        GetUndelegationsResponseDto,
+        UnDelegationsResponseMock,
+      );
+      const expectedResult = ResponseDto.response(
+        ErrorMap.SUCCESSFUL,
+        expectedData,
+      );
+
+      jest
+        .spyOn(chainRepo, 'findChain')
+        .mockImplementation(async () => chainList[0]);
+
+      jest
+        .spyOn(indexerClient, 'getAccountUnBonds')
+        .mockImplementation(
+          async () =>
+            accountUnbondIndexerMock.account_unbonding as unknown as IAccountUnbonding[],
+        );
+
+      const result = await service.getUndelegations(param);
 
       expect(result).toEqual(expectedResult);
     });
