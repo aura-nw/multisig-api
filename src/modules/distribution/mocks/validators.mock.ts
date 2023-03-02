@@ -16,7 +16,7 @@ export const mockValidators: ValidatorInfoDto[] = [
         'https://validator-logos.s3.ap-southeast-1.amazonaws.com/validator-default.svg',
     },
     votingPower: {
-      number: '107861.988',
+      number: '107870.988',
       percentage: '83.52',
     },
     uptime: 100,

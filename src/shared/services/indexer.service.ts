@@ -32,6 +32,17 @@ export class IndexerClient {
     this.indexerUrl = this.configService.get<string>('INDEXER_URL');
   }
 
+  async getValidatorInfo(chainId: string, operatorAddress: string) {
+    const url = new URL(
+      `api/v1/validator?operatorAddress=${operatorAddress}&chainid=${chainId}`,
+      this.indexerUrl,
+    );
+    const result = await this.commonService.requestGet<
+      IndexerResponseDto<IValidators>
+    >(new URL(url, this.indexerUrl).href);
+    return result.data.validators[0];
+  }
+
   async getValidators(chainId: string, status: string): Promise<IValidator[]> {
     let url = `api/v1/validator?chainid=${chainId}`;
     if (status) {
