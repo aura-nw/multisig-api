@@ -6,11 +6,9 @@ import { MultisigConfirmStatus } from '../../common/constants/app.constant';
 import { CustomError } from '../../common/custom-error';
 import { ErrorMap } from '../../common/error.map';
 import { MultisigConfirm } from './entities/multisig-confirm.entity';
-import { SafeOwner } from '../safe-owner/entities/safe-owner.entity';
-import { Safe } from '../safe/entities/safe.entity';
 import { MultisigTransaction } from '../multisig-transaction/entities/multisig-transaction.entity';
 import { SafeOwnerRepository } from '../safe-owner/safe-owner.repository';
-import { GetListConfirmResDto, GetListConfirmWithPubkey } from './dto';
+import { GetListConfirmResDto } from './dto';
 
 @Injectable()
 export class MultisigConfirmRepository {
@@ -53,7 +51,7 @@ export class MultisigConfirmRepository {
     bodyBytes: string,
     internalChainId: number,
     status: string,
-  ) {
+  ): Promise<MultisigConfirm> {
     const multisigConfirm = new MultisigConfirm();
     multisigConfirm.multisigTransactionId = multisigTransactionId;
     multisigConfirm.ownerAddress = ownerAddress;
@@ -62,7 +60,7 @@ export class MultisigConfirmRepository {
     multisigConfirm.internalChainId = internalChainId;
     multisigConfirm.status = status;
 
-    await this.repo.save(multisigConfirm);
+    return this.repo.save(multisigConfirm);
   }
 
   async checkUserHasSigned(
@@ -77,7 +75,7 @@ export class MultisigConfirmRepository {
     });
 
     if (confirmed) {
-      throw new CustomError(ErrorMap.USER_HAS_COMFIRMED);
+      throw new CustomError(ErrorMap.USER_HAS_CONFIRMED);
     }
   }
 
@@ -141,31 +139,5 @@ export class MultisigConfirmRepository {
       });
     const result = await sqlQuerry.getRawMany();
     return plainToInstance(GetListConfirmResDto, result);
-  }
-
-  async getListConfirmWithPubkey(
-    multisigTransactionId: number,
-    status: string,
-    safeId: number,
-  ): Promise<GetListConfirmWithPubkey[]> {
-    const sqlQuerry = this.repo
-      .createQueryBuilder('multisigConfirm')
-      .innerJoin(
-        SafeOwner,
-        'safeOwner',
-        'multisigConfirm.ownerAddress = safeOwner.ownerAddress',
-      )
-      .innerJoin(Safe, 'safe', 'safe.id = safeOwner.safeId')
-      .where('multisigConfirm.multisigTransactionId = :multisigTransactionId', {
-        multisigTransactionId,
-      })
-      .andWhere('multisigConfirm.status = :status', { status })
-      .andWhere('safeOwner.safeId = :safeId', { safeId })
-      .select([
-        'multisigConfirm.signature as signature',
-        'safeOwner.ownerPubkey as pubkey',
-      ]);
-    const result = await sqlQuerry.getRawMany();
-    return plainToInstance(GetListConfirmWithPubkey, result);
   }
 }
