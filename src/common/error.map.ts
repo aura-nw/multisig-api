@@ -55,7 +55,7 @@ export const ErrorMap = {
     Code: 'E012',
     Message: 'Balance not enough!',
   },
-  USER_HAS_COMFIRMED: {
+  USER_HAS_CONFIRMED: {
     Code: 'E013',
     Message: 'User has confirmed before!',
   },
