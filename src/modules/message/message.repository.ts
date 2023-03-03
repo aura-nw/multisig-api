@@ -89,17 +89,4 @@ export class MessageRepository {
       excludeExtraneousValues: true,
     });
   }
-
-  async getMessagesFromTxIds(
-    txIds: number[],
-  ): Promise<TxMessageHistoryResponseDto[]> {
-    const result = await this.repos
-      .createQueryBuilder('message')
-      .where('message.auraTxID IN (:txIds)', { txIds })
-      .select(['message.auraTxID as AuraTxID', 'sum(message.amount) as Amount'])
-      .groupBy('message.auraTxID')
-      .getRawMany<TxMessageHistoryResponseDto>();
-    if (!result) throw new CustomError(ErrorMap.MESSAGE_NOT_EXIST);
-    return result;
-  }
 }
