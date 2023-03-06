@@ -1,4 +1,14 @@
 {
   "typescript.preferences.importModuleSpecifier": "relative",
-  "cSpell.words": ["ethermint", "Secp"]
+  "cSpell.words": [
+    "chainid",
+    "delegatable",
+    "delegators",
+    "dtos",
+    "keybase",
+    "Multisigned",
+    "Unbonding",
+    "Undelegations",
+    "utaura"
+  ]
 }

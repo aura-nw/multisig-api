@@ -1,24 +1,22 @@
-import {
+import type {
   CallHandler,
   ExecutionContext,
-  Injectable,
   NestInterceptor,
 } from '@nestjs/common';
-import { Observable } from 'rxjs';
-import { UserInfo } from '../dtos/userInfo';
-import { AuthService } from '../services/impls/auth.service';
+import { Injectable } from '@nestjs/common';
+import { Request } from 'express';
+import { UserInfoDto } from '../modules/auth/dto';
+import { ContextProvider } from '../providers/contex.provider';
+
 @Injectable()
 export class AuthUserInterceptor implements NestInterceptor {
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const request = context.switchToHttp().getRequest();
-    const user: UserInfo = {
-      userId: request.user.userId,
-      address: request.user.address,
-      pubkey: request.user.pubkey,
-      // data: request.user.data,
-      signature: request.user.signature,
-    };
-    AuthService.setAuthUser(user);
+  // eslint-disable-next-line class-methods-use-this
+  intercept(context: ExecutionContext, next: CallHandler) {
+    const request = context.switchToHttp().getRequest<Request>();
+
+    const user = <UserInfoDto>request.user;
+    ContextProvider.setAuthUser(user);
+
     return next.handle();
   }
 }
