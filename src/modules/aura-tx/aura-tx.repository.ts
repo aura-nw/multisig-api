@@ -53,6 +53,7 @@ export class AuraTxRepository {
         'MT.Sequence as Sequence',
         'AT.CreatedAt as CreatedAt',
         'AT.UpdatedAt as UpdatedAt',
+        'AT.Timestamp as Timestamp',
       ])
       .getRawOne<TxDetailDto>();
 
