@@ -12,13 +12,15 @@ import { Injectable } from '@nestjs/common';
 import { OwnerSimulate } from './owner.simulate';
 import { SimulateUtils } from './utils';
 import { TxTypeUrl } from '../../common/constants/app.constant';
-import { makeMultisignedTxEvmos } from '../../chains/evmos';
 import { Chain } from '../chain/entities/chain.entity';
 import { IEncodedObjectMsg, ISafePubkey } from './interfaces';
 import { IMessageUnknown } from '../../interfaces';
+import { EthermintHelper } from '../../chains/ethermint/ethermint.helper';
 
 @Injectable()
 export class SafeSimulate {
+  private ethermintHelper = new EthermintHelper();
+
   signature: string;
 
   authInfo: string;
@@ -83,21 +85,22 @@ export class SafeSimulate {
     );
 
     // create signature and authInfo
-    const multisignedTx = this.chain.chainId.startsWith('evmos')
-      ? makeMultisignedTxEvmos(
-          this.pubkey,
-          this.sequence,
-          fee,
-          bodyBytes,
-          signatures,
-        )
-      : makeMultisignedTx(
-          this.pubkey,
-          this.sequence,
-          fee,
-          bodyBytes,
-          signatures,
-        );
+    const multisignedTx =
+      this.chain.coinDecimals === 18
+        ? this.ethermintHelper.makeMultisignedTxEthermint(
+            this.pubkey,
+            this.sequence,
+            fee,
+            bodyBytes,
+            signatures,
+          )
+        : makeMultisignedTx(
+            this.pubkey,
+            this.sequence,
+            fee,
+            bodyBytes,
+            signatures,
+          );
 
     this.signature = toBase64(multisignedTx.signatures[0]);
     this.authInfo = toBase64(multisignedTx.authInfoBytes);
@@ -137,7 +140,7 @@ export class SafeSimulate {
     const authInfoBytes = simulateAuthInfo
       ? fromBase64(simulateAuthInfo)
       : SimulateUtils.makeAuthInfoBytes(
-          this.chain.chainId,
+          this.chain,
           sequence,
           safePubkey,
           this.threshold,

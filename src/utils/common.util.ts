@@ -8,14 +8,13 @@ import {
 import { sha256 } from '@cosmjs/crypto';
 import { toBech32 } from '@cosmjs/encoding';
 import { plainToInstance } from 'class-transformer';
-import {
-  createMultisigThresholdPubkeyEvmos,
-  encodeAminoPubkeySupportEvmos,
-} from '../chains/evmos';
+
 import { CustomError } from '../common/custom-error';
 import { ErrorMap } from '../common/error.map';
 import { AuthService } from '../modules/auth/auth.service';
 import { UserInfoDto } from '../modules/auth/dto/user-info.dto';
+import { EthermintHelper } from '../chains/ethermint/ethermint.helper';
+import { createEthSecp256k1Pubkey } from '../chains/ethermint/EthSecp256k1Pubkey';
 
 export class CommonUtil {
   /**
@@ -43,8 +42,10 @@ export class CommonUtil {
    * @returns address string
    */
   public static pubkeyToAddress(pubkey: Pubkey, prefix: string): string {
-    if (prefix === 'evmos') {
-      const pubkeyAmino = encodeAminoPubkeySupportEvmos(pubkey);
+    if (prefix === 'evmos' || prefix === 'canto') {
+      const ethermintHelper = new EthermintHelper();
+      const pubkeyAmino =
+        ethermintHelper.encodeAminoPubkeySupportEthermint(pubkey);
 
       const rawAddress = sha256(pubkeyAmino).slice(0, 20);
       const address = toBech32(prefix, rawAddress);
@@ -87,15 +88,19 @@ export class CommonUtil {
     pubkey: string;
     address: string;
   } {
+    const ethermintHelper = new EthermintHelper();
     try {
       const arrPubkeys =
-        prefix === 'evmos'
-          ? pubKeyArrString.map((pk) => this.createPubkeyEvmos(pk))
+        prefix === 'evmos' || prefix === 'canto'
+          ? pubKeyArrString.map((pk) => createEthSecp256k1Pubkey(pk))
           : pubKeyArrString.map((pk) => this.createPubkeys(pk));
 
       const multisigPubkey =
-        prefix === 'evmos'
-          ? createMultisigThresholdPubkeyEvmos(arrPubkeys, threshold)
+        prefix === 'evmos' || prefix === 'canto'
+          ? ethermintHelper.createMultisigThresholdPubkeyEthermint(
+              arrPubkeys,
+              threshold,
+            )
           : createMultisigThresholdPubkey(arrPubkeys, threshold);
       const multiSigWalletAddress = this.pubkeyToAddress(
         multisigPubkey,
@@ -108,14 +113,6 @@ export class CommonUtil {
     } catch (error) {
       throw CustomError.fromUnknown(ErrorMap.CANNOT_CREATE_SAFE_ADDRESS, error);
     }
-  }
-
-  static createPubkeyEvmos(value: string): SinglePubkey {
-    const result: SinglePubkey = {
-      type: 'ethermint/PubKeyEthSecp256k1',
-      value,
-    };
-    return result;
   }
 
   static createPubkeys(value: string): SinglePubkey {

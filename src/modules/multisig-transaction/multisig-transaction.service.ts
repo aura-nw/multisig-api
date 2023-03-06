@@ -29,7 +29,6 @@ import {
   TxTypeUrl,
 } from '../../common/constants/app.constant';
 
-import { makeMultisignedTxEvmos, verifyEvmosSig } from '../../chains/evmos';
 import { SimulateService } from '../simulate';
 import { CustomError } from '../../common/custom-error';
 import { CosmosUtil } from '../../chains/cosmos';
@@ -72,12 +71,14 @@ import { SimulateResponse } from '../simulate/dtos/simulate-response';
 import { SendTxResDto } from './dto/response/send-tx.res';
 import { IMessage, IMsgMultiSend } from './interfaces';
 import { IMessageUnknown } from '../../interfaces';
+import { EthermintHelper } from '../../chains/ethermint/ethermint.helper';
 
 @Injectable()
 export class MultisigTransactionService {
   private readonly logger = new Logger(MultisigTransactionService.name);
 
   private readonly commonUtil: CommonUtil = new CommonUtil();
+  private ethermintHelper = new EthermintHelper();
 
   constructor(
     private indexer: IndexerClient,
@@ -673,6 +674,12 @@ export class MultisigTransactionService {
       // update queued tag
       await this.safeRepos.updateQueuedTag(transaction.safeId);
 
+      // Update next seq
+      await this.updateNextSeqAfterDeleteTx(
+        transaction.safeId,
+        transaction.internalChainId,
+      );
+
       return ResponseDto.response(ErrorMap.SUCCESSFUL);
     } catch (error) {
       return ResponseDto.responseError(MultisigTransactionService.name, error);
@@ -693,7 +700,8 @@ export class MultisigTransactionService {
     const bodyBytesEncode = fromBase64(txRawInfo.bodyBytes);
     const { memo, messages } = TxBody.decode(bodyBytesEncode);
 
-    const { accountNumber, sequence } = accountInfo;
+    const sequence = decodedAuthInfo.signerInfos[0]?.sequence.toNumber();
+    const { accountNumber } = accountInfo;
 
     // build stdSignDoc for verify signature
     const registry = new Registry(RegistryGeneratedTypes);
@@ -727,13 +735,19 @@ export class MultisigTransactionService {
 
     // verify signature; if verify fail, throw error
     let resultVerify = false;
-    resultVerify = await (chainId.startsWith('evmos_')
-      ? verifyEvmosSig(txRawInfo.signature, signDoc, creatorAddress)
-      : CosmosUtil.verifyCosmosSig(
-          txRawInfo.signature,
-          signDoc,
-          fromBase64(creatorPubkey),
-        ));
+    resultVerify =
+      chain.coinDecimals === 18
+        ? await this.ethermintHelper.verifySignature(
+            txRawInfo.signature,
+            signDoc,
+            creatorAddress,
+            prefix,
+          )
+        : await CosmosUtil.verifyCosmosSig(
+            txRawInfo.signature,
+            signDoc,
+            fromBase64(creatorPubkey),
+          );
     if (!resultVerify) {
       throw new CustomError(ErrorMap.SIGNATURE_VERIFICATION_FAILED);
     }
@@ -837,21 +851,22 @@ export class MultisigTransactionService {
       safeInfo.safePubkey,
     ) as MultisigThresholdPubkey;
 
-    const executeTransaction = chainInfo.chainId.startsWith('evmos_')
-      ? makeMultisignedTxEvmos(
-          safePubkey,
-          Number(multisigTransaction.sequence),
-          sendFee,
-          encodedBodyBytes,
-          addressSignatureMap,
-        )
-      : makeMultisignedTx(
-          safePubkey,
-          Number(multisigTransaction.sequence),
-          sendFee,
-          encodedBodyBytes,
-          addressSignatureMap,
-        );
+    const executeTransaction =
+      chainInfo.coinDecimals === 18
+        ? this.ethermintHelper.makeMultisignedTxEthermint(
+            safePubkey,
+            Number(multisigTransaction.sequence),
+            sendFee,
+            encodedBodyBytes,
+            addressSignatureMap,
+          )
+        : makeMultisignedTx(
+            safePubkey,
+            Number(multisigTransaction.sequence),
+            sendFee,
+            encodedBodyBytes,
+            addressSignatureMap,
+          );
 
     const encodeTransaction = Uint8Array.from(
       TxRaw.encode(executeTransaction).finish(),

@@ -19,9 +19,10 @@ import {
 } from '@cosmjs/stargate';
 import { coins } from '@cosmjs/amino';
 import { RegistryGeneratedTypes } from '../../common/constants/app.constant';
-import { encodePubkeyEvmos } from '../../chains/evmos';
 import { ISafePubkey } from './interfaces';
 import { IMessageUnknown } from '../../interfaces';
+import { Chain } from '../chain/entities/chain.entity';
+import { EthermintHelper } from '../../chains/ethermint/ethermint.helper';
 
 export class SimulateUtils {
   public static makeBodyBytes(
@@ -41,18 +42,20 @@ export class SimulateUtils {
   }
 
   static makeAuthInfoBytes(
-    chainId: string,
+    chain: Chain,
     sequence: number,
     safePubkey: ISafePubkey,
     totalOwner: number,
     denom: string,
   ): Uint8Array {
     const defaultFee = SimulateUtils.getDefaultFee(denom);
+    const ethermintHelper = new EthermintHelper();
     const signers: boolean[] = Array.from({ length: totalOwner }).map(Boolean);
 
-    const encodedPubkey = chainId.startsWith('evmos')
-      ? encodePubkeyEvmos(safePubkey)
-      : encodePubkey(safePubkey);
+    const encodedPubkey =
+      chain.coinDecimals === 18
+        ? ethermintHelper.encodePubkeyEthermint(safePubkey)
+        : encodePubkey(safePubkey);
 
     const authInfo = AuthInfo.fromPartial({
       signerInfos: [

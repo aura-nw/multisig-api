@@ -7,7 +7,6 @@ import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { CustomError } from '../../common/custom-error';
 import { COMMON_CONSTANTS } from '../../common/constants/app.constant';
-import { pubkeyToAddressEvmos, verifyEvmosSig } from '../../chains/evmos';
 import { CosmosUtil } from '../../chains/cosmos';
 import { ChainRepository } from '../chain/chain.repository';
 import { UserRepository } from '../user/user.repository';
@@ -15,10 +14,12 @@ import { RequestAuthDto } from './dto/request-auth.dto';
 import { AuthUtil } from '../../utils/auth.util';
 import { ContextProvider } from '../../providers/contex.provider';
 import { AuthResponseDto, UserInfoDto } from './dto';
+import { EthermintHelper } from '../../chains/ethermint/ethermint.helper';
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
+  private ethermintHelper = new EthermintHelper();
 
   constructor(
     private jwtService: JwtService,
@@ -52,13 +53,21 @@ export class AuthService {
 
       let address = '';
       let resultVerify = false;
-      if (chainId.startsWith('evmos_')) {
+      if (chainInfo.coinDecimals === 18) {
         // get address from pubkey
-        address = pubkeyToAddressEvmos(pubkey);
+        address = this.ethermintHelper.pubkeyToCosmosAddress(
+          pubkey,
+          chainInfo.prefix,
+        );
         // create message hash from data
         const msg = AuthUtil.createSignMessageByData(address, plainData);
         // verify signature
-        resultVerify = verifyEvmosSig(signature, msg, address);
+        resultVerify = await this.ethermintHelper.verifySignature(
+          signature,
+          msg,
+          address,
+          prefix,
+        );
       } else {
         // get address from pubkey
         const pubkeyFormated = encodeSecp256k1Pubkey(fromBase64(pubkey));
