@@ -97,4 +97,9 @@ export class TxDetailDto {
     example: '2022-02-24T09:44:52.935Z',
   })
   UpdatedAt: Date;
+
+  @ApiProperty({
+    example: '2022-02-24T09:44:52.935Z',
+  })
+  Timestamp: Date;
 }
