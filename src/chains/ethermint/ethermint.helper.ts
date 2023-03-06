@@ -124,7 +124,7 @@ export class EthermintHelper {
         ...pubkeyAminoPrefixSecp256k1,
         ...fromBase64(pubkey.value),
       ]);
-    } else if (this.isEthSecp256k1Pubkey(pubkey)) {
+    } else if (pubkey.type === 'ethermint/PubKeyEthSecp256k1') {
       return new Uint8Array([
         ...pubkeyAminoPrefixEthSecp256k1,
         ...fromBase64(pubkey.value),
@@ -308,7 +308,7 @@ export class EthermintHelper {
     return [checked];
   }
 
-  private isEthSecp256k1Pubkey(pubkey: Pubkey): pubkey is EthSecp256k1Pubkey {
+  isEthSecp256k1Pubkey(pubkey: Pubkey): pubkey is EthSecp256k1Pubkey {
     return (
       (pubkey as EthSecp256k1Pubkey).type === 'ethermint/PubKeyEthSecp256k1'
     );
