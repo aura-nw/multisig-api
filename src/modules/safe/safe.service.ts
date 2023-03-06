@@ -6,7 +6,6 @@ import { ErrorMap } from '../../common/error.map';
 import { SafeStatus } from '../../common/constants/app.constant';
 import { CommonUtil } from '../../utils/common.util';
 import { CustomError } from '../../common/custom-error';
-import { pubkeyToAddressEvmos } from '../../chains/evmos';
 import { SafeRepository } from './safe.repository';
 import { SafeOwnerRepository } from '../safe-owner/safe-owner.repository';
 import { ChainRepository } from '../chain/chain.repository';
@@ -20,10 +19,13 @@ import { Chain } from '../chain/entities/chain.entity';
 import { GetSafeQueryDto } from './dto/request/get-safe-query.req';
 import { IndexerClient } from '../../shared/services/indexer.service';
 import { Safe } from './entities/safe.entity';
+import { EthermintHelper } from '../../chains/ethermint/ethermint.helper';
 
 @Injectable()
 export class SafeService {
   private readonly logger = new Logger(SafeService.name);
+
+  private ethermintHelper = new EthermintHelper();
 
   private commonUtil: CommonUtil = new CommonUtil();
 
@@ -254,8 +256,11 @@ export class SafeService {
   checkAddressPubkeyMismatch(address: string, pubkey: string, chain: Chain) {
     let generatedAddress;
 
-    if (chain.prefix.startsWith('evmos')) {
-      generatedAddress = pubkeyToAddressEvmos(pubkey);
+    if (chain.coinDecimals === 18) {
+      generatedAddress = this.ethermintHelper.pubkeyToCosmosAddress(
+        pubkey,
+        chain.prefix,
+      );
     } else {
       // get address from pubkey
       const pubkeyFormated = encodeSecp256k1Pubkey(fromBase64(pubkey));

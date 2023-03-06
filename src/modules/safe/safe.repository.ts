@@ -13,13 +13,13 @@ import { CustomError } from '../../common/custom-error';
 import { ErrorMap } from '../../common/error.map';
 import { SafeStatus } from '../../common/constants/app.constant';
 import { CommonUtil } from '../../utils/common.util';
-import { createEvmosPubkey } from '../../chains/evmos';
 import { Safe } from './entities/safe.entity';
 import { SafeOwnerRepository } from '../safe-owner/safe-owner.repository';
 import { ChainRepository } from '../chain/chain.repository';
 import { SafeOwner } from '../safe-owner/entities/safe-owner.entity';
 import { GetThresholdResDto } from './dto/request/get-threshold.res';
 import { IndexerClient } from '../../shared/services/indexer.service';
+import { createEthSecp256k1Pubkey } from '../../chains/ethermint/EthSecp256k1Pubkey';
 
 @Injectable()
 export class SafeRepository {
@@ -293,8 +293,8 @@ export class SafeRepository {
       newSafe.safePubkey = JSON.stringify(
         createMultisigThresholdPubkey(
           pubkeyInfo.public_keys.map((pubkey) =>
-            chainInfo.prefix.startsWith('evmos')
-              ? createEvmosPubkey(pubkey.key)
+            chainInfo.coinDecimals === 18
+              ? createEthSecp256k1Pubkey(pubkey.key)
               : CommonUtil.createPubkeys(pubkey.key),
           ),
           pubkeyInfo.threshold,
