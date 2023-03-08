@@ -8,6 +8,8 @@ import {
 import { sha256 } from '@cosmjs/crypto';
 import { toBech32 } from '@cosmjs/encoding';
 import { plainToInstance } from 'class-transformer';
+import { PathLike } from 'node:fs';
+import { FileHandle, readFile } from 'node:fs/promises';
 
 import { CustomError } from '../common/custom-error';
 import { ErrorMap } from '../common/error.map';
@@ -17,6 +19,17 @@ import { EthermintHelper } from '../chains/ethermint/ethermint.helper';
 import { createEthSecp256k1Pubkey } from '../chains/ethermint/EthSecp256k1Pubkey';
 
 export class CommonUtil {
+  /**
+   * jsonReader
+   * @param filePath
+   * @returns
+   */
+  static async jsonReader<T>(filePath: PathLike | FileHandle): Promise<T> {
+    const content = await readFile(filePath, 'utf8');
+    const object = JSON.parse(content) as T;
+    return object;
+  }
+
   /**
    * getStrProp https://stackoverflow.com/a/70031969/8461456
    * @param o
