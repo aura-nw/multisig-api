@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
+import { CommonUtil } from '../../utils/common.util';
 import { ChainInfo } from '../../utils/validations/chain.validation';
 import { ChainRepository } from '../chain/chain.repository';
-import networkConfig from '../../chains.json';
 
 @Injectable()
 export class SeederService {
@@ -15,7 +14,10 @@ export class SeederService {
 
   async seedChain() {
     try {
-      const chainInfos: ChainInfo[] = plainToInstance(ChainInfo, networkConfig);
+      const chainInfos = await CommonUtil.jsonReader<ChainInfo[]>(
+        './chains.json',
+      );
+
       const validateResult = await Promise.all(
         chainInfos.map((chainInfo) => validate(chainInfo)),
       );
