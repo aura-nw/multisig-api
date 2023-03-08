@@ -1,6 +1,7 @@
 {
   "typescript.preferences.importModuleSpecifier": "relative",
   "cSpell.words": [
+    "aurascan",
     "chainid",
     "delegatable",
     "delegators",

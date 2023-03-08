@@ -192,9 +192,13 @@ export const ErrorMap = {
     Message: 'Invalid safe!',
   },
   CANNOT_DELETE_TX: {
-    Code: 'E046',
+    Code: 'E047',
     Message:
       'Can not delete because the status of this transaction is invalid!',
+  },
+  INVALID_CONTRACT_ADDRESS: {
+    Code: 'E048',
+    Message: 'Invalid contract address!',
   },
   C001: {
     Code: 'C001',

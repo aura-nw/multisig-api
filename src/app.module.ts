@@ -17,6 +17,7 @@ import { UserModule } from './modules/user/user.module';
 import { JwtStrategy } from './modules/auth/jwt.strategy';
 import { NotifyProposalModule } from './modules/jobs/notify-proposal.module';
 import { CustomConfigService } from './shared/services/custom-config.service';
+import { ContractModule } from './modules/contract/contract.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { CustomConfigService } from './shared/services/custom-config.service';
     SafeOwnerModule,
     UserModule,
     NotifyProposalModule,
+    ContractModule,
   ],
   providers: [JwtStrategy],
 })

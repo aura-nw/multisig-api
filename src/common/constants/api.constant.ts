@@ -8,6 +8,7 @@ export const CONTROLLER_CONSTANTS = {
   AUTH: 'auth',
   GOV: 'gov',
   USER: 'user',
+  CONTRACT: 'contract',
 };
 export const URL_CONSTANTS = {
   CHANGE_SEQ: 'change-seq',
@@ -51,4 +52,5 @@ export const URL_CONSTANTS = {
   GET_PROPOSAL_DEPOSITS_BY_ID:
     ':internalChainId/proposal/:proposalId/depositors',
   GET_USER_BY_ADDRESS: ':address',
+  GET_CONTRACT_BY_ADDRESS: ':contractAddress',
 };
