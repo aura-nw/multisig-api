@@ -2,12 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass, plainToInstance } from 'class-transformer';
 import { Repository } from 'typeorm';
-import { CustomError } from '../../common/custom-error';
-import { ErrorMap } from '../../common/error.map';
 import { TxTypeUrl } from '../../common/constants/app.constant';
 import { Message } from './entities/message.entity';
 import { TxMessageResponseDto } from './dto';
-import { TxMessageHistoryResponseDto } from './dto/response/tx-message-history.res';
 import { IMessageUnknown } from '../../interfaces';
 
 @Injectable()

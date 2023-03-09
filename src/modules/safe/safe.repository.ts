@@ -19,7 +19,7 @@ import { ChainRepository } from '../chain/chain.repository';
 import { SafeOwner } from '../safe-owner/entities/safe-owner.entity';
 import { GetThresholdResDto } from './dto/request/get-threshold.res';
 import { IndexerClient } from '../../shared/services/indexer.service';
-import { createEthSecp256k1Pubkey } from '../../chains/ethermint/EthSecp256k1Pubkey';
+import { createEthSecp256k1Pubkey } from '../../chains/ethermint/ethsecp256k1-pubkey';
 
 @Injectable()
 export class SafeRepository {

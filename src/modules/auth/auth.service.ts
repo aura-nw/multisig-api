@@ -19,6 +19,7 @@ import { EthermintHelper } from '../../chains/ethermint/ethermint.helper';
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
+
   private ethermintHelper = new EthermintHelper();
 
   constructor(
@@ -49,20 +50,17 @@ export class AuthService {
 
       // Find chain
       const chainInfo = await this.chainRepo.findChain(internalChainId);
-      const { prefix, chainId } = chainInfo;
+      const { prefix, coinDecimals } = chainInfo;
 
       let address = '';
       let resultVerify = false;
-      if (chainInfo.coinDecimals === 18) {
+      if (coinDecimals === 18) {
         // get address from pubkey
-        address = this.ethermintHelper.pubkeyToCosmosAddress(
-          pubkey,
-          chainInfo.prefix,
-        );
+        address = this.ethermintHelper.pubkeyToCosmosAddress(pubkey, prefix);
         // create message hash from data
         const msg = AuthUtil.createSignMessageByData(address, plainData);
         // verify signature
-        resultVerify = await this.ethermintHelper.verifySignature(
+        resultVerify = this.ethermintHelper.verifySignature(
           signature,
           msg,
           address,
