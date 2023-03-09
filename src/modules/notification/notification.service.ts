@@ -5,6 +5,7 @@ import { ErrorMap } from '../../common/error.map';
 import { MarkAsReadNotificationReq } from './dto/request/mark-as-read.req';
 import { NotificationRepository } from './notification.repository';
 import { ResponseDto } from '../../common/dtos/response.dto';
+import { Notification } from './entities/notification.entity';
 
 @Injectable()
 export class NotificationService {

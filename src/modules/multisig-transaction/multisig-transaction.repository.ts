@@ -179,12 +179,12 @@ export class MultisigTransactionRepository {
 
   async isExecutable(multisigTxId: number, safeId: number): Promise<boolean> {
     // get list confirm
-    const listConfirmAfterSign = [];
-    await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-      multisigTxId,
-      undefined,
-      MultisigConfirmStatus.CONFIRM,
-    );
+    const listConfirmAfterSign =
+      await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+        multisigTxId,
+        undefined,
+        MultisigConfirmStatus.CONFIRM,
+      );
 
     const safe = await this.safeRepos.getSafeById(safeId);
 
@@ -201,17 +201,17 @@ export class MultisigTransactionRepository {
     safeId: number,
   ): Promise<MultisigTransaction> {
     const isExecutable = await this.isExecutable(multisigTxId, safeId);
-    if (!isExecutable) {
-      throw new CustomError(ErrorMap.TRANSACTION_NOT_VALID);
+    if (isExecutable) {
+      const transaction = await this.repo.findOne({
+        where: { id: multisigTxId },
+      });
+      if (!transaction) throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
+      transaction.status = TransactionStatus.AWAITING_EXECUTION;
+
+      return this.repo.save(transaction);
     }
 
-    const transaction = await this.repo.findOne({
-      where: { id: multisigTxId },
-    });
-    if (!transaction) throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
-    transaction.status = TransactionStatus.AWAITING_EXECUTION;
-
-    return this.repo.save(transaction);
+    return undefined;
   }
 
   async getMultisigTxId(internalTxHash: string) {

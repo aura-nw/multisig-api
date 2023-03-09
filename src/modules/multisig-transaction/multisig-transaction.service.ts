@@ -78,6 +78,7 @@ export class MultisigTransactionService {
   private readonly logger = new Logger(MultisigTransactionService.name);
 
   private readonly commonUtil: CommonUtil = new CommonUtil();
+
   private ethermintHelper = new EthermintHelper();
 
   constructor(
@@ -423,7 +424,14 @@ export class MultisigTransactionService {
       );
 
       // confirm tx
-      await this.confirmTx(transactionResult, internalChainId, safe);
+      await this.confirmTx(
+        transactionResult,
+        creatorAddress,
+        signature,
+        bodyBytes,
+        internalChainId,
+        safe,
+      );
 
       // save account number & next queue sequence
       const { sequence: sequenceInIndexer } =
@@ -513,7 +521,14 @@ export class MultisigTransactionService {
         internalChainId,
       );
 
-      await this.confirmTx(pendingTx, internalChainId, safe);
+      await this.confirmTx(
+        pendingTx,
+        creatorAddress,
+        signature,
+        bodyBytes,
+        internalChainId,
+        safe,
+      );
 
       return ResponseDto.response(ErrorMap.SUCCESSFUL);
     } catch (error) {
@@ -658,8 +673,9 @@ export class MultisigTransactionService {
       );
 
       // count number of reject
-      const rejectConfirms = [];
-      await this.multisigConfirmRepos.getRejects(transactionId);
+      const rejectConfirms = await this.multisigConfirmRepos.getRejects(
+        transactionId,
+      );
 
       // count number of owner
       const safeOwner = await this.safeOwnerRepo.getOwnersBySafeId(
@@ -692,7 +708,7 @@ export class MultisigTransactionService {
     chain: Chain,
     creatorInfo: UserInfoDto,
   ) {
-    const { chainId, prefix } = chain;
+    const { chainId, prefix, coinDecimals } = chain;
     const { address: creatorAddress, pubkey: creatorPubkey } = creatorInfo;
 
     const authInfoEncode = fromBase64(txRawInfo.authInfoBytes);
@@ -736,7 +752,7 @@ export class MultisigTransactionService {
     // verify signature; if verify fail, throw error
     let resultVerify = false;
     resultVerify =
-      chain.coinDecimals === 18
+      coinDecimals === 18
         ? await this.ethermintHelper.verifySignature(
             txRawInfo.signature,
             signDoc,
@@ -777,9 +793,27 @@ export class MultisigTransactionService {
 
   private async confirmTx(
     transaction: MultisigTransaction,
+    ownerAddress: string,
+    signature: string,
+    bodyBytes: string,
     internalChainId: number,
     safe: Safe,
   ) {
+    // Check user has rejected transaction before
+    await this.multisigConfirmRepos.checkUserHasSigned(
+      transaction.id,
+      ownerAddress,
+    );
+
+    await this.multisigConfirmRepos.insertIntoMultisigConfirm(
+      transaction.id,
+      ownerAddress,
+      signature,
+      bodyBytes,
+      internalChainId,
+      MultisigConfirmStatus.CONFIRM,
+    );
+
     // update tx status to waiting execute if all owner has confirmed
     const awaitingExecutionTx =
       await this.multisigTransactionRepos.updateAwaitingExecutionTx(
