@@ -753,7 +753,7 @@ export class MultisigTransactionService {
     let resultVerify = false;
     resultVerify =
       coinDecimals === 18
-        ? await this.ethermintHelper.verifySignature(
+        ? this.ethermintHelper.verifySignature(
             txRawInfo.signature,
             signDoc,
             creatorAddress,

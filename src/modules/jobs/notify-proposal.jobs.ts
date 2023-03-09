@@ -52,7 +52,7 @@ export class NotifyProposalJob {
     if (inVotingProposal.length === 0) return;
 
     // Get all users
-    // TODO: Get 1000 users/batch
+    // Must get 1000 users/batch
     const users: User[] = await this.userRepo.getAllUser();
 
     // Make notification templates

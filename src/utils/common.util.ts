@@ -16,7 +16,7 @@ import { ErrorMap } from '../common/error.map';
 import { AuthService } from '../modules/auth/auth.service';
 import { UserInfoDto } from '../modules/auth/dto/user-info.dto';
 import { EthermintHelper } from '../chains/ethermint/ethermint.helper';
-import { createEthSecp256k1Pubkey } from '../chains/ethermint/EthSecp256k1Pubkey';
+import { createEthSecp256k1Pubkey } from '../chains/ethermint/ethsecp256k1-pubkey';
 
 export class CommonUtil {
   /**
