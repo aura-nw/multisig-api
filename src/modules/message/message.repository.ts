@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { TxTypeUrl } from '../../common/constants/app.constant';
 import { Message } from './entities/message.entity';
 import { TxMessageResponseDto } from './dto';
-import { IMessageUnknown } from '../../interfaces';
+import { IMessageUnknown, IUnknownValue } from '../../interfaces';
 
 @Injectable()
 export class MessageRepository {
@@ -26,41 +26,8 @@ export class MessageRepository {
       if (msg.value instanceof Uint8Array) {
         this.logger.log('Unexpected type Uint8Array of msg.value');
       } else {
-        const newMsg = plainToClass(Message, msg.value, {
-          excludeExtraneousValues: true,
-        });
+        const newMsg = this.buildMsgBaseOnTypeUrl(msg.typeUrl, msg.value);
         newMsg.txId = txId;
-        newMsg.typeUrl = msg.typeUrl;
-        switch (msg.typeUrl) {
-          case TxTypeUrl.SEND: {
-            newMsg.amount =
-              msg.value.amount && Array.isArray(msg.value.amount)
-                ? msg.value.amount[0].amount
-                : undefined;
-            break;
-          }
-          case TxTypeUrl.MULTI_SEND: {
-            newMsg.inputs = JSON.stringify(msg.value.inputs);
-            newMsg.outputs = JSON.stringify(msg.value.outputs);
-            break;
-          }
-          case TxTypeUrl.DELEGATE:
-          case TxTypeUrl.REDELEGATE:
-          case TxTypeUrl.UNDELEGATE: {
-            newMsg.amount =
-              msg.value.amount && !Array.isArray(msg.value.amount)
-                ? msg.value.amount?.amount
-                : undefined;
-            break;
-          }
-          default: {
-            break;
-          }
-        }
-        newMsg.voteOption = msg.value.option || undefined;
-        newMsg.proposalId = msg.value.proposalId
-          ? Number(msg.value.proposalId)
-          : undefined;
         newMsgs.push(newMsg);
       }
     }
@@ -85,5 +52,47 @@ export class MessageRepository {
     return plainToInstance(TxMessageResponseDto, result, {
       excludeExtraneousValues: true,
     });
+  }
+
+  private getAmountFromUnknownValue(value: IUnknownValue): string {
+    return value.amount && Array.isArray(value.amount)
+      ? value.amount[0].amount
+      : undefined;
+  }
+
+  private buildMsgBaseOnTypeUrl(
+    typeUrl: string,
+    value: IUnknownValue,
+  ): Message {
+    const newMsg = plainToClass(Message, value, {
+      excludeExtraneousValues: true,
+    });
+    newMsg.typeUrl = typeUrl;
+    switch (typeUrl) {
+      case TxTypeUrl.SEND: {
+        newMsg.amount = this.getAmountFromUnknownValue(value);
+        break;
+      }
+      case TxTypeUrl.MULTI_SEND: {
+        newMsg.inputs = JSON.stringify(value.inputs);
+        newMsg.outputs = JSON.stringify(value.outputs);
+        break;
+      }
+      case TxTypeUrl.DELEGATE:
+      case TxTypeUrl.REDELEGATE:
+      case TxTypeUrl.UNDELEGATE: {
+        newMsg.amount =
+          value.amount && !Array.isArray(value.amount)
+            ? value.amount?.amount
+            : undefined;
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+    newMsg.voteOption = value.option || undefined;
+    newMsg.proposalId = value.proposalId ? Number(value.proposalId) : undefined;
+    return newMsg;
   }
 }

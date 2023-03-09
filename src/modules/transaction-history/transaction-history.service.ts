@@ -20,7 +20,7 @@ export class TransactionHistoryService {
   async migrateTxToTxHistory(skip = 0, take = 50): Promise<void> {
     const allSafeAddress = await this.safeRepo.getAllSafeAddress();
 
-    let batchTx = await this.auraTxRepo.getBatchTx(take, skip);
+    const batchTx = await this.auraTxRepo.getBatchTx(take, skip);
 
     // Using job queue to process batchTx
     if (batchTx.length > 0) {
@@ -48,7 +48,8 @@ export class TransactionHistoryService {
 
       await Promise.all(promises);
 
-      batchTx = await this.auraTxRepo.getBatchTx(take, skip + take);
+      const result = await this.auraTxRepo.getBatchTx(take, skip + take);
+      batchTx.push(...result);
     }
   }
 }
