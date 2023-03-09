@@ -14,4 +14,6 @@ export interface IUserRepository extends IBaseRepository {
    * @param pubkey
    */
   createUserIfNotExists(address: string, pubkey: string): Promise<User>;
+
+  getUsers(limit: number, skip: number): Promise<User[]>;
 }

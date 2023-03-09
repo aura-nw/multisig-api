@@ -21,6 +21,19 @@ export class UserRepository extends BaseRepository implements IUserRepository {
     );
   }
 
+  /**
+   * getUsers
+   * @param limit
+   * @param skip
+   * @returns
+   */
+  getUsers(limit: number, skip: number): Promise<User[]> {
+    return this.repos.find({
+      take: limit,
+      skip,
+    });
+  }
+
   async getUserByAddress(address: string): Promise<User> {
     const user = await this.repos.findOne({
       where: { address },
