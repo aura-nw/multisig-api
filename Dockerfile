@@ -1,28 +1,26 @@
-FROM node:16.17-alpine AS build-stage
+FROM node:lts-alpine AS build-stage
+COPY package.json yarn.lock ./
 
-COPY --chown=node:node package*.json ./
+RUN yarn install
 
-# ✅ Safe install
-RUN npm install -g npm@9.4.2
-RUN npm ci
-COPY --chown=node:node ./src ./src
-COPY --chown=node:node ./*.json ./
+COPY . ./
 
-RUN npm run prebuild
-RUN npm run build:prod
+RUN yarn build:prod
+
+FROM node:lts-alpine AS node_modules
+COPY package.json yarn.lock ./
+
+RUN yarn install --prod
 
 # Run-time stage
-FROM node:16.17-alpine AS run-stage
-USER node
-
+FROM node:lts-alpine AS run-stage
 ARG PORT=3000
-EXPOSE $PORT
+
 WORKDIR /usr/src/app/
 
-COPY --chown=node:node --from=build-stage node_modules ./node_modules
-COPY --chown=node:node --from=build-stage dist package*.json ./
+COPY --from=build-stage dist ./dist
+COPY --from=node_modules node_modules ./node_modules
+COPY . /usr/src/app/
 
-# ✅ Clean dev packages
-RUN npm prune --production
-
-CMD [ "node", "main.js" ]
+EXPOSE $PORT
+CMD [ "npm", "run", "start:prod" ]
