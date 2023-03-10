@@ -3,7 +3,7 @@ COPY --chown=node:node package.json yarn.lock ./
 
 RUN yarn install
 
-COPY --chown=node:node ./src ./
+COPY --chown=node:node ./src ./src
 COPY --chown=node:node ./*.json ./
 
 RUN yarn build:prod
