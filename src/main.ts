@@ -35,7 +35,7 @@ async function bootstrap() {
   // setup swagger
   const config = new DocumentBuilder()
     .setTitle('Multisig Wallet API for Aura Network')
-    .setVersion('0.1')
+    .setVersion('0.5')
     .addServer('/')
     .addServer(configService.get<string>('SWAGGER_PATH'))
     .addBearerAuth()
