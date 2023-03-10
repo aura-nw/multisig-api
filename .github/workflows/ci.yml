@@ -5,7 +5,7 @@ on:
     branches: [main, dev, staging, serenity, halo, euphoria]
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,6 +23,23 @@ jobs:
         run: |
           SHORT_SHA_COMMIT=$(git rev-parse --short HEAD)
           echo CONTAINER_RELEASE_IMAGE=ghcr.io/aura-nw/multisig-api:${GITHUB_REF_NAME}_${SHORT_SHA_COMMIT} >> $GITHUB_ENV
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          push: true
+          tags: |
+            ${{ env.CONTAINER_RELEASE_IMAGE }}
+  update-manifest:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set environment variable
+        run: |
+          SHORT_SHA_COMMIT=$(git rev-parse --short HEAD)
+          echo CONTAINER_RELEASE_IMAGE=ghcr.io/aura-nw/multisig-api:${GITHUB_REF_NAME}_${SHORT_SHA_COMMIT} >> $GITHUB_ENV
           echo REPO_MANIFEST_NAME=gitops >> $GITHUB_ENV
           echo REPO_MANIFEST_URL=github.com/aura-nw/gitops.git >> $GITHUB_ENV
           echo REPO_MANIFEST_BRANCH=master >> $GITHUB_ENV
@@ -33,15 +50,6 @@ jobs:
           echo REPO_MANIFEST_ENV_SERENITY=./clusters/k8s-testnet-serenity/multisig-safe >> $GITHUB_ENV
           echo REPO_MANIFEST_ENV_HALO=./clusters/k8s-testnet-halo/multisig-safe >> $GITHUB_ENV
           echo REPO_MANIFEST_TAG_IMAGE=image_multisig_api >> $GITHUB_ENV
-      - name: Build and push
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          push: true
-          tags: |
-            ${{ env.CONTAINER_RELEASE_IMAGE }}
       - name: Update manifest
         env:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.REGISTRY_PASSWORD }}
