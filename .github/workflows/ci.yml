@@ -40,13 +40,6 @@ jobs:
           push: true
           tags: |
             ${{ env.CONTAINER_RELEASE_IMAGE }}
-      # - name: Build the Docker image and push it to the registry
-      #   env:
-      #     GITHUB_USERNAME: ${{ github.actor }}
-      #     GITHUB_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-      #   run: |
-      #     chmod 777 -R ./ci
-      #     ./ci/build.sh
       - name: Update manifest
         env:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.REGISTRY_PASSWORD }}
