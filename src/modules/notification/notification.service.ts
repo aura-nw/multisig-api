@@ -21,7 +21,7 @@ export class NotificationService {
 
   async getNotifications(): Promise<ResponseDto<unknown>> {
     const authInfo = this.utils.getAuthInfo();
-    const result = await this.repo.getNotificationsByUser(authInfo.userId);
+    const result = await this.repo.getNotificationsByUser(authInfo.id);
     return ResponseDto.response(
       ErrorMap.SUCCESSFUL,
       plainToInstance(
@@ -41,7 +41,7 @@ export class NotificationService {
 
       const result = await this.repo.markNotificationsAsRead(
         notifications,
-        authInfo.userId,
+        authInfo.id,
       );
       return ResponseDto.response(ErrorMap.SUCCESSFUL, {
         affected: result.affected,
