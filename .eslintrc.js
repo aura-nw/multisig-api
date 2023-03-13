@@ -1,21 +1,23 @@
 module.exports = {
   plugins: [
     '@typescript-eslint',
+    'prettier',
     'eslint-comments',
     'jest',
     'promise',
     'unicorn',
+    'simple-import-sort',
   ],
   extends: [
-    'plugin:import/typescript',
-    'plugin:prettier/recommended',
-    'eslint:recommended',
+    'airbnb-base',
+    'airbnb-typescript/base',
     'plugin:@typescript-eslint/recommended',
     'plugin:@typescript-eslint/recommended-requiring-type-checking',
     'plugin:eslint-comments/recommended',
     'plugin:jest/recommended',
     'plugin:promise/recommended',
     'plugin:unicorn/recommended',
+    'prettier',
   ],
   env: {
     node: true,
@@ -29,7 +31,7 @@ module.exports = {
   rules: {
     'class-methods-use-this': 'off',
     'unicorn/prefer-module': 'off',
-
+    // 'import/export': 'off',
     'unicorn/prefer-top-level-await': 'off',
     'eslint-comments/disable-enable-pair': ['error', { allowWholeFile: true }],
     'no-restricted-syntax': ['error', "BinaryExpression[operator='in']"],

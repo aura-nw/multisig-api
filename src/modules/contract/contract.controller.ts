@@ -22,7 +22,7 @@ export class ContractController {
     summary: 'Get contract status',
     apiOkResponseOptions: {
       status: 200,
-      type: ResponseDto<unknown>,
+      type: ResponseDto,
       description: 'Get contract status',
       schema: {},
     },
