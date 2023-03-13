@@ -8,15 +8,11 @@ import { CommonGet } from '../../decorators/common.decorator';
 import { DistributionService } from './distribution.service';
 import {
   GetDelegationDto,
-  GetDelegationResponseDto,
   GetDelegationsParamDto,
-  GetDelegationsResponseDto,
   GetUndelegationsParamDto,
-  GetUndelegationsResponseDto,
   GetValidatorDetailDto,
   GetValidatorsParamDto,
   GetValidatorsQueryDto,
-  GetValidatorsResponseDto,
 } from './dto';
 import { ResponseDto } from '../../common/dtos/response.dto';
 
@@ -30,7 +26,7 @@ export class DistributionController {
     summary: 'Queries all validators.',
     apiOkResponseOptions: {
       status: 200,
-      type: ResponseDto<GetValidatorsResponseDto>,
+      type: ResponseDto,
       description: 'List validators',
       schema: {},
     },
@@ -60,7 +56,7 @@ export class DistributionController {
     summary: 'Queries all delegations of a user.',
     apiOkResponseOptions: {
       status: 200,
-      type: ResponseDto<GetDelegationsResponseDto>,
+      type: ResponseDto,
       description: 'List delegations of a user',
       schema: {},
     },
@@ -74,7 +70,7 @@ export class DistributionController {
     summary: 'Get single validator info and delegation from user.',
     apiOkResponseOptions: {
       status: 200,
-      type: ResponseDto<GetDelegationResponseDto>,
+      type: ResponseDto,
       description: 'List delegation and validator of a user',
       schema: {},
     },
@@ -88,7 +84,7 @@ export class DistributionController {
     summary: 'Queries all undelegations of a user.',
     apiOkResponseOptions: {
       status: 200,
-      type: ResponseDto<GetUndelegationsResponseDto>,
+      type: ResponseDto,
       description: 'List undelegations of a user',
       schema: {},
     },

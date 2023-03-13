@@ -10,14 +10,9 @@ import {
   GetProposalByIdDto,
   GetProposalDepositsDto,
   GetProposalsParamDto,
-  GetProposalsResponseDto,
-  GetValidatorVotesByProposalIdResponseDto,
   GetValidatorVotesDto,
   GetVotesByProposalIdParamDto,
   GetVotesByProposalIdQueryDto,
-  GetVotesByProposalIdResponseDto,
-  ProposalDepositResponseDto,
-  ProposalDetailDto,
 } from './dto';
 import { GovService } from './gov.service';
 
@@ -33,7 +28,7 @@ export class GovController {
     summary: 'Queries all proposals.',
     apiOkResponseOptions: {
       status: 200,
-      type: ResponseDto<GetProposalsResponseDto>,
+      type: ResponseDto,
       description: 'List proposals',
       schema: {},
     },
@@ -48,7 +43,7 @@ export class GovController {
     summary: 'Queries a single proposal.',
     apiOkResponseOptions: {
       status: 200,
-      type: ResponseDto<ProposalDetailDto>,
+      type: ResponseDto,
       description: 'Proposal Details',
       schema: {},
     },
@@ -62,7 +57,7 @@ export class GovController {
     summary: 'List votes by proposal Id.',
     apiOkResponseOptions: {
       status: 200,
-      type: ResponseDto<GetVotesByProposalIdResponseDto>,
+      type: ResponseDto,
       description: 'List votes by proposal Id',
       schema: {},
     },
@@ -79,7 +74,7 @@ export class GovController {
     summary: 'List validator votes by proposal Id.',
     apiOkResponseOptions: {
       status: 200,
-      type: ResponseDto<GetValidatorVotesByProposalIdResponseDto>,
+      type: ResponseDto,
       description: 'List validators votes by proposal Id',
       schema: {},
     },
@@ -93,7 +88,7 @@ export class GovController {
     summary: 'Queries deposit txs of a given proposal.',
     apiOkResponseOptions: {
       status: 200,
-      type: ResponseDto<ProposalDepositResponseDto>,
+      type: ResponseDto,
       description: 'List proposal deposits',
       schema: {},
     },
