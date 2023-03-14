@@ -10,6 +10,7 @@ COPY --chown=node:node ./*.json ./
 RUN yarn build:prod
 
 FROM node:lts-alpine AS node_modules
+WORKDIR /usr/src/app/
 COPY --chown=node:node package.json yarn.lock ./
 
 RUN yarn install --prod
