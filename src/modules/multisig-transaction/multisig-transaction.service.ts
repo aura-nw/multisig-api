@@ -39,14 +39,14 @@ import { SafeRepository } from '../safe/safe.repository';
 import { SafeOwnerRepository } from '../safe-owner/safe-owner.repository';
 import { MessageRepository } from '../message/message.repository';
 import { NotificationRepository } from '../notification/notification.repository';
-import { ChangeSequenceTransactionRequestDto } from './dto/request/change-seq.req';
-import { ConfirmTransactionRequestDto } from './dto/request/confirm-transaction.req';
-import { TxDetailDto } from './dto/response/tx-detail.res';
 import { AuraTxRepository } from '../aura-tx/aura-tx.repository';
 import { TxMessageResponseDto } from '../message/dto/response/tx-message.res';
-import { CreateTransactionRequestDto } from './dto/request/create-transaction.req';
 import {
+  ChangeSequenceTransactionRequestDto,
+  ConfirmTransactionRequestDto,
+  CreateTransactionRequestDto,
   CreateTxResDto,
+  DeleteTxRequestDto,
   GetAllTransactionsRequestDto,
   GetMultisigSignaturesParamDto,
   GetSimulateAddressQueryDto,
@@ -54,24 +54,24 @@ import {
   MultisigTransactionHistoryResponseDto,
   RejectTransactionRequestDto,
   SendTransactionRequestDto,
+  SendTxResDto,
   SimulateTxRequestDto,
+  TxDetailDto,
   TxRawInfo,
 } from './dto';
-import { DeleteTxRequestDto } from './dto/request/delete-tx.req';
 import { MultisigTransaction } from './entities/multisig-transaction.entity';
 import { Chain } from '../chain/entities/chain.entity';
 import { Safe } from '../safe/entities/safe.entity';
 import { TransactionHistoryRepository } from '../transaction-history/transaction-history.repository';
-import { AccountInfo } from '../../common/dtos/account-info';
-import { UserInfoDto } from '../auth/dto/user-info.dto';
 import { CommonUtil } from '../../utils/common.util';
 import { IndexerClient } from '../../shared/services/indexer.service';
 import { GetListConfirmResDto } from '../multisig-confirm/dto';
-import { SimulateResponse } from '../simulate/dtos/simulate-response';
-import { SendTxResDto } from './dto/response/send-tx.res';
 import { IMessage, IMsgMultiSend } from './interfaces';
 import { IMessageUnknown } from '../../interfaces';
 import { EthermintHelper } from '../../chains/ethermint/ethermint.helper';
+import { SimulateResponse } from '../simulate/dtos';
+import { AccountInfo } from '../../common/dtos';
+import { UserInfoDto } from '../auth/dto';
 
 @Injectable()
 export class MultisigTransactionService {
