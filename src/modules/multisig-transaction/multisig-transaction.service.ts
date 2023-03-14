@@ -99,252 +99,6 @@ export class MultisigTransactionService {
     );
   }
 
-  async getTransactionHistory(
-    request: GetAllTransactionsRequestDto,
-  ): Promise<ResponseDto<MultisigTransactionHistoryResponseDto[]>> {
-    const { safeAddress, isHistory, pageSize, pageIndex, internalChainId } =
-      request;
-
-    try {
-      const safe = await this.safeRepos.getSafeByAddress(
-        safeAddress,
-        internalChainId,
-      );
-
-      let result: MultisigTransactionHistoryResponseDto[];
-      if (isHistory)
-        result = await this.txHistoryRepo.getTxHistoryBySafeAddress(
-          safeAddress,
-          internalChainId,
-          pageIndex,
-          pageSize,
-        );
-      else {
-        const txs = await this.multisigTransactionRepos.getQueueTransaction(
-          safeAddress,
-          internalChainId,
-          pageIndex,
-          pageSize,
-        );
-        result = await this.getConfirmationStatus(txs, safe.threshold);
-      }
-      const response = result.map((item) => {
-        const updatedItem = item;
-        if (item.TypeUrl === undefined || item.FromAddress !== safeAddress)
-          updatedItem.TypeUrl = TxTypeUrl.RECEIVE;
-
-        updatedItem.Direction = this.getDirection(
-          item.TypeUrl,
-          item.FromAddress,
-          safeAddress,
-        );
-
-        updatedItem.FinalAmount =
-          item.MultisigTxAmount || item.AuraTxAmount || item.AuraTxRewardAmount;
-
-        if (!Number.isNaN(Number(item.Status))) {
-          updatedItem.Status = this.parseStatus(item.Status);
-        }
-        return updatedItem;
-      });
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, response);
-    } catch (error) {
-      return ResponseDto.responseError(MultisigTransactionService.name, error);
-    }
-  }
-
-  getDirection(typeUrl: string, from: string, safeAddress: string): string {
-    switch (typeUrl) {
-      case TxTypeUrl.SEND:
-      case TxTypeUrl.MULTI_SEND: {
-        return from === safeAddress
-          ? TransferDirection.OUTGOING
-          : TransferDirection.INCOMING;
-      }
-      case TxTypeUrl.DELEGATE:
-      case TxTypeUrl.REDELEGATE:
-      case TxTypeUrl.VOTE: {
-        return TransferDirection.OUTGOING;
-      }
-      case TxTypeUrl.UNDELEGATE:
-      case TxTypeUrl.WITHDRAW_REWARD: {
-        return TransferDirection.INCOMING;
-      }
-      default: {
-        return undefined;
-      }
-    }
-  }
-
-  async getConfirmationStatus(
-    txs: MultisigTransactionHistoryResponseDto[],
-    threshold: number,
-  ) {
-    const result = await Promise.all(
-      txs.map(async (tx) => {
-        const updatedTx = tx;
-        const confirmations: GetListConfirmResDto[] =
-          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-            tx.MultisigTxId,
-            tx.TxHash,
-          );
-        updatedTx.Confirmations = confirmations
-          .filter((x) => x.status === MultisigConfirmStatus.CONFIRM)
-          .map((item) => item.ownerAddress);
-        updatedTx.Rejections = confirmations
-          .filter((x) => x.status === MultisigConfirmStatus.REJECT)
-          .map((item) => item.ownerAddress);
-
-        updatedTx.ConfirmationsRequired = threshold;
-        return updatedTx;
-      }),
-    );
-    return result;
-  }
-
-  async getListMultisigConfirmById(
-    param: GetMultisigSignaturesParamDto,
-    status?: string,
-  ): Promise<ResponseDto<GetListConfirmResDto[]>> {
-    const { id } = param;
-    try {
-      const multisig = await this.multisigTransactionRepos.getMultisigTx(id);
-      if (!multisig) throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
-
-      const result =
-        await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-          id,
-          undefined,
-          status,
-        );
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
-    } catch (error) {
-      return ResponseDto.responseError(MultisigTransactionService.name, error);
-    }
-  }
-
-  /**
-   * changeSequence
-   * @param request
-   * @returns
-   */
-  async changeSequence(
-    request: ChangeSequenceTransactionRequestDto,
-  ): Promise<ResponseDto<CreateTxResDto>> {
-    const {
-      from,
-      to,
-      authInfoBytes,
-      bodyBytes,
-      signature,
-      internalChainId,
-      accountNumber,
-      sequence,
-      oldTxId,
-    } = request;
-
-    // delete old tx
-    const requestDeleteTx: DeleteTxRequestDto = {
-      id: oldTxId,
-    };
-    await this.deleteTransaction(requestDeleteTx);
-
-    // create new tx
-    const requestCreateTx: CreateTransactionRequestDto = {
-      from,
-      to,
-      authInfoBytes,
-      bodyBytes,
-      signature,
-      internalChainId,
-      accountNumber,
-      sequence,
-    };
-    const created = await this.createMultisigTransaction(requestCreateTx);
-    return created;
-  }
-
-  /**
-   * deleteTransaction
-   * @param request
-   * @returns
-   */
-  async deleteTransaction(
-    request: DeleteTxRequestDto,
-  ): Promise<ResponseDto<void>> {
-    try {
-      const { id } = request;
-      const authInfo = this.commonUtil.getAuthInfo();
-      const creatorAddress = authInfo.address;
-
-      // check tx status
-      const tx = await this.multisigTransactionRepos.getTransactionById(id);
-      if (tx.status !== TransactionStatus.AWAITING_CONFIRMATIONS)
-        throw new CustomError(ErrorMap.CANNOT_DELETE_TX);
-
-      await this.deleteTx(tx, creatorAddress);
-
-      // Update next seq
-      await this.updateNextSeqAfterDeleteTx(tx.safeId, tx.internalChainId);
-
-      // notify to all owners except the one who deletes the transaction
-      const safeOwners = await this.safeOwnerRepo.getSafeOwnersWithError(
-        tx.safeId,
-      );
-      await this.notificationRepo.notifyDeletedTx(
-        tx.safeId,
-        tx.fromAddress,
-        tx.id,
-        Number(tx.sequence),
-        safeOwners
-          .filter((safeOwner) => safeOwner.ownerAddress !== creatorAddress)
-          .map((safeOwner) => safeOwner.ownerAddress),
-        creatorAddress,
-        tx.internalChainId,
-      );
-
-      return ResponseDto.response(ErrorMap.SUCCESSFUL);
-    } catch (error) {
-      return ResponseDto.responseError(MultisigTransactionService.name, error);
-    }
-  }
-
-  async simulate(
-    request: SimulateTxRequestDto,
-  ): Promise<ResponseDto<SimulateResponse>> {
-    try {
-      const { encodedMsgs, safeId } = request;
-      const messages = JSON.parse(
-        Buffer.from(encodedMsgs, 'base64').toString('binary'),
-      ) as IMessageUnknown[];
-
-      // get safe info
-      const safeInfo = await this.safeRepos.getSafeById(safeId);
-      if (safeInfo.status !== SafeStatus.CREATED)
-        throw new CustomError(ErrorMap.INVALID_SAFE);
-
-      // get chain info
-      const chain = await this.chainRepos.findChain(safeInfo.internalChainId);
-      await this.simulateService.simulateWithChain(chain);
-
-      const result = await this.simulateService.simulate(messages, safeInfo);
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
-    } catch (error) {
-      return ResponseDto.responseError(MultisigTransactionService.name, error);
-    }
-  }
-
-  async getSimulateAddresses(
-    request: GetSimulateAddressQueryDto,
-  ): Promise<ResponseDto<string[]>> {
-    const { internalChainId } = request;
-    const chain = await this.chainRepos.findChain(internalChainId);
-    await this.simulateService.simulateWithChain(chain);
-
-    const wallet = this.simulateService.getCurrentWallet();
-    return ResponseDto.response(ErrorMap.SUCCESSFUL, wallet.getAddresses());
-  }
-
   async createMultisigTransaction(
     request: CreateTransactionRequestDto,
   ): Promise<ResponseDto<CreateTxResDto>> {
@@ -702,6 +456,320 @@ export class MultisigTransactionService {
     }
   }
 
+  async getTransactionHistory(
+    request: GetAllTransactionsRequestDto,
+  ): Promise<ResponseDto<MultisigTransactionHistoryResponseDto[]>> {
+    const { safeAddress, isHistory, pageSize, pageIndex, internalChainId } =
+      request;
+
+    try {
+      const safe = await this.safeRepos.getSafeByAddress(
+        safeAddress,
+        internalChainId,
+      );
+
+      let result: MultisigTransactionHistoryResponseDto[];
+      if (isHistory)
+        result = await this.txHistoryRepo.getTxHistoryBySafeAddress(
+          safeAddress,
+          internalChainId,
+          pageIndex,
+          pageSize,
+        );
+      else {
+        const txs = await this.multisigTransactionRepos.getQueueTransaction(
+          safeAddress,
+          internalChainId,
+          pageIndex,
+          pageSize,
+        );
+        result = await this.getConfirmationStatus(txs, safe.threshold);
+      }
+      const response = result.map((item) => {
+        const updatedItem = item;
+        if (item.TypeUrl === undefined || item.FromAddress !== safeAddress)
+          updatedItem.TypeUrl = TxTypeUrl.RECEIVE;
+
+        updatedItem.Direction = this.getDirection(
+          item.TypeUrl,
+          item.FromAddress,
+          safeAddress,
+        );
+
+        updatedItem.FinalAmount =
+          item.MultisigTxAmount || item.AuraTxAmount || item.AuraTxRewardAmount;
+
+        if (!Number.isNaN(Number(item.Status))) {
+          updatedItem.Status = this.parseStatus(item.Status);
+        }
+        return updatedItem;
+      });
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, response);
+    } catch (error) {
+      return ResponseDto.responseError(MultisigTransactionService.name, error);
+    }
+  }
+
+  async getConfirmationStatus(
+    txs: MultisigTransactionHistoryResponseDto[],
+    threshold: number,
+  ) {
+    const result = await Promise.all(
+      txs.map(async (tx) => {
+        const updatedTx = tx;
+        const confirmations: GetListConfirmResDto[] =
+          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+            tx.MultisigTxId,
+            tx.TxHash,
+          );
+        updatedTx.Confirmations = confirmations
+          .filter((x) => x.status === MultisigConfirmStatus.CONFIRM)
+          .map((item) => item.ownerAddress);
+        updatedTx.Rejections = confirmations
+          .filter((x) => x.status === MultisigConfirmStatus.REJECT)
+          .map((item) => item.ownerAddress);
+
+        updatedTx.ConfirmationsRequired = threshold;
+        return updatedTx;
+      }),
+    );
+    return result;
+  }
+
+  async getListMultisigConfirmById(
+    param: GetMultisigSignaturesParamDto,
+    status?: string,
+  ): Promise<ResponseDto<GetListConfirmResDto[]>> {
+    const { id } = param;
+    try {
+      const multisig = await this.multisigTransactionRepos.getMultisigTx(id);
+      if (!multisig) throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
+
+      const result =
+        await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+          id,
+          undefined,
+          status,
+        );
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
+    } catch (error) {
+      return ResponseDto.responseError(MultisigTransactionService.name, error);
+    }
+  }
+
+  /**
+   * changeSequence
+   * @param request
+   * @returns
+   */
+  async changeSequence(
+    request: ChangeSequenceTransactionRequestDto,
+  ): Promise<ResponseDto<CreateTxResDto>> {
+    const {
+      from,
+      to,
+      authInfoBytes,
+      bodyBytes,
+      signature,
+      internalChainId,
+      accountNumber,
+      sequence,
+      oldTxId,
+    } = request;
+
+    // delete old tx
+    const requestDeleteTx: DeleteTxRequestDto = {
+      id: oldTxId,
+    };
+    await this.deleteTransaction(requestDeleteTx);
+
+    // create new tx
+    const requestCreateTx: CreateTransactionRequestDto = {
+      from,
+      to,
+      authInfoBytes,
+      bodyBytes,
+      signature,
+      internalChainId,
+      accountNumber,
+      sequence,
+    };
+    const created = await this.createMultisigTransaction(requestCreateTx);
+    return created;
+  }
+
+  /**
+   * deleteTransaction
+   * @param request
+   * @returns
+   */
+  async deleteTransaction(
+    request: DeleteTxRequestDto,
+  ): Promise<ResponseDto<void>> {
+    try {
+      const { id } = request;
+      const authInfo = this.commonUtil.getAuthInfo();
+      const creatorAddress = authInfo.address;
+
+      // check tx status
+      const tx = await this.multisigTransactionRepos.getTransactionById(id);
+      if (tx.status !== TransactionStatus.AWAITING_CONFIRMATIONS)
+        throw new CustomError(ErrorMap.CANNOT_DELETE_TX);
+
+      await this.deleteTx(tx, creatorAddress);
+
+      // Update next seq
+      await this.updateNextSeqAfterDeleteTx(tx.safeId, tx.internalChainId);
+
+      // notify to all owners except the one who deletes the transaction
+      const safeOwners = await this.safeOwnerRepo.getSafeOwnersWithError(
+        tx.safeId,
+      );
+      await this.notificationRepo.notifyDeletedTx(
+        tx.safeId,
+        tx.fromAddress,
+        tx.id,
+        Number(tx.sequence),
+        safeOwners
+          .filter((safeOwner) => safeOwner.ownerAddress !== creatorAddress)
+          .map((safeOwner) => safeOwner.ownerAddress),
+        creatorAddress,
+        tx.internalChainId,
+      );
+
+      return ResponseDto.response(ErrorMap.SUCCESSFUL);
+    } catch (error) {
+      return ResponseDto.responseError(MultisigTransactionService.name, error);
+    }
+  }
+
+  async simulate(
+    request: SimulateTxRequestDto,
+  ): Promise<ResponseDto<SimulateResponse>> {
+    try {
+      const { encodedMsgs, safeId } = request;
+      const messages = JSON.parse(
+        Buffer.from(encodedMsgs, 'base64').toString('binary'),
+      ) as IMessageUnknown[];
+
+      // get safe info
+      const safeInfo = await this.safeRepos.getSafeById(safeId);
+      if (safeInfo.status !== SafeStatus.CREATED)
+        throw new CustomError(ErrorMap.INVALID_SAFE);
+
+      // get chain info
+      const chain = await this.chainRepos.findChain(safeInfo.internalChainId);
+      await this.simulateService.simulateWithChain(chain);
+
+      const result = await this.simulateService.simulate(messages, safeInfo);
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
+    } catch (error) {
+      return ResponseDto.responseError(MultisigTransactionService.name, error);
+    }
+  }
+
+  async getSimulateAddresses(
+    request: GetSimulateAddressQueryDto,
+  ): Promise<ResponseDto<string[]>> {
+    const { internalChainId } = request;
+    const chain = await this.chainRepos.findChain(internalChainId);
+    await this.simulateService.simulateWithChain(chain);
+
+    const wallet = this.simulateService.getCurrentWallet();
+    return ResponseDto.response(ErrorMap.SUCCESSFUL, wallet.getAddresses());
+  }
+
+  async getTransactionDetails(
+    query: GetTxDetailQueryDto,
+  ): Promise<ResponseDto<TxDetailDto>> {
+    const { multisigTxId, auraTxId, safeAddress } = query;
+    try {
+      // get multisig tx from db
+      const txDetail = await this.getTxFromDB(multisigTxId, auraTxId);
+
+      if (txDetail.MultisigTxId) {
+        // get confirmations
+        const confirmations =
+          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+            txDetail.MultisigTxId,
+            undefined,
+            MultisigConfirmStatus.CONFIRM,
+          );
+
+        // get rejections
+        const rejections =
+          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+            txDetail.MultisigTxId,
+            undefined,
+            MultisigConfirmStatus.REJECT,
+          );
+
+        // get execution info
+        const [executor] =
+          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+            txDetail.MultisigTxId,
+            undefined,
+            MultisigConfirmStatus.SEND,
+          );
+
+        // get messages & auto claim amount
+        const multisigMsgs = await this.messageRepos.getMsgsByTxId(
+          txDetail.MultisigTxId,
+        );
+        const autoClaimMsgs = await this.messageRepos.getMsgsByAuraTxId(
+          txDetail.AuraTxId,
+        );
+
+        // set data
+        txDetail.Messages = this.buildMessages(multisigMsgs, autoClaimMsgs);
+
+        txDetail.Confirmations = confirmations;
+        txDetail.Rejectors = rejections;
+        txDetail.Executor = executor;
+
+        txDetail.AutoClaimAmount = this.calculateAutoClaimAmount(autoClaimMsgs);
+      } else {
+        // case: receive token from other wallet
+        txDetail.Messages = await this.messageRepos.getMsgsByAuraTxId(
+          txDetail.AuraTxId,
+        );
+
+        txDetail.Status = this.parseStatus(txDetail.Status);
+      }
+
+      // get signed info
+      const threshold = await this.safeRepos.getThreshold(safeAddress);
+      txDetail.ConfirmationsRequired = threshold.ConfirmationsRequired;
+
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, txDetail);
+    } catch (error) {
+      return ResponseDto.responseError(MultisigTransactionService.name, error);
+    }
+  }
+
+  getDirection(typeUrl: string, from: string, safeAddress: string): string {
+    switch (typeUrl) {
+      case TxTypeUrl.SEND:
+      case TxTypeUrl.MULTI_SEND: {
+        return from === safeAddress
+          ? TransferDirection.OUTGOING
+          : TransferDirection.INCOMING;
+      }
+      case TxTypeUrl.DELEGATE:
+      case TxTypeUrl.REDELEGATE:
+      case TxTypeUrl.VOTE: {
+        return TransferDirection.OUTGOING;
+      }
+      case TxTypeUrl.UNDELEGATE:
+      case TxTypeUrl.WITHDRAW_REWARD: {
+        return TransferDirection.INCOMING;
+      }
+      default: {
+        return undefined;
+      }
+    }
+  }
+
   private async decodeAndVerifyTxInfo(
     txRawInfo: TxRawInfo,
     accountInfo: AccountInfo,
@@ -966,74 +1034,6 @@ export class MultisigTransactionService {
     );
 
     await this.safeRepos.updateSafe(safe);
-  }
-
-  async getTransactionDetails(
-    query: GetTxDetailQueryDto,
-  ): Promise<ResponseDto<TxDetailDto>> {
-    const { multisigTxId, auraTxId, safeAddress } = query;
-    try {
-      // get multisig tx from db
-      const txDetail = await this.getTxFromDB(multisigTxId, auraTxId);
-
-      if (txDetail.MultisigTxId) {
-        // get confirmations
-        const confirmations =
-          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-            txDetail.MultisigTxId,
-            undefined,
-            MultisigConfirmStatus.CONFIRM,
-          );
-
-        // get rejections
-        const rejections =
-          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-            txDetail.MultisigTxId,
-            undefined,
-            MultisigConfirmStatus.REJECT,
-          );
-
-        // get execution info
-        const [executor] =
-          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-            txDetail.MultisigTxId,
-            undefined,
-            MultisigConfirmStatus.SEND,
-          );
-
-        // get messages & auto claim amount
-        const multisigMsgs = await this.messageRepos.getMsgsByTxId(
-          txDetail.MultisigTxId,
-        );
-        const autoClaimMsgs = await this.messageRepos.getMsgsByAuraTxId(
-          txDetail.AuraTxId,
-        );
-
-        // set data
-        txDetail.Messages = this.buildMessages(multisigMsgs, autoClaimMsgs);
-
-        txDetail.Confirmations = confirmations;
-        txDetail.Rejectors = rejections;
-        txDetail.Executor = executor;
-
-        txDetail.AutoClaimAmount = this.calculateAutoClaimAmount(autoClaimMsgs);
-      } else {
-        // case: receive token from other wallet
-        txDetail.Messages = await this.messageRepos.getMsgsByAuraTxId(
-          txDetail.AuraTxId,
-        );
-
-        txDetail.Status = this.parseStatus(txDetail.Status);
-      }
-
-      // get signed info
-      const threshold = await this.safeRepos.getThreshold(safeAddress);
-      txDetail.ConfirmationsRequired = threshold.ConfirmationsRequired;
-
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, txDetail);
-    } catch (error) {
-      return ResponseDto.responseError(MultisigTransactionService.name, error);
-    }
   }
 
   buildMessages(
