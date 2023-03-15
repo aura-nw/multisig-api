@@ -67,4 +67,24 @@ export class Message extends BaseEntityAutoId {
   @Expose()
   @Column({ name: 'Voter' })
   voter: string;
+
+  @Expose()
+  @Column({ name: 'ContractSender' })
+  contractSender: string;
+
+  @Expose()
+  @Column({ name: 'ContractAddress' })
+  contractAddress: string;
+
+  @Expose()
+  @Column({ name: 'ContractFunction' })
+  contractFunction: string;
+
+  @Expose()
+  @Column({ name: 'ContractArgs' })
+  contractArgs: string;
+
+  @Expose()
+  @Column({ name: 'ContractFunds' })
+  contractFunds: string;
 }

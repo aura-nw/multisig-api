@@ -87,6 +87,19 @@ export class MessageRepository {
             : undefined;
         break;
       }
+      case TxTypeUrl.EXECUTE_CONTRACT: {
+        newMsg.contractSender = value.sender;
+        newMsg.contractAddress = value.contract;
+        newMsg.contractFunds = value.funds.toString();
+        newMsg.contractFunds = value.funds.toString();
+        [newMsg.contractFunction] = Object.keys(value.msg);
+        if (newMsg.contractFunction) {
+          newMsg.contractArgs = JSON.stringify(
+            value.msg[newMsg.contractFunction],
+          );
+        }
+        break;
+      }
       default: {
         break;
       }

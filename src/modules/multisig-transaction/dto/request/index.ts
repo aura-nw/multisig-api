@@ -9,3 +9,4 @@ export * from './get-tx-query.req';
 export * from './get-simulate.req';
 export * from './get-multisig-confirm.req';
 export * from './get-simulate-query.req';
+export * from './delete-tx.req';
