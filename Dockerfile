@@ -1,4 +1,5 @@
 FROM node:lts-alpine AS build-stage
+WORKDIR /usr/src/app/
 COPY --chown=node:node package.json yarn.lock ./
 
 RUN yarn install
