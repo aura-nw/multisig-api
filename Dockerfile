@@ -18,6 +18,7 @@ RUN yarn install --prod
 # Run-time stage
 FROM node:lts-alpine AS run-stage
 USER node
+WORKDIR /usr/src/app/
 ARG PORT=3000
 COPY --chown=node:node package.json yarn.lock ./
 
