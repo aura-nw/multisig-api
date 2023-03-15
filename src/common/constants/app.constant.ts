@@ -2,6 +2,7 @@ import { GeneratedType } from '@cosmjs/proto-signing';
 import { MsgSend, MsgMultiSend } from 'cosmjs-types/cosmos/bank/v1beta1/tx';
 import { MsgWithdrawDelegatorReward } from 'cosmjs-types/cosmos/distribution/v1beta1/tx';
 import { MsgVote } from 'cosmjs-types/cosmos/gov/v1beta1/tx';
+import { MsgExecuteContract } from 'cosmjs-types/cosmwasm/wasm/v1/tx';
 import {
   MsgBeginRedelegate,
   MsgDelegate,
@@ -95,6 +96,8 @@ export const RegistryGeneratedTypes: Iterable<[string, GeneratedType]> = [
     MsgWithdrawDelegatorReward,
   ],
   ['/cosmos.gov.v1beta1.MsgVote', MsgVote],
+  ['/cosmos.gov.v1beta1.MsgVote', MsgVote],
+  ['/cosmwasm.wasm.v1.MsgExecuteContract', MsgExecuteContract],
 ];
 
 export enum ProposalStatus {

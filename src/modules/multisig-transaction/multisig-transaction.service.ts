@@ -18,6 +18,7 @@ import {
 } from '@cosmjs/stargate';
 import { fromBase64 } from '@cosmjs/encoding';
 import { AminoMsg, makeSignDoc, MultisigThresholdPubkey } from '@cosmjs/amino';
+import { createWasmAminoConverters } from '@cosmjs/cosmwasm-stargate';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import {
@@ -796,6 +797,7 @@ export class MultisigTransactionService {
       ...createStakingAminoConverters(prefix),
       ...createDistributionAminoConverters(),
       ...createGovAminoConverters(),
+      ...createWasmAminoConverters(),
     });
     const msgs = messages.map((msg: IMessage) => {
       const decodedMsg = msg;

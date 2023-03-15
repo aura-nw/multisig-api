@@ -13,6 +13,10 @@ export interface IUnknownValue {
   proposalId?: string;
   fromAddress?: string;
   voter?: string;
+  sender?: string;
+  contract?: string;
+  msg?: unknown;
+  funds?: Coin[];
 }
 
 export interface IMessageUnknown {
