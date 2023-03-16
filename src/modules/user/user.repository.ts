@@ -18,8 +18,17 @@ export class UserRepository {
     );
   }
 
-  async getAllUser(): Promise<User[]> {
-    return this.repo.find();
+  /**
+   * getUsers
+   * @param limit
+   * @param skip
+   * @returns
+   */
+  getUsers(limit: number, skip: number): Promise<User[]> {
+    return this.repo.find({
+      take: limit,
+      skip,
+    });
   }
 
   async getUserByAddress(address: string): Promise<User> {

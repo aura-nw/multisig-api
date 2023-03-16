@@ -57,7 +57,7 @@ export class NotificationRepository {
         user.id,
         safeId,
         creatorAddress,
-        users.length + 1,
+        otherOwnersAddress.length + 1,
         internalChainId,
       ),
     );
