@@ -7,11 +7,13 @@ interface IQueue<T> {
 export class Queue<T> implements IQueue<T> {
   private storage: T[] = [];
 
-  constructor(private capacity: number = Infinity) {}
+  constructor(private capacity: number = Number.POSITIVE_INFINITY) {}
 
   enqueue(item: T): void {
     if (this.size() === this.capacity) {
-      throw Error('Queue has reached max capacity, you cannot add more items');
+      throw new Error(
+        'Queue has reached max capacity, you cannot add more items',
+      );
     }
     this.storage.push(item);
   }
