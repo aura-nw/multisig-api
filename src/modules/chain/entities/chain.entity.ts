@@ -39,6 +39,6 @@ export class Chain extends BaseEntityAutoId {
   @Column({ name: 'CoinDecimals' })
   coinDecimals: number;
 
-  @Column({ name: 'GasPrice' })
+  @Column({ name: 'GasPrice', type: 'float' })
   gasPrice: number;
 }

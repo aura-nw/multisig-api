@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { plainToInstance } from 'class-transformer';
 import { In, Repository } from 'typeorm';
 import { CustomError } from '../../common/custom-error';
 import { ErrorMap } from '../../common/error.map';
@@ -39,7 +40,7 @@ export class ChainRepository {
         (chain) => chain.chainId === chainInfo.chainId,
       );
       chainToUpdate = { ...chainToUpdate, ...chainInfo };
-      chainsToCreateOrUpdate.push(chainToUpdate);
+      chainsToCreateOrUpdate.push(plainToInstance(Chain, chainToUpdate));
     }
     const res = await this.repos.save(chainsToCreateOrUpdate);
     return res;
