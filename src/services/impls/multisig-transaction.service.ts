@@ -21,6 +21,7 @@ import {
   StargateClient,
 } from '@cosmjs/stargate';
 import { fromBase64 } from '@cosmjs/encoding';
+import { plainToInstance } from 'class-transformer';
 import { BaseService } from './base.service';
 import { Chain, MultisigTransaction, Safe } from '../../entities';
 import {
@@ -818,11 +819,11 @@ export class MultisigTransactionService
     const chain = await this.chainRepos.findChain(internalChainId);
 
     // get safe account info
-    const accountInfo: AccountInfo = await this.getAccountInfoWithNewSeq(
-      null,
-      safe,
+    const account = await this._indexer.getAccountNumberAndSequence(
       chain.chainId,
+      safe.safeAddress,
     );
+    const accountInfo = plainToInstance(AccountInfo, account);
 
     safe.nextQueueSeq = (
       await this.calculateNextSeq(safe.id, accountInfo.sequence)
