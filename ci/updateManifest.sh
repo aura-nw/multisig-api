@@ -1,8 +1,6 @@
 #!/bin/sh
 set -xe
 
-apk add bash && apk add git && apk add --update curl && rm -rf /var/cache/apk/*
-
 # clone repo manifest
 git clone "https://${PERSONAL_ACCESS_TOKEN}@${REPO_MANIFEST_URL}"
 cd ./${REPO_MANIFEST_NAME}
@@ -42,6 +40,7 @@ curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack
 rm kustomize
 
 git config --global user.name "${GITHUB_ACTOR}"
+git config --global user.email "${GITHUB_ACTOR}@github.com"
 git add . 
 git commit -m "Update image to ${CONTAINER_RELEASE_IMAGE}"
 git push

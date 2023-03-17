@@ -7,10 +7,14 @@ export const CONTROLLER_CONSTANTS = {
   GENERAL: 'general',
   AUTH: 'auth',
   GOV: 'gov',
-  DISTRIBUTION: 'distribution',
   USER: 'user',
+  CONTRACT: 'contract',
 };
 export const URL_CONSTANTS = {
+  CHANGE_SEQ: 'change-seq',
+  DELETE_TX: 'delete',
+  GET_ADDRESS_SIMULATE: 'simulate/address',
+  SIMULATE_TX: 'simulate',
   broadcasting: 'broadcasting',
   signing: 'signing',
   CONNECT_WALLET: 'connect_wallet',
@@ -47,8 +51,6 @@ export const URL_CONSTANTS = {
   GET_PROPOSAL_BY_ID: ':internalChainId/proposals/:proposalId',
   GET_PROPOSAL_DEPOSITS_BY_ID:
     ':internalChainId/proposal/:proposalId/depositors',
-  GET_VOTES_BY_PROPOSAL_ID: ':internalChainId/proposal/:proposalId/votes',
-  GET_VALIDATOR_VOTES_BY_PROPOSAL_ID:
-    ':internalChainId/proposal/:proposalId/validator-votes',
   GET_USER_BY_ADDRESS: ':address',
+  GET_CONTRACT_BY_ADDRESS: ':contractAddress',
 };

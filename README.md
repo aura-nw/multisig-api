@@ -1,6 +1,6 @@
 # Aura Multisignature Wallet
 
-![workflow](https://github.com/aura-nw/multisig-api/actions/workflows/ci.yml/badge.svg)
+![GitHub Actions](https://github.com/aura-nw/multisig-api/actions/workflows/ci.yml/badge.svg)
 [![documentation](https://img.shields.io/badge/documentation-docs-brightgreen)](./docs)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/aura-nw/multisig-api/issues)
 

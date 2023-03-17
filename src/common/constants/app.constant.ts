@@ -2,6 +2,7 @@ import { GeneratedType } from '@cosmjs/proto-signing';
 import { MsgSend, MsgMultiSend } from 'cosmjs-types/cosmos/bank/v1beta1/tx';
 import { MsgWithdrawDelegatorReward } from 'cosmjs-types/cosmos/distribution/v1beta1/tx';
 import { MsgVote } from 'cosmjs-types/cosmos/gov/v1beta1/tx';
+import { MsgExecuteContract } from 'cosmjs-types/cosmwasm/wasm/v1/tx';
 import {
   MsgBeginRedelegate,
   MsgDelegate,
@@ -9,58 +10,70 @@ import {
 } from 'cosmjs-types/cosmos/staking/v1beta1/tx';
 
 export const COMMON_CONSTANTS = {
-  REGEX_BASE64: new RegExp(
-    /^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$/,
-  ),
+  REGEX_BASE64:
+    /^([\d+/A-Za-z]{4})*([\d+/A-Za-z]{4}|[\d+/A-Za-z]{3}=|[\d+/A-Za-z]{2}==)$/,
 };
+
+export enum NotificationEventType {
+  WAIT_ALLOW_SAFE = 'WAIT_ALLOW_SAFE',
+  SAFE_CREATED = 'SAFE_CREATED',
+  WAIT_CONFIRM_TX = 'WAIT_CONFIRM_TX',
+  WAIT_EXECUTE_TX = 'WAIT_EXECUTE_TX',
+  TX_BROADCASTED = 'TX_BROADCASTED',
+  TX_DELETED = 'TX_DELETED',
+  START_VOTING_PERIOD = 'START_VOTING_PERIOD',
+}
+
+export enum NotificationStatus {
+  READ = 'READ',
+  UNREAD = 'UNREAD',
+}
 
 export enum AppConstants {
   USER_KEY = 'user_key',
 }
 
-export enum ORDER_BY {
-  DESC = 'DESC',
-  ASC = 'ASC',
-}
-export enum DATABASE_TYPE {
+export enum DatabaseType {
   POSTGRES = 'postgres',
   MYSQL = 'mysql',
 }
-export enum SAFE_STATUS {
+export enum SafeStatus {
   PENDING = 'pending',
   CREATED = 'created',
   DELETED = 'deleted',
 }
 
-export enum SAFE_OWNER_STATUS {
+export enum SafeOwnerStatus {
   NEED_CONFIRM = 'needConfirm',
   CONFIRMED = 'confirmed',
 }
 
-export enum TRANSACTION_STATUS {
+export enum TransactionStatus {
   AWAITING_CONFIRMATIONS = 'AWAITING_CONFIRMATIONS',
   AWAITING_EXECUTION = 'AWAITING_EXECUTION',
   PENDING = 'PENDING',
   CANCELLED = 'CANCELLED',
   SUCCESS = 'SUCCESS',
   FAILED = 'FAILED',
+  REPLACED = 'REPLACED',
+  DELETED = 'DELETED',
 }
-export enum MULTISIG_CONFIRM_STATUS {
+export enum MultisigConfirmStatus {
   CONFIRM = 'CONFIRM',
   REJECT = 'REJECT',
   SEND = 'SEND',
 }
 
-export enum TRANSFER_DIRECTION {
+export enum TransferDirection {
   INCOMING = 'INCOMING',
   OUTGOING = 'OUTGOING',
   UNKNOWN = 'UNKNOWN',
 }
 
-export enum PUBKEY_TYPES {
+export enum PubkeyTypes {
   SECP256K1 = 'tendermint/PubKeySecp256k1',
 }
-export enum TX_TYPE_URL {
+export enum TxTypeUrl {
   SEND = '/cosmos.bank.v1beta1.MsgSend',
   MULTI_SEND = '/cosmos.bank.v1beta1.MsgMultiSend',
   DELEGATE = '/cosmos.staking.v1beta1.MsgDelegate',
@@ -72,7 +85,7 @@ export enum TX_TYPE_URL {
   RECEIVE = 'Receive',
 }
 
-export const REGISTRY_GENERATED_TYPES: Iterable<[string, GeneratedType]> = [
+export const RegistryGeneratedTypes: Iterable<[string, GeneratedType]> = [
   ['/cosmos.bank.v1beta1.MsgSend', MsgSend],
   ['/cosmos.bank.v1beta1.MsgMultiSend', MsgMultiSend],
   ['/cosmos.staking.v1beta1.MsgDelegate', MsgDelegate],
@@ -83,22 +96,24 @@ export const REGISTRY_GENERATED_TYPES: Iterable<[string, GeneratedType]> = [
     MsgWithdrawDelegatorReward,
   ],
   ['/cosmos.gov.v1beta1.MsgVote', MsgVote],
+  ['/cosmos.gov.v1beta1.MsgVote', MsgVote],
+  ['/cosmwasm.wasm.v1.MsgExecuteContract', MsgExecuteContract],
 ];
 
-export enum PROPOSAL_STATUS {
-  VOTING_PERIOD = 'PROPOSAL_STATUS_VOTING_PERIOD',
-  PASSED = 'PROPOSAL_STATUS_PASSED',
-  REJECTED = 'PROPOSAL_STATUS_REJECTED',
+export enum ProposalStatus {
+  VOTING_PERIOD = 'ProposalStatus_VOTING_PERIOD',
+  PASSED = 'ProposalStatus_PASSED',
+  REJECTED = 'ProposalStatus_REJECTED',
 }
 
-export enum VOTE_ANSWER {
+export enum VoteAnswer {
   VOTE_OPTION_YES = 'VOTE_OPTION_YES',
   VOTE_OPTION_NO = 'VOTE_OPTION_NO',
   VOTE_OPTION_NO_WITH_VETO = 'VOTE_OPTION_NO_WITH_VETO',
   VOTE_OPTION_ABSTAIN = 'VOTE_OPTION_ABSTAIN',
 }
 
-export enum VALIDATOR_STATUS {
+export enum ValidatorStatus {
   BOND_STATUS_UNSPECIFIED = 'BOND_STATUS_UNSPECIFIED',
   BOND_STATUS_UNBONDED = 'BOND_STATUS_UNBONDED',
   BOND_STATUS_UNBONDING = 'BOND_STATUS_UNBONDING',

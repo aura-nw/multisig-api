@@ -1,163 +1,58 @@
-import { CacheModule, MiddlewareConsumer, Module } from '@nestjs/common';
+import { CacheModule, Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { MultisigWalletController } from './controllers/multisig-wallet.controller';
-import { TransactionController } from './controllers/transaction.controller';
-import { OwnerController } from './controllers/owner.controller';
-import {
-  ENTITIES_CONFIG,
-  REPOSITORY_INTERFACE,
-  SERVICE_INTERFACE,
-} from './module.config';
-import { MultisigWalletService } from './services/impls/multisig-wallet.service';
-import { MultisigTransactionService } from './services/impls/multisig-transaction.service';
+import { ScheduleModule } from '@nestjs/schedule';
+import { ConfigModule } from '@nestjs/config';
 import { SharedModule } from './shared/shared.module';
-import { GeneralService } from './services/impls/general.service';
-import { ConfigService } from './shared/services/config.service';
-import { MultisigWalletRepository } from './repositories/impls/multisig-wallet.repository';
-import { MultisigWalletOwnerRepository } from './repositories/impls/multisig-wallet-owner.repository';
-import { GeneralController } from './controllers/general.controller';
-import { GeneralRepository } from './repositories/impls/general.repository';
-import { MultisigTransactionRepository } from './repositories/impls/multisig-transaction.repository';
-import { MultisigConfirmRepository } from './repositories/impls/multisig-confirm.repository';
-import { TransactionRepository } from './repositories/impls/transaction.repository';
-import { TransactionService } from './services/impls/transaction.service';
-import { AuthController } from './controllers/auth.controller';
-import { AuthService } from './services/impls/auth.service';
-import { JwtModule } from '@nestjs/jwt';
-import { JwtStrategy } from './jwt.strategy';
-import { contextMiddleware } from './middlewares';
-import { SeederModule } from './database/seeders/seeder.module';
-import { GasRepository } from './repositories/impls/gas.repository';
-import { GovService } from './services/impls/gov.service';
-import { GovController } from './controllers/gov.controller';
-import { DistributionController } from './controllers/distribution.controller';
-import { DistributionService } from './services/impls/distribution.service';
-import { UserController } from './controllers/user.controller';
-import { UserRepository } from './repositories/impls/user.repository';
-import { UserService } from './services/impls/user.service';
-import { MessageRepository } from './repositories/impls/message.repository';
+import { SeederModule } from './modules/seeders/seeder.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { SafeModule } from './modules/safe/safe.module';
+import { ChainModule } from './modules/chain/chain.module';
+import { DistributionModule } from './modules/distribution/distribution.module';
+import { GovModule } from './modules/gov/gov.module';
+import { MultisigTransactionModule } from './modules/multisig-transaction/multisig-transaction.module';
+import { NotificationModule } from './modules/notification/notification.module';
+import { SafeOwnerModule } from './modules/safe-owner/safe-owner.module';
+import { UserModule } from './modules/user/user.module';
+import { JwtStrategy } from './modules/auth/jwt.strategy';
+import { NotifyProposalModule } from './modules/jobs/notify-proposal.module';
+import { CustomConfigService } from './shared/services/custom-config.service';
+import { ContractModule } from './modules/contract/contract.module';
 
-const controllers = [
-  MultisigWalletController,
-  TransactionController,
-  OwnerController,
-  GeneralController,
-  AuthController,
-  GovController,
-  DistributionController,
-  UserController,
-  // AppController,
-];
-const entities = [
-  ENTITIES_CONFIG.SAFE,
-  ENTITIES_CONFIG.SAFE_OWNER,
-  ENTITIES_CONFIG.CHAIN,
-  ENTITIES_CONFIG.MULTISIG_CONFIRM,
-  ENTITIES_CONFIG.MULTISIG_TRANSACTION,
-  ENTITIES_CONFIG.AURA_TX,
-  ENTITIES_CONFIG.GAS,
-  ENTITIES_CONFIG.USER,
-  ENTITIES_CONFIG.MESSAGE,
-];
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     HttpModule.registerAsync({
       useFactory: () => ({
         timeout: 5000,
         maxRedirects: 5,
       }),
     }),
-    CacheModule.register({ ttl: 10000 }),
+    CacheModule.register({ ttl: 10_000 }),
     SharedModule,
     SeederModule,
-    TypeOrmModule.forFeature([...entities]),
     TypeOrmModule.forRootAsync({
       imports: [SharedModule],
-      useFactory: (configService: ConfigService) => configService.typeOrmConfig,
-      inject: [ConfigService],
+      useFactory: (customConfigService: CustomConfigService) =>
+        customConfigService.typeOrmConfig,
+      inject: [CustomConfigService],
     }),
-    JwtModule.registerAsync({
-      imports: [SharedModule],
-      useFactory: (configService: ConfigService) => configService.jwtConfig,
-      inject: [ConfigService],
-    }),
+    ScheduleModule.forRoot(),
+    AuthModule,
+    ChainModule,
+    SafeModule,
+    MultisigTransactionModule,
+    DistributionModule,
+    GovModule,
+    NotificationModule,
+    SafeOwnerModule,
+    UserModule,
+    NotifyProposalModule,
+    ContractModule,
   ],
-  controllers: [...controllers],
-  providers: [
-    //jwt
-    JwtStrategy,
-    //repository
-    {
-      provide: REPOSITORY_INTERFACE.IMULTISIG_WALLET_REPOSITORY,
-      useClass: MultisigWalletRepository,
-    },
-    {
-      provide: REPOSITORY_INTERFACE.IMULTISIG_WALLET_OWNER_REPOSITORY,
-      useClass: MultisigWalletOwnerRepository,
-    },
-    {
-      provide: REPOSITORY_INTERFACE.IGENERAL_REPOSITORY,
-      useClass: GeneralRepository,
-    },
-    {
-      provide: REPOSITORY_INTERFACE.IMULTISIG_TRANSACTION_REPOSITORY,
-      useClass: MultisigTransactionRepository,
-    },
-    {
-      provide: REPOSITORY_INTERFACE.IMULTISIG_CONFIRM_REPOSITORY,
-      useClass: MultisigConfirmRepository,
-    },
-    {
-      provide: REPOSITORY_INTERFACE.ITRANSACTION_REPOSITORY,
-      useClass: TransactionRepository,
-    },
-    {
-      provide: REPOSITORY_INTERFACE.IGAS_REPOSITORY,
-      useClass: GasRepository,
-    },
-    {
-      provide: REPOSITORY_INTERFACE.IUSER_REPOSITORY,
-      useClass: UserRepository,
-    },
-    {
-      provide: REPOSITORY_INTERFACE.IMESSAGE_REPOSITORY,
-      useClass: MessageRepository,
-    },
-    //service
-    {
-      provide: SERVICE_INTERFACE.IMULTISIG_TRANSACTION_SERVICE,
-      useClass: MultisigTransactionService,
-    },
-    {
-      provide: SERVICE_INTERFACE.IMULTISIG_WALLET_SERVICE,
-      useClass: MultisigWalletService,
-    },
-    {
-      provide: SERVICE_INTERFACE.IGENERAL_SERVICE,
-      useClass: GeneralService,
-    },
-    {
-      provide: SERVICE_INTERFACE.ITRANSACTION_SERVICE,
-      useClass: TransactionService,
-    },
-    {
-      provide: SERVICE_INTERFACE.IAUTH_SERVICE,
-      useClass: AuthService,
-    },
-    {
-      provide: SERVICE_INTERFACE.IGOV_SERVICE,
-      useClass: GovService,
-    },
-    {
-      provide: SERVICE_INTERFACE.IDISTRIBUTION_SERVICE,
-      useClass: DistributionService,
-    },
-    {
-      provide: SERVICE_INTERFACE.IUSER_SERVICE,
-      useClass: UserService,
-    },
-  ],
+  providers: [JwtStrategy],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer): MiddlewareConsumer | void {

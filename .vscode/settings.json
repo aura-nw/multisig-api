@@ -1,2 +1,16 @@
 {
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "cSpell.words": [
+    "aurascan",
+    "chainid",
+    "delegatable",
+    "delegators",
+    "dtos",
+    "Ethermint",
+    "keybase",
+    "Multisigned",
+    "Unbonding",
+    "Undelegations",
+    "utaura"
+  ]
 }

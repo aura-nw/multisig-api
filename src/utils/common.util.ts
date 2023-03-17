@@ -1,63 +1,78 @@
-import fetch from 'node-fetch';
+import { isNil, omitBy } from 'lodash';
 import {
   createMultisigThresholdPubkey,
-  encodeAminoPubkey,
   Pubkey,
   pubkeyToAddress,
   SinglePubkey,
 } from '@cosmjs/amino';
 import { sha256 } from '@cosmjs/crypto';
-import { toBech32, toHex } from '@cosmjs/encoding';
-import {
-  Fee,
-  LCDClient,
-  LegacyAminoMultisigPublicKey,
-  MsgSend,
-  MultiSignature,
-  SignatureV2,
-  SimplePublicKey,
-} from '@terra-money/terra.js';
+import { toBech32 } from '@cosmjs/encoding';
 import { plainToInstance } from 'class-transformer';
-import { readFile } from 'graceful-fs';
-import {
-  createMultisigThresholdPubkeyEvmos,
-  encodeAminoPubkeySupportEvmos,
-} from '../chains/evmos';
-import { PUBKEY_TYPES } from '../common/constants/app.constant';
-import { CustomError } from '../common/customError';
+import { PathLike } from 'node:fs';
+import { FileHandle, readFile } from 'node:fs/promises';
+
+import { CustomError } from '../common/custom-error';
 import { ErrorMap } from '../common/error.map';
-import { UserInfo } from '../dtos/userInfo';
-import { MultisigTransaction, Safe } from '../entities';
-import { AuthService } from '../services/impls/auth.service';
-import { ConfigService } from '../shared/services/config.service';
+import { AuthService } from '../modules/auth/auth.service';
+import { UserInfoDto } from '../modules/auth/dto/user-info.dto';
+import { EthermintHelper } from '../chains/ethermint/ethermint.helper';
+import { createEthSecp256k1Pubkey } from '../chains/ethermint/ethsecp256k1-pubkey';
 
 export class CommonUtil {
-  private configService: ConfigService = new ConfigService();
+  /**
+   * jsonReader
+   * @param filePath
+   * @returns
+   */
+  static async jsonReader<T>(filePath: PathLike | FileHandle): Promise<T> {
+    const content = await readFile(filePath, 'utf8');
+    const object = JSON.parse(content) as T;
+    return object;
+  }
+
+  /**
+   * getStrProp https://stackoverflow.com/a/70031969/8461456
+   * @param o
+   * @param prop
+   * @returns
+   */
+  public static getStrProp(o: unknown, prop: string): string {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+      const p = (o as any)[prop];
+      if (typeof p === 'string') {
+        return p;
+      }
+    } catch {
+      // ignore
+    }
+    return undefined;
+  }
 
   /**
    * Calculate address from public key
    * @param pubkey public key
    * @returns address string
    */
-  public pubkeyToAddress(
-    pubkey: Pubkey,
-    prefix = this.configService.get('PREFIX'),
-  ): string {
-    if (prefix === 'evmos') {
-      const pubkeyAmino = encodeAminoPubkeySupportEvmos(pubkey);
-      console.log(toHex(pubkeyAmino));
+  public static pubkeyToAddress(pubkey: Pubkey, prefix: string): string {
+    if (prefix === 'evmos' || prefix === 'canto') {
+      const ethermintHelper = new EthermintHelper();
+      const pubkeyAmino =
+        ethermintHelper.encodeAminoPubkeySupportEthermint(pubkey);
+
       const rawAddress = sha256(pubkeyAmino).slice(0, 20);
       const address = toBech32(prefix, rawAddress);
       return address;
-    } else {
-      const pubkeyData = encodeAminoPubkey(pubkey);
-
-      const rawAddress = sha256(pubkeyData).slice(0, 20);
-      const address = toBech32(prefix, rawAddress);
-      console.log(address);
-
-      return pubkeyToAddress(pubkey, prefix);
     }
+
+    /**
+     * Another way to get bech32 address:
+     * const pubkeyData = encodeAminoPubkey(pubkey);
+     * const rawAddress = sha256(pubkeyData).slice(0, 20);
+     * toBech32(prefix, rawAddress);
+     */
+
+    return pubkeyToAddress(pubkey, prefix);
   }
 
   /**
@@ -65,7 +80,7 @@ export class CommonUtil {
    * @param arr
    * @returns boolean
    */
-  public checkIfDuplicateExists(arr): boolean {
+  public static checkIfDuplicateExists(arr: unknown[]): boolean {
     return new Set(arr).size !== arr.length;
   }
 
@@ -75,12 +90,10 @@ export class CommonUtil {
    * @returns string[]
    */
   public filterEmptyInStringArray(strArr: string[]): string[] {
-    return strArr.filter((e) => {
-      return e !== '';
-    });
+    return strArr.filter((e) => e !== '');
   }
 
-  createSafeAddressAndPubkey(
+  static createSafeAddressAndPubkey(
     pubKeyArrString: string[],
     threshold: number,
     prefix: string,
@@ -88,36 +101,34 @@ export class CommonUtil {
     pubkey: string;
     address: string;
   } {
-    let arrPubkeys;
-    if (prefix === 'evmos') {
-      arrPubkeys = pubKeyArrString.map(this.createPubkeyEvmos);
-    } else arrPubkeys = pubKeyArrString.map(this.createPubkeys);
+    const ethermintHelper = new EthermintHelper();
+    try {
+      const arrPubkeys =
+        prefix === 'evmos' || prefix === 'canto'
+          ? pubKeyArrString.map((pk) => createEthSecp256k1Pubkey(pk))
+          : pubKeyArrString.map((pk) => this.createPubkeys(pk));
 
-    let multisigPubkey;
-    if (prefix === 'evmos') {
-      multisigPubkey = createMultisigThresholdPubkeyEvmos(
-        arrPubkeys,
-        threshold,
+      const multisigPubkey =
+        prefix === 'evmos' || prefix === 'canto'
+          ? ethermintHelper.createMultisigThresholdPubkeyEthermint(
+              arrPubkeys,
+              threshold,
+            )
+          : createMultisigThresholdPubkey(arrPubkeys, threshold);
+      const multiSigWalletAddress = this.pubkeyToAddress(
+        multisigPubkey,
+        prefix,
       );
-    } else {
-      multisigPubkey = createMultisigThresholdPubkey(arrPubkeys, threshold);
+      return {
+        pubkey: JSON.stringify(multisigPubkey),
+        address: multiSigWalletAddress,
+      };
+    } catch (error) {
+      throw CustomError.fromUnknown(ErrorMap.CANNOT_CREATE_SAFE_ADDRESS, error);
     }
-    const multiSigWalletAddress = this.pubkeyToAddress(multisigPubkey, prefix);
-    return {
-      pubkey: JSON.stringify(multisigPubkey),
-      address: multiSigWalletAddress,
-    };
   }
 
-  private createPubkeyEvmos(value: string): SinglePubkey {
-    const result: SinglePubkey = {
-      type: 'ethermint/PubKeyEthSecp256k1',
-      value: value,
-    };
-    return result;
-  }
-
-  private createPubkeys(value: string): SinglePubkey {
+  static createPubkeys(value: string): SinglePubkey {
     const result: SinglePubkey = {
       type: 'tendermint/PubKeySecp256k1',
       value,
@@ -125,113 +136,11 @@ export class CommonUtil {
     return result;
   }
 
-  async makeTerraTx(
-    multisigTransaction: MultisigTransaction,
-    safe: Safe,
-    multisigConfirmArr: any[],
-    client: LCDClient,
-  ) {
-    const multisigPubkey = LegacyAminoMultisigPublicKey.fromAmino(
-      JSON.parse(safe.safePubkey),
-    );
-    const multisig = new MultiSignature(multisigPubkey);
-
-    const amount = {};
-    amount[multisigTransaction.denom] = multisigTransaction.amount;
-    const send = new MsgSend(
-      multisigTransaction.fromAddress,
-      multisigTransaction.toAddress,
-      amount,
-    );
-
-    const tx = await client.tx.create(
-      [
-        {
-          address: multisigTransaction.fromAddress,
-          sequenceNumber: Number(multisigTransaction.sequence),
-          publicKey: multisigPubkey,
-        },
-      ],
-      {
-        msgs: [send],
-        fee: new Fee(
-          multisigTransaction.gas,
-          multisigTransaction.fee + multisigTransaction.denom,
-        ),
-        gas: multisigTransaction.gas.toString(),
-      },
-    );
-
-    const addressSignarureMap = [];
-    multisigConfirmArr.forEach((x) => {
-      const pubkeyAmino: SimplePublicKey.Amino = {
-        type: PUBKEY_TYPES.SECP256K1,
-        value: x.pubkey,
-      };
-      const amino: SignatureV2.Amino = {
-        signature: x.signature,
-        pub_key: pubkeyAmino,
-      };
-      const sig = SignatureV2.fromAmino(amino);
-      addressSignarureMap.push(sig);
-    });
-
-    multisig.appendSignatureV2s(addressSignarureMap);
-    tx.appendSignatures([
-      new SignatureV2(
-        multisigPubkey,
-        multisig.toSignatureDescriptor(),
-        Number(multisigTransaction.sequence),
-      ),
-    ]);
-
-    return tx;
-  }
-
-  getAuthInfo(): UserInfo {
+  getAuthInfo(): UserInfoDto {
     const currentUser = AuthService.getAuthUser();
     if (!currentUser) throw new CustomError(ErrorMap.UNAUTHRORIZED);
-    return plainToInstance(UserInfo, currentUser);
+    return plainToInstance(UserInfoDto, currentUser);
   }
 
-  jsonReader(filePath, cb) {
-    readFile(filePath, 'utf-8', (error, fileData) => {
-      if (error) {
-        return cb && cb(error);
-      }
-      try {
-        const object = JSON.parse(fileData);
-        return cb && cb(null, object);
-      } catch (error) {
-        return cb && cb(error);
-      }
-    });
-  }
-
-  public async request(url: string, method = 'GET', body?: any) {
-    const options = {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    };
-    if (body) {
-      options['body'] = JSON.stringify(body);
-    }
-    const result = await fetch(url, options);
-    if (result.status !== 200) {
-      throw new CustomError(
-        ErrorMap.REQUEST_ERROR,
-        `${new URL(url).host} ${result.status} ${result.statusText} `,
-      );
-    }
-    return result.json();
-  }
-
-  getPercentage(number: any, sum: any): string {
-    if (number == 0) {
-      return '0';
-    }
-    return ((+number * 100) / sum).toFixed(2);
-  }
+  omitByNil = (obj: unknown) => omitBy(obj, isNil);
 }

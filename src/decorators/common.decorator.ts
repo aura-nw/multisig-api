@@ -8,7 +8,6 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { GroupsGuard } from '../guards/groups.guard';
 import { AuthGuard } from '@nestjs/passport';
 import {
   ApiBadRequestResponse,
@@ -18,8 +17,7 @@ import {
   ApiResponseOptions,
 } from '@nestjs/swagger';
 import { AuthUserInterceptor } from '../interceptors/auth-user-interceptor.service';
-import { SwaggerBaseApiResponse } from '../dtos/responses';
-import { MODULE_RESPONSE } from '../module.config';
+import { ResponseDto } from '../common/dtos/response.dto';
 
 interface Options {
   url?: string;
@@ -34,6 +32,10 @@ export function CommonAuthPost(options: Options) {
 
 export function CommonAuthDelete(options: Options) {
   return applyDecorators(CommonDelete(options), Auth());
+}
+
+export function CommonAuthGet(options: Options) {
+  return applyDecorators(CommonGet(options), Auth());
 }
 
 export function CommonPost(options: Options) {
@@ -60,24 +62,25 @@ export function CommonDelete(options: Options) {
 export function Common(
   summary: string,
   description?: string,
-  apiOkResponseOptions: ApiResponseOptions = {
-    status: 200,
-    type: SwaggerBaseApiResponse(MODULE_RESPONSE.ResponseDto),
-    description: 'The result returned is the ResponseDto class',
-    schema: {},
-  },
+  apiOkResponseOptions?: ApiResponseOptions,
 ) {
   return applyDecorators(
     ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} }),
     HttpCode(HttpStatus.OK),
     ApiOperation({ summary, description }),
-    ApiOkResponse(apiOkResponseOptions),
+    ApiOkResponse({
+      status: 200,
+      type: ResponseDto,
+      description: 'The result returned is the ResponseDto class',
+      schema: {},
+      ...apiOkResponseOptions,
+    }),
   );
 }
 
 export function Auth() {
   return applyDecorators(
-    UseGuards(AuthGuard('jwt'), GroupsGuard),
+    UseGuards(AuthGuard('jwt')),
     ApiBearerAuth(),
     UseInterceptors(AuthUserInterceptor),
   );

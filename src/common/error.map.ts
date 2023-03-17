@@ -5,11 +5,11 @@ export const ErrorMap = {
   },
   UNAUTHRORIZED: {
     Code: 'E401',
-    Message: `Unauthorized`,
+    Message: 'Unauthorized',
   },
   E001: {
     Code: 'E001',
-    Message: `Invalid address`,
+    Message: 'Invalid address',
   },
   EXISTS: {
     Code: 'E002',
@@ -55,7 +55,7 @@ export const ErrorMap = {
     Code: 'E012',
     Message: 'Balance not enough!',
   },
-  USER_HAS_COMFIRMED: {
+  USER_HAS_CONFIRMED: {
     Code: 'E013',
     Message: 'User has confirmed before!',
   },
@@ -75,7 +75,7 @@ export const ErrorMap = {
     Code: 'E017',
     Message: 'Duplicate safe information!',
   },
-  PERMISSION_DENIED: {
+  CANNOT_CREATE_SAFE_ADDRESS: {
     Code: 'E018',
     Message: 'Permission denied!',
   },
@@ -133,23 +133,23 @@ export const ErrorMap = {
   },
   PUBKEY_NOT_BASE64: {
     Code: 'E032',
-    Message: `Pubkey must be Base64 type!`,
+    Message: 'Pubkey must be Base64 type!',
   },
   SIGNATURE_NOT_BASE64: {
     Code: 'E033',
-    Message: `Signature must be Base64 type!`,
+    Message: 'Signature must be Base64 type!',
   },
   INVALID_TIMESTAMP: {
     Code: 'E034',
-    Message: `Invalid Timestamp!`,
+    Message: 'Invalid Timestamp!',
   },
   CHAIN_NOT_FOUND: {
     Code: 'E035',
-    Message: `Chain not found!`,
+    Message: 'Chain not found!',
   },
   VERIFY_SIGNATURE_FAIL: {
     Code: 'E036',
-    Message: `Verify signature fail!`,
+    Message: 'Verify signature fail!',
   },
   SIGNATURE_VERIFICATION_FAILED: {
     Code: 'E037',
@@ -176,23 +176,44 @@ export const ErrorMap = {
     Message: 'Missing account_auth when call indexer account info!',
   },
   CANNOT_GET_ACCOUNT_NUMBER_OR_SEQUENCE: {
-    Code: 'E042',
+    Code: 'E043',
     Message: 'Can not get account number or sequence from indexer!',
+  },
+  CANNOT_CONNECT_TO_CHAIN: {
+    Code: 'E044',
+    Message: 'Can not connect to chain!',
+  },
+  TX_SIMULATION_FAILED: {
+    Code: 'E045',
+    Message: 'Tx simulation failed!',
+  },
+  INVALID_SAFE: {
+    Code: 'E046',
+    Message: 'Invalid safe!',
+  },
+  CANNOT_DELETE_TX: {
+    Code: 'E047',
+    Message:
+      'Can not delete because the status of this transaction is invalid!',
+  },
+  INVALID_CONTRACT_ADDRESS: {
+    Code: 'E048',
+    Message: 'Invalid contract address!',
   },
   C001: {
     Code: 'C001',
-    Message: `Missing result from Chaincode`,
+    Message: 'Missing result from Chaincode',
   },
   E400: {
     Code: 'E400',
-    Message: `Bad request`,
+    Message: 'Bad request',
   },
   E403: {
     Code: 'E401',
-    Message: `Unauthorized`,
+    Message: 'Unauthorized',
   },
   E500: {
     Code: 'E500',
-    Message: `Server error`,
+    Message: 'Server error',
   },
 };

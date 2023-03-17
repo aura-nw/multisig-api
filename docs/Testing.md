@@ -159,7 +159,7 @@ npm i --save-dev @nestjs/testing
   async createMultisigWallet(
     @Body() request: MODULE_REQUEST.CreateMultisigWalletRequest,
   ) {
-    this._logger.log('========== Create a multisig wallet ==========');
+    this.logger.log('========== Create a multisig wallet ==========');
     return await this.multisigWalletService.createMultisigWallet(request);
   }
   ```
@@ -169,7 +169,7 @@ npm i --save-dev @nestjs/testing
   ```ts
     async createMultisigWallet(
       request: MODULE_REQUEST.CreateMultisigWalletRequest,
-    ): Promise<ResponseDto> {
+    ): Promise<ResponseDto<any>> {
       const res = new ResponseDto();
       try {
         const { creatorAddress, creatorPubkey, threshold, internalChainId } =
@@ -179,7 +179,7 @@ npm i --save-dev @nestjs/testing
         // Check input
         if (otherOwnersAddress.indexOf(creatorAddress) > -1)
           return res.return(ErrorMap.OTHER_ADDRESS_INCLUDE_CREATOR);
-        if (this._commonUtil.checkIfDuplicateExists(otherOwnersAddress))
+        if (this.commonUtil.checkIfDuplicateExists(otherOwnersAddress))
           return res.return(ErrorMap.DUPLICATE_SAFE_OWNER);
         const chainInfo = (await this.generalRepo.findOne(
           internalChainId,
