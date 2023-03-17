@@ -309,6 +309,7 @@ export class MultisigTransactionService
         await this.calculateNextSeq(safe.id, sequenceInIndexer)
       ).toString();
       safe.accountNumber = accountInfo.accountNumber.toString();
+      safe.sequence = sequenceInIndexer.toString();
       await this.safeRepos.updateSafe(safe);
 
       // notify to another owners
@@ -828,6 +829,7 @@ export class MultisigTransactionService
     safe.nextQueueSeq = (
       await this.calculateNextSeq(safe.id, accountInfo.sequence)
     ).toString();
+    safe.sequence = account.sequence.toString();
 
     await this.safeRepos.updateSafe(safe);
   }
