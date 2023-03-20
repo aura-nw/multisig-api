@@ -50,6 +50,7 @@ export class SafeSimulate {
       ownerSimulates.map((owner) => owner.pubkey),
       threshold,
     );
+    this.ownerSimulates = ownerSimulates;
     this.chain = chain;
     this.address = pubkeyToAddress(this.pubkey, this.chain.prefix);
   }

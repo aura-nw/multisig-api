@@ -662,7 +662,11 @@ export class MultisigTransactionService {
       const chain = await this.chainRepos.findChain(safeInfo.internalChainId);
       await this.simulateService.simulateWithChain(chain);
 
-      const result = await this.simulateService.simulate(messages, safeInfo);
+      const result = await this.simulateService.simulate(
+        messages,
+        safeInfo,
+        chain.rest,
+      );
       return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
     } catch (error) {
       return ResponseDto.responseError(MultisigTransactionService.name, error);

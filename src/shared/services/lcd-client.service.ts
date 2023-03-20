@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { CustomError } from '../../common/custom-error';
 import { ErrorMap } from '../../common/error.map';
 import { SimulateResponse } from '../../modules/simulate/dtos/simulate-response';
@@ -10,16 +9,14 @@ import { SimulateDto } from '../dtos';
 export class LcdClient {
   lcdUrl: string;
 
-  constructor(
-    private readonly configService: ConfigService,
-    private readonly commonService: CommonService,
-  ) {
-    this.lcdUrl = this.configService.get<string>('LCD_URL');
-  }
+  constructor(private readonly commonService: CommonService) {}
 
-  async simulate(txBytesBase64: string): Promise<SimulateResponse> {
+  async simulate(
+    lcdUrl: string,
+    txBytesBase64: string,
+  ): Promise<SimulateResponse> {
     try {
-      const url = new URL('cosmos/tx/v1beta1/simulate', this.lcdUrl);
+      const url = new URL('cosmos/tx/v1beta1/simulate', lcdUrl);
       const simulateRes = await this.commonService.requestPost<SimulateDto>(
         url.href,
         {

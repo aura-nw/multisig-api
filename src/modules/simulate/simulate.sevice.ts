@@ -28,19 +28,20 @@ export class SimulateService {
 
   async simulateWithChain(chain: Chain): Promise<void> {
     let wallet = this.chainWalletMap.get(chain.chainId);
-    if (!wallet) {
+    if (wallet) {
+      this.currentWallet = wallet;
+    } else {
       wallet = new WalletSimulate(this.mnemonic, chain);
       await wallet.initialize();
-      await this.generateSimulateSafe();
+      this.currentWallet = wallet;
+      await this.generateSimulateSafe(chain);
 
       this.chainWalletMap.set(chain.chainId, wallet);
     }
-    this.currentWallet = wallet;
   }
 
-  async generateSimulateSafe() {
+  async generateSimulateSafe(chain: Chain) {
     // create safe with owner from 1 -> 20
-    const { chain } = this.currentWallet;
     const { ownerWallets } = this.currentWallet;
 
     const listSafe: SafeSimulate[] = [];
@@ -75,6 +76,7 @@ export class SimulateService {
   async simulate(
     messages: IMessageUnknown[],
     safeInfo: Safe,
+    lcdUrl: string,
   ): Promise<SimulateResponse> {
     // Get sequence of safe account
     const { sequence } = await this.indexerClient.getAccountNumberAndSequence(
@@ -88,7 +90,7 @@ export class SimulateService {
       sequence,
     );
     // call simulate api
-    const result = await this.lcdClient.simulate(encodedBodyBytes);
+    const result = await this.lcdClient.simulate(lcdUrl, encodedBodyBytes);
     return result;
   }
 }
