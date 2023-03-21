@@ -16,7 +16,8 @@ export class WalletSimulate {
   constructor(public mnemonic: string, public chain: Chain) {}
 
   /**
-   * init system safes for simulate tx
+   * Create Secp256k1HdWallets
+   * and then create owner wallets with public key and address
    */
   async initialize(): Promise<void> {
     // generate owners
@@ -53,7 +54,7 @@ export class WalletSimulate {
   }
 
   /**
-   *
+   * Build encoded tx bytes
    * @param messages
    * @param totalOwner
    */
@@ -62,13 +63,14 @@ export class WalletSimulate {
     safeInfo: Safe,
     sequence: number,
   ): Promise<string> {
+    // Get safe pubkey and total owner
     const safePubkey = JSON.parse(safeInfo.safePubkey) as ISafePubkey;
     const totalOwner = safePubkey.value.pubkeys.length;
 
-    // get safe from map
+    // get safe simulate from map
     const safeSimulate = this.safeOwnerMap.get(totalOwner);
     if (!safeSimulate) {
-      throw new Error('safe not found');
+      throw new Error('Safe simulate not found');
     }
 
     // initialize system safe to generate auth info, signature

@@ -660,7 +660,7 @@ export class MultisigTransactionService {
 
       // get chain info
       const chain = await this.chainRepos.findChain(safeInfo.internalChainId);
-      await this.simulateService.simulateWithChain(chain);
+      await this.simulateService.initialize(chain);
 
       const result = await this.simulateService.simulate(
         messages,
@@ -678,7 +678,7 @@ export class MultisigTransactionService {
   ): Promise<ResponseDto<string[]>> {
     const { internalChainId } = request;
     const chain = await this.chainRepos.findChain(internalChainId);
-    await this.simulateService.simulateWithChain(chain);
+    await this.simulateService.initialize(chain);
 
     const wallet = this.simulateService.getCurrentWallet();
     return ResponseDto.response(ErrorMap.SUCCESSFUL, wallet.getAddresses());

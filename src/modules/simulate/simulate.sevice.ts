@@ -26,21 +26,73 @@ export class SimulateService {
     this.mnemonic = this.configService.get<string>('SYS_MNEMONIC');
   }
 
-  async simulateWithChain(chain: Chain): Promise<void> {
+  /**
+   * Initialize wallet and safe for simulate
+   * @param chain
+   */
+  async initialize(chain: Chain): Promise<void> {
+    // Get wallet from map
     let wallet = this.chainWalletMap.get(chain.chainId);
+
+    // If wallet is not exist, create new wallet
     if (wallet) {
       this.currentWallet = wallet;
     } else {
       wallet = new WalletSimulate(this.mnemonic, chain);
+
+      // Initialize wallet
       await wallet.initialize();
+
+      // Set current wallet
       this.currentWallet = wallet;
+
+      // Generate simulate safe
       await this.generateSimulateSafe(chain);
 
+      // Save to map
       this.chainWalletMap.set(chain.chainId, wallet);
     }
   }
 
-  async generateSimulateSafe(chain: Chain) {
+  /**
+   * Simulate tx
+   * @param messages
+   * @param safeInfo
+   * @param lcdUrl
+   * @returns
+   */
+  async simulate(
+    messages: IMessageUnknown[],
+    safeInfo: Safe,
+    lcdUrl: string,
+  ): Promise<SimulateResponse> {
+    // Get sequence of safe account
+    const { sequence } = await this.indexerClient.getAccountNumberAndSequence(
+      this.currentWallet.chain.chainId,
+      safeInfo.safeAddress,
+    );
+
+    // Get encoded tx bytes
+    const encodedBodyBytes = await this.currentWallet.buildEncodedTxBytes(
+      messages,
+      safeInfo,
+      sequence,
+    );
+
+    // Call simulate api to get gas
+    const result = await this.lcdClient.simulate(lcdUrl, encodedBodyBytes);
+    return result;
+  }
+
+  /**
+   * Get current wallet
+   * @returns
+   */
+  getCurrentWallet(): WalletSimulate {
+    return this.currentWallet;
+  }
+
+  private async generateSimulateSafe(chain: Chain) {
     // create safe with owner from 1 -> 20
     const { ownerWallets } = this.currentWallet;
 
@@ -67,30 +119,5 @@ export class SimulateService {
       // save to map
       this.currentWallet.setSafeOwnerMap(i, listSafe[i]);
     }
-  }
-
-  getCurrentWallet(): WalletSimulate {
-    return this.currentWallet;
-  }
-
-  async simulate(
-    messages: IMessageUnknown[],
-    safeInfo: Safe,
-    lcdUrl: string,
-  ): Promise<SimulateResponse> {
-    // Get sequence of safe account
-    const { sequence } = await this.indexerClient.getAccountNumberAndSequence(
-      this.currentWallet.chain.chainId,
-      safeInfo.safeAddress,
-    );
-
-    const encodedBodyBytes = await this.currentWallet.buildEncodedTxBytes(
-      messages,
-      safeInfo,
-      sequence,
-    );
-    // call simulate api
-    const result = await this.lcdClient.simulate(lcdUrl, encodedBodyBytes);
-    return result;
   }
 }
