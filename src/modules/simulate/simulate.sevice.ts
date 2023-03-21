@@ -117,7 +117,7 @@ export class SimulateService {
       listSafe[i].setAccountInfo(accountNumber, sequence);
 
       // save to map
-      this.currentWallet.setSafeOwnerMap(i, listSafe[i]);
+      this.currentWallet.setSafeOwnerMap(i + 1, listSafe[i]);
     }
   }
 }
