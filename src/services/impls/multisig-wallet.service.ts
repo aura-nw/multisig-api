@@ -200,6 +200,30 @@ export class MultisigWalletService
     }
   }
 
+  async safeSynchronization(safeId: string) {
+    const { address: creatorAddress } = this._commonUtil.getAuthInfo();
+
+    // find safe
+    const safe = await this.safeRepo.getCreatedSafe(safeId);
+    await this.safeOwnerRepo.isSafeOwner(creatorAddress, safe.id);
+
+    const chainInfo = await this.generalRepo.findChain(safe.internalChainId);
+
+    // get account onchain
+    const account = await this._indexer.getAccountNumberAndSequence(
+      chainInfo.chainId,
+      safe.safeAddress,
+    );
+
+    // Sync account number and sequence
+    safe.accountNumber = account.accountNumber
+      ? account.accountNumber.toString()
+      : safe.accountNumber;
+    safe.sequence = account.sequence
+      ? account.sequence.toString()
+      : safe.accountNumber;
+  }
+
   async confirm(
     param: MODULE_REQUEST.ConfirmSafePathParams,
   ): Promise<ResponseDto> {
