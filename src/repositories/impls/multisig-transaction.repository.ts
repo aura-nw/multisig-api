@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BaseRepository } from './base.repository';
-import { In, ObjectLiteral, Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { ENTITIES_CONFIG, REPOSITORY_INTERFACE } from '../../module.config';
 import { IMultisigTransactionsRepository } from '../imultisig-transaction.repository';
 import { AuraTx, Chain, MultisigTransaction } from '../../entities';
@@ -33,7 +33,7 @@ export class MultisigTransactionRepository
     @Inject(REPOSITORY_INTERFACE.IMULTISIG_WALLET_REPOSITORY)
     private safeRepos: IMultisigWalletRepository,
     @InjectRepository(ENTITIES_CONFIG.MULTISIG_TRANSACTION)
-    private readonly repos: Repository<ObjectLiteral>,
+    private readonly repos: Repository<MultisigTransaction>,
   ) {
     super(repos);
     this._logger.log(
@@ -93,21 +93,6 @@ export class MultisigTransactionRepository
     return [...new Set(sequence)].sort();
   }
 
-  async updateTxBroadcastSuccess(
-    transactionId: number,
-    txHash: string,
-  ): Promise<any> {
-    const multisigTransaction = await this.findOne({
-      where: {
-        id: transactionId,
-      },
-    });
-
-    multisigTransaction.status = TRANSACTION_STATUS.PENDING;
-    multisigTransaction.txHash = txHash;
-    await this.update(multisigTransaction);
-  }
-
   async getBroadcastableTx(
     transactionId: number,
   ): Promise<MultisigTransaction> {
@@ -123,6 +108,47 @@ export class MultisigTransactionRepository
     }
 
     return multisigTransaction;
+  }
+
+  async updateTxToExecuting(transactionId: number): Promise<void> {
+    const updatedResult = await this.repos.update(
+      {
+        id: transactionId,
+        status: TRANSACTION_STATUS.AWAITING_EXECUTION,
+      },
+      {
+        status: TRANSACTION_STATUS.EXECUTING,
+      },
+    );
+
+    if (updatedResult.affected && updatedResult.affected === 1) {
+      this._logger.log('Update tx to executing success');
+    } else {
+      throw new CustomError(ErrorMap.TRANSACTION_IS_EXECUTING);
+    }
+  }
+
+  async updateExecutingTx(
+    transactionId: number,
+    status: TRANSACTION_STATUS,
+    txHash?: string,
+  ): Promise<void> {
+    const updatedResult = await this.repos.update(
+      {
+        id: transactionId,
+        status: TRANSACTION_STATUS.EXECUTING,
+      },
+      {
+        status: status,
+        txHash: txHash,
+      },
+    );
+
+    if (updatedResult.affected && updatedResult.affected === 1) {
+      this._logger.log(`Update tx to ${status} success`);
+    } else {
+      throw new CustomError(ErrorMap.TRANSACTION_NOT_VALID);
+    }
   }
 
   async getTransactionById(

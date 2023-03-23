@@ -196,6 +196,10 @@ export const ErrorMap = {
     Message:
       'Can not delete because the status of this transaction is invalid!',
   },
+  TRANSACTION_IS_EXECUTING: {
+    Code: 'E047',
+    Message: 'Transaction is executing!',
+  },
   C001: {
     Code: 'C001',
     Message: `Missing result from Chaincode`,

@@ -1,3 +1,4 @@
+import { TRANSACTION_STATUS } from '../common/constants/app.constant';
 import { MultisigTransactionHistoryResponse } from '../dtos/responses';
 import {
   TxDetail,
@@ -83,9 +84,19 @@ export interface IMultisigTransactionsRepository extends IBaseRepository {
   getBroadcastableTx(transactionId: number): Promise<MultisigTransaction>;
 
   /**
-   * Update tx when broadcasted success
+   * updateTxToExecuting
+   * @param transactionId
    */
-  updateTxBroadcastSuccess(transactionId: number, txHash: string): Promise<any>;
+  updateTxToExecuting(transactionId: number): Promise<void>;
+
+  /**
+   * Update executing tx
+   */
+  updateExecutingTx(
+    transactionId: number,
+    status: TRANSACTION_STATUS,
+    txHash?: string,
+  ): Promise<void>;
 
   /**
    * Validate safe don't have pending tx
