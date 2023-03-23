@@ -62,11 +62,26 @@ export class IndexerClient {
     if (!accountInfo.account_auth) {
       throw new CustomError(ErrorMap.MISSING_ACCOUNT_AUTH);
     }
-    const accountNumber = Number(
-      accountInfo.account_auth.account.account_number,
-    );
 
-    const sequence = Number(accountInfo.account_auth.account.sequence);
+    let accountNumber: number;
+    let sequence: number;
+
+    if (
+      accountInfo.account_auth.account['@type'] ===
+      '/cosmos.vesting.v1beta1.DelayedVestingAccount'
+    ) {
+      accountNumber = Number(
+        accountInfo.account_auth.account.base_vesting_account.base_account
+          .account_number,
+      );
+      sequence = Number(
+        accountInfo.account_auth.account.base_vesting_account.base_account
+          .sequence,
+      );
+    } else {
+      accountNumber = Number(accountInfo.account_auth.account.account_number);
+      sequence = Number(accountInfo.account_auth.account.sequence);
+    }
 
     if (isNaN(accountNumber) || isNaN(sequence)) {
       throw new CustomError(ErrorMap.CANNOT_GET_ACCOUNT_NUMBER_OR_SEQUENCE);
