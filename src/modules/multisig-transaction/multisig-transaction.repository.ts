@@ -19,8 +19,8 @@ export class MultisigTransactionRepository {
   private readonly logger = new Logger(MultisigTransactionRepository.name);
 
   constructor(
-    private multisigConfirmRepos: MultisigConfirmRepository,
     private safeRepos: SafeRepository,
+    private multisigConfirmRepos: MultisigConfirmRepository,
     @InjectRepository(MultisigTransaction)
     private readonly repo: Repository<MultisigTransaction>,
   ) {

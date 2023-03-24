@@ -53,7 +53,7 @@ export class MultisigTransactionController {
   @CommonAuthPost({
     url: URL_CONSTANTS.CREATE,
     summary: 'API Create multisig transaction',
-    description: `It is used to allow owner of safe create transaction transfer native coin with another address. 
+    description: `It is used to allow owner of safe create transaction transfer native coin with another address.
     Firs of all, owner must sign transaction via wallet extension then get signature and bodyBytes, what is result of action sign. Then call API to create transaction.`,
   })
   async createTransaction(@Body() request: CreateTransactionRequestDto) {
@@ -134,7 +134,7 @@ export class MultisigTransactionController {
   @CommonAuthPost({
     url: URL_CONSTANTS.SEND,
     summary: 'Send transaction to AURA',
-    description: `It is used to owner of safe broadcast transaction to network. When it failed will throw information. 
+    description: `It is used to owner of safe broadcast transaction to network. When it failed will throw information.
     When it success, update transaction txHash to DB. Multisig sync service will crawl data from network then update result of transaction.`,
   })
   async sendTransaction(@Body() request: SendTransactionRequestDto) {

@@ -961,18 +961,18 @@
     webpack "5.75.0"
     webpack-node-externals "3.0.0"
 
-"@nestjs/common@9.0.11":
-  version "9.0.11"
-  resolved "https://registry.npmjs.org/@nestjs/common/-/common-9.0.11.tgz"
-  integrity sha512-oYLIcOal3QOwcqt6goXovRNg8ZkalyOMjH0oYYzfJLrait6P7c6nAeWHu4qFDThY7GoZHEanLgji1qlqVEW09g==
+"@nestjs/common@^9.3.12":
+  version "9.3.12"
+  resolved "https://registry.yarnpkg.com/@nestjs/common/-/common-9.3.12.tgz#9b3a9e162fe73c830ffa588fd3d921fd8a9f174a"
+  integrity sha512-NtrUG2VgCbhmZEO1yRt/Utq16uFRV+xeHAOtdYIsfHGG0ssAV2lVLlvFFAQYh0SQ+KuYY1Gsxd3GK2JFoJCNqQ==
   dependencies:
+    uid "2.0.1"
     iterare "1.2.1"
-    tslib "2.4.0"
-    uuid "8.3.2"
+    tslib "2.5.0"
 
 "@nestjs/config@^2.3.1":
   version "2.3.1"
-  resolved "https://registry.npmjs.org/@nestjs/config/-/config-2.3.1.tgz"
+  resolved "https://registry.yarnpkg.com/@nestjs/config/-/config-2.3.1.tgz#6ac151f818db4ccf987c7ff8ef5b2c1f4eeec913"
   integrity sha512-Ckzel0NZ9CWhNsLfE1hxfDuxJuEbhQvGxSlmZ1/X8awjRmAA/g3kT6M1+MO1SHj1wMtPyUfd9WpwkiqFbiwQgA==
   dependencies:
     dotenv "16.0.3"
@@ -1042,7 +1042,7 @@
 
 "@nestjs/swagger@^6.2.1":
   version "6.2.1"
-  resolved "https://registry.npmjs.org/@nestjs/swagger/-/swagger-6.2.1.tgz"
+  resolved "https://registry.yarnpkg.com/@nestjs/swagger/-/swagger-6.2.1.tgz#38caa76ac00993ddc11a79dd24ab9f4392d2791d"
   integrity sha512-9M2vkfJHIzLqDZwvM5TEZO0MxRCvIb0xVy0LsmWwxH1lrb0z/4MhU+r2CWDhBtTccVJrKxVPiU2s3T3b9uUJbg==
   dependencies:
     "@nestjs/mapped-types" "1.2.2"
@@ -1058,9 +1058,9 @@
   dependencies:
     tslib "2.5.0"
 
-"@nestjs/typeorm@9.0.1":
+"@nestjs/typeorm@^9.0.1":
   version "9.0.1"
-  resolved "https://registry.npmjs.org/@nestjs/typeorm/-/typeorm-9.0.1.tgz"
+  resolved "https://registry.yarnpkg.com/@nestjs/typeorm/-/typeorm-9.0.1.tgz#f78bfc00e71731ea860288e4a03830107daf3d9c"
   integrity sha512-A2BgLIPsMtmMI0bPKEf4bmzgFPsnvHqNBx3KkvaJ7hJrBQy0OqYOb+Rr06ifblKWDWS2tUPNrAFQbZjtk3PI+g==
   dependencies:
     uuid "8.3.2"
@@ -6784,11 +6784,6 @@ tsconfig@^7.0.0:
     "@types/strip-json-comments" "0.0.30"
     strip-bom "^3.0.0"
     strip-json-comments "^2.0.0"
-
-tslib@2.4.0:
-  version "2.4.0"
-  resolved "https://registry.npmjs.org/tslib/-/tslib-2.4.0.tgz"
-  integrity sha512-d6xOpEDfsi2CZVlPQzGeux8XMwLT9hssAsaPYExaQMuYskwb+x1x7J371tWlbBdWHroy99KnVB6qIkUbs5X3UQ==
 
 tslib@2.5.0, tslib@^2.1.0, tslib@^2.5.0:
   version "2.5.0"
