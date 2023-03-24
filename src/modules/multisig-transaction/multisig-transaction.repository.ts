@@ -64,7 +64,7 @@ export class MultisigTransactionRepository {
    * @param id
    */
   async deleteTx(id: number): Promise<void> {
-    await this.repo
+    const result = await this.repo
       .createQueryBuilder()
       .update(MultisigTransaction)
       .set({
@@ -72,6 +72,12 @@ export class MultisigTransactionRepository {
       })
       .where('Id = :id', { id })
       .execute();
+
+    if (result.affected === 0) {
+      throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
+    } else {
+      this.logger.log('Delete transaction successfully');
+    }
   }
 
   /**
