@@ -9,7 +9,7 @@ import { gasTestingModule } from './gas-testing.module';
 
 describe('GasRepository', () => {
   let gasRepository: GasRepository;
-  let mockRepo = MockFactory.getMock(Repository<Gas>);
+  let mockRepo = MockFactory.getMock<Repository<Gas>>();
 
   beforeEach(async () => {
     const module: TestingModule = await gasTestingModule

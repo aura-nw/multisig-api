@@ -92,11 +92,13 @@ export class DistributionService {
     const { status } = query;
     try {
       // Get chain
-      const chain = await this.chainRepo.findChain(internalChainId);
+      const { chainId, coinDecimals } = await this.chainRepo.findChain(
+        internalChainId,
+      );
 
       // Get all validators from indexer which status is active
       const validators: IValidator[] = await this.indexer.getValidators(
-        chain.chainId,
+        chainId,
         status,
       );
 
@@ -104,9 +106,7 @@ export class DistributionService {
       const validatorsResponse = await Promise.all(
         validators
           .filter((validator) => validator.description)
-          .map((validator) =>
-            this.formatValidator(validator, chain.coinDecimals),
-          ),
+          .map((validator) => this.formatValidator(validator, coinDecimals)),
       );
 
       return ResponseDto.response(

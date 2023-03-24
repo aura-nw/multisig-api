@@ -13,7 +13,7 @@ import { TxMessageResponseDto } from './dto';
 
 describe('MessageRepository', () => {
   let messageRepository: MessageRepository;
-  let mockRepo = MockFactory.getMock(Repository<Message>);
+  let mockRepo = MockFactory.getMock<Repository<Message>>();
 
   beforeEach(async () => {
     const module: TestingModule = await messageTestingModule

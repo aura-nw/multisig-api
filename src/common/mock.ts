@@ -3,18 +3,11 @@ export type MockType<T> = {
 };
 
 export const MockFactory = {
-  getMock<T>(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    type: new (...args: any[]) => T,
-    includes?: string[],
-  ): MockType<T> {
+  getMock<T>(): MockType<T> {
     const mock: MockType<T> = {};
 
-    Object.getOwnPropertyNames(type.prototype)
-      .filter(
-        (key: string) =>
-          key !== 'constructor' && (!includes || includes.includes(key)),
-      )
+    Object.getOwnPropertyNames(mock)
+      .filter((key: string) => key !== 'constructor')
       .forEach((key: string) => {
         mock[key] = jest.fn();
       });

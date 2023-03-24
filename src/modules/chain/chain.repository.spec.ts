@@ -10,7 +10,7 @@ import { Chain } from './entities/chain.entity';
 
 describe('ChainRepository', () => {
   let chainRepository: ChainRepository;
-  let mockRepo = MockFactory.getMock(Repository<Chain>);
+  let mockRepo = MockFactory.getMock<Repository<Chain>>();
 
   beforeEach(async () => {
     const module: TestingModule = await chainTestingModule

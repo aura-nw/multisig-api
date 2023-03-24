@@ -1112,7 +1112,7 @@ export class MultisigTransactionService {
       sequence: 0,
     };
 
-    if (safe.accountNumber !== undefined && safe.nextQueueSeq !== undefined) {
+    if (Number(safe.accountNumber) && Number(safe.nextQueueSeq)) {
       accountInfo.accountNumber = Number(safe.accountNumber);
       accountInfo.sequence = sequence || Number(safe.nextQueueSeq);
       return accountInfo;

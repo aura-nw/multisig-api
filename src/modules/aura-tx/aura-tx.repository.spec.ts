@@ -8,7 +8,7 @@ import { auraTxTestingModule } from './aura-tx-testing.module';
 
 describe('AuraTxRepository', () => {
   let auraTxRepository: AuraTxRepository;
-  let mockRepo = MockFactory.getMock(Repository<AuraTx>);
+  let mockRepo = MockFactory.getMock<Repository<AuraTx>>();
 
   beforeEach(async () => {
     const module: TestingModule = await auraTxTestingModule

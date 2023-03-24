@@ -16,7 +16,7 @@ import { GetListConfirmResDto } from './dto';
 describe('MultisigConfirmRepository', () => {
   let multisigConfirmRepository: MultisigConfirmRepository;
   let safeOwnerRepo: SafeOwnerRepository;
-  let mockRepo = MockFactory.getMock(Repository<MultisigConfirm>);
+  let mockRepo = MockFactory.getMock<Repository<MultisigConfirm>>();
 
   beforeEach(async () => {
     const module: TestingModule = await multisigConfirmTestingModule
