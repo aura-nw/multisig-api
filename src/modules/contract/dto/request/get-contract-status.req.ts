@@ -5,7 +5,7 @@ export class GetContractStatusReqDto {
   @ApiProperty({
     description: 'Contract Address',
     type: String,
-    example: 'aura154wtyd0cu59tr5rrsh6u8esd7h4dxt7jf2p0w4mx3mhakl0s3u2qwpdflk',
+    example: 'aura1t7sv20kw5vm8gkpzrak4qfmxxsktdc9ykdjay5kr5lr8frtskwwqdnd6re',
   })
   @IsString()
   contractAddress: string;
