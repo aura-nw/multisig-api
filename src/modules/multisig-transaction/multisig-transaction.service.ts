@@ -200,6 +200,7 @@ export class MultisigTransactionService {
       );
 
       safe.accountNumber = accountInfo.accountNumber.toString();
+      safe.sequence = sequenceInIndexer.toString();
       await this.safeRepos.updateSafe(safe);
 
       // notify to another owners
@@ -1028,16 +1029,17 @@ export class MultisigTransactionService {
     const chain = await this.chainRepos.findChain(internalChainId);
 
     // get safe account info
-    const accountInfo: AccountInfo = await this.getAccountInfoWithNewSeq(
-      undefined,
-      safe,
-      chain.chainId,
-    );
+    const accountInfo: AccountInfo =
+      await this.indexer.getAccountNumberAndSequence(
+        chain.chainId,
+        safe.safeAddress,
+      );
 
     safe.nextQueueSeq = await this.calculateNextSeq(
       safe.id,
       accountInfo.sequence,
     );
+    safe.sequence = accountInfo.sequence.toString();
 
     await this.safeRepos.updateSafe(safe);
   }
