@@ -30,6 +30,12 @@ export interface IAccountInfo {
       pub_key: IPubkey;
       account_number: string;
       sequence: string;
+      base_vesting_account?: {
+        base_account: {
+          account_number: string;
+          sequence: string;
+        };
+      };
     };
   };
   address: string;
