@@ -57,6 +57,7 @@ export enum TransactionStatus {
   FAILED = 'FAILED',
   REPLACED = 'REPLACED',
   DELETED = 'DELETED',
+  EXECUTING = 'EXECUTING',
 }
 export enum MultisigConfirmStatus {
   CONFIRM = 'CONFIRM',

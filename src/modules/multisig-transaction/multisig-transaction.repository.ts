@@ -130,26 +130,6 @@ export class MultisigTransactionRepository {
     return [...new Set(sequence)].sort();
   }
 
-  /**
-   * updateTxBroadcastSuccess
-   * @param transactionId
-   * @param txHash
-   */
-  async updateTxBroadcastSuccess(
-    transactionId: number,
-    txHash: string,
-  ): Promise<void> {
-    const multisigTransaction = await this.repo.findOne({
-      where: {
-        id: transactionId,
-      },
-    });
-
-    multisigTransaction.status = TransactionStatus.PENDING;
-    multisigTransaction.txHash = txHash;
-    await this.repo.save(multisigTransaction);
-  }
-
   async getBroadcastableTx(
     transactionId: number,
   ): Promise<MultisigTransaction> {
@@ -165,6 +145,47 @@ export class MultisigTransactionRepository {
     }
 
     return multisigTransaction;
+  }
+
+  async updateTxToExecuting(transactionId: number): Promise<void> {
+    const updatedResult = await this.repo.update(
+      {
+        id: transactionId,
+        status: TransactionStatus.AWAITING_EXECUTION,
+      },
+      {
+        status: TransactionStatus.EXECUTING,
+      },
+    );
+
+    if (updatedResult.affected && updatedResult.affected === 1) {
+      this.logger.log('Update tx to executing success');
+    } else {
+      throw new CustomError(ErrorMap.TRANSACTION_IS_EXECUTING);
+    }
+  }
+
+  async updateExecutingTx(
+    transactionId: number,
+    status: TransactionStatus,
+    txHash?: string,
+  ): Promise<void> {
+    const updatedResult = await this.repo.update(
+      {
+        id: transactionId,
+        status: TransactionStatus.EXECUTING,
+      },
+      {
+        status,
+        txHash,
+      },
+    );
+
+    if (updatedResult.affected && updatedResult.affected === 1) {
+      this.logger.log(`Update tx to ${status} success`);
+    } else {
+      throw new CustomError(ErrorMap.TRANSACTION_NOT_VALID);
+    }
   }
 
   async getTransactionById(

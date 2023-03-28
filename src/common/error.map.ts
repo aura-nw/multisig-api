@@ -200,6 +200,10 @@ export const ErrorMap = {
     Code: 'E048',
     Message: 'Invalid contract address!',
   },
+  TRANSACTION_IS_EXECUTING: {
+    Code: 'E049',
+    Message: 'Transaction is executing!',
+  },
   C001: {
     Code: 'C001',
     Message: 'Missing result from Chaincode',

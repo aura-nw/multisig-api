@@ -307,6 +307,9 @@ export class MultisigTransactionService {
       const multisigTransaction =
         await this.multisigTransactionRepos.getBroadcastableTx(transactionId);
 
+      // update tx status
+      await this.multisigTransactionRepos.updateTxToExecuting(transactionId);
+
       // get safe & validate safe owner
       const safe = await this.safeRepos.getSafeByAddress(
         multisigTransaction.fromAddress,
@@ -335,8 +338,9 @@ export class MultisigTransactionService {
         // TxHash is encoded transaction when send it to network
         const txId = CommonUtil.getStrProp(error, 'txId');
         if (txId === undefined) {
-          await this.multisigTransactionRepos.updateFailedTx(
-            multisigTransaction,
+          await this.multisigTransactionRepos.updateExecutingTx(
+            multisigTransaction.id,
+            TransactionStatus.FAILED,
           );
 
           // re calculate next seq
@@ -353,8 +357,9 @@ export class MultisigTransactionService {
           );
         }
         // update tx status to "pending"
-        await this.multisigTransactionRepos.updateTxBroadcastSuccess(
+        await this.multisigTransactionRepos.updateExecutingTx(
           multisigTransaction.id,
+          TransactionStatus.PENDING,
           txId,
         );
 
