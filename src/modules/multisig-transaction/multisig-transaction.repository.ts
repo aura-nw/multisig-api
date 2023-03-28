@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { In, Repository, UpdateResult } from 'typeorm';
 import {
   MultisigConfirmStatus,
   TransactionStatus,
@@ -63,7 +63,7 @@ export class MultisigTransactionRepository {
    * Set status of transaction to DELETED
    * @param id
    */
-  async deleteTx(id: number): Promise<void> {
+  async deleteTx(id: number): Promise<UpdateResult> {
     const result = await this.repo
       .createQueryBuilder()
       .update(MultisigTransaction)
@@ -77,6 +77,7 @@ export class MultisigTransactionRepository {
       throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
     } else {
       this.logger.log('Delete transaction successfully');
+      return result;
     }
   }
 
@@ -85,8 +86,11 @@ export class MultisigTransactionRepository {
    * @param safeId
    * @param sequence
    */
-  async updateQueueTxToReplaced(safeId: number, sequence: number) {
-    await this.repo
+  async updateQueueTxToReplaced(
+    safeId: number,
+    sequence: number,
+  ): Promise<UpdateResult> {
+    return this.repo
       .createQueryBuilder()
       .update(MultisigTransaction)
       .set({
