@@ -2,6 +2,7 @@ import { TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
 import { Repository } from 'typeorm';
+import _ from 'lodash';
 import { MockFactory } from '../../common/mock';
 import { MultisigTransactionRepository } from './multisig-transaction.repository';
 import { MultisigTransaction } from './entities/multisig-transaction.entity';
@@ -10,6 +11,11 @@ import { SafeRepository } from '../safe/safe.repository';
 import { multisigTransactionTestingModule } from './multisig-transaction-testing.module';
 import { CustomError } from '../../common/custom-error';
 import { ErrorMap } from '../../common/error.map';
+import { TransactionStatus } from '../../common/constants/app.constant';
+import { safeDbMock, txConfirmDbMock } from '../../mock';
+import { GetListConfirmResDto } from '../multisig-confirm/dto';
+import { Safe } from '../safe/entities/safe.entity';
+import { getMultisigDetailResponseMock } from './mocks';
 
 describe('MultisigTransactionRepository', () => {
   let multisigTransactionRepo: MultisigTransactionRepository;
@@ -187,9 +193,6 @@ describe('MultisigTransactionRepository', () => {
     });
   });
 
-  describe('getBroadcastableTx', () => {});
-  describe('updateTxToExecuting', () => {});
-
   describe('findSequenceInQueue', () => {
     it('should sort and remove duplicate sequence', async () => {
       const safeId = 1;
@@ -219,29 +222,335 @@ describe('MultisigTransactionRepository', () => {
     });
   });
 
+  describe('getBroadcastableTx', () => {
+    it('should return broadcastable tx', async () => {
+      const txId = 1;
+      const mockFindResult = {
+        id: txId,
+        status: 'AWAITING_EXECUTION',
+      };
+      mockRepo.findOne = jest.fn().mockResolvedValue(mockFindResult);
+      const repoSpy = jest.spyOn(repo, 'findOne');
+
+      const result = await multisigTransactionRepo.getBroadcastableTx(txId);
+      expect(result).toStrictEqual(mockFindResult);
+      expect(repoSpy).toBeCalledTimes(1);
+    });
+
+    it('should throw transaction not valid', async () => {
+      const txId = 1;
+      const mockFindResult = {
+        id: txId,
+        status: 'PENDING',
+      };
+      mockRepo.findOne = jest.fn().mockResolvedValue(mockFindResult);
+      const repoSpy = jest.spyOn(repo, 'findOne');
+
+      try {
+        await multisigTransactionRepo.getBroadcastableTx(txId);
+      } catch (error) {
+        expect(error).toEqual(new CustomError(ErrorMap.TRANSACTION_NOT_VALID));
+      }
+
+      expect(repoSpy).toBeCalledTimes(1);
+    });
+  });
+
+  describe('updateTxToExecuting', () => {
+    it('should update tx to executing', async () => {
+      const txId = 1;
+      mockRepo.update = jest.fn().mockResolvedValue({
+        affected: 1,
+      });
+      const repoSpy = jest.spyOn(repo, 'update');
+
+      await multisigTransactionRepo.updateTxToExecuting(txId);
+      expect(repoSpy).toBeCalledTimes(1);
+    });
+
+    it('should throw transaction is executing', async () => {
+      const txId = 1;
+      mockRepo.update = jest.fn().mockResolvedValue({
+        affected: 0,
+      });
+      const repoSpy = jest.spyOn(repo, 'update');
+
+      try {
+        await multisigTransactionRepo.updateTxToExecuting(txId);
+      } catch (error) {
+        expect(error).toEqual(
+          new CustomError(ErrorMap.TRANSACTION_IS_EXECUTING),
+        );
+      }
+
+      expect(repoSpy).toBeCalledTimes(1);
+    });
+  });
+
   describe('updateExecutingTx', () => {
-    // it('should change status of multisig transaction to PENDING', async () => {
-    //   const transactionId = 1;
-    //   const txHash =
-    //     '9CBD4A5D7EEBCBBD6164B29FC7791D26F7CD623D16F2BFAE2B8E5CF905830B34';
-    //   const mockFindResult = {
-    //     id: transactionId,
-    //     status: 'EXECUTING',
-    //   };
-    //   mockRepo.findOne = jest.fn().mockResolvedValue(mockFindResult);
-    //   const expectArgs = {
-    //     id: transactionId,
-    //     status: 'PENDING',
-    //     txHash,
-    //   };
-    //   mockRepo.save = jest.fn().mockResolvedValue(undefined);
-    //   const repoSpy = jest.spyOn(repo, 'save');
-    //   await multisigTransactionRepo.updateTxBroadcastSuccess(
-    //     transactionId,
-    //     txHash,
-    //   );
-    //   expect(repoSpy).toBeCalledTimes(1);
-    //   expect(repoSpy).toBeCalledWith(expectArgs);
-    // });
+    it('should change status of multisig transaction to PENDING', async () => {
+      const transactionId = 1;
+      const status = TransactionStatus.PENDING;
+      const txHash =
+        '9CBD4A5D7EEBCBBD6164B29FC7791D26F7CD623D16F2BFAE2B8E5CF905830B34';
+
+      mockRepo.update = jest.fn().mockResolvedValue({
+        affected: 1,
+      });
+
+      const repoSpy = jest.spyOn(repo, 'update');
+      await multisigTransactionRepo.updateExecutingTx(
+        transactionId,
+        status,
+        txHash,
+      );
+      expect(repoSpy).toBeCalledTimes(1);
+    });
+
+    it('should throw transaction not valid', async () => {
+      const transactionId = 1;
+      const status = TransactionStatus.PENDING;
+      const txHash =
+        '9CBD4A5D7EEBCBBD6164B29FC7791D26F7CD623D16F2BFAE2B8E5CF905830B34';
+
+      mockRepo.update = jest.fn().mockResolvedValue({
+        affected: 0,
+      });
+
+      const repoSpy = jest.spyOn(repo, 'update');
+      try {
+        await multisigTransactionRepo.updateExecutingTx(
+          transactionId,
+          status,
+          txHash,
+        );
+      } catch (error) {
+        expect(error).toEqual(new CustomError(ErrorMap.TRANSACTION_NOT_VALID));
+      }
+      expect(repoSpy).toBeCalledTimes(1);
+    });
+  });
+
+  describe('getTransactionById', () => {
+    it('should get multisig transaction by id', async () => {
+      const id = 1;
+      const mockFindResult = {
+        id,
+      };
+      mockRepo.findOne = jest.fn().mockResolvedValue(mockFindResult);
+      const repoSpy = jest.spyOn(repo, 'findOne');
+
+      const result = await multisigTransactionRepo.getTransactionById(id);
+      expect(result).toStrictEqual(mockFindResult);
+      expect(repoSpy).toBeCalledTimes(1);
+    });
+
+    it('should throw transaction not found', async () => {
+      const id = 1;
+      mockRepo.findOne = jest.fn().mockResolvedValue(null);
+      const repoSpy = jest.spyOn(repo, 'findOne');
+
+      try {
+        await multisigTransactionRepo.getTransactionById(id);
+      } catch (error) {
+        expect(error).toEqual(new CustomError(ErrorMap.TRANSACTION_NOT_EXIST));
+      }
+
+      expect(repoSpy).toBeCalledTimes(1);
+    });
+  });
+
+  describe('insertMultisigTransaction', () => {
+    it('should insert multisig transaction', async () => {
+      const tx = plainToInstance(MultisigTransaction, {
+        id: 1,
+      });
+
+      mockRepo.save = jest.fn().mockResolvedValue(tx);
+      const repoSpy = jest.spyOn(repo, 'save');
+
+      const result = await multisigTransactionRepo.insertMultisigTransaction(
+        tx,
+      );
+      expect(result).toStrictEqual(tx);
+      expect(repoSpy).toBeCalledTimes(1);
+    });
+
+    it('should throw insert transaction failed', async () => {
+      const tx = plainToInstance(MultisigTransaction, {
+        id: 1,
+      });
+
+      mockRepo.save = jest.fn().mockResolvedValue(null);
+      const repoSpy = jest.spyOn(repo, 'save');
+
+      try {
+        await multisigTransactionRepo.insertMultisigTransaction(tx);
+      } catch (error) {
+        expect(error).toEqual(
+          new CustomError(ErrorMap.INSERT_TRANSACTION_FAILED),
+        );
+      }
+
+      expect(repoSpy).toBeCalledTimes(1);
+    });
+  });
+
+  describe('updateAwaitingExecutionTx', () => {
+    it('should update awaiting execution tx', async () => {
+      const txId = 1;
+      const safeId = 1;
+      const threshold = 2;
+
+      const mockFindTxResult = {
+        id: 1,
+        status: TransactionStatus.AWAITING_CONFIRMATIONS,
+      };
+
+      const expectResult = {
+        id: 1,
+        status: TransactionStatus.AWAITING_EXECUTION,
+      };
+
+      mockRepo.findOne = jest.fn().mockResolvedValue(mockFindTxResult);
+      mockRepo.save = jest.fn().mockResolvedValue(expectResult);
+      jest
+        .spyOn(multisigConfirmRepo, 'getListConfirmMultisigTransaction')
+        .mockResolvedValue(
+          plainToInstance(
+            GetListConfirmResDto,
+            txConfirmDbMock.slice(0, threshold),
+          ),
+        );
+      jest.spyOn(safeRepo, 'getSafeById').mockResolvedValue(
+        plainToInstance(
+          Safe,
+          safeDbMock.find((safe) => safe.threshold === threshold),
+        ),
+      );
+
+      const repoSpy = jest.spyOn(repo, 'findOne');
+      const saveSpy = jest.spyOn(repo, 'save');
+
+      const result = await multisigTransactionRepo.updateAwaitingExecutionTx(
+        txId,
+        safeId,
+      );
+
+      expect(result).toStrictEqual(expectResult);
+      expect(repoSpy).toBeCalledTimes(1);
+      expect(saveSpy).toBeCalledTimes(1);
+      expect(saveSpy).toBeCalledWith(expectResult);
+    });
+
+    it('should return undefined if tx not ready to execute', async () => {
+      const txId = 1;
+      const safeId = 1;
+      const threshold = 2;
+      const totalConfirm = 1;
+
+      jest
+        .spyOn(multisigConfirmRepo, 'getListConfirmMultisigTransaction')
+        .mockResolvedValue(
+          plainToInstance(
+            GetListConfirmResDto,
+            txConfirmDbMock.slice(0, totalConfirm),
+          ),
+        );
+      jest.spyOn(safeRepo, 'getSafeById').mockResolvedValue(
+        plainToInstance(
+          Safe,
+          safeDbMock.find((safe) => safe.threshold === threshold),
+        ),
+      );
+
+      const result = await multisigTransactionRepo.updateAwaitingExecutionTx(
+        txId,
+        safeId,
+      );
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should throw transaction not exist', async () => {
+      const txId = 1;
+      const safeId = 1;
+      const threshold = 2;
+      const totalConfirm = 2;
+
+      jest
+        .spyOn(multisigConfirmRepo, 'getListConfirmMultisigTransaction')
+        .mockResolvedValue(
+          plainToInstance(
+            GetListConfirmResDto,
+            txConfirmDbMock.slice(0, totalConfirm),
+          ),
+        );
+      jest.spyOn(safeRepo, 'getSafeById').mockResolvedValue(
+        plainToInstance(
+          Safe,
+          safeDbMock.find((safe) => safe.threshold === threshold),
+        ),
+      );
+
+      mockRepo.findOne = jest.fn().mockResolvedValue(null);
+
+      try {
+        await multisigTransactionRepo.updateAwaitingExecutionTx(txId, safeId);
+      } catch (error) {
+        expect(error).toEqual(new CustomError(ErrorMap.TRANSACTION_NOT_EXIST));
+      }
+    });
+  });
+
+  describe('getMultisigTxDetail', () => {
+    it('should get multisig tx detail', async () => {
+      const txId = 1;
+
+      mockRepo.createQueryBuilder = jest.fn().mockReturnValue({
+        leftJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        getRawOne: jest.fn().mockResolvedValue(getMultisigDetailResponseMock),
+      });
+
+      const result = await multisigTransactionRepo.getMultisigTxDetail(txId);
+      expect(result).toStrictEqual(getMultisigDetailResponseMock);
+    });
+
+    it('should throw transaction not exist', async () => {
+      const txId = 1;
+
+      mockRepo.createQueryBuilder = jest.fn().mockReturnValue({
+        leftJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        getRawOne: jest.fn().mockResolvedValue(undefined),
+      });
+
+      try {
+        await multisigTransactionRepo.getMultisigTxDetail(txId);
+      } catch (error) {
+        expect(error).toEqual(new CustomError(ErrorMap.TRANSACTION_NOT_EXIST));
+      }
+    });
+  });
+
+  describe('getQueueTransaction', () => {
+    it('should get queue transaction', async () => {
+      const safeAddress = 'aura1qc4y4awjmx9zjzqapucr66tdzf34zq0uxjraf7';
+      const internalChainId = 22;
+      const pageIndex = 1;
+      const limit = 10;
+
+      mockRepo.createQueryBuilder = jest.fn().mockReturnValue({
+        where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        getRawMany: jest.fn().mockResolvedValue(getMultisigDetailResponseMock),
+      });
+    });
   });
 });

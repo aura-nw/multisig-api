@@ -2,6 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
 import { MoreThan, Repository } from 'typeorm';
+import { CustomError } from '../../common/custom-error';
+import { ErrorMap } from '../../common/error.map';
 import { TxDetailDto } from '../multisig-transaction/dto/response/tx-detail.res';
 import { MultisigTransaction } from '../multisig-transaction/entities/multisig-transaction.entity';
 import { BatchAuraTxDto } from './dto';
@@ -57,6 +59,7 @@ export class AuraTxRepository {
       ])
       .getRawOne<TxDetailDto>();
 
+    if (!tx) throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
     return tx;
   }
 }

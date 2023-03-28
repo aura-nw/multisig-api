@@ -204,6 +204,10 @@ export const ErrorMap = {
     Code: 'E049',
     Message: 'Transaction is executing!',
   },
+  INSERT_TRANSACTION_FAILED: {
+    Code: 'E050',
+    Message: 'Insert transaction failed!',
+  },
   C001: {
     Code: 'C001',
     Message: 'Missing result from Chaincode',

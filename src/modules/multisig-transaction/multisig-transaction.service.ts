@@ -1097,7 +1097,6 @@ export class MultisigTransactionService {
     const txDetail = multisigTxId
       ? await this.multisigTransactionRepos.getMultisigTxDetail(multisigTxId)
       : await this.auraTxRepo.getAuraTxDetail(auraTxId);
-    if (!txDetail) throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
     return txDetail;
   }
 

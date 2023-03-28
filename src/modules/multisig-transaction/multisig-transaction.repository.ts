@@ -205,7 +205,9 @@ export class MultisigTransactionRepository {
   async insertMultisigTransaction(
     transaction: MultisigTransaction,
   ): Promise<MultisigTransaction> {
-    return this.repo.save(transaction);
+    const result = await this.repo.save(transaction);
+    if (!result) throw new CustomError(ErrorMap.INSERT_TRANSACTION_FAILED);
+    return result;
   }
 
   async isExecutable(multisigTxId: number, safeId: number): Promise<boolean> {
@@ -232,26 +234,15 @@ export class MultisigTransactionRepository {
     safeId: number,
   ): Promise<MultisigTransaction> {
     const isExecutable = await this.isExecutable(multisigTxId, safeId);
-    if (isExecutable) {
-      const transaction = await this.repo.findOne({
-        where: { id: multisigTxId },
-      });
-      if (!transaction) throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
-      transaction.status = TransactionStatus.AWAITING_EXECUTION;
+    if (!isExecutable) return undefined;
 
-      return this.repo.save(transaction);
-    }
-
-    return undefined;
-  }
-
-  async getMultisigTxId(internalTxHash: string) {
-    return this.repo.findOne({
-      where: {
-        txHash: internalTxHash,
-      },
-      select: ['id'],
+    const transaction = await this.repo.findOne({
+      where: { id: multisigTxId },
     });
+    if (!transaction) throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
+    transaction.status = TransactionStatus.AWAITING_EXECUTION;
+
+    return this.repo.save(transaction);
   }
 
   async getMultisigTxDetail(multisigTxId: number): Promise<TxDetailDto> {
@@ -273,6 +264,7 @@ export class MultisigTransactionRepository {
       ])
       .getRawOne<TxDetailDto>();
 
+    if (!tx) throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
     return tx;
   }
 
