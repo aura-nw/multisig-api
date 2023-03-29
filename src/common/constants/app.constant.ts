@@ -122,3 +122,10 @@ export enum VALIDATOR_STATUS {
   BOND_STATUS_UNBONDING = 'BOND_STATUS_UNBONDING',
   BOND_STATUS_BONDED = 'BOND_STATUS_BONDED',
 }
+
+export const VESTING_ACCOUNT_TYPE = [
+  '/cosmos.vesting.v1beta1.BaseVestingAccount',
+  '/cosmos.vesting.v1beta1.ContinuousVestingAccount',
+  '/cosmos.vesting.v1beta1.DelayedVestingAccount',
+  '/cosmos.vesting.v1beta1.PeriodicVestingAccount',
+];
