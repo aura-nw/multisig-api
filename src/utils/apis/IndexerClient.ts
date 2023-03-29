@@ -1,4 +1,5 @@
 import { Logger } from '@nestjs/common';
+import { VESTING_ACCOUNT_TYPE } from '../../common/constants/app.constant';
 import { CustomError } from '../../common/customError';
 import { ErrorMap } from '../../common/error.map';
 import { ConfigService } from '../../shared/services/config.service';
@@ -67,8 +68,7 @@ export class IndexerClient {
     let sequence: number;
 
     if (
-      accountInfo.account_auth.account['@type'] ===
-      '/cosmos.vesting.v1beta1.DelayedVestingAccount'
+      VESTING_ACCOUNT_TYPE.includes(accountInfo.account_auth.account['@type'])
     ) {
       accountNumber = Number(
         accountInfo.account_auth.account.base_vesting_account.base_account
