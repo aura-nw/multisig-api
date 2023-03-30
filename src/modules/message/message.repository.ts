@@ -2,14 +2,18 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass, plainToInstance } from 'class-transformer';
 import { Repository } from 'typeorm';
+import { fromUtf8 } from '@cosmjs/encoding';
 import { TxTypeUrl } from '../../common/constants/app.constant';
 import { Message } from './entities/message.entity';
 import { TxMessageResponseDto } from './dto';
 import { IMessageUnknown, IUnknownValue } from '../../interfaces';
+import { CommonUtil } from '../../utils/common.util';
 
 @Injectable()
 export class MessageRepository {
   private readonly logger = new Logger(MessageRepository.name);
+
+  private utils: CommonUtil = new CommonUtil();
 
   constructor(
     @InjectRepository(Message)
@@ -39,9 +43,13 @@ export class MessageRepository {
     const result = await this.repos.find({
       where: { txId },
     });
-    return plainToInstance(TxMessageResponseDto, result, {
-      excludeExtraneousValues: true,
-    });
+    return plainToInstance(
+      TxMessageResponseDto,
+      result.map((item) => this.utils.omitByNil(item)),
+      {
+        excludeExtraneousValues: true,
+      },
+    );
   }
 
   async getMsgsByAuraTxId(auraTxId: number): Promise<TxMessageResponseDto[]> {
@@ -91,11 +99,17 @@ export class MessageRepository {
         newMsg.contractSender = value.sender;
         newMsg.contractAddress = value.contract;
         newMsg.contractFunds = value.funds.toString();
-        newMsg.contractFunds = value.funds.toString();
-        [newMsg.contractFunction] = Object.keys(value.msg);
+
+        const decodedMsg = fromUtf8(value.msg);
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const objectMsg = JSON.parse(decodedMsg);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        [newMsg.contractFunction] = Object.keys(objectMsg);
         if (newMsg.contractFunction) {
           newMsg.contractArgs = JSON.stringify(
-            value.msg[newMsg.contractFunction],
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            objectMsg[newMsg.contractFunction],
           );
         }
         break;

@@ -690,7 +690,7 @@ export class MultisigTransactionService {
     return ResponseDto.response(ErrorMap.SUCCESSFUL, wallet.getAddresses());
   }
 
-  async getTransactionDetails(
+  async getTransactionDetail(
     query: GetTxDetailQueryDto,
   ): Promise<ResponseDto<TxDetailDto>> {
     const { multisigTxId, auraTxId, safeAddress } = query;

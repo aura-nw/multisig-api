@@ -105,4 +105,24 @@ export class TxMessageResponseDto {
     typeof value === 'string' ? JSON.parse(value) : value,
   )
   outputs: MultiSendInOutput[];
+
+  @Expose()
+  @IsString()
+  @ApiProperty({ example: 'aura1g7hlgpvw46jvh8yuhu7zj369ws3h02h2nd37dsfhmzwsndw6qe2qvkmh0s' })
+  contractAddress: string;
+
+  @Expose()
+  @IsString()
+  @ApiProperty({ example: 'aura1agsqhsrnpgcf5wht50qe5zgt4rzkg4uml8urvh' })
+  contractSender: string;
+
+  @Expose()
+  @IsString()
+  @ApiProperty({ example: 'aura1agsqhsrnpgcf5wht50qe5zgt4rzkg4uml8urvh' })
+  contractFunction: string;
+
+  @Expose()
+  @IsString()
+  @ApiProperty({ example: 'aura1agsqhsrnpgcf5wht50qe5zgt4rzkg4uml8urvh' })
+  contractArgs: string;
 }

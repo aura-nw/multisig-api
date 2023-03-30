@@ -15,7 +15,7 @@ export interface IUnknownValue {
   voter?: string;
   sender?: string;
   contract?: string;
-  msg?: unknown;
+  msg?: Uint8Array;
   funds?: Coin[];
 }
 

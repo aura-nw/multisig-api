@@ -64,17 +64,11 @@ describe('MessageRepository', () => {
     it('should return array of messages', async () => {
       const txIdMock = 1;
 
-      mockRepo.find = jest.fn(async ({ where: { txId } }) =>
-        messageMock.find((msg) => msg.txId === txId),
-      );
+      mockRepo.find = jest.fn().mockResolvedValue(messageMock);
 
-      const expected = plainToInstance(
-        TxMessageResponseDto,
-        messageMock.find((msg) => msg.txId === txIdMock),
-        {
-          excludeExtraneousValues: true,
-        },
-      );
+      const expected = plainToInstance(TxMessageResponseDto, messageMock, {
+        excludeExtraneousValues: true,
+      });
 
       expect(await messageRepository.getMsgsByTxId(txIdMock)).toStrictEqual(
         expected,

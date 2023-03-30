@@ -154,9 +154,9 @@ export class MultisigTransactionController {
   })
   @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
   @HttpCode(HttpStatus.OK)
-  async getTransactionDetails(@Query() query: GetTxDetailQueryDto) {
+  async getTransactionDetail(@Query() query: GetTxDetailQueryDto) {
     this.logger.log('========== Get details of a Transaction ==========');
-    return this.multisigTransactionService.getTransactionDetails(query);
+    return this.multisigTransactionService.getTransactionDetail(query);
   }
 
   @CommonGet({
