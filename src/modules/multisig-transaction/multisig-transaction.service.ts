@@ -103,15 +103,8 @@ export class MultisigTransactionService {
   async createMultisigTransaction(
     request: CreateTransactionRequestDto,
   ): Promise<ResponseDto<CreateTxResDto>> {
-    const {
-      from,
-      to,
-      authInfoBytes,
-      bodyBytes,
-      signature,
-      internalChainId,
-      sequence,
-    } = request;
+    const { from, to, authInfoBytes, bodyBytes, signature, internalChainId } =
+      request;
     try {
       const authInfo = this.commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
@@ -123,11 +116,7 @@ export class MultisigTransactionService {
       const chain = await this.chainRepos.findChain(internalChainId);
 
       // get safe account info
-      const accountInfo: AccountInfo = await this.getAccountInfoWithNewSeq(
-        sequence,
-        safe,
-        chain.chainId,
-      );
+      const accountNumber = await this.getAccountNumber(safe, chain.chainId);
 
       const txRawInfo: TxRawInfo = {
         authInfoBytes,
@@ -136,13 +125,17 @@ export class MultisigTransactionService {
       };
 
       // decode data
-      const { decodedAuthInfo, messages, aminoMsgs } =
-        await this.decodeAndVerifyTxInfo(
-          txRawInfo,
-          accountInfo,
-          chain,
-          authInfo,
-        );
+      const {
+        decodedAuthInfo,
+        messages,
+        aminoMsgs,
+        sequence: decodedSequence,
+      } = await this.decodeAndVerifyTxInfo(
+        txRawInfo,
+        accountNumber,
+        chain,
+        authInfo,
+      );
 
       // calculate amount
       const amount = this.calculateAmount(aminoMsgs);
@@ -160,12 +153,12 @@ export class MultisigTransactionService {
       transaction.amount = amount > 0 ? amount : undefined;
       transaction.gas = decodedAuthInfo.fee.gasLimit.toNumber();
       transaction.fee = Number(decodedAuthInfo.fee.amount[0].amount);
-      transaction.accountNumber = accountInfo.accountNumber;
+      transaction.accountNumber = accountNumber;
       transaction.typeUrl = messages[0].typeUrl;
       transaction.denom = chain.denom;
       transaction.status = TransactionStatus.AWAITING_CONFIRMATIONS;
       transaction.internalChainId = internalChainId;
-      transaction.sequence = accountInfo.sequence.toString();
+      transaction.sequence = decodedSequence.toString();
       transaction.safeId = safe.id;
       const transactionResult =
         await this.multisigTransactionRepos.insertMultisigTransaction(
@@ -198,8 +191,7 @@ export class MultisigTransactionService {
         safe.id,
         sequenceInIndexer,
       );
-
-      safe.accountNumber = accountInfo.accountNumber.toString();
+      safe.accountNumber = accountNumber.toString();
       safe.sequence = sequenceInIndexer.toString();
       await this.safeRepos.updateSafe(safe);
 
@@ -237,7 +229,6 @@ export class MultisigTransactionService {
         signature,
         authInfoBytes,
         internalChainId,
-        sequence,
       } = request;
       const authInfo = this.commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
@@ -256,11 +247,7 @@ export class MultisigTransactionService {
         internalChainId,
       );
 
-      const accountInfo: AccountInfo = await this.getAccountInfoWithNewSeq(
-        sequence,
-        safe,
-        chain.chainId,
-      );
+      const accountNumber = await this.getAccountNumber(safe, chain.chainId);
 
       const txRawInfo: TxRawInfo = {
         authInfoBytes,
@@ -269,7 +256,12 @@ export class MultisigTransactionService {
       };
 
       // verify data
-      await this.decodeAndVerifyTxInfo(txRawInfo, accountInfo, chain, authInfo);
+      await this.decodeAndVerifyTxInfo(
+        txRawInfo,
+        accountNumber,
+        chain,
+        authInfo,
+      );
 
       await this.multisigConfirmRepos.validateSafeOwner(
         creatorAddress,
@@ -783,7 +775,7 @@ export class MultisigTransactionService {
 
   private async decodeAndVerifyTxInfo(
     txRawInfo: TxRawInfo,
-    accountInfo: AccountInfo,
+    accountNumber: number,
     chain: Chain,
     creatorInfo: UserInfoDto,
   ) {
@@ -796,7 +788,6 @@ export class MultisigTransactionService {
     const { memo, messages } = TxBody.decode(bodyBytesEncode);
 
     const sequence = decodedAuthInfo.signerInfos[0]?.sequence.toNumber();
-    const { accountNumber } = accountInfo;
 
     // build stdSignDoc for verify signature
     const registry = new Registry(RegistryGeneratedTypes);
@@ -852,6 +843,7 @@ export class MultisigTransactionService {
       decodedAuthInfo,
       messages,
       aminoMsgs: msgs,
+      sequence,
     };
   }
 
@@ -1100,40 +1092,6 @@ export class MultisigTransactionService {
     return txDetail;
   }
 
-  /**
-   * Get account number & seq from db if not provided; if db not found, get from indexer
-   *
-   * @param sequence
-   * @param safe
-   * @param chainId
-   * @returns
-   */
-  async getAccountInfoWithNewSeq(
-    sequence: number,
-    safe: Safe,
-    chainId: string,
-  ): Promise<AccountInfo> {
-    const accountInfo: AccountInfo = {
-      accountNumber: 0,
-      sequence: 0,
-    };
-
-    if (Number(safe.accountNumber) && Number(safe.nextQueueSeq)) {
-      accountInfo.accountNumber = Number(safe.accountNumber);
-      accountInfo.sequence = sequence || Number(safe.nextQueueSeq);
-      return accountInfo;
-    }
-
-    const account = await this.indexer.getAccountNumberAndSequence(
-      chainId,
-      safe.safeAddress,
-    );
-    accountInfo.accountNumber = account.accountNumber;
-    accountInfo.sequence = account.sequence;
-
-    return accountInfo;
-  }
-
   async calculateNextSeq(
     safeId: number,
     currentSequence: number,
@@ -1149,5 +1107,18 @@ export class MultisigTransactionService {
       nextSeq += 1;
     }
     return nextSeq.toString();
+  }
+
+  async getAccountNumber(safe: Safe, chainId: string): Promise<number> {
+    let accountNumber = Number(safe.accountNumber);
+
+    if (Number.isNaN(accountNumber)) {
+      const accountInfo = await this.indexer.getAccountNumberAndSequence(
+        chainId,
+        safe.safeAddress,
+      );
+      accountNumber = accountInfo.accountNumber;
+    }
+    return accountNumber;
   }
 }

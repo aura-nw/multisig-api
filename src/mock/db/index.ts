@@ -5,3 +5,4 @@ export * from './multisig-confirm.mock';
 export * from './safe-owner.mock';
 export * from './tx-confirm.mock';
 export * from './safe.mock';
+export * from './user.mock';
