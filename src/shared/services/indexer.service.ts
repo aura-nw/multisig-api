@@ -19,6 +19,7 @@ import {
 } from '../../interfaces';
 import { IndexerResponseDto } from '../dtos';
 import { CommonService } from './common.service';
+import { VESTING_ACCOUNT_TYPE } from '../../common/constants/app.constant';
 
 @Injectable()
 export class IndexerClient {
@@ -110,8 +111,7 @@ export class IndexerClient {
     let sequence: number;
 
     if (
-      accountInfo.account_auth.account['@type'] ===
-      '/cosmos.vesting.v1beta1.DelayedVestingAccount'
+      VESTING_ACCOUNT_TYPE.includes(accountInfo.account_auth.account['@type'])
     ) {
       accountNumber = Number(
         accountInfo.account_auth.account.base_vesting_account.base_account
