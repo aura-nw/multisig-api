@@ -1,6 +1,4 @@
-import { MODULE_REQUEST } from '../module.config';
-
-export const mockCreateRequest: MODULE_REQUEST.CreateMultisigWalletRequest[] = [
+export const mockCreateRequest = [
   {
     // creatorAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
     // creatorPubkey: 'A+WDh8hW9bTjvt5NH5DgQHUGrh+V64yusIP6GmeSv8k',
@@ -40,7 +38,7 @@ export const mockCreateRequest: MODULE_REQUEST.CreateMultisigWalletRequest[] = [
     internalChainId: 21,
   },
 ];
-export const mockSafe: any[] = [
+export const mockSafe = [
   {
     id: 2,
   },
@@ -56,8 +54,6 @@ export const mockSafe: any[] = [
   },
   {
     id: 4,
-    safeAddress: null,
-    safePubkey: null,
     threshold: 1,
     status: 'pending',
     internalChainId: 3,
@@ -66,8 +62,6 @@ export const mockSafe: any[] = [
   },
   {
     id: 5,
-    safeAddress: null,
-    safePubkey: null,
     threshold: 1,
     status: 'pending',
     internalChainId: 3,
@@ -76,8 +70,6 @@ export const mockSafe: any[] = [
   },
   {
     id: 6,
-    safeAddress: null,
-    safePubkey: null,
     threshold: 1,
     status: 'pending',
     internalChainId: 3,
@@ -86,14 +78,12 @@ export const mockSafe: any[] = [
   },
 ];
 
-export const mockSafeOwner: any[] = [
+export const mockSafeOwner = [
   {
     ownerAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
-    ownerPubkey: null,
   },
   {
     ownerAddress: 'aura1m92zhmujw5ndche9avqt5cj59cfrta96gmqs9a',
-    ownerPubkey: null,
   },
   {
     ownerAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
@@ -105,33 +95,17 @@ export const mockSafeOwner: any[] = [
   },
   {
     ownerAddress: 'aura1wqnn7k8hmyqkyknxx9e46e9fuaxx4zdmfvv8xz',
-    ownerPubkey: null,
   },
   {
     ownerAddress: 'aura1m92zhmujw5ndche9avqt5cj59cfrta96gmqs9a',
-    ownerPubkey: null,
   },
   {
     ownerAddress: 'aura1m92zhmujw5ndche9avqt5cj59cfrta96gmqs9a',
-    ownerPubkey: null,
   },
   {
     ownerAddress: 'aura1m92zhmujw5ndche9avqt5cj59cfrta96gmqs9a',
-    ownerPubkey: null,
   },
   {
     ownerAddress: 'aura1m92zhmujw5ndche9avqt5cj59cfrta96gmqs9a',
-    ownerPubkey: null,
-  },
-];
-
-export const mockChain: any[] = [
-  {
-    rpc: 'https://localhost:26657',
-    prefix: 'aura',
-  },
-  {
-    rpc: 'https://rpc.dev.aura.network',
-    prefix: 'aura',
   },
 ];

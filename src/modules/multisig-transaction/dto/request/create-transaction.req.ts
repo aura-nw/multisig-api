@@ -1,0 +1,72 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+
+export class CreateTransactionRequestDto {
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({
+    description: 'Address of safe',
+    example: 'aura1328x7tacz28w96zl4j50qnfg4gqjdd56wqd3ke',
+  })
+  from: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({
+    description: 'Address of receiver',
+    example: 'aura136v0nmlv0saryev8wqz89w80edzdu3quzm0ve9',
+  })
+  to: string;
+
+  @IsNumber()
+  @ApiProperty({
+    description: 'Offline Chain Id',
+    example: 4,
+  })
+  @Type(() => Number)
+  internalChainId: number;
+
+  @IsString()
+  @ApiProperty({
+    description:
+      'Owner who create transaction must sign transaction via wallet first. Then get bodyBytes of result.',
+    example:
+      'CogBChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEmgKK2F1cmExMzJha3g5OTg5Y2FueHV6a2ZqbnJneHd5Y2NmY210ZnpobWZscW0SK2F1cmExdHVlaDRodnJmbmZ3c3VobDMyd21sbWV2NjU2bmhxc2t2cTd0N3QaDAoFdWF1cmESAzIwMBIA',
+  })
+  bodyBytes: string;
+
+  @IsString()
+  @ApiProperty({
+    description:
+      'Owner who create transaction must sign transaction via wallet first. Then get signature of result.',
+    example:
+      'Dj8pEXMADBGCjaRSAQwT1/7s+6fRrf985UZL2ujo0YMe+M2VEqYLERkc5tsrg8HAWuqzKVq5CV6a7KcOSgjNtw==',
+  })
+  signature: string;
+
+  @IsString()
+  @ApiProperty({
+    description:
+      'Auth info of transaction. Owner who create transaction must sign transaction via wallet first. Then get authInfo of result.',
+    example:
+      'Dj8pEXMADBGCjaRSAQwT1/7s+6fRrf985UZL2ujo0YMe+M2VEqYLERkc5tsrg8HAWuqzKVq5CV6a7KcOSgjNtw==',
+  })
+  authInfoBytes: string;
+
+  @IsNumber()
+  @Type(() => Number)
+  @ApiProperty({
+    description: 'Account number of pyxis safe',
+    example: 41,
+  })
+  accountNumber: number;
+
+  @IsNumber()
+  @Type(() => Number)
+  @ApiProperty({
+    description: 'Sequence of pyxis safe',
+    example: 48,
+  })
+  sequence: number;
+}

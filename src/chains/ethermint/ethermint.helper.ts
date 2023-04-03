@@ -3,7 +3,7 @@ import { MultiSignature } from 'cosmjs-types/cosmos/crypto/multisig/v1beta1/mult
 import { SignMode } from 'cosmjs-types/cosmos/tx/signing/v1beta1/signing';
 import { Any } from 'cosmjs-types/google/protobuf/any';
 import { PubKey } from 'cosmjs-types/cosmos/crypto/secp256k1/keys';
-import { AuthInfo, SignerInfo, TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
+import { AuthInfo, TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { Uint53 } from '@cosmjs/math';
 import {
   isEd25519Pubkey,
@@ -30,14 +30,13 @@ import {
   toHex,
 } from '@cosmjs/encoding';
 import { makeCompactBitArray } from '@cosmjs/stargate/build/multisignature';
-import * as Long from 'long';
 import * as ethUtils from 'ethereumjs-util';
 import { isValidChecksumAddress } from 'ethereumjs-util';
 import { encode, toWords } from 'bech32';
 import {
   createEthSecp256k1Pubkey,
   EthSecp256k1Pubkey,
-} from './EthSecp256k1Pubkey';
+} from './ethsecp256k1-pubkey';
 import {
   pubkeyAminoPrefixEd25519,
   pubkeyAminoPrefixEthSecp256k1,
@@ -46,7 +45,7 @@ import {
 } from './constant';
 
 export class EthermintHelper {
-  async verifySignature(
+  verifySignature(
     signature: string,
     msg: StdSignDoc,
     expectCosmosAddr: string,
@@ -54,7 +53,7 @@ export class EthermintHelper {
   ) {
     const sig = Secp256k1Signature.fromFixedLength(fromBase64(signature));
     let valid = false;
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < 2; i += 1) {
       const pub = ethUtils.ecrecover(
         ethUtils.toBuffer(keccak256(serializeSignDoc(msg))),
         27 + i,
@@ -82,8 +81,7 @@ export class EthermintHelper {
     const rawAddress = this.pubkeyToRawAddress(ethermintPubkey);
 
     // generate eth address
-    const ethAddress = this.toChecksummedAddress(rawAddress);
-    console.log(`ETH address: ${ethAddress}`);
+    // another way to get ethAddress: const ethAddress = this.toChecksummedAddress(rawAddress);
 
     // generate bech32 address
     const bech32Address = toBech32(prefix, rawAddress);
@@ -92,6 +90,7 @@ export class EthermintHelper {
   }
 
   pubkeyToRawAddress(pubkey: Pubkey): Uint8Array {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const pubKeyDecoded = Buffer.from(pubkey.value, 'base64');
     const pubKeyUncompressed = Secp256k1.uncompressPubkey(pubKeyDecoded);
     const hash = new Keccak256(pubKeyUncompressed.slice(1)).digest();
@@ -104,35 +103,34 @@ export class EthermintHelper {
    */
   encodeAminoPubkeySupportEthermint(pubkey: Pubkey): Uint8Array {
     if (isMultisigThresholdPubkey(pubkey)) {
-      const out = Array.from(pubkeyAminoPrefixMultisigThreshold);
-      out.push(0x08);
-      out.push(...this.encodeUvarint(pubkey.value.threshold));
+      const out = [...pubkeyAminoPrefixMultisigThreshold];
+      out.push(0x08, ...this.encodeUvarint(pubkey.value.threshold));
       for (const pubkeyData of pubkey.value.pubkeys.map((p) =>
         this.encodeAminoPubkeySupportEthermint(p),
       )) {
-        out.push(0x12);
-        out.push(...this.encodeUvarint(pubkeyData.length));
-        out.push(...pubkeyData);
+        out.push(0x12, ...this.encodeUvarint(pubkeyData.length), ...pubkeyData);
       }
       return new Uint8Array(out);
-    } else if (isEd25519Pubkey(pubkey)) {
+    }
+    if (isEd25519Pubkey(pubkey)) {
       return new Uint8Array([
         ...pubkeyAminoPrefixEd25519,
         ...fromBase64(pubkey.value),
       ]);
-    } else if (isSecp256k1Pubkey(pubkey)) {
+    }
+    if (isSecp256k1Pubkey(pubkey)) {
       return new Uint8Array([
         ...pubkeyAminoPrefixSecp256k1,
         ...fromBase64(pubkey.value),
       ]);
-    } else if (this.isEthSecp256k1Pubkey(pubkey)) {
+    }
+    if (this.isEthSecp256k1Pubkey(pubkey)) {
       return new Uint8Array([
         ...pubkeyAminoPrefixEthSecp256k1,
         ...fromBase64(pubkey.value),
       ]);
-    } else {
-      throw new Error('Unsupported pubkey type');
     }
+    throw new Error('Unsupported pubkey type');
   }
 
   createMultisigThresholdPubkeyEthermint(
@@ -151,7 +149,7 @@ export class EthermintHelper {
 
     const outPubkeys = nosort
       ? pubkeys
-      : Array.from(pubkeys).sort((lhs, rhs) => {
+      : [...pubkeys].sort((lhs, rhs) => {
           // https://github.com/cosmos/cosmos-sdk/blob/v0.42.2/client/keys/add.go#L172-L174
           const addressLhs = this.pubkeyToRawAddress(lhs);
           const addressRhs = this.pubkeyToRawAddress(rhs);
@@ -166,12 +164,6 @@ export class EthermintHelper {
     };
   }
 
-  isEthSecp256k1Pubkey(pubkey: Pubkey): pubkey is EthSecp256k1Pubkey {
-    return (
-      (pubkey as EthSecp256k1Pubkey).type === 'ethermint/PubKeyEthSecp256k1'
-    );
-  }
-
   makeMultisignedTxEthermint(
     multisigPubkey: MultisigThresholdPubkey,
     sequence: number,
@@ -179,14 +171,16 @@ export class EthermintHelper {
     bodyBytes: Uint8Array,
     signatures: Map<string, Uint8Array>,
   ): TxRaw {
-    const addresses = Array.from(signatures.keys());
-    const prefix = fromBech32(addresses[0]).prefix;
+    const addresses = [...signatures.keys()];
+    const { prefix } = fromBech32(addresses[0]);
 
-    const signers: boolean[] = Array(multisigPubkey.value.pubkeys.length).fill(
-      false,
-    );
+    const signers: boolean[] = Array.from<boolean>({
+      length: multisigPubkey.value.pubkeys.length,
+    }).fill(false);
+
     const signaturesList = new Array<Uint8Array>();
-    for (let i = 0; i < multisigPubkey.value.pubkeys.length; i++) {
+
+    for (let i = 0; i < multisigPubkey.value.pubkeys.length; i += 1) {
       const signerAddress = this.pubkeyToCosmosAddress(
         multisigPubkey.value.pubkeys[i].value,
         prefix,
@@ -198,31 +192,31 @@ export class EthermintHelper {
       }
     }
 
-    const signerInfo: SignerInfo = {
-      publicKey: this.encodePubkeyEthermint(multisigPubkey),
-      modeInfo: {
-        multi: {
-          bitarray: makeCompactBitArray(signers),
-          modeInfos: signaturesList.map(() => ({
-            single: { mode: SignMode.SIGN_MODE_LEGACY_AMINO_JSON },
-          })),
-        },
-      },
-      sequence: Long.fromNumber(sequence),
-    };
-
     const authInfo = AuthInfo.fromPartial({
-      signerInfos: [signerInfo],
+      signerInfos: [
+        {
+          publicKey: this.encodePubkeyEthermint(multisigPubkey),
+          modeInfo: {
+            multi: {
+              bitarray: makeCompactBitArray(signers),
+              modeInfos: signaturesList.map(() => ({
+                single: { mode: SignMode.SIGN_MODE_LEGACY_AMINO_JSON },
+              })),
+            },
+          },
+          sequence,
+        },
+      ],
       fee: {
         amount: [...fee.amount],
-        gasLimit: Long.fromString(fee.gas),
+        gasLimit: fee.gas,
       },
     });
 
     const authInfoBytes = AuthInfo.encode(authInfo).finish();
     const signedTx = TxRaw.fromPartial({
-      bodyBytes: bodyBytes,
-      authInfoBytes: authInfoBytes,
+      bodyBytes,
+      authInfoBytes,
       signatures: [
         MultiSignature.encode(
           MultiSignature.fromPartial({ signatures: signaturesList }),
@@ -241,16 +235,20 @@ export class EthermintHelper {
         typeUrl: '/cosmos.crypto.secp256k1.PubKey',
         value: Uint8Array.from(PubKey.encode(pubkeyProto).finish()),
       });
-    } else if (isMultisigThresholdPubkey(pubkey)) {
+    }
+    if (isMultisigThresholdPubkey(pubkey)) {
       const pubkeyProto = LegacyAminoPubKey.fromPartial({
         threshold: Uint53.fromString(pubkey.value.threshold).toNumber(),
-        publicKeys: pubkey.value.pubkeys.map(this.encodePubkeyEthermint),
+        publicKeys: pubkey.value.pubkeys.map((pk) =>
+          this.encodePubkeyEthermint(pk),
+        ),
       });
       return Any.fromPartial({
         typeUrl: '/cosmos.crypto.multisig.LegacyAminoPubKey',
         value: Uint8Array.from(LegacyAminoPubKey.encode(pubkeyProto).finish()),
       });
-    } else if (pubkey.type === 'ethermint/PubKeyEthSecp256k1') {
+    }
+    if (this.isEthSecp256k1Pubkey(pubkey)) {
       const pubkeyProto = PubKey.fromPartial({
         key: fromBase64(pubkey.value),
       });
@@ -258,9 +256,8 @@ export class EthermintHelper {
         typeUrl: '/ethermint.crypto.v1.ethsecp256k1.PubKey',
         value: Uint8Array.from(PubKey.encode(pubkeyProto).finish()),
       });
-    } else {
-      throw new Error(`Pubkey type ${pubkey.type} not recognized`);
     }
+    throw new Error(`Pubkey type ${pubkey.type} not recognized`);
   }
 
   private hexDecoder(data: string): Buffer {
@@ -270,7 +267,7 @@ export class EthermintHelper {
       stripped !== stripped.toLowerCase() &&
       stripped !== stripped.toUpperCase()
     ) {
-      throw Error('Invalid address checksum');
+      throw new Error('Invalid address checksum');
     }
     return Buffer.from(ethUtils.stripHexPrefix(data), 'hex');
   }
@@ -281,7 +278,7 @@ export class EthermintHelper {
 
   private toChecksummedAddress(address: string | Uint8Array): string {
     // 40 low hex characters
-    let addressLower;
+    let addressLower: string;
     if (typeof address === 'string') {
       if (!this.isValidAddress(address)) {
         throw new Error('Input is not a valid Ethereum address');
@@ -296,9 +293,9 @@ export class EthermintHelper {
 
     const addressHash = toHex(new Keccak256(toAscii(addressLower)).digest());
     let checksumAddress = '0x';
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 40; i += 1) {
       checksumAddress +=
-        parseInt(addressHash[i], 16) > 7
+        Number.parseInt(addressHash[i], 16) > 7
           ? addressLower[i].toUpperCase()
           : addressLower[i];
     }
@@ -315,8 +312,14 @@ export class EthermintHelper {
     return [checked];
   }
 
+  isEthSecp256k1Pubkey(pubkey: Pubkey): pubkey is EthSecp256k1Pubkey {
+    return (
+      (pubkey as EthSecp256k1Pubkey).type === 'ethermint/PubKeyEthSecp256k1'
+    );
+  }
+
   private isValidAddress(address: string): boolean {
-    if (!address.match(/^0x[a-fA-F0-9]{40}$/)) {
+    if (!/^0x[\dA-Fa-f]{40}$/.test(address)) {
       return false;
     }
     return true;
