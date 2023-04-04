@@ -1,29 +1,12 @@
-import { Registry } from '@cosmjs/proto-signing';
-import { AuthInfo, TxBody, TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
+import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  AminoTypes,
-  coins,
-  createBankAminoConverters,
-  createDistributionAminoConverters,
-  createGovAminoConverters,
-  createStakingAminoConverters,
-  isAminoMsgBeginRedelegate,
-  isAminoMsgDelegate,
-  isAminoMsgMultiSend,
-  isAminoMsgSend,
-  isAminoMsgUndelegate,
-  makeMultisignedTx,
-  StargateClient,
-} from '@cosmjs/stargate';
+import { coins, makeMultisignedTx, StargateClient } from '@cosmjs/stargate';
 import { fromBase64 } from '@cosmjs/encoding';
-import { AminoMsg, makeSignDoc, MultisigThresholdPubkey } from '@cosmjs/amino';
-import { createWasmAminoConverters } from '@cosmjs/cosmwasm-stargate';
+import { MultisigThresholdPubkey } from '@cosmjs/amino';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import {
   MultisigConfirmStatus,
-  RegistryGeneratedTypes,
   SafeStatus,
   TransactionStatus,
   TransferDirection,
@@ -32,7 +15,6 @@ import {
 
 import { SimulateService } from '../simulate';
 import { CustomError } from '../../common/custom-error';
-import { CosmosUtil } from '../../chains/cosmos';
 import { MultisigTransactionRepository } from './multisig-transaction.repository';
 import { MultisigConfirmRepository } from '../multisig-confirm/multisig-confirm.repository';
 import { ChainRepository } from '../chain/chain.repository';
@@ -58,7 +40,6 @@ import {
   SendTxResDto,
   SimulateTxRequestDto,
   TxDetailDto,
-  TxRawInfo,
 } from './dto';
 import { MultisigTransaction } from './entities/multisig-transaction.entity';
 import { Chain } from '../chain/entities/chain.entity';
@@ -67,12 +48,11 @@ import { TransactionHistoryRepository } from '../transaction-history/transaction
 import { CommonUtil } from '../../utils/common.util';
 import { IndexerClient } from '../../shared/services/indexer.service';
 import { GetListConfirmResDto } from '../multisig-confirm/dto';
-import { IMessage, IMsgMultiSend } from './interfaces';
 import { IMessageUnknown } from '../../interfaces';
 import { EthermintHelper } from '../../chains/ethermint/ethermint.helper';
 import { SimulateResponse } from '../simulate/dtos';
 import { AccountInfo } from '../../common/dtos';
-import { UserInfoDto } from '../auth/dto';
+import { ChainHelper } from '../../chains/chain.helper';
 
 @Injectable()
 export class MultisigTransactionService {
@@ -116,32 +96,37 @@ export class MultisigTransactionService {
       const chain = await this.chainRepos.findChain(internalChainId);
 
       // get safe account info
-      const accountNumber = await this.getAccountNumber(safe, chain.chainId);
-
-      const txRawInfo: TxRawInfo = {
-        authInfoBytes,
-        bodyBytes,
-        signature,
-      };
+      const {
+        accountNumber,
+        sequence: sequenceInIndexer,
+        balances: accountBalance,
+      } = await this.indexer.getAccount(chain.chainId, safe.safeAddress);
 
       // decode data
+      const chainHelper = new ChainHelper(chain);
       const {
         decodedAuthInfo,
         messages,
         aminoMsgs,
         sequence: decodedSequence,
-      } = await this.decodeAndVerifyTxInfo(
-        txRawInfo,
+      } = await chainHelper.decodeAndVerifyTxInfo(
+        authInfoBytes,
+        bodyBytes,
+        signature,
         accountNumber,
-        chain,
         authInfo,
       );
 
-      // calculate amount
-      const amount = this.calculateAmount(aminoMsgs);
+      // calculate tx amount
+      const txAmount = chainHelper.calculateAmount(aminoMsgs);
 
       // check account balance; if balance is not enough, throw error
-      await this.checkAccountBalance(chain.chainId, from, chain.denom, amount);
+      const balance = accountBalance.find(
+        (item: { denom: string }) => item.denom === chain.denom,
+      );
+      if (Number(balance.amount) < txAmount) {
+        throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
+      }
 
       // is owner of safe
       await this.safeOwnerRepo.isSafeOwner(creatorAddress, safe.id);
@@ -150,7 +135,7 @@ export class MultisigTransactionService {
       const transaction = new MultisigTransaction();
       transaction.fromAddress = from;
       transaction.toAddress = to || '';
-      transaction.amount = amount > 0 ? amount : undefined;
+      transaction.amount = txAmount > 0 ? txAmount : undefined;
       transaction.gas = decodedAuthInfo.fee.gasLimit.toNumber();
       transaction.fee = Number(decodedAuthInfo.fee.amount[0].amount);
       transaction.accountNumber = accountNumber;
@@ -182,11 +167,7 @@ export class MultisigTransactionService {
       );
 
       // save account number & next queue sequence
-      const { sequence: sequenceInIndexer } =
-        await this.indexer.getAccountNumberAndSequence(
-          chain.chainId,
-          safe.safeAddress,
-        );
+
       safe.nextQueueSeq = await this.calculateNextSeq(
         safe.id,
         sequenceInIndexer,
@@ -249,17 +230,13 @@ export class MultisigTransactionService {
 
       const accountNumber = await this.getAccountNumber(safe, chain.chainId);
 
-      const txRawInfo: TxRawInfo = {
+      // verify data
+      const chainHelper = new ChainHelper(chain);
+      await chainHelper.decodeAndVerifyTxInfo(
         authInfoBytes,
         bodyBytes,
         signature,
-      };
-
-      // verify data
-      await this.decodeAndVerifyTxInfo(
-        txRawInfo,
         accountNumber,
-        chain,
         authInfo,
       );
 
@@ -773,96 +750,6 @@ export class MultisigTransactionService {
     }
   }
 
-  private async decodeAndVerifyTxInfo(
-    txRawInfo: TxRawInfo,
-    accountNumber: number,
-    chain: Chain,
-    creatorInfo: UserInfoDto,
-  ) {
-    const { chainId, prefix, coinDecimals } = chain;
-    const { address: creatorAddress, pubkey: creatorPubkey } = creatorInfo;
-
-    const authInfoEncode = fromBase64(txRawInfo.authInfoBytes);
-    const decodedAuthInfo = AuthInfo.decode(authInfoEncode);
-    const bodyBytesEncode = fromBase64(txRawInfo.bodyBytes);
-    const { memo, messages } = TxBody.decode(bodyBytesEncode);
-
-    const sequence = decodedAuthInfo.signerInfos[0]?.sequence.toNumber();
-
-    // build stdSignDoc for verify signature
-    const registry = new Registry(RegistryGeneratedTypes);
-
-    // stargate@0.28.11
-    const aminoTypes = new AminoTypes({
-      ...createBankAminoConverters(),
-      ...createStakingAminoConverters(prefix),
-      ...createDistributionAminoConverters(),
-      ...createGovAminoConverters(),
-      ...createWasmAminoConverters(),
-    });
-    const msgs = messages.map((msg: IMessage) => {
-      const decodedMsg = msg;
-      const decoder = registry.lookupType(msg.typeUrl);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      decodedMsg.value = decoder.decode(msg.value);
-      return aminoTypes.toAmino(decodedMsg);
-    });
-    const stdFee = {
-      amount: decodedAuthInfo.fee.amount,
-      gas: decodedAuthInfo.fee.gasLimit.toString(),
-    };
-    const signDoc = makeSignDoc(
-      msgs,
-      stdFee,
-      chainId,
-      memo,
-      accountNumber,
-      sequence,
-    );
-
-    // verify signature; if verify fail, throw error
-    let resultVerify = false;
-    resultVerify =
-      coinDecimals === 18
-        ? this.ethermintHelper.verifySignature(
-            txRawInfo.signature,
-            signDoc,
-            creatorAddress,
-            prefix,
-          )
-        : await CosmosUtil.verifyCosmosSig(
-            txRawInfo.signature,
-            signDoc,
-            fromBase64(creatorPubkey),
-          );
-    if (!resultVerify) {
-      throw new CustomError(ErrorMap.SIGNATURE_VERIFICATION_FAILED);
-    }
-
-    return {
-      decodedAuthInfo,
-      messages,
-      aminoMsgs: msgs,
-      sequence,
-    };
-  }
-
-  private async checkAccountBalance(
-    chainId: string,
-    address: string,
-    denom: string,
-    expectedBalance: number,
-  ): Promise<boolean> {
-    const accountInfo = await this.indexer.getAccountInfo(chainId, address);
-    const balance = accountInfo.account_balances.find(
-      (item: { denom: string }) => item.denom === denom,
-    );
-    if (Number(balance.amount) < expectedBalance) {
-      throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
-    }
-    return true;
-  }
-
   private async confirmTx(
     transaction: MultisigTransaction,
     ownerAddress: string,
@@ -980,39 +867,6 @@ export class MultisigTransactionService {
     return encodeTransaction;
   }
 
-  calculateAmount(aminoMsgs: AminoMsg[]): number {
-    let total = 0;
-
-    for (const msg of aminoMsgs) {
-      switch (true) {
-        case isAminoMsgSend(msg): {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          total += Number(msg.value.amount[0].amount);
-          break;
-        }
-        case isAminoMsgMultiSend(msg): {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-          total += msg.value.outputs.reduce(
-            (acc: number, m: IMsgMultiSend) => acc + Number(m.coins[0].amount),
-            0,
-          );
-          break;
-        }
-        case isAminoMsgDelegate(msg):
-        case isAminoMsgBeginRedelegate(msg):
-        case isAminoMsgUndelegate(msg): {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          total += Number(msg.value.amount.amount);
-          break;
-        }
-        default: {
-          break;
-        }
-      }
-    }
-    return total;
-  }
-
   /**
    * updateNextSeqAfterDeleteTx
    * @param safeId
@@ -1026,11 +880,10 @@ export class MultisigTransactionService {
     const chain = await this.chainRepos.findChain(internalChainId);
 
     // get safe account info
-    const accountInfo: AccountInfo =
-      await this.indexer.getAccountNumberAndSequence(
-        chain.chainId,
-        safe.safeAddress,
-      );
+    const accountInfo: AccountInfo = await this.indexer.getAccount(
+      chain.chainId,
+      safe.safeAddress,
+    );
 
     safe.nextQueueSeq = await this.calculateNextSeq(
       safe.id,
@@ -1113,7 +966,7 @@ export class MultisigTransactionService {
     let accountNumber = Number(safe.accountNumber);
 
     if (Number.isNaN(accountNumber)) {
-      const accountInfo = await this.indexer.getAccountNumberAndSequence(
+      const accountInfo = await this.indexer.getAccount(
         chainId,
         safe.safeAddress,
       );

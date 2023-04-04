@@ -55,7 +55,7 @@ export class ChainService {
       const { safeAddress, internalChainId } = param;
 
       const chainInfo = await this.chainRepo.findChain(internalChainId);
-      const account = await this.indexer.getAccountNumberAndSequence(
+      const account = await this.indexer.getAccount(
         chainInfo.chainId,
         safeAddress,
       );

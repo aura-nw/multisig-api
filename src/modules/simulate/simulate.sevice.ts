@@ -67,7 +67,7 @@ export class SimulateService {
     lcdUrl: string,
   ): Promise<SimulateResponse> {
     // Get sequence of safe account
-    const { sequence } = await this.indexerClient.getAccountNumberAndSequence(
+    const { sequence } = await this.indexerClient.getAccount(
       this.currentWallet.chain.chainId,
       safeInfo.safeAddress,
     );
@@ -103,12 +103,7 @@ export class SimulateService {
       safe.setOwners(ownerWallets.slice(0, i), i, chain);
       listSafe.push(safe);
 
-      promises.push(
-        this.indexerClient.getAccountNumberAndSequence(
-          chain.chainId,
-          safe.address,
-        ),
-      );
+      promises.push(this.indexerClient.getAccount(chain.chainId, safe.address));
     }
 
     const result = await Promise.all(promises);

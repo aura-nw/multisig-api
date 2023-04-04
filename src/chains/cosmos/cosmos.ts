@@ -1,9 +1,14 @@
-import { serializeSignDoc, StdSignDoc } from '@cosmjs/amino';
+import {
+  encodeSecp256k1Pubkey,
+  pubkeyToAddress,
+  serializeSignDoc,
+  StdSignDoc,
+} from '@cosmjs/amino';
 import { Secp256k1, Secp256k1Signature, sha256 } from '@cosmjs/crypto';
 import { fromBase64 } from '@cosmjs/encoding';
 
 export class CosmosUtil {
-  public static async verifyCosmosSig(
+  async verifyCosmosSig(
     signature: string,
     msg: StdSignDoc,
     pubkey: Uint8Array,
@@ -17,5 +22,10 @@ export class CosmosUtil {
       return false;
     }
     return true;
+  }
+
+  pubkeyToAddress(pubkey: string, prefix: string) {
+    const pubkeyFormated = encodeSecp256k1Pubkey(fromBase64(pubkey));
+    return pubkeyToAddress(pubkeyFormated, prefix);
   }
 }
