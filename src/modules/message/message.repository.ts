@@ -100,18 +100,21 @@ export class MessageRepository {
         newMsg.contractAddress = value.contract;
         newMsg.contractFunds = value.funds.toString();
 
-        const decodedMsg = fromUtf8(value.msg);
+        if (value.msg instanceof Uint8Array) {
+          const decodedMsg = fromUtf8(value.msg);
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const objectMsg = JSON.parse(decodedMsg);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        [newMsg.contractFunction] = Object.keys(objectMsg);
-        if (newMsg.contractFunction) {
-          newMsg.contractArgs = JSON.stringify(
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            objectMsg[newMsg.contractFunction],
-          );
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          const objectMsg = JSON.parse(decodedMsg);
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+          [newMsg.contractFunction] = Object.keys(objectMsg);
+          if (newMsg.contractFunction) {
+            newMsg.contractArgs = JSON.stringify(
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+              objectMsg[newMsg.contractFunction],
+            );
+          }
         }
+
         break;
       }
       default: {

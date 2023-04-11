@@ -147,10 +147,7 @@ export class SafeSimulate {
           this.threshold,
           this.chain.denom,
         );
-    const bodyBytes = SimulateUtils.makeBodyBytes(
-      updatedEncodeMsgs,
-      this.chain.prefix,
-    );
+    const bodyBytes = SimulateUtils.makeBodyBytes(updatedEncodeMsgs);
     return {
       authInfoBytes,
       bodyBytes,

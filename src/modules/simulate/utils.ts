@@ -18,19 +18,21 @@ import {
   StdFee,
 } from '@cosmjs/stargate';
 import { coins } from '@cosmjs/amino';
-import { RegistryGeneratedTypes } from '../../common/constants/app.constant';
-import { ISafePubkey } from './interfaces';
+import { createWasmAminoConverters } from '@cosmjs/cosmwasm-stargate';
+import { toUtf8 } from '@cosmjs/encoding';
+import {
+  RegistryGeneratedTypes,
+  TxTypeUrl,
+} from '../../common/constants/app.constant';
+import { IEncodedObjectMsg, ISafePubkey } from './interfaces';
 import { IMessageUnknown } from '../../interfaces';
 import { Chain } from '../chain/entities/chain.entity';
 import { EthermintHelper } from '../../chains/ethermint/ethermint.helper';
 
 export class SimulateUtils {
-  public static makeBodyBytes(
-    messages: IMessageUnknown[],
-    prefix: string,
-  ): Uint8Array {
+  public static makeBodyBytes(messages: IEncodedObjectMsg[]): Uint8Array {
     const signedTxBody = {
-      messages: this.anyToEncodeMsgs(messages, prefix),
+      messages,
       memo: '',
     };
     const signedTxBodyEncodeObject: TxBodyEncodeObject = {
@@ -143,8 +145,34 @@ export class SimulateUtils {
       ...createStakingAminoConverters(prefix),
       ...createDistributionAminoConverters(),
       ...createGovAminoConverters(),
+      ...createWasmAminoConverters(),
     });
-    const msgs = messages.map((msg) => aminoTypes.toAmino(msg));
+
+    // Format execute contract msgs
+    const executeContractMsgs: IMessageUnknown[] = [];
+    messages
+      .filter((msg) => msg.typeUrl === TxTypeUrl.EXECUTE_CONTRACT)
+      .forEach((msg) => {
+        if (
+          !(msg.value instanceof Uint8Array) &&
+          typeof msg.value.msg === 'string'
+        ) {
+          executeContractMsgs.push({
+            typeUrl: msg.typeUrl,
+            value: {
+              ...msg.value,
+              msg: toUtf8(msg.value.msg),
+            },
+          });
+        }
+      });
+
+    const newMessages = [
+      ...messages.filter((msg) => msg.typeUrl !== TxTypeUrl.EXECUTE_CONTRACT),
+      ...executeContractMsgs,
+    ];
+
+    const msgs = newMessages.map((msg) => aminoTypes.toAmino(msg));
     return msgs.map((msg) => aminoTypes.fromAmino(msg));
   }
 }
