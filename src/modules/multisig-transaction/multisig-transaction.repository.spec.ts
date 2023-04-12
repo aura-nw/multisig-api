@@ -549,8 +549,19 @@ describe('MultisigTransactionRepository', () => {
         skip: jest.fn().mockReturnThis(),
         take: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue(getMultisigDetailResponseMock),
+        getRawMany: jest
+          .fn()
+          .mockResolvedValue([getMultisigDetailResponseMock]),
       });
+
+      const result = await multisigTransactionRepo.getQueueTransaction(
+        safeAddress,
+        internalChainId,
+        pageIndex,
+        limit,
+      );
+
+      expect(result).toStrictEqual([getMultisigDetailResponseMock]);
     });
   });
 });

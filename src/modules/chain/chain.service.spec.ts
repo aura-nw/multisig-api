@@ -11,6 +11,8 @@ import { GasRepository } from '../gas/gas.repository';
 import { chainTestingModule } from './chain-testing.module';
 import { ChainRepository } from './chain.repository';
 import { ChainService } from './chain.service';
+import { plainToInstance } from 'class-transformer';
+import { AccountInfo } from '../../common/dtos';
 
 describe('ChainService', () => {
   let service: ChainService;
@@ -80,7 +82,9 @@ describe('ChainService', () => {
 
       jest
         .spyOn(indexerClient, 'getAccountNumberAndSequence')
-        .mockImplementation(async () => accountOnchainMock);
+        .mockImplementation(async () =>
+          plainToInstance(AccountInfo, accountOnchainMock),
+        );
 
       const result = await service.getAccountOnchain(
         getAccountOnchainParamMock,

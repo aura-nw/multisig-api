@@ -98,10 +98,7 @@ export class IndexerClient {
     return accountInfo.data;
   }
 
-  async getAccountNumberAndSequence(
-    chainId: string,
-    address: string,
-  ): Promise<AccountInfo> {
+  async getAccount(chainId: string, address: string): Promise<AccountInfo> {
     const accountInfo = await this.getAccountInfo(chainId, address);
     if (!accountInfo.account_auth) {
       throw new CustomError(ErrorMap.MISSING_ACCOUNT_AUTH);
@@ -129,9 +126,11 @@ export class IndexerClient {
     if (Number.isNaN(accountNumber) || Number.isNaN(sequence)) {
       throw new CustomError(ErrorMap.CANNOT_GET_ACCOUNT_NUMBER_OR_SEQUENCE);
     }
+
     return plainToInstance(AccountInfo, {
       accountNumber,
       sequence,
+      balances: accountInfo.account_balances,
     });
   }
 
