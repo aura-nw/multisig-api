@@ -13,7 +13,7 @@ export interface IEncodedObjectMsg {
     proposalId?: string;
     sender?: string;
     contract?: string;
-    msg?: Uint8Array;
+    msg?: Uint8Array | string;
     funds?: Coin[];
   };
 }

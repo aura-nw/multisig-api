@@ -153,15 +153,15 @@ export class SimulateUtils {
     messages
       .filter((msg) => msg.typeUrl === TxTypeUrl.EXECUTE_CONTRACT)
       .forEach((msg) => {
-        if (
-          !(msg.value instanceof Uint8Array) &&
-          typeof msg.value.msg === 'string'
-        ) {
+        if (!(msg.value instanceof Uint8Array)) {
           executeContractMsgs.push({
             typeUrl: msg.typeUrl,
             value: {
               ...msg.value,
-              msg: toUtf8(msg.value.msg),
+              msg:
+                typeof msg.value.msg === 'string'
+                  ? toUtf8(msg.value.msg)
+                  : toUtf8(JSON.stringify(msg.value.msg)),
             },
           });
         }

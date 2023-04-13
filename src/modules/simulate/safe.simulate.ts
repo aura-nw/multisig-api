@@ -7,15 +7,15 @@ import {
 
 import { makeMultisignedTx } from '@cosmjs/stargate';
 
-import { fromBase64, toBase64 } from '@cosmjs/encoding';
+import { fromBase64, toBase64, toUtf8 } from '@cosmjs/encoding';
 import { Injectable } from '@nestjs/common';
 import { OwnerSimulate } from './owner.simulate';
 import { SimulateUtils } from './utils';
-import { TxTypeUrl } from '../../common/constants/app.constant';
 import { Chain } from '../chain/entities/chain.entity';
 import { IEncodedObjectMsg, ISafePubkey } from './interfaces';
 import { IMessageUnknown } from '../../interfaces';
 import { EthermintHelper } from '../../chains/ethermint/ethermint.helper';
+import { TxTypeUrl } from '../../common/constants/app.constant';
 
 @Injectable()
 export class SafeSimulate {
@@ -114,9 +114,9 @@ export class SafeSimulate {
     prefix: string,
   ) {
     let simulateAuthInfo: string;
-
     // get simulate msgs base typeUrl and the messages given by user
     const encodeMsgs = SimulateUtils.anyToEncodeMsgs(messages, prefix);
+
     const updatedEncodeMsgs = encodeMsgs.map((msg) => {
       const updatedMsg = msg as IEncodedObjectMsg;
       switch (msg.typeUrl) {
@@ -129,6 +129,13 @@ export class SafeSimulate {
         case TxTypeUrl.VOTE: {
           simulateAuthInfo = this.authInfo;
           updatedMsg.value.voter = this.address;
+          break;
+        }
+        case TxTypeUrl.EXECUTE_CONTRACT: {
+          updatedMsg.value.msg =
+            typeof updatedMsg.value.msg === 'string'
+              ? toUtf8(updatedMsg.value.msg)
+              : updatedMsg.value.msg;
           break;
         }
         default: {
