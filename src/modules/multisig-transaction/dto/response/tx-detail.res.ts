@@ -19,6 +19,11 @@ export class TxDetailDto {
   TxHash: string;
 
   @ApiProperty({
+    example: 'xxx',
+  })
+  RawMessages: string;
+
+  @ApiProperty({
     example: '50',
   })
   Fee: string;

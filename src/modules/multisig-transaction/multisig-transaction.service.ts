@@ -108,6 +108,7 @@ export class MultisigTransactionService {
         decodedAuthInfo,
         messages,
         aminoMsgs,
+        rawMsgs,
         sequence: decodedSequence,
       } = await chainHelper.decodeAndVerifyTxInfo(
         authInfoBytes,
@@ -143,6 +144,7 @@ export class MultisigTransactionService {
       transaction.denom = chain.denom;
       transaction.status = TransactionStatus.AWAITING_CONFIRMATIONS;
       transaction.internalChainId = internalChainId;
+      transaction.rawMessages = rawMsgs;
       transaction.sequence = decodedSequence.toString();
       transaction.safeId = safe.id;
       const transactionResult =

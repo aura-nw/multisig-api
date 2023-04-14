@@ -254,6 +254,7 @@ export class MultisigTransactionRepository {
         'AT.Id as AuraTxId',
         'MT.Id as MultisigTxId',
         'AT.TxHash as TxHash',
+        'MT.RawMessages as RawMessages',
         'MT.Fee as Fee',
         'MT.Gas as Gas',
         'MT.Status as Status',

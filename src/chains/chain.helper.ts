@@ -56,11 +56,13 @@ export class ChainHelper {
       ...createGovAminoConverters(),
       ...createWasmAminoConverters(),
     });
+    const decodedMsgs = [];
     const msgs = messages.map((msg: IMessage) => {
       const decodedMsg = msg;
       const decoder = registry.lookupType(msg.typeUrl);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       decodedMsg.value = decoder.decode(msg.value);
+      decodedMsgs.push(decodedMsg);
       return aminoTypes.toAmino(decodedMsg);
     });
     const stdFee = {
@@ -92,6 +94,7 @@ export class ChainHelper {
       decodedAuthInfo,
       messages,
       aminoMsgs: msgs,
+      rawMsgs: JSON.stringify(decodedMsgs),
       sequence,
     };
   }

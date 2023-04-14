@@ -27,6 +27,9 @@ export class MultisigTransaction extends BaseEntityAutoId {
   @Column({ name: 'InternalChainId' })
   internalChainId: number;
 
+  @Column({ name: 'RawMessages', type: 'json' })
+  rawMessages: string;
+
   @Column({ name: 'AccountNumber' })
   accountNumber: number;
 

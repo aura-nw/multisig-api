@@ -49,6 +49,7 @@ export class AuraTxRepository {
         'AT.Id as AuraTxId',
         'MT.Id as MultisigTxId',
         'AT.TxHash as TxHash',
+        'MT.RawMessages as RawMessages',
         'AT.Fee as Fee',
         'AT.GasWanted as Gas',
         'AT.Code as Status',
