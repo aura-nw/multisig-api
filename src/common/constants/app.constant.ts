@@ -84,6 +84,7 @@ export enum TxTypeUrl {
   VOTE = '/cosmos.gov.v1beta1.MsgVote',
   EXECUTE_CONTRACT = '/cosmwasm.wasm.v1.MsgExecuteContract',
   RECEIVE = 'Receive',
+  CUSTOM = 'Custom',
 }
 
 export const RegistryGeneratedTypes: Iterable<[string, GeneratedType]> = [

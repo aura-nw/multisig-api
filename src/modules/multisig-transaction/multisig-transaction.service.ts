@@ -140,7 +140,8 @@ export class MultisigTransactionService {
       transaction.gas = decodedAuthInfo.fee.gasLimit.toNumber();
       transaction.fee = Number(decodedAuthInfo.fee.amount[0].amount);
       transaction.accountNumber = accountNumber;
-      transaction.typeUrl = messages[0].typeUrl;
+      transaction.typeUrl =
+        messages.length > 1 ? TxTypeUrl.CUSTOM : messages[0].typeUrl;
       transaction.denom = chain.denom;
       transaction.status = TransactionStatus.AWAITING_CONFIRMATIONS;
       transaction.internalChainId = internalChainId;
