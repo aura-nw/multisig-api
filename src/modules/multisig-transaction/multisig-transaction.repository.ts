@@ -127,7 +127,7 @@ export class MultisigTransactionRepository {
       select: ['sequence'],
     });
     const sequence = result.map((item) => Number(item.sequence));
-    return [...new Set(sequence)].sort();
+    return [...new Set(sequence)].sort((a, b) => a - b);
   }
 
   async getBroadcastableTx(
