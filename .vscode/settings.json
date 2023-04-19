@@ -5,6 +5,7 @@
     "chainid",
     "delegatable",
     "delegators",
+    "Deleter",
     "dtos",
     "Ethermint",
     "keybase",

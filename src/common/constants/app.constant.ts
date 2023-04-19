@@ -62,6 +62,7 @@ export enum TransactionStatus {
 export enum MultisigConfirmStatus {
   CONFIRM = 'CONFIRM',
   REJECT = 'REJECT',
+  DELETE = 'DELETE',
   SEND = 'SEND',
 }
 

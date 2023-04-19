@@ -133,10 +133,7 @@ export class MultisigConfirmRepository {
     }
     if (status)
       sqlQuerry.andWhere('multisigConfirm.status = :status', { status });
-    else
-      sqlQuerry.andWhere('multisigConfirm.status IN (:...status)', {
-        status: [MultisigConfirmStatus.CONFIRM, MultisigConfirmStatus.REJECT],
-      });
+
     const result = await sqlQuerry.getRawMany();
     return plainToInstance(GetListConfirmResDto, result);
   }

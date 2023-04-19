@@ -671,29 +671,34 @@ export class MultisigTransactionService {
       const txDetail = await this.getTxFromDB(multisigTxId, auraTxId);
 
       if (txDetail.MultisigTxId) {
+        const actions =
+          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
+            txDetail.MultisigTxId,
+          );
         // get confirmations
-        const confirmations =
-          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-            txDetail.MultisigTxId,
-            undefined,
-            MultisigConfirmStatus.CONFIRM,
-          );
-
-        // get rejections
-        const rejections =
-          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-            txDetail.MultisigTxId,
-            undefined,
-            MultisigConfirmStatus.REJECT,
-          );
-
-        // get execution info
-        const [executor] =
-          await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-            txDetail.MultisigTxId,
-            undefined,
-            MultisigConfirmStatus.SEND,
-          );
+        const confirmations: GetListConfirmResDto[] = [];
+        const rejections: GetListConfirmResDto[] = [];
+        for (const action of actions) {
+          // eslint-disable-next-line default-case
+          switch (action.status) {
+            case MultisigConfirmStatus.CONFIRM: {
+              confirmations.push(action);
+              break;
+            }
+            case MultisigConfirmStatus.REJECT: {
+              rejections.push(action);
+              break;
+            }
+            case MultisigConfirmStatus.SEND: {
+              txDetail.Executor = action;
+              break;
+            }
+            case MultisigConfirmStatus.DELETE: {
+              txDetail.Deleter = action;
+            }
+            // No default
+          }
+        }
 
         // get messages & auto claim amount
         const multisigMsgs = await this.messageRepos.getMsgsByTxId(
@@ -708,7 +713,6 @@ export class MultisigTransactionService {
 
         txDetail.Confirmations = confirmations;
         txDetail.Rejectors = rejections;
-        txDetail.Executor = executor;
 
         txDetail.AutoClaimAmount = this.calculateAutoClaimAmount(autoClaimMsgs);
       } else {
@@ -808,6 +812,16 @@ export class MultisigTransactionService {
 
     // delete tx
     await this.multisigTransactionRepos.deleteTx(tx.id);
+
+    // insert into multisig confirm
+    await this.multisigConfirmRepos.insertIntoMultisigConfirm(
+      tx.id,
+      userAddress,
+      '',
+      '',
+      tx.internalChainId,
+      MultisigConfirmStatus.DELETE,
+    );
 
     // update queued tag
     await this.safeRepos.updateQueuedTagByAddress(tx.fromAddress);

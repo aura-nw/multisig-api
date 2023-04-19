@@ -80,6 +80,20 @@ export class TxDetailDto {
   @ApiProperty({
     example: [
       {
+        id: 1846,
+        createdAt: '2022-08-09T03:56:05.398Z',
+        updatedAt: '2022-08-09T03:56:05.398Z',
+        ownerAddress: 'aura1hctj3tpmucmuv02umf9252enjedkce7mml69k8',
+        signature: '',
+        status: 'DELETE',
+      },
+    ],
+  })
+  Deleter: GetListConfirmResDto;
+
+  @ApiProperty({
+    example: [
+      {
         typeUrl: '/cosmos.staking.v1beta1.MsgDelegate',
         delegatorAddress: 'aura1nqw4cla0k49yfzpa6afl32hracut6tvwldmuuk',
         validatorAddress: 'auravaloper1d3n0v5f23sqzkhlcnewhksaj8l3x7jeyu938gx',
