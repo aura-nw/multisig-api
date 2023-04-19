@@ -50,6 +50,11 @@ export class ResponseDto<T> {
     const logger = new Logger(moduleName);
     logger.error(error);
     logger.error(`${ErrorMap.E500.Code}: ${ErrorMap.E500.Message}`);
-    return ResponseDto.response<T>(ErrorMap.E500);
+
+    return ResponseDto.response<T>(
+      ErrorMap.E500,
+      undefined,
+      Object.hasOwnProperty('message') ? (error as Error).message : error,
+    );
   }
 }

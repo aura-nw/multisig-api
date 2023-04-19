@@ -323,8 +323,8 @@ export class MultisigTransactionService {
 
           await this.safeRepos.updateSafe(safe);
 
-          return ResponseDto.responseError(
-            MultisigTransactionService.name,
+          throw CustomError.fromUnknown(
+            ErrorMap.INSERT_TRANSACTION_FAILED,
             error,
           );
         }
