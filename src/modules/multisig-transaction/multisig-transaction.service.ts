@@ -195,6 +195,9 @@ export class MultisigTransactionService {
         internalChainId,
       );
 
+      // update queued tag
+      await this.safeRepos.updateQueuedTag(safe.id);
+
       return ResponseDto.response(ErrorMap.SUCCESSFUL, {
         transactionId: transactionResult.id,
       });
@@ -258,6 +261,9 @@ export class MultisigTransactionService {
         safe,
       );
 
+      // update queued tag
+      await this.safeRepos.updateQueuedTag(safe.id);
+
       return ResponseDto.response(ErrorMap.SUCCESSFUL);
     } catch (error) {
       return ResponseDto.responseError(MultisigTransactionService.name, error);
@@ -301,7 +307,6 @@ export class MultisigTransactionService {
         internalChainId,
         MultisigConfirmStatus.SEND,
       );
-      await this.safeRepos.updateQueuedTag(multisigTransaction.safeId);
 
       try {
         await client.broadcastTx(txBroadcast, 10);
@@ -362,6 +367,8 @@ export class MultisigTransactionService {
         );
         await this.safeRepos.updateSafe(safe);
 
+        await this.safeRepos.updateQueuedTag(multisigTransaction.safeId);
+
         return ResponseDto.response(ErrorMap.SUCCESSFUL, {
           TxHash: txId,
         });
@@ -420,14 +427,14 @@ export class MultisigTransactionService {
         await this.multisigTransactionRepos.cancelTx(transaction);
       }
 
-      // update queued tag
-      await this.safeRepos.updateQueuedTag(transaction.safeId);
-
       // Update next seq
       await this.updateNextSeqAfterDeleteTx(
         transaction.safeId,
         transaction.internalChainId,
       );
+
+      // update queued tag
+      await this.safeRepos.updateQueuedTag(transaction.safeId);
 
       return ResponseDto.response(ErrorMap.SUCCESSFUL);
     } catch (error) {
@@ -616,6 +623,9 @@ export class MultisigTransactionService {
         tx.internalChainId,
       );
 
+      // update queued tag
+      await this.safeRepos.updateQueuedTagByAddress(tx.fromAddress);
+
       return ResponseDto.response(ErrorMap.SUCCESSFUL);
     } catch (error) {
       return ResponseDto.responseError(MultisigTransactionService.name, error);
@@ -801,9 +811,6 @@ export class MultisigTransactionService {
         internalChainId,
       );
     }
-
-    // update queued tag
-    await this.safeRepos.updateQueuedTag(safe.id);
   }
 
   async deleteTx(tx: MultisigTransaction, userAddress: string) {
@@ -822,9 +829,6 @@ export class MultisigTransactionService {
       tx.internalChainId,
       MultisigConfirmStatus.DELETE,
     );
-
-    // update queued tag
-    await this.safeRepos.updateQueuedTagByAddress(tx.fromAddress);
   }
 
   async makeTx(
