@@ -1,4 +1,4 @@
-import { fromBase64 } from '@cosmjs/encoding';
+import { fromBase64, fromUtf8 } from '@cosmjs/encoding';
 import { AuthInfo, TxBody } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { Registry } from '@cosmjs/proto-signing';
 import {
@@ -15,10 +15,14 @@ import {
 } from '@cosmjs/stargate';
 import { createWasmAminoConverters } from '@cosmjs/cosmwasm-stargate';
 import { AminoMsg, makeSignDoc } from '@cosmjs/amino';
-import { RegistryGeneratedTypes } from '../common/constants/app.constant';
+import {
+  RegistryGeneratedTypes,
+  TxTypeUrl,
+} from '../common/constants/app.constant';
 import {
   IMessage,
   IMsgMultiSend,
+  IDecodedMessage,
 } from '../modules/multisig-transaction/interfaces';
 import { UserInfoDto } from '../modules/auth/dto';
 import { Chain } from '../modules/chain/entities/chain.entity';
@@ -94,9 +98,23 @@ export class ChainHelper {
       decodedAuthInfo,
       messages,
       aminoMsgs: msgs,
-      rawMsgs: JSON.stringify(decodedMsgs),
+      rawMsgs: this.getRawMsgs(decodedMsgs as IDecodedMessage[]),
       sequence,
     };
+  }
+
+  getRawMsgs(decodedMsgs: IDecodedMessage[]): string {
+    return JSON.stringify(
+      decodedMsgs.map((decodedMsg) => {
+        if (decodedMsg.typeUrl === TxTypeUrl.EXECUTE_CONTRACT) {
+          const rawMessage = decodedMsg;
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+          rawMessage.value.msg = fromUtf8(rawMessage.value.msg);
+          return rawMessage;
+        }
+        return decodedMsg;
+      }),
+    );
   }
 
   calculateAmount(aminoMsgs: AminoMsg[]): number {
