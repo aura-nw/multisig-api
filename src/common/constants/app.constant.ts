@@ -84,6 +84,8 @@ export enum TxTypeUrl {
   WITHDRAW_REWARD = '/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward',
   VOTE = '/cosmos.gov.v1beta1.MsgVote',
   EXECUTE_CONTRACT = '/cosmwasm.wasm.v1.MsgExecuteContract',
+  INSTANTIATE_CONTRACT = '/cosmwasm.wasm.v1.MsgInstantiateContract',
+  MIGRATE_CONTRACT = '/cosmwasm.wasm.v1.MsgMigrateContract',
   RECEIVE = 'Receive',
   CUSTOM = 'Custom',
 }

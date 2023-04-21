@@ -29,6 +29,7 @@ import { Chain } from '../modules/chain/entities/chain.entity';
 import { CustomError } from '../common/custom-error';
 import { ErrorMap } from '../common/error.map';
 import { ChainGateway } from './chain.gateway';
+import { IMessageUnknown } from '../interfaces';
 
 export class ChainHelper {
   constructor(public chain: Chain) {}
@@ -60,9 +61,9 @@ export class ChainHelper {
       ...createGovAminoConverters(),
       ...createWasmAminoConverters(),
     });
-    const decodedMsgs = [];
+    const decodedMsgs: IMessageUnknown[] = [];
     const msgs = messages.map((msg: IMessage) => {
-      const decodedMsg = msg;
+      const decodedMsg = { ...msg };
       const decoder = registry.lookupType(msg.typeUrl);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       decodedMsg.value = decoder.decode(msg.value);
@@ -96,7 +97,7 @@ export class ChainHelper {
 
     return {
       decodedAuthInfo,
-      messages,
+      decodedMsgs,
       aminoMsgs: msgs,
       rawMsgs: this.getRawMsgs(decodedMsgs as IDecodedMessage[]),
       sequence,
@@ -105,14 +106,26 @@ export class ChainHelper {
 
   getRawMsgs(decodedMsgs: IDecodedMessage[]): string {
     return JSON.stringify(
-      decodedMsgs.map((decodedMsg) => {
-        if (decodedMsg.typeUrl === TxTypeUrl.EXECUTE_CONTRACT) {
-          const rawMessage = decodedMsg;
+      decodedMsgs.map((decodeMsg) => {
+        if (
+          [
+            TxTypeUrl.EXECUTE_CONTRACT.toString(),
+            TxTypeUrl.INSTANTIATE_CONTRACT.toString(),
+            TxTypeUrl.MIGRATE_CONTRACT.toString(),
+          ].includes(decodeMsg.typeUrl)
+        ) {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-          rawMessage.value.msg = fromUtf8(rawMessage.value.msg);
-          return rawMessage;
+          return {
+            ...decodeMsg,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            value: {
+              ...decodeMsg.value,
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+              msg: fromUtf8(decodeMsg.value.msg),
+            },
+          };
         }
-        return decodedMsg;
+        return decodeMsg;
       }),
     );
   }

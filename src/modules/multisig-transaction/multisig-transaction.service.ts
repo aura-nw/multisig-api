@@ -106,7 +106,7 @@ export class MultisigTransactionService {
       const chainHelper = new ChainHelper(chain);
       const {
         decodedAuthInfo,
-        messages,
+        decodedMsgs,
         aminoMsgs,
         rawMsgs,
         sequence: decodedSequence,
@@ -141,7 +141,7 @@ export class MultisigTransactionService {
       transaction.fee = Number(decodedAuthInfo.fee.amount[0].amount);
       transaction.accountNumber = accountNumber;
       transaction.typeUrl =
-        messages.length > 1 ? TxTypeUrl.CUSTOM : messages[0].typeUrl;
+        decodedMsgs.length > 1 ? TxTypeUrl.CUSTOM : decodedMsgs[0].typeUrl;
       transaction.denom = chain.denom;
       transaction.status = TransactionStatus.AWAITING_CONFIRMATIONS;
       transaction.internalChainId = internalChainId;
@@ -154,10 +154,7 @@ export class MultisigTransactionService {
         );
 
       // save msgs
-      await this.messageRepos.saveMsgs(
-        transactionResult.id,
-        messages as IMessageUnknown[],
-      );
+      await this.messageRepos.saveMsgs(transactionResult.id, decodedMsgs);
 
       // confirm tx
       await this.confirmTx(
