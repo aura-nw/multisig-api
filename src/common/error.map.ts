@@ -153,7 +153,8 @@ export const ErrorMap = {
   },
   SIGNATURE_VERIFICATION_FAILED: {
     Code: 'E037',
-    Message: 'Signature verification failed!',
+    Message:
+      'Signature verification failed! Please reconnect your wallet and try again.',
   },
   USER_NOT_FOUND: {
     Code: 'E038',
