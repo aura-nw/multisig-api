@@ -8,6 +8,8 @@ import {
   MsgDelegate,
   MsgUndelegate,
 } from 'cosmjs-types/cosmos/staking/v1beta1/tx';
+import { wasmTypes } from '@cosmjs/cosmwasm-stargate/build/modules';
+import { defaultRegistryTypes } from '@cosmjs/stargate';
 
 export const COMMON_CONSTANTS = {
   REGEX_BASE64:
@@ -103,6 +105,9 @@ export const RegistryGeneratedTypes: Iterable<[string, GeneratedType]> = [
   ['/cosmos.gov.v1beta1.MsgVote', MsgVote],
   ['/cosmos.gov.v1beta1.MsgVote', MsgVote],
   ['/cosmwasm.wasm.v1.MsgExecuteContract', MsgExecuteContract],
+
+  ...defaultRegistryTypes,
+  ...wasmTypes
 ];
 
 export enum ProposalStatus {
