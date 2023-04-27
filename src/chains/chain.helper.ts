@@ -121,6 +121,7 @@ export class ChainHelper {
             value: {
               ...decodeMsg.value,
               // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+              codeId: decodeMsg.value.codeId.toString(),
               msg: fromUtf8(decodeMsg.value.msg),
             },
           };
