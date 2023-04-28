@@ -114,6 +114,13 @@ export class ChainHelper {
             TxTypeUrl.MIGRATE_CONTRACT.toString(),
           ].includes(decodeMsg.typeUrl)
         ) {
+          const codeId =
+            decodeMsg.typeUrl === TxTypeUrl.INSTANTIATE_CONTRACT.toString()
+              ? {
+                  codeId: decodeMsg.value.codeId.toString(),
+                }
+              : {};
+
           // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
           return {
             ...decodeMsg,
@@ -121,7 +128,7 @@ export class ChainHelper {
             value: {
               ...decodeMsg.value,
               // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-              codeId: decodeMsg.value.codeId.toString(),
+              ...codeId,
               msg: fromUtf8(decodeMsg.value.msg),
             },
           };
