@@ -177,6 +177,24 @@ export class SafeService {
             },
           ];
         }
+
+        // get assets
+        const result = await Promise.all([
+          this.indexer.getAssetByOwnerAddress(
+            safeInfo.address,
+            'CW20',
+            chainInfo.chainId,
+          ),
+          this.indexer.getAssetByOwnerAddress(
+            safeInfo.address,
+            'CW721',
+            chainInfo.chainId,
+          ),
+        ]);
+        safeInfo.assets = {
+          ...result[0],
+          ...result[1],
+        };
       }
       return ResponseDto.response(ErrorMap.SUCCESSFUL, safeInfo);
     } catch (error) {

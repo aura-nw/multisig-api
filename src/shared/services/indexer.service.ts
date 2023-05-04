@@ -20,6 +20,10 @@ import {
 import { IndexerResponseDto } from '../dtos';
 import { CommonService } from './common.service';
 import { VESTING_ACCOUNT_TYPE } from '../../common/constants/app.constant';
+import {
+  IAssets,
+  IAssetsWithType,
+} from '../../interfaces/asset-by-owner.interface';
 
 @Injectable()
 export class IndexerClient {
@@ -32,6 +36,18 @@ export class IndexerClient {
     private commonService: CommonService,
   ) {
     this.indexerUrl = this.configService.get<string>('INDEXER_URL');
+  }
+
+  async getAssetByOwnerAddress(
+    ownerAddress: string,
+    contractType: string,
+    chainId: string,
+  ): Promise<IAssetsWithType> {
+    const url = `api/v1/asset/getByOwner?owner=${ownerAddress}&chainid=${chainId}&contractType=${contractType}&countTotal=false&pageLimit=50&pageOffset=0`;
+    const result = await this.commonService.requestGet<
+      IndexerResponseDto<IAssets>
+    >(new URL(url, this.indexerUrl).href);
+    return result.data.assets;
   }
 
   async getValidatorInfo(chainId: string, operatorAddress: string) {

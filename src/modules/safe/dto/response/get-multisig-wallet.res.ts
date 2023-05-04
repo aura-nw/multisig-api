@@ -1,6 +1,7 @@
 import { Coin } from '@cosmjs/amino';
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
+import { IAssetsWithType } from '../../../../interfaces/asset-by-owner.interface';
 
 export class GetMultisigWalletResponseDto {
   @Expose()
@@ -94,6 +95,9 @@ export class GetMultisigWalletResponseDto {
     ],
   })
   balance: Coin[];
+
+  @Expose()
+  assets: IAssetsWithType;
 
   @Expose()
   @ApiProperty({
