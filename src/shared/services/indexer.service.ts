@@ -16,6 +16,7 @@ import {
   IValidator,
   IValidators,
   IVotes,
+  ITokenInfo,
 } from '../../interfaces';
 import { IndexerResponseDto } from '../dtos';
 import { CommonService } from './common.service';
@@ -112,6 +113,37 @@ export class IndexerClient {
       ).href,
     );
     return accountInfo.data;
+  }
+
+  async getAccountBalances(
+    chainId: string,
+    address: string,
+  ): Promise<ITokenInfo[]> {
+    const { account_balances: accountBalances } = await this.getAccountInfo(
+      chainId,
+      address,
+    );
+    if (accountBalances && accountBalances.length > 0) {
+      const { tokens } = await this.commonService.readConfigurationFile();
+
+      return accountBalances.map((item) => {
+        if (!item.minimal_denom) return item;
+
+        const tokenInfo = tokens.find(
+          (token) => token.denom === item.minimal_denom,
+        );
+
+        return {
+          amount: item.amount,
+          denom: item.denom,
+          minimal_denom: item.minimal_denom,
+          display: tokenInfo.display,
+          logo: tokenInfo.logo,
+          decimal: tokenInfo.decimal,
+        };
+      });
+    }
+    return undefined;
   }
 
   async getAccount(chainId: string, address: string): Promise<AccountInfo> {

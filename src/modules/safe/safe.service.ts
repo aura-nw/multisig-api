@@ -154,14 +154,13 @@ export class SafeService {
       // if safe created => Get balance
       if (safeInfo.address !== null) {
         try {
-          const accountInfo = await this.indexer.getAccountInfo(
+          const balances = await this.indexer.getAccountBalances(
             chainInfo.chainId,
             safeInfo.address,
           );
           safeInfo.balance =
-            accountInfo.account_balances &&
-            accountInfo.account_balances.length > 0
-              ? accountInfo.account_balances
+            balances && balances.length > 0
+              ? balances
               : [
                   {
                     amount: '0',

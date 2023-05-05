@@ -43,6 +43,7 @@ export interface IAccountInfo {
     {
       denom: string;
       amount: string;
+      minimal_denom?: string;
     },
   ];
   account_delegations: IAccountDelegation[];

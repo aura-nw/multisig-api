@@ -8,3 +8,4 @@ export * from './proposal.interface';
 export * from './transaction.interface';
 export * from './message.interface';
 export * from './votes.interface';
+export * from './token-info.interface';
