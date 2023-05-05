@@ -15,7 +15,7 @@ export class CommonService {
 
   public async readConfigurationFile(): Promise<Configuration> {
     const configuration = await CommonUtil.jsonReader<Configuration>(
-      './config.json',
+      './chains.json',
     );
     return configuration;
   }
