@@ -124,22 +124,13 @@ export class IndexerClient {
       address,
     );
     if (accountBalances && accountBalances.length > 0) {
-      const { tokens } = await this.commonService.readConfigurationFile();
-
       return accountBalances.map((item) => {
         if (!item.minimal_denom) return item;
-
-        const tokenInfo = tokens.find(
-          (token) => token.denom === item.minimal_denom,
-        );
 
         return {
           amount: item.amount,
           denom: item.denom,
           minimal_denom: item.minimal_denom,
-          display: tokenInfo.display,
-          logo: tokenInfo.logo,
-          decimal: tokenInfo.decimal,
         };
       });
     }
