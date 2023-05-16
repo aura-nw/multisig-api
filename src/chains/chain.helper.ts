@@ -135,6 +135,70 @@ export class ChainHelper {
             },
           };
         }
+
+        if (
+          [
+            TxTypeUrl.VOTE.toString(),
+            TxTypeUrl.VOTE_WEIGHTED.toString(),
+            TxTypeUrl.DEPOSIT.toString(),
+          ].includes(decodeMsg.typeUrl)
+        ) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+          const proposalId: string = decodeMsg.value.proposalId.toString();
+          return {
+            ...decodeMsg,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            value: {
+              ...decodeMsg.value,
+              proposalId,
+            },
+          };
+        }
+
+        if (decodeMsg.typeUrl === TxTypeUrl.CREATE_VESTING_ACCOUNT.toString()) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+          const endTime: string = decodeMsg.value.endTime.toString();
+          return {
+            ...decodeMsg,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            value: {
+              ...decodeMsg.value,
+              endTime,
+            },
+          };
+        }
+
+        if (decodeMsg.typeUrl === TxTypeUrl.IBC_TRANSFER.toString()) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+          const timeoutHeight = decodeMsg.value.timeoutHeight
+            ? {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                revisionHeight:
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+                  decodeMsg.value.timeoutHeight?.revisionHeight.toString(),
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                revisionNumber:
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+                  decodeMsg.value.timeoutHeight?.revisionHeight.toString(),
+              }
+            : '';
+
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          const timeoutTimestamp: string =
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            decodeMsg.value.timeoutTimestamp.toString();
+          return {
+            ...decodeMsg,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            value: {
+              ...decodeMsg.value,
+              timeoutTimestamp,
+              timeoutHeight: {
+                ...timeoutHeight,
+              },
+            },
+          };
+        }
         return decodeMsg;
       }),
     );

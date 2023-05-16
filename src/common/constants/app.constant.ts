@@ -85,9 +85,13 @@ export enum TxTypeUrl {
   UNDELEGATE = '/cosmos.staking.v1beta1.MsgUndelegate',
   WITHDRAW_REWARD = '/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward',
   VOTE = '/cosmos.gov.v1beta1.MsgVote',
+  DEPOSIT = '/cosmos.gov.v1beta1.MsgDeposit',
+  VOTE_WEIGHTED = '/cosmos.gov.v1beta1.MsgVoteWeighted',
   EXECUTE_CONTRACT = '/cosmwasm.wasm.v1.MsgExecuteContract',
   INSTANTIATE_CONTRACT = '/cosmwasm.wasm.v1.MsgInstantiateContract',
   MIGRATE_CONTRACT = '/cosmwasm.wasm.v1.MsgMigrateContract',
+  CREATE_VESTING_ACCOUNT = '/cosmos.vesting.v1beta1.MsgCreateVestingAccount',
+  IBC_TRANSFER = '/ibc.applications.transfer.v1.MsgTransfer',
   RECEIVE = 'Receive',
   CUSTOM = 'Custom',
 }
@@ -107,7 +111,7 @@ export const RegistryGeneratedTypes: Iterable<[string, GeneratedType]> = [
   ['/cosmwasm.wasm.v1.MsgExecuteContract', MsgExecuteContract],
 
   ...defaultRegistryTypes,
-  ...wasmTypes
+  ...wasmTypes,
 ];
 
 export enum ProposalStatus {
