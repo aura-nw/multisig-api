@@ -2,8 +2,8 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { json } from 'express';
 import { middleware as expressCtx } from 'express-ctx';
+import bodyParser from 'body-parser';
 import { AppModule } from './app.module';
 import { SeederModule } from './modules/seeders/seeder.module';
 import { SeederService } from './modules/seeders/seeder.service';
@@ -22,7 +22,8 @@ async function bootstrap() {
   app.use(expressCtx);
 
   // increase limit
-  app.use(json({ limit: '20mb' }));
+  app.use(bodyParser.json({ limit: '20mb' }));
+  app.use(bodyParser.urlencoded({ limit: '20mb', extended: true }));
 
   const configService = app.select(SharedModule).get(ConfigService);
 
