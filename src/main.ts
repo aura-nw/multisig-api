@@ -2,6 +2,7 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { json } from 'express';
 import { middleware as expressCtx } from 'express-ctx';
 import { AppModule } from './app.module';
 import { SeederModule } from './modules/seeders/seeder.module';
@@ -19,6 +20,9 @@ async function bootstrap() {
   // enable cors
   app.enableCors();
   app.use(expressCtx);
+
+  // increase limit
+  app.use(json({ limit: '20mb' }));
 
   const configService = app.select(SharedModule).get(ConfigService);
 
