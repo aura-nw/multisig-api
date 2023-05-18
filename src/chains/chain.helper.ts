@@ -1,4 +1,6 @@
-import { fromBase64, fromUtf8 } from '@cosmjs/encoding';
+/* eslint-disable eslint-comments/no-unlimited-disable */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import { fromBase64, fromUtf8, toBase64 } from '@cosmjs/encoding';
 import { AuthInfo, TxBody } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { Registry } from '@cosmjs/proto-signing';
 import {
@@ -117,20 +119,20 @@ export class ChainHelper {
           const codeId =
             decodeMsg.typeUrl === TxTypeUrl.INSTANTIATE_CONTRACT.toString()
               ? {
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
                   codeId: decodeMsg.value.codeId.toString(),
                 }
               : {};
 
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument,
           return {
             ...decodeMsg,
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             value: {
               ...decodeMsg.value,
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument,
               ...codeId,
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument,
               msg: fromUtf8(decodeMsg.value.msg),
             },
           };
@@ -143,7 +145,7 @@ export class ChainHelper {
             TxTypeUrl.DEPOSIT.toString(),
           ].includes(decodeMsg.typeUrl)
         ) {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
           const proposalId: string = decodeMsg.value.proposalId.toString();
           return {
             ...decodeMsg,
@@ -156,7 +158,7 @@ export class ChainHelper {
         }
 
         if (decodeMsg.typeUrl === TxTypeUrl.CREATE_VESTING_ACCOUNT.toString()) {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
           const endTime: string = decodeMsg.value.endTime.toString();
           return {
             ...decodeMsg,
@@ -169,23 +171,23 @@ export class ChainHelper {
         }
 
         if (decodeMsg.typeUrl === TxTypeUrl.IBC_TRANSFER.toString()) {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
           const timeoutHeight = decodeMsg.value.timeoutHeight
             ? {
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 revisionHeight:
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                   decodeMsg.value.timeoutHeight?.revisionHeight.toString(),
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 revisionNumber:
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                   decodeMsg.value.timeoutHeight?.revisionHeight.toString(),
               }
             : '';
 
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           const timeoutTimestamp: string =
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             decodeMsg.value.timeoutTimestamp.toString();
           return {
             ...decodeMsg,
@@ -196,6 +198,19 @@ export class ChainHelper {
               timeoutHeight: {
                 ...timeoutHeight,
               },
+            },
+          };
+        }
+
+        if (decodeMsg.typeUrl === TxTypeUrl.STORE_CODE.toString()) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+          const wasmByteCode = toBase64(decodeMsg.value.wasmByteCode);
+          return {
+            ...decodeMsg,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            value: {
+              ...decodeMsg.value,
+              wasmByteCode,
             },
           };
         }
@@ -210,12 +225,11 @@ export class ChainHelper {
     for (const msg of aminoMsgs) {
       switch (true) {
         case isAminoMsgSend(msg): {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           total += Number(msg.value.amount[0].amount);
           break;
         }
         case isAminoMsgMultiSend(msg): {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call
           total += msg.value.outputs.reduce(
             (acc: number, m: IMsgMultiSend) => acc + Number(m.coins[0].amount),
             0,
@@ -225,7 +239,6 @@ export class ChainHelper {
         case isAminoMsgDelegate(msg):
         case isAminoMsgBeginRedelegate(msg):
         case isAminoMsgUndelegate(msg): {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           total += Number(msg.value.amount.amount);
           break;
         }

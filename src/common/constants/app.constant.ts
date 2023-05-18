@@ -92,6 +92,7 @@ export enum TxTypeUrl {
   MIGRATE_CONTRACT = '/cosmwasm.wasm.v1.MsgMigrateContract',
   CREATE_VESTING_ACCOUNT = '/cosmos.vesting.v1beta1.MsgCreateVestingAccount',
   IBC_TRANSFER = '/ibc.applications.transfer.v1.MsgTransfer',
+  STORE_CODE = '/cosmwasm.wasm.v1.MsgStoreCode',
   RECEIVE = 'Receive',
   CUSTOM = 'Custom',
 }
