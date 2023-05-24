@@ -4,6 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { middleware as expressCtx } from 'express-ctx';
 import bodyParser from 'body-parser';
+import * as swaggerStats from 'swagger-stats';
 import { AppModule } from './app.module';
 import { SeederModule } from './modules/seeders/seeder.module';
 import { SeederService } from './modules/seeders/seeder.service';
@@ -46,6 +47,9 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+  app.use(swaggerStats.getMiddleware({ swaggerSpec: document }));
   SwaggerModule.setup('documentation', app, document);
 
   await app.listen(3000);
