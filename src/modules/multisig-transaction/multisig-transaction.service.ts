@@ -311,6 +311,7 @@ export class MultisigTransactionService {
         // Update status and txhash
         // TxHash is encoded transaction when send it to network
         const txId = CommonUtil.getStrProp(error, 'txId');
+        this.logger.log(`TxHash: ${txId}`);
         if (txId === undefined) {
           await this.multisigTransactionRepos.updateExecutingTx(
             multisigTransaction.id,
