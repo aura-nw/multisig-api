@@ -27,4 +27,4 @@ COPY --chown=node:node --from=install-dependencies-stage /usr/src/app/node_modul
 COPY --chown=node:node *.json /usr/src/app/
 
 EXPOSE $PORT
-CMD [ "npm", "run", "start:prod" ]
+CMD [ "yarn", "start:prod" ]
