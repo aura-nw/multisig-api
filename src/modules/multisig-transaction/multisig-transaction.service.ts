@@ -856,10 +856,7 @@ export class MultisigTransactionService {
 
     // Fee
     const sendFee = {
-      amount: coins(
-        multisigTransaction.fee.toString(),
-        multisigTransaction.denom,
-      ),
+      amount: coins(multisigTransaction.fee.toString(), chainInfo.denom),
       gas: multisigTransaction.gas.toString(),
     };
 
