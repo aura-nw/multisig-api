@@ -1,6 +1,11 @@
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { Injectable, Logger } from '@nestjs/common';
-import { coins, makeMultisignedTx, StargateClient } from '@cosmjs/stargate';
+import {
+  coins,
+  isAminoMsgSend,
+  makeMultisignedTx,
+  StargateClient,
+} from '@cosmjs/stargate';
 import { fromBase64 } from '@cosmjs/encoding';
 import { MultisigThresholdPubkey } from '@cosmjs/amino';
 import { ResponseDto } from '../../common/dtos/response.dto';
@@ -142,7 +147,9 @@ export class MultisigTransactionService {
       transaction.accountNumber = accountNumber;
       transaction.typeUrl =
         decodedMsgs.length > 1 ? TxTypeUrl.CUSTOM : decodedMsgs[0].typeUrl;
-      transaction.denom = chain.denom;
+      transaction.denom = isAminoMsgSend(aminoMsgs[0])
+        ? aminoMsgs[0].value.amount[0].denom
+        : chain.denom;
       transaction.status = TransactionStatus.AWAITING_CONFIRMATIONS;
       transaction.internalChainId = internalChainId;
       transaction.rawMessages = rawMsgs;
