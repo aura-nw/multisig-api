@@ -76,6 +76,11 @@ export class MultisigTransactionHistoryResponseDto {
   Sequence: string;
 
   @ApiProperty({
+    example: 'uaura',
+  })
+  Denom: string;
+
+  @ApiProperty({
     example: '2022-02-24T09:44:52.935Z',
   })
   CreatedAt: Date;
