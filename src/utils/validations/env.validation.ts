@@ -11,20 +11,28 @@ enum Environment {
 class EnvironmentVariables {
   @IsEnum(Environment)
   NODE_ENV: Environment;
+
   @IsString()
   DB_HOST: string;
+
   @IsPort()
   DB_PORT: string;
+
   @IsString()
   DB_USERNAME: string;
+
   @IsString()
   DB_PASSWORD: string;
+
   @IsString()
   SWAGGER_PATH: string;
+
   @IsString()
   JWT_SECRET: string;
+
   @IsString()
   JWT_EXPIRATION: string;
+
   @IsString()
   PREFIX_NETWORK: string;
 }

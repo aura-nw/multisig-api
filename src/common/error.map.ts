@@ -5,11 +5,11 @@ export const ErrorMap = {
   },
   UNAUTHRORIZED: {
     Code: 'E401',
-    Message: `Unauthorized`,
+    Message: 'Unauthorized',
   },
   E001: {
     Code: 'E001',
-    Message: `Invalid address`,
+    Message: 'Invalid address',
   },
   EXISTS: {
     Code: 'E002',
@@ -55,7 +55,7 @@ export const ErrorMap = {
     Code: 'E012',
     Message: 'Balance not enough!',
   },
-  USER_HAS_COMFIRMED: {
+  USER_HAS_CONFIRMED: {
     Code: 'E013',
     Message: 'User has confirmed before!',
   },
@@ -133,27 +133,28 @@ export const ErrorMap = {
   },
   PUBKEY_NOT_BASE64: {
     Code: 'E032',
-    Message: `Pubkey must be Base64 type!`,
+    Message: 'Pubkey must be Base64 type!',
   },
   SIGNATURE_NOT_BASE64: {
     Code: 'E033',
-    Message: `Signature must be Base64 type!`,
+    Message: 'Signature must be Base64 type!',
   },
   INVALID_TIMESTAMP: {
     Code: 'E034',
-    Message: `Invalid Timestamp!`,
+    Message: 'Invalid Timestamp!',
   },
   CHAIN_NOT_FOUND: {
     Code: 'E035',
-    Message: `Chain not found!`,
+    Message: 'Chain not found!',
   },
   VERIFY_SIGNATURE_FAIL: {
     Code: 'E036',
-    Message: `Verify signature fail!`,
+    Message: 'Verify signature fail!',
   },
   SIGNATURE_VERIFICATION_FAILED: {
     Code: 'E037',
-    Message: 'Signature verification failed!',
+    Message:
+      'Signature verification failed! Please reconnect your wallet and try again.',
   },
   USER_NOT_FOUND: {
     Code: 'E038',
@@ -192,28 +193,36 @@ export const ErrorMap = {
     Message: 'Invalid safe!',
   },
   CANNOT_DELETE_TX: {
-    Code: 'E046',
+    Code: 'E047',
     Message:
       'Can not delete because the status of this transaction is invalid!',
   },
+  INVALID_CONTRACT_ADDRESS: {
+    Code: 'E048',
+    Message: 'Invalid contract address!',
+  },
   TRANSACTION_IS_EXECUTING: {
-    Code: 'E047',
+    Code: 'E049',
     Message: 'Transaction is executing!',
+  },
+  INSERT_TRANSACTION_FAILED: {
+    Code: 'E050',
+    Message: 'Insert transaction failed!',
   },
   C001: {
     Code: 'C001',
-    Message: `Missing result from Chaincode`,
+    Message: 'Missing result from Chaincode',
   },
   E400: {
     Code: 'E400',
-    Message: `Bad request`,
+    Message: 'Bad request',
   },
   E403: {
     Code: 'E401',
-    Message: `Unauthorized`,
+    Message: 'Unauthorized',
   },
   E500: {
     Code: 'E500',
-    Message: `Server error`,
+    Message: 'Server error',
   },
 };

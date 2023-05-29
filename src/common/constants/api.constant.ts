@@ -9,6 +9,7 @@ export const CONTROLLER_CONSTANTS = {
   GOV: 'gov',
   DISTRIBUTION: 'distribution',
   USER: 'user',
+  CONTRACT: 'contract',
 };
 export const URL_CONSTANTS = {
   CHANGE_SEQ: 'change-seq',
@@ -55,4 +56,5 @@ export const URL_CONSTANTS = {
   GET_VALIDATOR_VOTES_BY_PROPOSAL_ID:
     ':internalChainId/proposal/:proposalId/validator-votes',
   GET_USER_BY_ADDRESS: ':address',
+  GET_CONTRACT_BY_ADDRESS: ':contractAddress',
 };
