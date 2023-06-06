@@ -35,6 +35,13 @@ export class TxMessageResponseDto {
   @Expose()
   @IsString()
   @ApiProperty({
+    example: 'uaura',
+  })
+  denom: string;
+
+  @Expose()
+  @IsString()
+  @ApiProperty({
     example: 'aura1522aavcagyrahayuspe47ndje7s694dkzcup6x',
   })
   delegatorAddress: string;
@@ -108,7 +115,9 @@ export class TxMessageResponseDto {
 
   @Expose()
   @IsString()
-  @ApiProperty({ example: 'aura1g7hlgpvw46jvh8yuhu7zj369ws3h02h2nd37dsfhmzwsndw6qe2qvkmh0s' })
+  @ApiProperty({
+    example: 'aura1g7hlgpvw46jvh8yuhu7zj369ws3h02h2nd37dsfhmzwsndw6qe2qvkmh0s',
+  })
   contractAddress: string;
 
   @Expose()
