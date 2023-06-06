@@ -62,9 +62,15 @@ export class MessageRepository {
     });
   }
 
-  private getAmountFromUnknownValue(value: IUnknownValue): string {
+  private getAmountFromUnknownValue(value: IUnknownValue): {
+    amount: string;
+    denom: string;
+  } {
     return value.amount && Array.isArray(value.amount)
-      ? value.amount[0].amount
+      ? {
+          amount: value.amount[0].amount,
+          denom: value.amount[0].denom,
+        }
       : undefined;
   }
 
@@ -78,7 +84,9 @@ export class MessageRepository {
     newMsg.typeUrl = typeUrl;
     switch (typeUrl) {
       case TxTypeUrl.SEND: {
-        newMsg.amount = this.getAmountFromUnknownValue(value);
+        const { amount, denom } = this.getAmountFromUnknownValue(value);
+        newMsg.amount = amount;
+        newMsg.denom = denom;
         break;
       }
       case TxTypeUrl.MULTI_SEND: {
