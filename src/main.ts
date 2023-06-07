@@ -10,7 +10,8 @@ import { SeederModule } from './modules/seeders/seeder.module';
 import { SeederService } from './modules/seeders/seeder.service';
 import { SharedModule } from './shared/shared.module';
 
-async function bootstrap() {
+// eslint-disable-next-line no-void
+void (async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(
     new ValidationPipe({
@@ -53,6 +54,4 @@ async function bootstrap() {
   SwaggerModule.setup('documentation', app, document);
 
   await app.listen(3000);
-}
-/* eslint-disable-next-line @typescript-eslint/no-floating-promises */
-bootstrap();
+})();
