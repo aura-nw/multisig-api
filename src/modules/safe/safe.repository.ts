@@ -174,7 +174,7 @@ export class SafeRepository {
     threshold: number,
   ): Promise<string> {
     const safeAddress = {
-      addresses: [...addresses].sort(),
+      addresses: [...addresses].sort((a, b) => a.localeCompare(b)),
       threshold,
       internalChainId,
     };
