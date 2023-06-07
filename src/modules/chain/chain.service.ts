@@ -4,9 +4,14 @@ import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { ChainRepository } from './chain.repository';
 import { GasRepository } from '../gas/gas.repository';
-import { GetAccountOnchainParamDto, NetworkListResponseDto } from './dto';
+import {
+  ChainDto,
+  GetAccountOnchainParamDto,
+  NetworkListResponseDto,
+} from './dto';
 import { IndexerClient } from '../../shared/services/indexer.service';
 import { AccountInfo } from '../../common/dtos/account-info';
+import { CommonService } from '../../shared/services';
 
 @Injectable()
 export class ChainService {
@@ -16,6 +21,7 @@ export class ChainService {
     private chainRepo: ChainRepository,
     private gasRepo: GasRepository,
     private indexer: IndexerClient,
+    private commonSvc: CommonService,
   ) {
     this.logger.log('============== Constructor Chain Service ==============');
   }
@@ -24,20 +30,20 @@ export class ChainService {
    * showNetworkList
    * @returns
    */
-  async showNetworkList(): Promise<ResponseDto<NetworkListResponseDto[]>> {
+  async showNetworkList(): Promise<ResponseDto<NetworkListResponseDto>> {
     try {
-      const chains = await this.chainRepo.showNetworkList();
-      const networkInfo = await Promise.all(
-        chains.map(async (chain) => {
-          const res = plainToInstance(NetworkListResponseDto, chain, {
-            excludeExtraneousValues: true,
-          });
-          res.defaultGas = await this.gasRepo.findGasByChainId(chain.chainId);
-          return res;
-        }),
-      );
+      const chainsInDb = await this.chainRepo.showNetworkList();
 
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, networkInfo);
+      const chains = plainToInstance(ChainDto, chainsInDb, {
+        excludeExtraneousValues: true,
+      });
+
+      const { tokens } = await this.commonSvc.readConfigurationFile();
+
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, {
+        chains,
+        tokens,
+      });
     } catch (error) {
       return ResponseDto.responseError(ChainService.name, error);
     }

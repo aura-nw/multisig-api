@@ -38,7 +38,7 @@ import {
   validatorInfoMock,
 } from './mocks';
 
-describe('ChainService', () => {
+describe('DistributionService', () => {
   let service: DistributionService;
   let chainRepo: ChainRepository;
   let configService: ConfigService;

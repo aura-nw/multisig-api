@@ -1,5 +1,7 @@
 import { Test } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { HttpService } from '@nestjs/axios';
 import { IndexerClient } from '../../shared/services/indexer.service';
 import { Gas } from '../gas/entities/gas.entity';
 import { GasRepository } from '../gas/gas.repository';
@@ -7,6 +9,7 @@ import { ChainController } from './chain.controller';
 import { ChainRepository } from './chain.repository';
 import { ChainService } from './chain.service';
 import { Chain } from './entities/chain.entity';
+import { CommonService } from '../../shared/services';
 
 export const chainTestingModule = Test.createTestingModule({
   imports: [],
@@ -14,9 +17,13 @@ export const chainTestingModule = Test.createTestingModule({
   providers: [
     ChainService,
     ChainRepository,
+    ConfigService,
+    IndexerClient,
     GasRepository,
+    CommonService,
+    HttpService,
     {
-      provide: IndexerClient,
+      provide: HttpService,
       useValue: {},
     },
     {

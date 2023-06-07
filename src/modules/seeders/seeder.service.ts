@@ -16,7 +16,8 @@ export class SeederService {
 
   async seedChain() {
     try {
-      const chainInfos = await this.commonSvc.readConfigurationFile();
+      const { chains: chainInfos } =
+        await this.commonSvc.readConfigurationFile();
 
       const validateResult = await Promise.all(
         chainInfos.map((chainInfo) => validate(chainInfo)),

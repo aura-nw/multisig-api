@@ -174,7 +174,6 @@ export class MultisigTransactionService {
       );
 
       // save account number & next queue sequence
-
       safe.nextQueueSeq = await this.calculateNextSeq(
         safe.id,
         sequenceInIndexer,
