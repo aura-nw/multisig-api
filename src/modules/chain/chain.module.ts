@@ -4,10 +4,9 @@ import { ChainService } from './chain.service';
 import { ChainController } from './chain.controller';
 import { ChainRepository } from './chain.repository';
 import { Chain } from './entities/chain.entity';
-import { GasModule } from '../gas/gas.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Chain]), GasModule],
+  imports: [TypeOrmModule.forFeature([Chain])],
   controllers: [ChainController],
   providers: [ChainService, ChainRepository],
   exports: [ChainRepository],

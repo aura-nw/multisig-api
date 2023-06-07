@@ -1,16 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
+import _ from 'lodash';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { ChainRepository } from './chain.repository';
-import { GasRepository } from '../gas/gas.repository';
 import { ChainDto, GetAccountOnchainParamDto } from './dto';
 import { IndexerClient } from '../../shared/services/indexer.service';
 import { AccountInfo } from '../../common/dtos/account-info';
 import { CommonService } from '../../shared/services';
-import _ from 'lodash';
 import { Chain } from './entities/chain.entity';
-import { ChainInfo } from '../../utils/validations';
 
 @Injectable()
 export class ChainService {
@@ -18,7 +16,6 @@ export class ChainService {
 
   constructor(
     private chainRepo: ChainRepository,
-    private gasRepo: GasRepository,
     private indexer: IndexerClient,
     private commonSvc: CommonService,
   ) {
