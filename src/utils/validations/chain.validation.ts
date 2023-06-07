@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import { IsNumber, IsString } from 'class-validator';
+import { TokenInfo } from './token.validation';
 
 export class ChainInfo {
   @IsString()
@@ -39,4 +40,6 @@ export class ChainInfo {
 
   @IsString()
   tokenImg: string;
+
+  tokens: TokenInfo[];
 }

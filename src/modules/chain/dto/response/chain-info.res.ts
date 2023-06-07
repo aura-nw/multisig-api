@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 import { IsNumber, IsString } from 'class-validator';
-import { FindGasByChainDto } from '../../../gas/dtos';
+import { TokenInfo } from '../../../../utils/validations';
 
 export class ChainDto {
   @Expose()
@@ -90,5 +90,6 @@ export class ChainDto {
   })
   tokenImg: string;
 
-  defaultGas: FindGasByChainDto[];
+  @Expose()
+  tokens: TokenInfo[];
 }

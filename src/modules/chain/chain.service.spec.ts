@@ -1,7 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
-import { chainList, networkList, tokens } from '../../mock/chain/chain.mock';
+import { chainList, chains } from '../../mock/chain/chain.mock';
 import { IndexerClient } from '../../shared/services/indexer.service';
 import { GasRepository } from '../gas/gas.repository';
 import { chainTestingModule } from './chain-testing.module';
@@ -10,6 +10,7 @@ import { ChainService } from './chain.service';
 import { plainToInstance } from 'class-transformer';
 import { AccountInfo } from '../../common/dtos';
 import { CommonService } from '../../shared/services';
+import { ChainDto } from './dto';
 
 describe('ChainService', () => {
   let service: ChainService;
@@ -36,20 +37,16 @@ describe('ChainService', () => {
     it(`should return: ${ErrorMap.SUCCESSFUL.Message}`, async () => {
       const expectedResult = ResponseDto.response(
         ErrorMap.SUCCESSFUL,
-        networkList,
+        plainToInstance(ChainDto, chains),
       );
 
-      const mockConfig = {
-        chains: [],
-        tokens,
-      };
       jest
         .spyOn(chainRepo, 'showNetworkList')
         .mockImplementation(async () => chainList);
 
       jest
         .spyOn(commonSvc, 'readConfigurationFile')
-        .mockImplementation(async () => mockConfig);
+        .mockImplementation(async () => chains);
 
       const result = await service.showNetworkList();
 
