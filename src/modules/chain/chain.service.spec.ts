@@ -3,7 +3,6 @@ import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { chainList, chains } from '../../mock/chain/chain.mock';
 import { IndexerClient } from '../../shared/services/indexer.service';
-import { GasRepository } from '../gas/gas.repository';
 import { chainTestingModule } from './chain-testing.module';
 import { ChainRepository } from './chain.repository';
 import { ChainService } from './chain.service';
@@ -15,7 +14,6 @@ import { ChainDto } from './dto';
 describe('ChainService', () => {
   let service: ChainService;
   let chainRepo: ChainRepository;
-  let gasRepo: GasRepository;
   let indexerClient: IndexerClient;
   let commonSvc: CommonService;
 
@@ -24,7 +22,6 @@ describe('ChainService', () => {
 
     service = module.get<ChainService>(ChainService);
     chainRepo = module.get<ChainRepository>(ChainRepository);
-    gasRepo = module.get<GasRepository>(GasRepository);
     indexerClient = module.get<IndexerClient>(IndexerClient);
     commonSvc = module.get<CommonService>(CommonService);
   });
