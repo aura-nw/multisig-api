@@ -4,14 +4,13 @@ import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import { ChainRepository } from './chain.repository';
 import { GasRepository } from '../gas/gas.repository';
-import {
-  ChainDto,
-  GetAccountOnchainParamDto,
-  NetworkListResponseDto,
-} from './dto';
+import { ChainDto, GetAccountOnchainParamDto } from './dto';
 import { IndexerClient } from '../../shared/services/indexer.service';
 import { AccountInfo } from '../../common/dtos/account-info';
 import { CommonService } from '../../shared/services';
+import _ from 'lodash';
+import { Chain } from './entities/chain.entity';
+import { ChainInfo } from '../../utils/validations';
 
 @Injectable()
 export class ChainService {
@@ -30,20 +29,24 @@ export class ChainService {
    * showNetworkList
    * @returns
    */
-  async showNetworkList(): Promise<ResponseDto<NetworkListResponseDto>> {
+  async showNetworkList(): Promise<ResponseDto<ChainDto[]>> {
     try {
       const chainsInDb = await this.chainRepo.showNetworkList();
 
-      const chains = plainToInstance(ChainDto, chainsInDb, {
-        excludeExtraneousValues: true,
-      });
+      const config = await this.commonSvc.readConfigurationFile();
 
-      const { tokens } = await this.commonSvc.readConfigurationFile();
+      const chains = plainToInstance(
+        ChainDto,
+        chainsInDb.map((c: Chain) =>
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+          _.defaultsDeep(c, _.find(config, { chainId: c.chainId })),
+        ),
+        {
+          excludeExtraneousValues: true,
+        },
+      );
 
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, {
-        chains,
-        tokens,
-      });
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, chains);
     } catch (error) {
       return ResponseDto.responseError(ChainService.name, error);
     }

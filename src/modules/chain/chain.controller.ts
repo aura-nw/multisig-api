@@ -18,9 +18,9 @@ import {
 } from '../../common/constants/api.constant';
 import { ChainService } from './chain.service';
 import {
+  ChainDto,
   GetAccountOnchainParamDto,
   GetAccountOnchainResponseDto,
-  NetworkListResponseDto,
 } from './dto';
 
 @Controller(CONTROLLER_CONSTANTS.GENERAL)
@@ -32,7 +32,7 @@ export class ChainController {
   @ApiOperation({ summary: 'Show network list' })
   @ApiOkResponse({
     status: 200,
-    type: NetworkListResponseDto,
+    type: ChainDto,
     description: 'Show list of networks',
     schema: {},
   })

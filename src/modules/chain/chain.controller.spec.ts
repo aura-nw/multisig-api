@@ -1,10 +1,12 @@
 import { TestingModule } from '@nestjs/testing';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
-import { networkList } from '../../mock/chain/chain.mock';
+import { chains, chains, networkList } from '../../mock/chain/chain.mock';
 import { chainTestingModule } from './chain-testing.module';
 import { ChainController } from './chain.controller';
 import { ChainService } from './chain.service';
+import { plainToInstance } from 'class-transformer';
+import { ChainDto } from './dto';
 
 describe('ChainController', () => {
   let controller: ChainController;
@@ -23,8 +25,10 @@ describe('ChainController', () => {
 
   describe('showNetworkList', () => {
     it('should return information of a multisig account', async () => {
-      const chains = networkList;
-      const result = ResponseDto.response(ErrorMap.SUCCESSFUL, chains);
+      const result = ResponseDto.response(
+        ErrorMap.SUCCESSFUL,
+        plainToInstance(ChainDto, chains),
+      );
 
       jest
         .spyOn(service, 'showNetworkList')
