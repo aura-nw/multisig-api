@@ -1,11 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
-import {
-  chainList,
-  defaultGas,
-  networkList,
-} from '../../mock/chain/chain.mock';
+import { chainList, networkList, tokens } from '../../mock/chain/chain.mock';
 import { IndexerClient } from '../../shared/services/indexer.service';
 import { GasRepository } from '../gas/gas.repository';
 import { chainTestingModule } from './chain-testing.module';
@@ -13,25 +9,23 @@ import { ChainRepository } from './chain.repository';
 import { ChainService } from './chain.service';
 import { plainToInstance } from 'class-transformer';
 import { AccountInfo } from '../../common/dtos';
+import { CommonService } from '../../shared/services';
 
 describe('ChainService', () => {
   let service: ChainService;
   let chainRepo: ChainRepository;
   let gasRepo: GasRepository;
   let indexerClient: IndexerClient;
+  let commonSvc: CommonService;
 
   beforeEach(async () => {
-    const module: TestingModule = await chainTestingModule
-      .overrideProvider(IndexerClient)
-      .useValue({
-        getAccountNumberAndSequence: jest.fn(),
-      })
-      .compile();
+    const module: TestingModule = await chainTestingModule.compile();
 
     service = module.get<ChainService>(ChainService);
     chainRepo = module.get<ChainRepository>(ChainRepository);
     gasRepo = module.get<GasRepository>(GasRepository);
     indexerClient = module.get<IndexerClient>(IndexerClient);
+    commonSvc = module.get<CommonService>(CommonService);
   });
 
   it('should be defined', () => {
@@ -45,13 +39,17 @@ describe('ChainService', () => {
         networkList,
       );
 
+      const mockConfig = {
+        chains: [],
+        tokens,
+      };
       jest
         .spyOn(chainRepo, 'showNetworkList')
         .mockImplementation(async () => chainList);
 
       jest
-        .spyOn(gasRepo, 'findGasByChainId')
-        .mockImplementation(async () => defaultGas);
+        .spyOn(commonSvc, 'readConfigurationFile')
+        .mockImplementation(async () => mockConfig);
 
       const result = await service.showNetworkList();
 
@@ -81,7 +79,7 @@ describe('ChainService', () => {
         .mockImplementation(async () => chainList[0]);
 
       jest
-        .spyOn(indexerClient, 'getAccountNumberAndSequence')
+        .spyOn(indexerClient, 'getAccount')
         .mockImplementation(async () =>
           plainToInstance(AccountInfo, accountOnchainMock),
         );

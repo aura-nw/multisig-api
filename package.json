@@ -13,7 +13,7 @@
     "prebuild": "rimraf dist",
     "build:prod": "tsc -p tsconfig.build.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start:dev": "ts-node src/main.ts",
+    "dev": "ts-node src/main.ts",
     "start:prod": "node dist/main.js",
     "watch:dev": "ts-node-dev src/main.ts",
     "debug:dev": "cross-env TS_NODE_CACHE=false ts-node-dev --inspect --ignore '/^src/.*\\.spec\\.ts$/' src/main.ts",

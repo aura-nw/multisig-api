@@ -5,7 +5,7 @@ import { catchError, firstValueFrom, map } from 'rxjs';
 import { CustomError } from '../../common/custom-error';
 import { ErrorMap } from '../../common/error.map';
 import { CommonUtil } from '../../utils/common.util';
-import { ChainInfo } from '../../utils/validations/chain.validation';
+import { ConfigInfo } from '../../utils/validations';
 
 @Injectable()
 export class CommonService {
@@ -13,8 +13,8 @@ export class CommonService {
 
   constructor(private readonly httpService: HttpService) {}
 
-  public async readConfigurationFile(): Promise<ChainInfo[]> {
-    const configuration = await CommonUtil.jsonReader<ChainInfo[]>(
+  public async readConfigurationFile(): Promise<ConfigInfo> {
+    const configuration = await CommonUtil.jsonReader<ConfigInfo>(
       './chains.json',
     );
     return configuration;
