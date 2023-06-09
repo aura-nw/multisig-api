@@ -97,7 +97,7 @@ export class MultisigTransactionRepository {
         status: TransactionStatus.REPLACED,
       })
       .where(
-        'SafeId = :safeId and Sequence = :sequence and Status IN (:...status)',
+        'SafeId = :safeId and Sequence <= :sequence and Status IN (:...status)',
         {
           safeId,
           sequence,
