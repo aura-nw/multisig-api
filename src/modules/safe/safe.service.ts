@@ -138,8 +138,6 @@ export class SafeService {
       safeInfo.id = safe.id;
       safeInfo.address = safe.safeAddress;
       safeInfo.accountNumber = safe.accountNumber;
-      safeInfo.sequence = safe.sequence;
-      safeInfo.nextQueueSeq = safe.nextQueueSeq || safe.sequence;
       safeInfo.txHistoryTag = safe.txHistoryTag;
       safeInfo.txQueuedTag = safe.txQueuedTag;
       safeInfo.pubkeys = safe.safePubkey;
@@ -149,29 +147,39 @@ export class SafeService {
       safeInfo.status = safe.status;
       safeInfo.internalChainId = safe.internalChainId;
       safeInfo.createdAddress = safe.creatorAddress;
+
       // get chainInfo
-      const chainInfo = await this.chainRepo.findChain(safe.internalChainId);
+      const { chainId, denom } = await this.chainRepo.findChain(
+        safe.internalChainId,
+      );
       // if safe created => Get balance
       if (safeInfo.address !== null) {
         try {
-          const balances = await this.indexer.getAccountBalances(
-            chainInfo.chainId,
+          const { sequence, balances } = await this.indexer.getAccount(
+            chainId,
             safeInfo.address,
           );
+
           safeInfo.balance =
             balances && balances.length > 0
               ? balances
               : [
                   {
                     amount: '0',
-                    denom: chainInfo.denom,
+                    denom,
                   },
                 ];
+
+          safeInfo.sequence = sequence.toString();
+          safeInfo.nextQueueSeq =
+            safe.nextQueueSeq && Number(safe.nextQueueSeq) > sequence
+              ? safe.nextQueueSeq
+              : sequence.toString();
         } catch (error) {
           this.logger.error(error);
           safeInfo.balance = [
             {
-              denom: chainInfo.denom,
+              denom,
               amount: '-1',
             },
           ];
@@ -182,12 +190,12 @@ export class SafeService {
           this.indexer.getAssetByOwnerAddress(
             safeInfo.address,
             'CW20',
-            chainInfo.chainId,
+            chainId,
           ),
           this.indexer.getAssetByOwnerAddress(
             safeInfo.address,
             'CW721',
-            chainInfo.chainId,
+            chainId,
           ),
         ]);
         safeInfo.assets = {
