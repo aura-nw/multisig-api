@@ -1,5 +1,6 @@
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { Injectable, Logger } from '@nestjs/common';
+import { isNull } from 'lodash';
 import {
   coins,
   isAminoMsgSend,
@@ -477,7 +478,7 @@ export class MultisigTransactionService {
       }
       const response = result.map((item) => {
         const updatedItem = item;
-        if (item.TypeUrl === undefined)
+        if (  isNull(item.TypeUrl))
           updatedItem.TypeUrl = TxTypeUrl.RECEIVE;
 
         updatedItem.Direction = this.getDirection(
