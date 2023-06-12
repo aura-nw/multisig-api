@@ -477,7 +477,7 @@ export class MultisigTransactionService {
       }
       const response = result.map((item) => {
         const updatedItem = item;
-        if (item.TypeUrl === undefined || item.FromAddress !== safeAddress)
+        if (item.TypeUrl === undefined)
           updatedItem.TypeUrl = TxTypeUrl.RECEIVE;
 
         updatedItem.Direction = this.getDirection(
