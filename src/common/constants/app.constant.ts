@@ -97,6 +97,10 @@ export enum TxTypeUrl {
   CUSTOM = 'Custom',
 }
 
+export enum DisplayTypes {
+  SEND = 'Send',
+}
+
 export const RegistryGeneratedTypes: Iterable<[string, GeneratedType]> = [
   ['/cosmos.bank.v1beta1.MsgSend', MsgSend],
   ['/cosmos.bank.v1beta1.MsgMultiSend', MsgMultiSend],

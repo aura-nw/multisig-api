@@ -297,6 +297,7 @@ export class MultisigTransactionRepository {
         'updatedAt as UpdatedAt',
         'amount as MultisigTxAmount',
         'typeUrl as TypeUrl',
+        'displayType as DisplayType',
         'denom as Denom',
         'fromAddress as FromAddress',
         'status as Status',

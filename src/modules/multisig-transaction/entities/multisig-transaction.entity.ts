@@ -24,6 +24,9 @@ export class MultisigTransaction extends BaseEntityAutoId {
   @Column({ name: 'TypeUrl' })
   typeUrl: string;
 
+  @Column({ name: 'DisplayType' })
+  displayType: string;
+
   @Column({ name: 'InternalChainId' })
   internalChainId: number;
 
