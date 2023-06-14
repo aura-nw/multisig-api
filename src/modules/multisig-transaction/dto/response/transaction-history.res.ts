@@ -26,6 +26,11 @@ export class MultisigTransactionHistoryResponseDto {
   TypeUrl: string;
 
   @ApiProperty({
+    example: 'Send',
+  })
+  DisplayType: string;
+
+  @ApiProperty({
     example: 'aura1522aavcagyrahayuspe47ndje7s694dkzcup6x',
   })
   FromAddress: string;

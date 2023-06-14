@@ -7,12 +7,13 @@ import {
   makeMultisignedTx,
   StargateClient,
 } from '@cosmjs/stargate';
-import { fromBase64 } from '@cosmjs/encoding';
+import { fromBase64, fromUtf8 } from '@cosmjs/encoding';
 import { MultisigThresholdPubkey } from '@cosmjs/amino';
 import { plainToInstance } from 'class-transformer';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import {
+  DisplayTypes,
   MultisigConfirmStatus,
   SafeStatus,
   TransactionStatus,
@@ -60,6 +61,7 @@ import { EthermintHelper } from '../../chains/ethermint/ethermint.helper';
 import { SimulateResponse } from '../simulate/dtos';
 import { AccountInfo } from '../../common/dtos';
 import { ChainHelper } from '../../chains/chain.helper';
+import { ICw20Msg } from './interfaces';
 
 @Injectable()
 export class MultisigTransactionService {
@@ -125,33 +127,77 @@ export class MultisigTransactionService {
         authInfo,
       );
 
-      // calculate tx amount
-      const txAmount = chainHelper.calculateAmount(aminoMsgs);
+      const transaction = new MultisigTransaction();
+      transaction.typeUrl =
+        decodedMsgs.length > 1 ? TxTypeUrl.CUSTOM : decodedMsgs[0].typeUrl;
+      transaction.fromAddress = from;
+      transaction.toAddress = to || '';
+
+      // check balance
+      let amount = 0;
+      let denom = isAminoMsgSend(aminoMsgs[0])
+        ? aminoMsgs[0].value.amount[0].denom
+        : chain.denom;
 
       // check account balance; if balance is not enough, throw error
-      const balance = accountBalance.find(
-        (item: { denom: string }) => item.denom === chain.denom,
-      );
-      if (Number(balance.amount) < txAmount) {
-        throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
+      if (
+        transaction.typeUrl === TxTypeUrl.EXECUTE_CONTRACT &&
+        transaction.toAddress !== '' &&
+        !(decodedMsgs[0].value instanceof Uint8Array) &&
+        decodedMsgs[0].value.msg instanceof Uint8Array
+      ) {
+        // cw20
+        const contractAddress = decodedMsgs[0].value.contract;
+        const decodedMsg = fromUtf8(decodedMsgs[0].value.msg);
+        const objectMsg = JSON.parse(decodedMsg) as ICw20Msg;
+        if (objectMsg.transfer.recipient !== to) {
+          throw new CustomError(
+            ErrorMap.TRANSACTION_NOT_VALID,
+            'recipient address is not match with address in msg',
+          );
+        }
+
+        const cw20Assets = await this.indexer.getAssetByOwnerAddress(
+          safe.safeAddress,
+          'CW20',
+          chain.chainId,
+        );
+        const currentCw20Token = cw20Assets.CW20.asset.find(
+          (token) => token.contract_address === contractAddress,
+        );
+
+        amount = Number(objectMsg.transfer.amount);
+        if (currentCw20Token.balance < amount) {
+          throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
+        }
+
+        denom = currentCw20Token.asset_info.data.symbol;
+        transaction.displayType = DisplayTypes.SEND;
+      } else {
+        // other
+        // calculate tx amount
+        const txAmount = chainHelper.calculateAmount(aminoMsgs);
+
+        const balance = accountBalance.find((token) => token.denom === denom);
+        if (Number(balance.amount) < txAmount) {
+          throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
+        }
+        amount = txAmount;
       }
 
       // is owner of safe
-      await this.safeOwnerRepo.isSafeOwner(creatorAddress, safe.id);
+      const safeOwners = await this.safeOwnerRepo.getSafeOwnersWithError(
+        safe.id,
+      );
+      if (!safeOwners.some((owner) => owner.ownerAddress === creatorAddress))
+        throw new CustomError(ErrorMap.PERMISSION_DENIED);
 
       // save tx
-      const transaction = new MultisigTransaction();
-      transaction.fromAddress = from;
-      transaction.toAddress = to || '';
-      transaction.amount = txAmount > 0 ? txAmount : undefined;
+      transaction.amount = amount > 0 ? amount : undefined;
       transaction.gas = decodedAuthInfo.fee.gasLimit.toNumber();
       transaction.fee = Number(decodedAuthInfo.fee.amount[0].amount);
       transaction.accountNumber = accountNumber;
-      transaction.typeUrl =
-        decodedMsgs.length > 1 ? TxTypeUrl.CUSTOM : decodedMsgs[0].typeUrl;
-      transaction.denom = isAminoMsgSend(aminoMsgs[0])
-        ? aminoMsgs[0].value.amount[0].denom
-        : chain.denom;
+      transaction.denom = denom;
       transaction.status = TransactionStatus.AWAITING_CONFIRMATIONS;
       transaction.internalChainId = internalChainId;
       transaction.rawMessages = rawMsgs;
@@ -185,9 +231,6 @@ export class MultisigTransactionService {
       await this.safeRepos.updateSafe(safe);
 
       // notify to another owners
-      const safeOwners = await this.safeOwnerRepo.getSafeOwnersWithError(
-        safe.id,
-      );
       await this.notificationRepo.notifyNewTx(
         safe.id,
         safe.safeAddress,
@@ -479,8 +522,7 @@ export class MultisigTransactionService {
       }
       const response = result.map((item) => {
         const updatedItem = item;
-        if (  isNull(item.TypeUrl))
-          updatedItem.TypeUrl = TxTypeUrl.RECEIVE;
+        if (isNull(item.TypeUrl)) updatedItem.TypeUrl = TxTypeUrl.RECEIVE;
 
         updatedItem.Direction = this.getDirection(
           item.TypeUrl,
@@ -744,7 +786,10 @@ export class MultisigTransactionService {
       const threshold = await this.safeRepos.getThreshold(safeAddress);
       txDetail.ConfirmationsRequired = threshold.ConfirmationsRequired;
 
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, plainToInstance(TxDetailDto, this.commonUtil.omitByNil(txDetail) ));
+      return ResponseDto.response(
+        ErrorMap.SUCCESSFUL,
+        plainToInstance(TxDetailDto, this.commonUtil.omitByNil(txDetail)),
+      );
     } catch (error) {
       return ResponseDto.responseError(MultisigTransactionService.name, error);
     }
