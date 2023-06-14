@@ -9,6 +9,7 @@ import {
 } from '@cosmjs/stargate';
 import { fromBase64 } from '@cosmjs/encoding';
 import { MultisigThresholdPubkey } from '@cosmjs/amino';
+import { plainToInstance } from 'class-transformer';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import {
@@ -743,7 +744,7 @@ export class MultisigTransactionService {
       const threshold = await this.safeRepos.getThreshold(safeAddress);
       txDetail.ConfirmationsRequired = threshold.ConfirmationsRequired;
 
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, txDetail);
+      return ResponseDto.response(ErrorMap.SUCCESSFUL, plainToInstance(TxDetailDto, this.commonUtil.omitByNil(txDetail) ));
     } catch (error) {
       return ResponseDto.responseError(MultisigTransactionService.name, error);
     }
