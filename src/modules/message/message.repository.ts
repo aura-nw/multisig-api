@@ -57,7 +57,7 @@ export class MessageRepository {
     const result = await this.repos.find({
       where: { auraTxId },
     });
-    return plainToInstance(TxMessageResponseDto, result, {
+    return plainToInstance(TxMessageResponseDto, result.map((item) => this.utils.omitByNil(item)), {
       excludeExtraneousValues: true,
     });
   }
