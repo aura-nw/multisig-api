@@ -178,7 +178,12 @@ export class MultisigTransactionService {
         // calculate tx amount
         const txAmount = chainHelper.calculateAmount(aminoMsgs);
 
-        const balance = accountBalance.find((token) => token.denom === denom);
+        const balance = accountBalance.find((token) => {
+          if (denom.search('ibc/') > -1) {
+            return token.minimal_denom === denom;
+          }
+          return token.denom === denom;
+        });
         if (Number(balance.amount) < txAmount) {
           throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
         }
