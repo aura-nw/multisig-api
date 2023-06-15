@@ -7,6 +7,7 @@ export class AccountInfo {
     {
       denom: string;
       amount: string;
+      minimal_denom?: string;
     },
   ];
 }
