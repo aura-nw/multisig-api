@@ -172,7 +172,7 @@ export class MultisigTransactionService {
         }
 
         denom = currentCw20Token.asset_info.data.symbol;
-        transaction.displayType = DisplayTypes.SEND;
+        // transaction.displayType = DisplayTypes.SEND;
       } else {
         // other
         // calculate tx amount
@@ -531,10 +531,12 @@ export class MultisigTransactionService {
             TxTypeUrl.EXECUTE_CONTRACT.toString(),
           ].includes(item.TypeUrl)
         ) {
-          updatedItem.DisplayType =
-            item.ToAddress === safe.safeAddress
-              ? TxTypeUrl.RECEIVE
-              : DisplayTypes.SEND;
+          if (item.ToAddress === safe.safeAddress)
+            updatedItem.DisplayType = TxTypeUrl.RECEIVE;
+
+          if (item.FromAddress === safe.safeAddress && item.ToAddress !== '')
+            // ignore case: mint cw20 token
+            updatedItem.DisplayType = DisplayTypes.SEND;
         }
 
         updatedItem.Direction = this.getDirection(

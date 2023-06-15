@@ -300,6 +300,7 @@ export class MultisigTransactionRepository {
         'displayType as DisplayType',
         'denom as Denom',
         'fromAddress as FromAddress',
+        'toAddress as ToAddress',
         'status as Status',
         'sequence as Sequence',
       ])
