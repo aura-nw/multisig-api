@@ -36,6 +36,11 @@ export class MultisigTransactionHistoryResponseDto {
   FromAddress: string;
 
   @ApiProperty({
+    example: 'aura1522aavcagyrahayuspe47ndje7s694dkzcup6x',
+  })
+  ToAddress: string;
+
+  @ApiProperty({
     example: 100,
   })
   AuraTxAmount: number;

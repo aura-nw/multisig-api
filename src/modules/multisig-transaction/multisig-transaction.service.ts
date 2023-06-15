@@ -521,12 +521,25 @@ export class MultisigTransactionService {
         result = await this.getConfirmationStatus(txs, safe.threshold);
       }
       const response = result.map((item) => {
-        const updatedItem = item;
-        if (isNull(item.TypeUrl)) updatedItem.TypeUrl = TxTypeUrl.RECEIVE;
+        const updatedItem = {
+          ...item,
+        };
+        if (
+          isNull(item.TypeUrl) ||
+          [
+            TxTypeUrl.SEND.toString(),
+            TxTypeUrl.EXECUTE_CONTRACT.toString(),
+          ].includes(item.TypeUrl)
+        ) {
+          updatedItem.DisplayType =
+            item.ToAddress === safe.safeAddress
+              ? TxTypeUrl.RECEIVE
+              : DisplayTypes.SEND;
+        }
 
         updatedItem.Direction = this.getDirection(
           item.TypeUrl,
-          item.FromAddress,
+          item.ToAddress,
           safeAddress,
         );
 
@@ -536,9 +549,12 @@ export class MultisigTransactionService {
         if (!Number.isNaN(Number(item.Status))) {
           updatedItem.Status = this.parseStatus(item.Status);
         }
-        return updatedItem;
+        return this.commonUtil.omitByNil(updatedItem);
       });
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, response);
+      return ResponseDto.response(
+        ErrorMap.SUCCESSFUL,
+        plainToInstance(MultisigTransactionHistoryResponseDto, response),
+      );
     } catch (error) {
       return ResponseDto.responseError(MultisigTransactionService.name, error);
     }
@@ -795,13 +811,13 @@ export class MultisigTransactionService {
     }
   }
 
-  getDirection(typeUrl: string, from: string, safeAddress: string): string {
+  getDirection(typeUrl: string, to: string, safeAddress: string): string {
     switch (typeUrl) {
       case TxTypeUrl.SEND:
       case TxTypeUrl.MULTI_SEND: {
-        return from === safeAddress
-          ? TransferDirection.OUTGOING
-          : TransferDirection.INCOMING;
+        return to === safeAddress
+          ? TransferDirection.INCOMING
+          : TransferDirection.OUTGOING;
       }
       case TxTypeUrl.DELEGATE:
       case TxTypeUrl.REDELEGATE:
