@@ -43,14 +43,14 @@ export class TransactionHistoryRepository {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const result: unknown[] = await this.repos.query(
       `
-      SELECT AT.Id as AuraTxId, MT.Id as MultisigTxId, AT.TxHash as TxHash, MT.TypeUrl as TypeUrl, MT.DisplayType as DisplayType, AT.FromAddress as FromAddress, AT.Amount as AuraTxAmount, AT.RewardAmount as AuraTxRewardAmount, MT.Amount as MultisigTxAmount, AT.Code as Status, MT.Sequence as Sequence, MT.Denom as Denom, AT.CreatedAt as CreatedAt, AT.UpdatedAt as UpdatedAt, AT.Timestamp as Timestamp 
+      SELECT AT.Id as AuraTxId, MT.Id as MultisigTxId, AT.TxHash as TxHash, MT.TypeUrl as TypeUrl, MT.DisplayType as DisplayType, AT.FromAddress as FromAddress, AT.ToAddress as ToAddress, AT.Amount as AuraTxAmount, AT.RewardAmount as AuraTxRewardAmount, MT.Amount as MultisigTxAmount, AT.Code as Status, MT.Sequence as Sequence, MT.Denom as Denom, AT.CreatedAt as CreatedAt, AT.UpdatedAt as UpdatedAt, AT.Timestamp as Timestamp 
       FROM TransactionHistory TH
         INNER JOIN AuraTx AT on TH.TxHash = AT.TxHash
         LEFT JOIN MultisigTransaction MT on TH.TxHash = MT.TxHash
         WHERE TH.InternalChainId = ?
         AND  TH.SafeAddress = ?
       UNION
-      SELECT NULL as AuraTxId,  MT.ID as MultisigTxId, MT.TxHash as TxHash, MT.TypeUrl as TypeUrl, MT.DisplayType as DisplayType, MT.FromAddress as FromAddress, NULL as AuraTxAmount,NULL as AuraTxRewardAmount, MT.Amount as MultisigTxAmount, MT.Status, MT.Sequence as Sequence, MT.Denom as Denom, MT.CreatedAt as CreatedAt, MT.UpdatedAt as UpdateAt, NULL as Timestamp  FROM MultisigTransaction MT
+      SELECT NULL as AuraTxId,  MT.ID as MultisigTxId, MT.TxHash as TxHash, MT.TypeUrl as TypeUrl, MT.DisplayType as DisplayType, MT.FromAddress as FromAddress, MT.ToAddress as ToAddress, NULL as AuraTxAmount,NULL as AuraTxRewardAmount, MT.Amount as MultisigTxAmount, MT.Status, MT.Sequence as Sequence, MT.Denom as Denom, MT.CreatedAt as CreatedAt, MT.UpdatedAt as UpdateAt, NULL as Timestamp  FROM MultisigTransaction MT
         WHERE MT.InternalChainId = ?
         AND MT.FromAddress = ?
         AND Status In(?,?,?,?,?)
