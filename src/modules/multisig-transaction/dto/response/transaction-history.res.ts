@@ -91,6 +91,11 @@ export class MultisigTransactionHistoryResponseDto {
   Denom: string;
 
   @ApiProperty({
+    example: 'aura10sxfmtls2x2sq0xz64cfw485tflzjmp9ts3hcvycvm7u073levpqk22wrc',
+  })
+  ContractAddress: string;
+
+  @ApiProperty({
     example: '2022-02-24T09:44:52.935Z',
   })
   CreatedAt: Date;

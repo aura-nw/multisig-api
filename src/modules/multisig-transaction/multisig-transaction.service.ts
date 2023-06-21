@@ -172,7 +172,8 @@ export class MultisigTransactionService {
         }
 
         denom = currentCw20Token.asset_info.data.symbol;
-        // transaction.displayType = DisplayTypes.SEND;
+
+        transaction.contractAddress = currentCw20Token.contract_address;
       } else {
         // other
         // calculate tx amount

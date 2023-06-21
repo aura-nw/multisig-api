@@ -48,6 +48,9 @@ export class AuraTx extends BaseEntityAutoId {
   @Column({ name: 'Denom' })
   denom: string;
 
+  @Column({ name: 'ContractAddress' })
+  contractAddress: string;
+
   @Column({ name: 'TimeStamp', type: 'timestamp' })
   timeStamp: Date;
 

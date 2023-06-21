@@ -299,6 +299,7 @@ export class MultisigTransactionRepository {
         'typeUrl as TypeUrl',
         'displayType as DisplayType',
         'denom as Denom',
+        'contractAddress as ContractAddress',
         'fromAddress as FromAddress',
         'toAddress as ToAddress',
         'status as Status',
