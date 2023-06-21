@@ -18,6 +18,9 @@ export class MultisigTransaction extends BaseEntityAutoId {
   @Column({ name: 'Denom' })
   denom: string;
 
+  @Column({ name: 'ContractAddress' })
+  contractAddress: string;
+
   @Column({ name: 'Status' })
   status: string;
 
