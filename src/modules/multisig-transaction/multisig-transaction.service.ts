@@ -537,9 +537,10 @@ export class MultisigTransactionService {
             TxTypeUrl.EXECUTE_CONTRACT.toString(),
           ].includes(item.TypeUrl)
         ) {
-          if (item.ToAddress === safe.safeAddress)
+          if (item.ToAddress === safe.safeAddress) {
             updatedItem.DisplayType = TxTypeUrl.RECEIVE;
-          updatedItem.Sequence = undefined;
+            updatedItem.Sequence = undefined;
+          }
 
           if (item.FromAddress === safe.safeAddress && item.ToAddress !== '')
             // ignore case: mint cw20 token
