@@ -134,4 +134,9 @@ export class TxMessageResponseDto {
   @IsString()
   @ApiProperty({ example: 'aura1agsqhsrnpgcf5wht50qe5zgt4rzkg4uml8urvh' })
   contractArgs: string;
+
+  @Expose()
+  @IsString()
+  @ApiProperty()
+  contractFunds: string;
 }

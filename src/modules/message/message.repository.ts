@@ -57,9 +57,13 @@ export class MessageRepository {
     const result = await this.repos.find({
       where: { auraTxId },
     });
-    return plainToInstance(TxMessageResponseDto, result.map((item) => this.utils.omitByNil(item)), {
-      excludeExtraneousValues: true,
-    });
+    return plainToInstance(
+      TxMessageResponseDto,
+      result.map((item) => this.utils.omitByNil(item)),
+      {
+        excludeExtraneousValues: true,
+      },
+    );
   }
 
   private getAmountFromUnknownValue(value: IUnknownValue): {
@@ -106,7 +110,7 @@ export class MessageRepository {
       case TxTypeUrl.EXECUTE_CONTRACT: {
         newMsg.contractSender = value.sender;
         newMsg.contractAddress = value.contract;
-        newMsg.contractFunds = value.funds.toString();
+        newMsg.contractFunds = JSON.stringify(value.funds);
 
         if (value.msg instanceof Uint8Array) {
           const decodedMsg = fromUtf8(value.msg);
