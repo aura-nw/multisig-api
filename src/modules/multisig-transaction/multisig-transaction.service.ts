@@ -375,6 +375,8 @@ export class MultisigTransactionService {
           await this.multisigTransactionRepos.updateExecutingTx(
             multisigTransaction.id,
             TransactionStatus.FAILED,
+            undefined,
+            (error as Error).message,
           );
 
           // re calculate next seq
@@ -386,7 +388,7 @@ export class MultisigTransactionService {
           await this.safeRepos.updateSafe(safe);
 
           throw CustomError.fromUnknown(
-            ErrorMap.INSERT_TRANSACTION_FAILED,
+            ErrorMap.SEND_TRANSACTION_FAILED,
             error,
           );
         }

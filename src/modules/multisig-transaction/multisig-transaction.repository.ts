@@ -169,6 +169,7 @@ export class MultisigTransactionRepository {
     transactionId: number,
     status: TransactionStatus,
     txHash?: string,
+    logs?: string,
   ): Promise<void> {
     const updatedResult = await this.repo.update(
       {
@@ -178,6 +179,7 @@ export class MultisigTransactionRepository {
       {
         status,
         txHash,
+        logs,
       },
     );
 
@@ -259,6 +261,7 @@ export class MultisigTransactionRepository {
         'MT.Gas as Gas',
         'MT.Status as Status',
         'MT.Sequence as Sequence',
+        'MT.Logs as Logs',
         'MT.CreatedAt as CreatedAt',
         'MT.UpdatedAt as UpdatedAt',
         'AT.Timestamp as Timestamp',
