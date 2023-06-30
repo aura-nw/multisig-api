@@ -108,6 +108,11 @@ export class TxDetailDto {
   AutoClaimAmount: number;
 
   @ApiProperty({
+    example: '',
+  })
+  Logs: string;
+
+  @ApiProperty({
     example: '2022-02-24T09:44:52.935Z',
   })
   CreatedAt: Date;

@@ -50,4 +50,7 @@ export class MultisigTransaction extends BaseEntityAutoId {
 
   @Column({ name: 'TxHash' })
   txHash: string;
+
+  @Column({ name: 'Logs' })
+  logs: string;
 }

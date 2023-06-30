@@ -54,6 +54,7 @@ export class AuraTxRepository {
         'AT.GasWanted as Gas',
         'AT.Code as Status',
         'MT.Sequence as Sequence',
+        'MT.Logs as Logs',
         'AT.CreatedAt as CreatedAt',
         'AT.UpdatedAt as UpdatedAt',
         'AT.Timestamp as Timestamp',
