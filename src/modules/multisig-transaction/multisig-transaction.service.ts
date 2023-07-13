@@ -64,6 +64,7 @@ import { SimulateResponse } from '../simulate/dtos';
 import { AccountInfo } from '../../common/dtos';
 import { ChainHelper } from '../../chains/chain.helper';
 import { ICw20Msg } from './interfaces';
+import { IndexerV2Client } from '../../shared/services/indexer-v2.service';
 
 @Injectable()
 export class MultisigTransactionService {
@@ -75,6 +76,7 @@ export class MultisigTransactionService {
 
   constructor(
     private indexer: IndexerClient,
+    private indexerV2: IndexerV2Client,
     private multisigTransactionRepos: MultisigTransactionRepository,
     private auraTxRepo: AuraTxRepository,
     private multisigConfirmRepos: MultisigConfirmRepository,
@@ -159,23 +161,33 @@ export class MultisigTransactionService {
           );
         }
 
-        const cw20Assets = await this.indexer.getAssetByOwnerAddress(
+        // const cw20Assets = await this.indexer.getAssetByOwnerAddress(
+        //   safe.safeAddress,
+        //   'CW20',
+        //   chain.chainId,
+        // );
+        const cw20Assets = await this.indexerV2.getAssetByOwnerAddress(
           safe.safeAddress,
           'CW20',
           chain.chainId,
         );
-        const currentCw20Token = cw20Assets.CW20.asset.find(
-          (token) => token.contract_address === contractAddress,
+        // const currentCw20Token = cw20Assets.CW20.asset.find(
+        //   (token) => token.contract_address === contractAddress,
+        // );
+        const currentCw20Token = cw20Assets.cw20_holder.find(
+          (token) =>
+            token.cw20_contract.smart_contract.address === contractAddress,
         );
 
         amount = Number(objectMsg.transfer.amount);
-        if (currentCw20Token.balance < amount) {
+        if (Number(currentCw20Token.amount) < amount) {
           throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
         }
 
-        denom = currentCw20Token.asset_info.data.symbol;
+        denom = currentCw20Token.cw20_contract.symbol;
 
-        transaction.contractAddress = currentCw20Token.contract_address;
+        transaction.contractAddress =
+          currentCw20Token.cw20_contract.smart_contract.address;
       } else {
         // other
         // calculate tx amount
@@ -979,7 +991,11 @@ export class MultisigTransactionService {
     const chain = await this.chainRepos.findChain(internalChainId);
 
     // get safe account info
-    const accountInfo: AccountInfo = await this.indexer.getAccount(
+    // const accountInfo: AccountInfo = await this.indexer.getAccount(
+    //   chain.chainId,
+    //   safe.safeAddress,
+    // );
+    const accountInfo: AccountInfo = await this.indexerV2.getAccount(
       chain.chainId,
       safe.safeAddress,
     );
@@ -1065,7 +1081,11 @@ export class MultisigTransactionService {
     let accountNumber = Number(safe.accountNumber);
 
     if (Number.isNaN(accountNumber)) {
-      const accountInfo = await this.indexer.getAccount(
+      // const accountInfo = await this.indexer.getAccount(
+      //   chainId,
+      //   safe.safeAddress,
+      // );
+      const accountInfo = await this.indexerV2.getAccount(
         chainId,
         safe.safeAddress,
       );

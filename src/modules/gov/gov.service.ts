@@ -23,6 +23,7 @@ import {
 import { Chain } from '../chain/entities/chain.entity';
 import { IndexerClient } from '../../shared/services/indexer.service';
 import { IProposal, ITransaction } from '../../interfaces';
+import { IndexerV2Client } from '../../shared/services/indexer-v2.service';
 
 @Injectable()
 export class GovService {
@@ -35,6 +36,7 @@ export class GovService {
   constructor(
     private chainRepo: ChainRepository,
     private indexer: IndexerClient,
+    private indexerV2: IndexerV2Client,
   ) {
     this.logger.log('============== Constructor Gov Service ==============');
   }
@@ -45,9 +47,12 @@ export class GovService {
     const { internalChainId } = param;
     try {
       const chain = await this.chainRepo.findChain(internalChainId);
-      const result = await this.indexer.getProposals(chain.chainId);
+      // const result = await this.indexer.getProposals(chain.chainId);
+      const result = await this.indexerV2.getProposals(chain.chainId);
 
-      const proposals = result.map((proposal) => this.mapProposal(proposal));
+      const proposals = result.map((proposal: IProposal) =>
+        this.mapProposal(proposal),
+      );
 
       return ResponseDto.response(
         ErrorMap.SUCCESSFUL,
@@ -66,10 +71,15 @@ export class GovService {
     const { internalChainId, proposalId } = param;
     try {
       const chain = await this.chainRepo.findChain(internalChainId);
-      const proposal = await this.indexer.getProposal(
+      // const proposal = await this.indexer.getProposal(
+      //   chain.chainId,
+      //   proposalId,
+      // );
+      const graphProposals = await this.indexerV2.getProposals(
         chain.chainId,
         proposalId,
       );
+      const proposal = graphProposals[0];
 
       // add additional properties for proposal details page
       const networkStatus = await this.indexer.getNetwork(chain.chainId);
@@ -184,8 +194,13 @@ export class GovService {
       const chain = await this.chainRepo.findChain(internalChainId);
 
       // Get proposal deposit txs
+      // const proposalDepositTxs: ITransaction[] =
+      //   await this.indexer.getProposalDepositByProposalId(
+      //     chain.chainId,
+      //     proposalId,
+      //   );
       const proposalDepositTxs: ITransaction[] =
-        await this.indexer.getProposalDepositByProposalId(
+        await this.indexerV2.getProposalDepositByProposalId(
           chain.chainId,
           proposalId,
         );
@@ -201,11 +216,11 @@ export class GovService {
                 (x) => x.key === 'proposal_id',
               )?.value,
             ),
-            depositor: tx.tx_response.tx.body.messages[0].proposer,
+            depositor: tx.tx.body.messages[0].proposer,
             tx_hash: tx.tx_response.txhash,
             amount: Number(
-              tx.tx_response.tx.body.messages[0].initial_deposit[0]?.amount ||
-                tx.tx_response.tx.body.messages[0].amount[0]?.amount ||
+              tx.tx.body.messages[0].initial_deposit[0]?.amount ||
+                tx.tx.body.messages[0].amount[0]?.amount ||
                 0,
             ),
 
@@ -238,10 +253,10 @@ export class GovService {
 
   calculateProposalTally(proposal: IProposal): GetProposalsTally {
     // default to final result of tally property
-    let tally = proposal.final_tally_result;
-    if (proposal.status === ProposalStatus.VOTING_PERIOD) {
-      tally = proposal.tally;
-    }
+    const { tally } = proposal;
+    // if (proposal.status === ProposalStatus.VOTING_PERIOD) {
+    //   tally = proposal.tally;
+    // }
     // default mostVoted to yes
     let mostVotedOptionKey = Object.keys(tally)[0];
     // calculate sum to determine percentage
@@ -282,10 +297,10 @@ export class GovService {
 
   calculateProposalTurnout(proposal: IProposal, bondedTokens: string) {
     // default to final result of tally property
-    let tally = proposal.final_tally_result;
-    if (proposal.status === ProposalStatus.VOTING_PERIOD) {
-      tally = proposal.tally;
-    }
+    const { tally } = proposal;
+    // if (proposal.status === ProposalStatus.VOTING_PERIOD) {
+    //   tally = proposal.tally;
+    // }
     const numberOfVoted = +tally.yes + +tally.no + +tally.no_with_veto;
     const numberOfNotVoted = +bondedTokens - numberOfVoted - +tally.abstain;
     const result: GetProposalsTurnout = {

@@ -10,6 +10,7 @@ import { IndexerClient } from '../../shared/services/indexer.service';
 import { NotificationRepository } from '../notification/notification.repository';
 import { IProposal } from '../../interfaces';
 import { Queue } from './queue';
+import { IndexerV2Client } from '../../shared/services/indexer-v2.service';
 
 @Injectable()
 export class NotifyProposalJob {
@@ -17,6 +18,7 @@ export class NotifyProposalJob {
 
   constructor(
     private indexer: IndexerClient,
+    private indexerV2: IndexerV2Client,
     private readonly userRepo: UserRepository,
     private readonly chainRepo: ChainRepository,
     private readonly notifyRepo: NotificationRepository,
@@ -129,7 +131,8 @@ export class NotifyProposalJob {
     // Get latest proposal
     const latestProposals = await Promise.all(
       supportedChains.map((chain) =>
-        this.indexer.getProposalsByChainId(chain.chainId),
+        // this.indexer.getProposalsByChainId(chain.chainId),
+        this.indexerV2.getProposals(chain.chainId),
       ),
     );
 

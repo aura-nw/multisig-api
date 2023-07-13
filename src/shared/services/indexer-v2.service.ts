@@ -8,9 +8,10 @@ import { plainToInstance } from 'class-transformer';
 import { CustomError } from '../../common/custom-error';
 import { AccountInfo } from '../../common/dtos/account-info';
 import { ErrorMap } from '../../common/error.map';
-import { IPubkey } from '../../interfaces';
+import { IValidator, IProposal, IPubkey, ITransaction } from '../../interfaces';
 import { IndexerResponseDto } from '../dtos';
 import { CommonService } from './common.service';
+import { IAssetsWithType } from '../../interfaces/asset-by-owner.interface';
 
 @Injectable()
 export class IndexerV2Client {
@@ -34,12 +35,12 @@ export class IndexerV2Client {
     ownerAddress: string,
     contractType: string,
     chainId: string,
-  ): Promise<any> {
+  ): Promise<IAssetsWithType> {
     const chainInfos = await this.commonService.readConfigurationFile();
     const selectedChain = chainInfos.find((e) => e.chainId === chainId);
     let operatorDocs = '';
     const operationName = 'asset';
-    if (chainId === 'CW721' || chainId === 'CW4973') {
+    if (contractType === 'CW721' || contractType === 'CW4973') {
       operatorDocs = `
         query ${operationName}($owner: String = null, $limit: Int = 10) {
           ${selectedChain.indexerDb} {
@@ -59,15 +60,16 @@ export class IndexerV2Client {
           }
         }
       `;
-    } else if (chainId === 'CW20') {
+    } else if (contractType === 'CW20') {
       operatorDocs = `
         query ${operationName}($owner: String = null, $limit: Int = 10) {
-          euphoria {
+          ${selectedChain.indexerDb} {
             cw20_holder(
               where: {address: {_eq: $owner}}
               limit: $limit
             ) {
               cw20_contract {
+                symbol
                 smart_contract {
                   address
                 }
@@ -96,7 +98,7 @@ export class IndexerV2Client {
     chainId: string,
     operatorAddress?: string,
     status?: string,
-  ) {
+  ): Promise<IValidator[]> {
     const chainInfos = await this.commonService.readConfigurationFile();
     const selectedChain = chainInfos.find((e) => e.chainId === chainId);
     const operationName = 'validator';
@@ -211,19 +213,22 @@ export class IndexerV2Client {
     return plainToInstance(AccountInfo, {
       accountNumber: accountInfo.account_number,
       sequence: accountInfo.sequence,
-      balances: accountInfo.account_balances,
+      balances: accountInfo.balances,
     });
   }
 
   async getAccountPubkey(chainId: string, address: string): Promise<IPubkey> {
     const accountInfo = await this.getAccountInfo(chainId, address);
 
-    const pubkeyInfo = accountInfo.pub_key;
+    const pubkeyInfo = accountInfo.pubkey;
     if (!pubkeyInfo) throw new CustomError(ErrorMap.MISSING_ACCOUNT_AUTH);
     return pubkeyInfo;
   }
 
-  async getProposals(chainId: string, proposalId?: number): Promise<any> {
+  async getProposals(
+    chainId: string,
+    proposalId?: number,
+  ): Promise<IProposal[]> {
     const chainInfos = await this.commonService.readConfigurationFile();
     const selectedChain = chainInfos.find((e) => e.chainId === chainId);
     const operationName = 'proposal';
@@ -267,7 +272,15 @@ export class IndexerV2Client {
         proposalId,
       },
     });
-    return result?.data[selectedChain.indexerDb].proposal;
+    const response = result?.data[selectedChain.indexerDb].proposal.map(
+      (pro) => ({
+        ...pro,
+        custom_info: {
+          chain_id: chainId,
+        },
+      }),
+    );
+    return response;
   }
 
   async getVotesByProposalId(
@@ -289,13 +302,13 @@ export class IndexerV2Client {
             order_by: {updated_at: $order}
             offset: $offset
           ) {
-            height
-            id
             proposal_id
             txhash
-            updated_at
             vote_option
             voter
+            transaction {
+              timestamp
+            }
           }
         }
       }
@@ -327,7 +340,10 @@ export class IndexerV2Client {
     return response.data;
   }
 
-  async getProposalDepositByProposalId(chainId: string, proposalId: number) {
+  async getProposalDepositByProposalId(
+    chainId: string,
+    proposalId: number,
+  ): Promise<ITransaction[]> {
     const chainInfos = await this.commonService.readConfigurationFile();
     const selectedChain = chainInfos.find((e) => e.chainId === chainId);
     const operationName = 'deposit';
@@ -389,7 +405,7 @@ export class IndexerV2Client {
         limit: 100,
         order: 'desc',
         value: proposalId.toString(),
-        compositeKey: 'proposal_deposit',
+        compositeKey: 'proposal_deposit.proposal_id',
         key: 'proposal_id',
         heightGT: undefined,
         indexGT: undefined,
@@ -397,6 +413,8 @@ export class IndexerV2Client {
         height: undefined,
       },
     });
-    return result?.data[selectedChain.indexerDb].proposal;
+    return result?.data[selectedChain.indexerDb].transaction.map(
+      (tx) => tx.data,
+    );
   }
 }

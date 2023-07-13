@@ -27,6 +27,7 @@ import {
   IValidator,
   KeyBaseIdentity,
 } from '../../interfaces';
+import { IndexerV2Client } from '../../shared/services/indexer-v2.service';
 
 @Injectable()
 export class DistributionService {
@@ -39,6 +40,7 @@ export class DistributionService {
   constructor(
     private configService: ConfigService,
     private indexer: IndexerClient,
+    private indexerV2: IndexerV2Client,
     private chainRepo: ChainRepository,
     private commonSvc: CommonService,
   ) {
@@ -58,10 +60,15 @@ export class DistributionService {
     const { operatorAddress, internalChainId } = param;
     const { chainId } = await this.chainRepo.findChain(internalChainId);
 
-    const validator = await this.indexer.getValidatorInfo(
+    // const validator = await this.indexer.getValidatorInfo(
+    //   chainId,
+    //   operatorAddress,
+    // );
+    const valByOperatorAddr = await this.indexerV2.getValidator(
       chainId,
       operatorAddress,
     );
+    const validator = valByOperatorAddr[0];
 
     const picture = await this.getValidatorPicture(
       validator.description.identity,
@@ -97,8 +104,13 @@ export class DistributionService {
       );
 
       // Get all validators from indexer which status is active
-      const validators: IValidator[] = await this.indexer.getValidators(
+      // const validators: IValidator[] = await this.indexer.getValidators(
+      //   chainId,
+      //   status,
+      // );
+      const validators = await this.indexerV2.getValidator(
         chainId,
+        undefined,
         status,
       );
 
@@ -140,10 +152,15 @@ export class DistributionService {
       );
 
       // get validator info
-      const validator = await this.indexer.getValidatorByOperatorAddress(
+      // const validator = await this.indexer.getValidatorByOperatorAddress(
+      //   chain.chainId,
+      //   operatorAddress,
+      // );
+      const valByOperatorAddr = await this.indexerV2.getValidator(
         chain.chainId,
         operatorAddress,
       );
+      const validator = valByOperatorAddr[0];
 
       // combine info from two api
       const claimedReward = accountInfo.account_claimed_rewards.find(
@@ -172,7 +189,7 @@ export class DistributionService {
             commission: String(
               Number(validator.commission.commission_rates.rate) * 100,
             ),
-            delegators: validator.number_delegators,
+            delegators: validator.delegators_count,
           },
           delegation: {
             claimedReward: claimedReward

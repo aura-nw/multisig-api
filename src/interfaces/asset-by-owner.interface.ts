@@ -41,15 +41,42 @@ export interface ICw20Asset {
   percent_hold: number;
 }
 
+// export interface IAssetsWithType {
+//   CW20?: {
+//     asset: ICw20Asset[];
+//     count: number;
+//   };
+//   CW721?: {
+//     asset: ICw721Asset[];
+//     count: number;
+//   };
+// }
+
 export interface IAssetsWithType {
-  CW20?: {
-    asset: ICw20Asset[];
-    count: number;
-  };
-  CW721?: {
-    asset: ICw721Asset[];
-    count: number;
-  };
+  cw20_holder?: [
+    {
+      cw20_contract: {
+        symbol: string;
+        smart_contract: {
+          address: string;
+        };
+      };
+      amount: string;
+      address: string;
+    },
+  ];
+  cw721_token?: [
+    {
+      media_info: any;
+      owner: string;
+      token_id: string;
+      cw721_contract: {
+        smart_contract: {
+          address: string;
+        };
+      };
+    },
+  ];
 }
 
 export interface IAssets {

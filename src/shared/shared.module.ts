@@ -4,12 +4,14 @@ import {
   CommonService,
   CustomConfigService,
   IndexerClient,
+  IndexerV2Client,
   LcdClient,
 } from './services';
 
 const providers = [
   CustomConfigService,
   IndexerClient,
+  IndexerV2Client,
   CommonService,
   LcdClient,
 ];
