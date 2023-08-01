@@ -18,7 +18,6 @@ import { SafeOwnerRepository } from '../safe-owner/safe-owner.repository';
 import { ChainRepository } from '../chain/chain.repository';
 import { SafeOwner } from '../safe-owner/entities/safe-owner.entity';
 import { GetThresholdResDto } from './dto/request/get-threshold.res';
-import { IndexerClient } from '../../shared/services/indexer.service';
 import { createEthSecp256k1Pubkey } from '../../chains/ethermint/ethsecp256k1-pubkey';
 import { IndexerV2Client } from '../../shared/services/indexer-v2.service';
 
@@ -27,7 +26,6 @@ export class SafeRepository {
   private readonly logger = new Logger(SafeRepository.name);
 
   constructor(
-    private indexer: IndexerClient,
     private indexerV2: IndexerV2Client,
     @InjectRepository(Safe)
     private readonly repo: Repository<Safe>,
@@ -275,10 +273,6 @@ export class SafeRepository {
     const chainInfo = await this.chainRepo.findChain(internalChainId);
 
     try {
-      // const pubkeyInfo = await this.indexer.getAccountPubkey(
-      //   chainInfo.chainId,
-      //   accountAddress,
-      // );
       const pubkeyInfo = await this.indexerV2.getAccountPubkey(
         chainInfo.chainId,
         accountAddress,

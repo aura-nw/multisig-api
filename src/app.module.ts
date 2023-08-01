@@ -8,8 +8,6 @@ import { SeederModule } from './modules/seeders/seeder.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { SafeModule } from './modules/safe/safe.module';
 import { ChainModule } from './modules/chain/chain.module';
-import { DistributionModule } from './modules/distribution/distribution.module';
-import { GovModule } from './modules/gov/gov.module';
 import { MultisigTransactionModule } from './modules/multisig-transaction/multisig-transaction.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { SafeOwnerModule } from './modules/safe-owner/safe-owner.module';
@@ -44,8 +42,6 @@ import { ContractModule } from './modules/contract/contract.module';
     ChainModule,
     SafeModule,
     MultisigTransactionModule,
-    DistributionModule,
-    GovModule,
     NotificationModule,
     SafeOwnerModule,
     UserModule,

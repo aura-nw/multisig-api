@@ -6,7 +6,6 @@ import { UserRepository } from '../user/user.repository';
 import { Chain } from '../chain/entities/chain.entity';
 import { Notification } from '../notification/entities/notification.entity';
 import { User } from '../user/entities/user.entity';
-import { IndexerClient } from '../../shared/services/indexer.service';
 import { NotificationRepository } from '../notification/notification.repository';
 import { IProposal } from '../../interfaces';
 import { Queue } from './queue';
@@ -17,7 +16,6 @@ export class NotifyProposalJob {
   private readonly logger = new Logger(NotifyProposalJob.name);
 
   constructor(
-    private indexer: IndexerClient,
     private indexerV2: IndexerV2Client,
     private readonly userRepo: UserRepository,
     private readonly chainRepo: ChainRepository,

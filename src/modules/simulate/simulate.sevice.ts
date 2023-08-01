@@ -5,10 +5,10 @@ import { Safe } from '../safe/entities/safe.entity';
 import { LcdClient } from '../../shared/services/lcd-client.service';
 import { SimulateResponse } from './dtos/simulate-response';
 import { WalletSimulate } from './wallet.simulate';
-import { IndexerClient } from '../../shared/services/indexer.service';
 import { SafeSimulate } from './safe.simulate';
 import { AccountInfo } from '../../common/dtos/account-info';
 import { IMessageUnknown } from '../../interfaces';
+import { IndexerV2Client } from '../../shared/services';
 
 @Injectable()
 export class SimulateService {
@@ -21,7 +21,7 @@ export class SimulateService {
   constructor(
     private readonly configService: ConfigService,
     private readonly lcdClient: LcdClient,
-    private readonly indexerClient: IndexerClient,
+    private readonly indexerV2: IndexerV2Client,
   ) {
     this.mnemonic = this.configService.get<string>('SYS_MNEMONIC');
   }
@@ -67,7 +67,7 @@ export class SimulateService {
     lcdUrl: string,
   ): Promise<SimulateResponse> {
     // Get sequence of safe account
-    const { sequence } = await this.indexerClient.getAccount(
+    const { sequence } = await this.indexerV2.getAccount(
       this.currentWallet.chain.chainId,
       safeInfo.safeAddress,
     );
@@ -103,7 +103,7 @@ export class SimulateService {
       safe.setOwners(ownerWallets.slice(0, i), i, chain);
       listSafe.push(safe);
 
-      promises.push(this.indexerClient.getAccount(chain.chainId, safe.address));
+      promises.push(this.indexerV2.getAccount(chain.chainId, safe.address));
     }
 
     const result = await Promise.all(promises);

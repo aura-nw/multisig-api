@@ -56,7 +56,6 @@ import { Chain } from '../chain/entities/chain.entity';
 import { Safe } from '../safe/entities/safe.entity';
 import { TransactionHistoryRepository } from '../transaction-history/transaction-history.repository';
 import { CommonUtil } from '../../utils/common.util';
-import { IndexerClient } from '../../shared/services/indexer.service';
 import { GetListConfirmResDto } from '../multisig-confirm/dto';
 import { IMessageUnknown } from '../../interfaces';
 import { EthermintHelper } from '../../chains/ethermint/ethermint.helper';
@@ -75,7 +74,6 @@ export class MultisigTransactionService {
   private ethermintHelper = new EthermintHelper();
 
   constructor(
-    private indexer: IndexerClient,
     private indexerV2: IndexerV2Client,
     private multisigTransactionRepos: MultisigTransactionRepository,
     private auraTxRepo: AuraTxRepository,
@@ -113,7 +111,7 @@ export class MultisigTransactionService {
         accountNumber,
         sequence: sequenceInIndexer,
         balances: accountBalance,
-      } = await this.indexer.getAccount(chain.chainId, safe.safeAddress);
+      } = await this.indexerV2.getAccount(chain.chainId, safe.safeAddress);
 
       // decode data
       const chainHelper = new ChainHelper(chain);
