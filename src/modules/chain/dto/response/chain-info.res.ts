@@ -43,6 +43,13 @@ export class ChainDto {
   @Expose()
   @IsString()
   @ApiProperty({
+    example: 'https://indexer-v2.dev.aurascan.io/api/v2/graphql',
+  })
+  indexerV2: string;
+
+  @Expose()
+  @IsString()
+  @ApiProperty({
     example: 'aura-testnet',
   })
   chainId: string;
