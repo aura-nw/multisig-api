@@ -45,7 +45,4 @@ export class ChainInfo {
   tokenImg: string;
 
   tokens: TokenInfo[];
-
-  @IsString()
-  indexerDb: string;
 }
