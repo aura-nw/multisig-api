@@ -17,9 +17,9 @@ import { DeleteSafePathParamsDto } from './dto/request/delete-multisig-wallet.re
 import { GetMultisigWalletResponseDto } from './dto/response/get-multisig-wallet.res';
 import { Chain } from '../chain/entities/chain.entity';
 import { GetSafeQueryDto } from './dto/request/get-safe-query.req';
-import { IndexerClient } from '../../shared/services/indexer.service';
 import { Safe } from './entities/safe.entity';
 import { EthermintHelper } from '../../chains/ethermint/ethermint.helper';
+import { IndexerV2Client } from '../../shared/services';
 
 @Injectable()
 export class SafeService {
@@ -30,7 +30,7 @@ export class SafeService {
   private commonUtil: CommonUtil = new CommonUtil();
 
   constructor(
-    private indexer: IndexerClient,
+    private indexerV2: IndexerV2Client,
     private safeRepo: SafeRepository,
     private safeOwnerRepo: SafeOwnerRepository,
     private chainRepo: ChainRepository,
@@ -155,7 +155,7 @@ export class SafeService {
       // if safe created => Get balance
       if (safeInfo.address !== null) {
         try {
-          const { sequence, balances } = await this.indexer.getAccount(
+          const { sequence, balances } = await this.indexerV2.getAccount(
             chainId,
             safeInfo.address,
           );
@@ -187,12 +187,12 @@ export class SafeService {
 
         // get assets
         const result = await Promise.all([
-          this.indexer.getAssetByOwnerAddress(
+          this.indexerV2.getAssetByOwnerAddress(
             safeInfo.address,
             'CW20',
             chainId,
           ),
-          this.indexer.getAssetByOwnerAddress(
+          this.indexerV2.getAssetByOwnerAddress(
             safeInfo.address,
             'CW721',
             chainId,

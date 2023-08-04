@@ -9,6 +9,25 @@ export interface ITxEvent {
 }
 
 export interface ITransaction {
+  tx: {
+    body: {
+      messages: [
+        {
+          proposer: string;
+          initial_deposit?: [
+            {
+              amount: string;
+            },
+          ];
+          amount: [
+            {
+              amount: string;
+            },
+          ];
+        },
+      ];
+    };
+  };
   tx_response: {
     txhash: string;
     timestamp: string;
@@ -17,25 +36,6 @@ export interface ITransaction {
         events: ITxEvent[];
       },
     ];
-    tx: {
-      body: {
-        messages: [
-          {
-            proposer: string;
-            initial_deposit?: [
-              {
-                amount: string;
-              },
-            ];
-            amount: [
-              {
-                amount: string;
-              },
-            ];
-          },
-        ];
-      };
-    };
   };
 }
 export interface ITransactions {
