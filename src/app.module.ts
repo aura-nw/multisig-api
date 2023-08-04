@@ -3,6 +3,7 @@ import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigModule } from '@nestjs/config';
+import { BullModule } from '@nestjs/bull';
 import { SharedModule } from './shared/shared.module';
 import { SeederModule } from './modules/seeders/seeder.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -28,8 +29,16 @@ import { ContractModule } from './modules/contract/contract.module';
         maxRedirects: 5,
       }),
     }),
+
     CacheModule.register({ ttl: 10_000 }),
     SharedModule,
+    BullModule.forRoot({
+      redis: {
+        host: 'localhost',
+        port: 6380,
+        db: 13,
+      },
+    }),
     SeederModule,
     TypeOrmModule.forRootAsync({
       imports: [SharedModule],
