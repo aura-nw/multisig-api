@@ -146,6 +146,7 @@ export class SafeService {
       safeInfo.status = safe.status;
       safeInfo.internalChainId = safe.internalChainId;
       safeInfo.createdAddress = safe.creatorAddress;
+      safeInfo.nextQueueSeq = safe.nextQueueSeq;
 
       // get chainInfo
       return ResponseDto.response(ErrorMap.SUCCESSFUL, safeInfo);
