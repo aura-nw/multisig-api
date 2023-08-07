@@ -43,7 +43,7 @@ export class IndexerV2Client {
     if (contractType === 'CW721' || contractType === 'CW4973') {
       operatorDocs = `
         query ${operationName}($owner: String = null, $limit: Int = 10) {
-          ${selectedChain.indexerV2} {
+          ${selectedChain.indexerDb} {
             cw721_token(
               where: {owner: {_eq: $owner}}
               limit: $limit
@@ -63,7 +63,7 @@ export class IndexerV2Client {
     } else if (contractType === 'CW20') {
       operatorDocs = `
         query ${operationName}($owner: String = null, $limit: Int = 10) {
-          ${selectedChain.indexerV2} {
+          ${selectedChain.indexerDb} {
             cw20_holder(
               where: {address: {_eq: $owner}}
               limit: $limit
@@ -91,7 +91,7 @@ export class IndexerV2Client {
         limit: 50,
       },
     });
-    return result?.data[selectedChain.indexerV2];
+    return result?.data[selectedChain.indexerDb];
   }
 
   async getValidator(
@@ -104,7 +104,7 @@ export class IndexerV2Client {
     const operationName = 'validator';
     const operatorDocs = `
       query ${operationName}($status: String = null, $limit: Int = 100, $operatorAddress: String = null) {
-        ${selectedChain.indexerV2} {
+        ${selectedChain.indexerDb} {
           validator(
             where: {status: {_eq: $status}, operator_address: {_eq: $operatorAddress}}
             limit: $limit
@@ -150,7 +150,7 @@ export class IndexerV2Client {
         limit: 100,
       },
     });
-    return result?.data[selectedChain.indexerV2].validator;
+    return result?.data[selectedChain.indexerDb].validator;
   }
 
   async getAccountInfo(chainId: string, address: string): Promise<any> {
@@ -159,7 +159,7 @@ export class IndexerV2Client {
     const operationName = 'account';
     const operatorDocs = `
       query ${operationName}($address: String = "") {
-        ${selectedChain.indexerV2} {
+        ${selectedChain.indexerDb} {
           account(where: {address: {_eq: $address}}) {
             account_number
             address
@@ -182,7 +182,7 @@ export class IndexerV2Client {
         address,
       },
     });
-    return result?.data[selectedChain.indexerV2].account;
+    return result?.data[selectedChain.indexerDb].account[0];
   }
 
   async getAccountBalances(chainId: string, address: string): Promise<any[]> {
@@ -234,7 +234,7 @@ export class IndexerV2Client {
     const operationName = 'proposal';
     const operatorDocs = `
       query ${operationName}($limit: Int = 10, $order: order_by = desc, $proposalId: Int = null) {
-        ${selectedChain.indexerV2} {
+        ${selectedChain.indexerDb} {
           proposal(
             limit: $limit
             where: {proposal_id: {_eq: $proposalId}}
@@ -272,7 +272,7 @@ export class IndexerV2Client {
         proposalId,
       },
     });
-    const response = result?.data[selectedChain.indexerV2].proposal.map(
+    const response = result?.data[selectedChain.indexerDb].proposal.map(
       (pro) => ({
         ...pro,
         custom_info: {
@@ -295,7 +295,7 @@ export class IndexerV2Client {
     const operationName = 'vote';
     const operatorDocs = `
       query ${operationName}($limit: Int = 10, $order: order_by = desc, $proposalId: Int = null, $voteOption: String = null, $offset: Int = 0) {
-        ${selectedChain.indexerV2} {
+        ${selectedChain.indexerDb} {
           vote(
             limit: $limit
             where: {proposal_id: {_eq: $proposalId}, vote_option: {_eq: $voteOption}}
@@ -326,7 +326,7 @@ export class IndexerV2Client {
         order: 'desc',
       },
     });
-    return result?.data[selectedChain.indexerV2].vote;
+    return result?.data[selectedChain.indexerDb].vote;
   }
 
   async getValidatorVotesByProposalId(
@@ -364,7 +364,7 @@ export class IndexerV2Client {
         $hash: String = null
         $height: Int = null
       ) {
-        ${selectedChain.indexerV2} {
+        ${selectedChain.indexerDb} {
           transaction(
             limit: $limit
             where: {
@@ -413,7 +413,7 @@ export class IndexerV2Client {
         height: undefined,
       },
     });
-    return result?.data[selectedChain.indexerV2].transaction.map(
+    return result?.data[selectedChain.indexerDb].transaction.map(
       (tx) => tx.data,
     );
   }

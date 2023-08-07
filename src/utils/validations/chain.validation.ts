@@ -22,6 +22,9 @@ export class ChainInfo {
   indexerV2: string;
 
   @IsString()
+  indexerDb: string;
+
+  @IsString()
   symbol: string;
 
   @IsString()
