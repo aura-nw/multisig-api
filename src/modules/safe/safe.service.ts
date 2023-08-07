@@ -137,7 +137,6 @@ export class SafeService {
       const safeInfo = new GetMultisigWalletResponseDto();
       safeInfo.id = safe.id;
       safeInfo.address = safe.safeAddress;
-      safeInfo.accountNumber = safe.accountNumber;
       safeInfo.txHistoryTag = safe.txHistoryTag;
       safeInfo.txQueuedTag = safe.txQueuedTag;
       safeInfo.pubkeys = safe.safePubkey;
@@ -149,60 +148,6 @@ export class SafeService {
       safeInfo.createdAddress = safe.creatorAddress;
 
       // get chainInfo
-      const { chainId, denom } = await this.chainRepo.findChain(
-        safe.internalChainId,
-      );
-      // if safe created => Get balance
-      if (safeInfo.address !== null) {
-        try {
-          const { sequence, balances } = await this.indexerV2.getAccount(
-            chainId,
-            safeInfo.address,
-          );
-
-          safeInfo.balance =
-            balances && balances.length > 0
-              ? balances
-              : [
-                  {
-                    amount: '0',
-                    denom,
-                  },
-                ];
-
-          safeInfo.sequence = sequence.toString();
-          safeInfo.nextQueueSeq =
-            safe.nextQueueSeq && Number(safe.nextQueueSeq) > sequence
-              ? safe.nextQueueSeq
-              : sequence.toString();
-        } catch (error) {
-          this.logger.error(error);
-          safeInfo.balance = [
-            {
-              denom,
-              amount: '-1',
-            },
-          ];
-        }
-
-        // get assets
-        const result = await Promise.all([
-          this.indexerV2.getAssetByOwnerAddress(
-            safeInfo.address,
-            'CW20',
-            chainId,
-          ),
-          this.indexerV2.getAssetByOwnerAddress(
-            safeInfo.address,
-            'CW721',
-            chainId,
-          ),
-        ]);
-        safeInfo.assets = {
-          ...result[0],
-          ...result[1],
-        };
-      }
       return ResponseDto.response(ErrorMap.SUCCESSFUL, safeInfo);
     } catch (error) {
       return ResponseDto.responseError(SafeService.name, error);

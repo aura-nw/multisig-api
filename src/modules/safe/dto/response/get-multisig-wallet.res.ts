@@ -18,18 +18,6 @@ export class GetMultisigWalletResponseDto {
 
   @Expose()
   @ApiProperty({
-    example: '41',
-  })
-  accountNumber: string;
-
-  @Expose()
-  @ApiProperty({
-    example: '94',
-  })
-  sequence: string;
-
-  @Expose()
-  @ApiProperty({
     example: '95',
   })
   nextQueueSeq: string;
@@ -84,17 +72,6 @@ export class GetMultisigWalletResponseDto {
     example: 1,
   })
   internalChainId: number;
-
-  @Expose()
-  @ApiProperty({
-    example: [
-      {
-        denom: 'uaura',
-        amount: '0',
-      },
-    ],
-  })
-  balance: Coin[];
 
   @Expose()
   assets: IAssetsWithType;
