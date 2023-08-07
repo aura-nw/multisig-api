@@ -8,18 +8,94 @@ import { plainToInstance } from 'class-transformer';
 import { CustomError } from '../../common/custom-error';
 import { AccountInfo } from '../../common/dtos/account-info';
 import { ErrorMap } from '../../common/error.map';
-import { IPubkey } from '../../interfaces';
+import { IValidator, IProposal, IPubkey, ITransaction } from '../../interfaces';
 import { IndexerResponseDto } from '../dtos';
 import { CommonService } from './common.service';
+import { IAssetsWithType } from '../../interfaces/asset-by-owner.interface';
+import { ChainInfo } from '../../utils/validations';
 
 @Injectable()
 export class IndexerV2Client {
   private readonly logger = new Logger(IndexerV2Client.name);
 
+  indexerUrl: string;
+
+  indexerPathGraphql: string;
+
+  chainInfos: ChainInfo[];
+
   constructor(
     private configService: ConfigService,
     private commonService: CommonService,
-  ) {}
+  ) {
+    this.indexerUrl = this.configService.get<string>('INDEXER_V2_URL');
+    this.indexerPathGraphql = this.configService.get<string>(
+      'INDEXER_V2_PATH_GRAPHQL',
+    );
+  }
+
+  async getAssetByOwnerAddress(
+    ownerAddress: string,
+    contractType: string,
+    chainId: string,
+  ): Promise<IAssetsWithType> {
+    const chainInfos = await this.commonService.readConfigurationFile();
+    const selectedChain = chainInfos.find((e) => e.chainId === chainId);
+    let operatorDocs = '';
+    const operationName = 'asset';
+    if (contractType === 'CW721' || contractType === 'CW4973') {
+      operatorDocs = `
+        query ${operationName}($owner: String = null, $limit: Int = 10) {
+          ${selectedChain.indexerDb} {
+            cw721_token(
+              where: {owner: {_eq: $owner}}
+              limit: $limit
+            ) {
+              media_info
+              owner
+              token_id
+              cw721_contract {
+                smart_contract {
+                  address
+                }
+              }
+            }
+          }
+        }
+      `;
+    } else if (contractType === 'CW20') {
+      operatorDocs = `
+        query ${operationName}($owner: String = null, $limit: Int = 10) {
+          ${selectedChain.indexerDb} {
+            cw20_holder(
+              where: {address: {_eq: $owner}}
+              limit: $limit
+            ) {
+              cw20_contract {
+                symbol
+                smart_contract {
+                  address
+                }
+              }
+              amount
+              address
+            }
+          }
+        }
+      `;
+    }
+    const result = await this.commonService.requestPost<
+      IndexerResponseDto<unknown>
+    >(new URL(this.indexerPathGraphql, this.indexerUrl).href, {
+      operationName,
+      query: operatorDocs,
+      variables: {
+        owner: ownerAddress,
+        limit: 50,
+      },
+    });
+    return result?.data[selectedChain.indexerDb];
+  }
 
   async getAccountInfo(chainId: string, address: string): Promise<any> {
     const chainInfos = await this.commonService.readConfigurationFile();
@@ -91,5 +167,63 @@ export class IndexerV2Client {
     const pubkeyInfo = accountInfo.pubkey;
     if (!pubkeyInfo) throw new CustomError(ErrorMap.MISSING_ACCOUNT_AUTH);
     return pubkeyInfo;
+  }
+
+  async getProposals(
+    chainId: string,
+    proposalId?: number,
+  ): Promise<IProposal[]> {
+    const chainInfos = await this.commonService.readConfigurationFile();
+    const selectedChain = chainInfos.find((e) => e.chainId === chainId);
+    const operationName = 'proposal';
+    const operatorDocs = `
+      query ${operationName}($limit: Int = 10, $order: order_by = desc, $proposalId: Int = null) {
+        ${selectedChain.indexerDb} {
+          proposal(
+            limit: $limit
+            where: {proposal_id: {_eq: $proposalId}}
+            order_by: {proposal_id: $order}
+          ) {
+            content
+            count_vote
+            deposit_end_time
+            description
+            initial_deposit
+            proposal_id
+            proposer_address
+            status
+            submit_time
+            tally
+            title
+            total_deposit
+            turnout
+            type
+            voting_end_time
+            voting_start_time
+            updated_at
+          }
+        }
+      }
+    `;
+    const result = await this.commonService.requestPost<
+      IndexerResponseDto<unknown>
+    >(new URL(selectedChain.indexerV2).href, {
+      operationName,
+      query: operatorDocs,
+      variables: {
+        limit: 100,
+        order: 'desc',
+        proposalId,
+      },
+    });
+    const response = result?.data[selectedChain.indexerDb].proposal.map(
+      (pro) => ({
+        ...pro,
+        custom_info: {
+          chain_id: chainId,
+        },
+      }),
+    );
+    return response;
   }
 }

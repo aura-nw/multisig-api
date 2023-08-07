@@ -44,7 +44,7 @@ export class MultisigTxProcessor {
     this.logger.debug('Start send-tx job...');
     const { id } = job.data;
     const tx = await this.multisigRepo.getMultisigTx(id);
-    // TODO: get chain from config
+
     const chain = await this.chainRepos.findChain(tx.internalChainId);
     const safe = await this.safeRepo.getSafeByAddress(
       tx.fromAddress,
@@ -74,6 +74,7 @@ export class MultisigTxProcessor {
     }
 
     await this.multisigRepo.updateTx(tx);
+    // TODO: insert auraTx
     await this.multisigRepo.updateQueueTxToReplaced(
       tx.safeId,
       Number(tx.sequence),

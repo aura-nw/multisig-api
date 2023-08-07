@@ -343,9 +343,6 @@ export class MultisigTransactionService {
       const authInfo = this.commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
 
-      // const chain = await this.chainRepos.findChain(internalChainId);
-      // const client: StargateClient = await StargateClient.connect(chain.rpc);
-
       // get tx
       const multisigTransaction =
         await this.multisigTransactionRepos.getBroadcastableTx(transactionId);
@@ -401,79 +398,6 @@ export class MultisigTransactionService {
       );
 
       return ResponseDto.response(ErrorMap.SUCCESSFUL);
-
-      // // Make tx
-      // const txBroadcast = await this.makeTx(safe, chain, multisigTransaction);
-
-      // try {
-      //   await client.broadcastTx(txBroadcast, 10);
-      // } catch (error: unknown) {
-      //   // Update status and txhash
-      //   // TxHash is encoded transaction when send it to network
-      //   const txId = CommonUtil.getStrProp(error, 'txId');
-      //   this.logger.log(`TxHash: ${txId}`);
-      //   if (txId === undefined) {
-      //     await this.multisigTransactionRepos.updateExecutingTx(
-      //       multisigTransaction.id,
-      //       TransactionStatus.FAILED,
-      //       undefined,
-      //       (error as Error).message,
-      //     );
-
-      //     // re calculate next seq
-      //     safe.nextQueueSeq = await this.calculateNextSeq(
-      //       safe.id,
-      //       Number(multisigTransaction.sequence),
-      //     );
-
-      //     await this.safeRepos.updateSafe(safe);
-
-      //     throw CustomError.fromUnknown(
-      //       ErrorMap.SEND_TRANSACTION_FAILED,
-      //       error,
-      //     );
-      //   }
-      //   // update tx status to "pending"
-      //   await this.multisigTransactionRepos.updateExecutingTx(
-      //     multisigTransaction.id,
-      //     TransactionStatus.PENDING,
-      //     txId,
-      //   );
-
-      //   // update queue tx have same sequence to "replaced"
-      //   await this.multisigTransactionRepos.updateQueueTxToReplaced(
-      //     multisigTransaction.safeId,
-      //     Number(multisigTransaction.sequence),
-      //   );
-
-      //   // update safe next queue sequence
-      //   safe.sequence = (Number(multisigTransaction.sequence) + 1).toString();
-      //   safe.nextQueueSeq = await this.calculateNextSeq(
-      //     safe.id,
-      //     Number(multisigTransaction.sequence) + 1,
-      //   );
-
-      //   // notify tx broadcasted
-      //   const safeOwners = await this.safeOwnerRepo.getSafeOwnersWithError(
-      //     safe.id,
-      //   );
-      //   await this.notificationRepo.notifyBroadcastedTx(
-      //     safe.id,
-      //     safe.safeAddress,
-      //     multisigTransaction.id,
-      //     Number(multisigTransaction.sequence),
-      //     safeOwners.map((safeOwner) => safeOwner.ownerAddress),
-      //     internalChainId,
-      //   );
-      //   await this.safeRepos.updateSafe(safe);
-
-      //   await this.safeRepos.updateQueuedTag(multisigTransaction.safeId);
-
-      //   return ResponseDto.response(ErrorMap.SUCCESSFUL, {
-      //     TxHash: txId,
-      //   });
-      // }
-      // return undefined;
     } catch (error) {
       return ResponseDto.responseError(MultisigTransactionService.name, error);
     }
