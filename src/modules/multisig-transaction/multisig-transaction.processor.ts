@@ -5,7 +5,6 @@ import {
   StargateClient,
   TimeoutError,
   coins,
-  isDeliverTxSuccess,
   makeMultisignedTx,
 } from '@cosmjs/stargate';
 import { fromBase64 } from '@cosmjs/encoding';
@@ -20,7 +19,6 @@ import { Chain } from '../chain/entities/chain.entity';
 import { EthermintHelper } from '../../chains/ethermint/ethermint.helper';
 import { SafeRepository } from '../safe/safe.repository';
 import { Safe } from '../safe/entities/safe.entity';
-import { TransactionStatus } from '../../common/constants/app.constant';
 
 type SendTx = {
   id: number;
@@ -58,9 +56,6 @@ export class MultisigTxProcessor {
       const client = await StargateClient.connect(chain.rpc);
       const result = await client.broadcastTx(txBroadcast);
       tx.txHash = result.transactionHash;
-      tx.status = isDeliverTxSuccess(result)
-        ? TransactionStatus.SUCCESS
-        : TransactionStatus.FAILED;
     } catch (error) {
       if (error instanceof TimeoutError) {
         tx.txHash = error.txId;
@@ -74,7 +69,7 @@ export class MultisigTxProcessor {
     }
 
     await this.multisigRepo.updateTx(tx);
-    // TODO: insert auraTx
+
     await this.multisigRepo.updateQueueTxToReplaced(
       tx.safeId,
       Number(tx.sequence),
