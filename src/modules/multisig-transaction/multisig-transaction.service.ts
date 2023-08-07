@@ -390,9 +390,15 @@ export class MultisigTransactionService {
         internalChainId,
       );
 
-      await this.multisigTxQueue.add('send-tx', {
-        id: multisigTransaction.id,
-      });
+      await this.multisigTxQueue.add(
+        'send-tx',
+        {
+          id: multisigTransaction.id,
+        },
+        {
+          backoff: 100,
+        },
+      );
 
       return ResponseDto.response(ErrorMap.SUCCESSFUL);
 
