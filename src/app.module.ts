@@ -2,7 +2,7 @@ import { CacheModule, Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bull';
 import { SharedModule } from './shared/shared.module';
 import { SeederModule } from './modules/seeders/seeder.module';
@@ -32,12 +32,16 @@ import { ContractModule } from './modules/contract/contract.module';
 
     CacheModule.register({ ttl: 10_000 }),
     SharedModule,
-    BullModule.forRoot({
-      redis: {
-        host: 'localhost',
-        port: 6380,
-        db: 13,
-      },
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        redis: {
+          host: configService.get('REDIS_URL'),
+          port: configService.get('REDIS_PORT'),
+          db: configService.get('REDIS_DB'),
+        },
+      }),
+      inject: [ConfigService],
     }),
     SeederModule,
     TypeOrmModule.forRootAsync({
