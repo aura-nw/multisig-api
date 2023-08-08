@@ -2,7 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { CommonService, IndexerClient, LcdClient } from '../../shared/services';
+import { CommonService, LcdClient } from '../../shared/services';
 import { AuraTxRepository } from '../aura-tx/aura-tx.repository';
 import { AuraTx } from '../aura-tx/entities/aura-tx.entity';
 import { ChainRepository } from '../chain/chain.repository';
@@ -33,7 +33,6 @@ export const multisigTransactionTestingModule = Test.createTestingModule({
     ConfigService,
     CommonService,
     MultisigTransactionService,
-    IndexerClient,
     MultisigTransactionRepository,
     AuraTxRepository,
     MultisigConfirmRepository,

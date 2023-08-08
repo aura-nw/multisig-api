@@ -6,9 +6,9 @@ import { LcdClient } from '../../shared/services/lcd-client.service';
 import { SimulateResponse } from './dtos/simulate-response';
 import { WalletSimulate } from './wallet.simulate';
 import { SafeSimulate } from './safe.simulate';
-import { AccountInfo } from '../../common/dtos/account-info';
 import { IMessageUnknown } from '../../interfaces';
-import { IndexerV2Client } from '../../shared/services';
+import { CommonService, IndexerV2Client } from '../../shared/services';
+import { ChainInfo } from '../../utils/validations';
 
 @Injectable()
 export class SimulateService {
@@ -22,6 +22,7 @@ export class SimulateService {
     private readonly configService: ConfigService,
     private readonly lcdClient: LcdClient,
     private readonly indexerV2: IndexerV2Client,
+    private readonly commonSvc: CommonService,
   ) {
     this.mnemonic = this.configService.get<string>('SYS_MNEMONIC');
   }
@@ -30,7 +31,7 @@ export class SimulateService {
    * Initialize wallet and safe for simulate
    * @param chain
    */
-  async initialize(chain: Chain): Promise<void> {
+  async initialize(chain: Chain | ChainInfo): Promise<void> {
     // Get wallet from map
     let wallet = this.chainWalletMap.get(chain.chainId);
 
@@ -47,7 +48,7 @@ export class SimulateService {
       this.currentWallet = wallet;
 
       // Generate simulate safe
-      await this.generateSimulateSafe(chain);
+      this.generateSimulateSafe(chain);
 
       // Save to map
       this.chainWalletMap.set(chain.chainId, wallet);
@@ -92,27 +93,43 @@ export class SimulateService {
     return this.currentWallet;
   }
 
-  private async generateSimulateSafe(chain: Chain) {
+  private generateSimulateSafe(chain: Chain | ChainInfo) {
     // create safe with owner from 1 -> 20
     const { ownerWallets } = this.currentWallet;
 
     const listSafe: SafeSimulate[] = [];
-    const promises: Promise<AccountInfo>[] = [];
+    // const promises: Promise<AccountInfo>[] = [];
     for (let i = 1; i <= 20; i += 1) {
       const safe = new SafeSimulate();
       safe.setOwners(ownerWallets.slice(0, i), i, chain);
       listSafe.push(safe);
-
-      promises.push(this.indexerV2.getAccount(chain.chainId, safe.address));
     }
 
-    const result = await Promise.all(promises);
     for (let i = 0; i < 20; i += 1) {
-      const { accountNumber, sequence } = result[i];
-      listSafe[i].setAccountInfo(accountNumber, sequence);
-
       // save to map
       this.currentWallet.setSafeOwnerMap(i + 1, listSafe[i]);
+    }
+  }
+
+  async setSequenceAndAccountNumber() {
+    const safes = [...this.currentWallet.safeOwnerMap.values()];
+    if (safes[0].accountNumber) {
+      return;
+    }
+
+    const result = await Promise.all(
+      safes.map((safe) =>
+        this.indexerV2.getAccount(safe.chain.chainId, safe.address),
+      ),
+    );
+
+    for (const [
+      i,
+      { account_number: accountNumber, sequence },
+    ] of result.entries()) {
+      this.currentWallet.safeOwnerMap
+        .get(i + 1)
+        .setAccountInfo(accountNumber, sequence);
     }
   }
 }

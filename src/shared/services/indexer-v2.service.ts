@@ -1,19 +1,20 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { plainToInstance } from 'class-transformer';
+import { isNumber } from 'lodash';
 import { CustomError } from '../../common/custom-error';
-import { AccountInfo } from '../../common/dtos/account-info';
 import { ErrorMap } from '../../common/error.map';
-import { IValidator, IProposal, IPubkey, ITransaction } from '../../interfaces';
+import {
+  IAccountInfo,
+  IAccounts,
+  IIndexerV2Response,
+  IProposal,
+  IProposals,
+  IPubkey,
+} from '../../interfaces';
 import { IndexerResponseDto } from '../dtos';
 import { CommonService } from './common.service';
 import { IAssetsWithType } from '../../interfaces/asset-by-owner.interface';
 import { ChainInfo } from '../../utils/validations';
-import { isNumber } from 'lodash';
 
 @Injectable()
 export class IndexerV2Client {
@@ -42,10 +43,8 @@ export class IndexerV2Client {
   ): Promise<IAssetsWithType> {
     const chainInfos = await this.commonService.readConfigurationFile();
     const selectedChain = chainInfos.find((e) => e.chainId === chainId);
-    let operatorDocs = '';
     const operationName = 'asset';
-    if (contractType === 'CW721' || contractType === 'CW4973') {
-      operatorDocs = `
+    const operatorDocs = `
         query ${operationName}($owner: String = null, $limit: Int = 10) {
           ${selectedChain.indexerDb} {
             cw721_token(
@@ -61,13 +60,6 @@ export class IndexerV2Client {
                 }
               }
             }
-          }
-        }
-      `;
-    } else if (contractType === 'CW20') {
-      operatorDocs = `
-        query ${operationName}($owner: String = null, $limit: Int = 10) {
-          ${selectedChain.indexerDb} {
             cw20_holder(
               where: {address: {_eq: $owner}}
               limit: $limit
@@ -84,9 +76,9 @@ export class IndexerV2Client {
           }
         }
       `;
-    }
+
     const result = await this.commonService.requestPost<
-      IndexerResponseDto<unknown>
+      IndexerResponseDto<IIndexerV2Response<IAssetsWithType>>
     >(new URL(this.indexerPathGraphql, this.indexerUrl).href, {
       operationName,
       query: operatorDocs,
@@ -98,7 +90,10 @@ export class IndexerV2Client {
     return result?.data[selectedChain.indexerDb];
   }
 
-  async getAccountInfo(chainId: string, address: string): Promise<any> {
+  async getAccountInfo(
+    chainId: string,
+    address: string,
+  ): Promise<IAccountInfo> {
     const chainInfos = await this.commonService.readConfigurationFile();
     const selectedChain = chainInfos.find((e) => e.chainId === chainId);
     const operationName = 'account';
@@ -119,7 +114,7 @@ export class IndexerV2Client {
       }
     `;
     const result = await this.commonService.requestPost<
-      IndexerResponseDto<unknown>
+      IndexerResponseDto<IIndexerV2Response<IAccounts>>
     >(new URL(selectedChain.indexerV2).href, {
       operationName,
       query: operatorDocs,
@@ -149,17 +144,13 @@ export class IndexerV2Client {
     return undefined;
   }
 
-  async getAccount(chainId: string, address: string): Promise<AccountInfo> {
+  async getAccount(chainId: string, address: string): Promise<IAccountInfo> {
     const accountInfo = await this.getAccountInfo(chainId, address);
     if (!isNumber(accountInfo.sequence) || !accountInfo.account_number) {
       throw new CustomError(ErrorMap.MISSING_ACCOUNT_AUTH);
     }
 
-    return plainToInstance(AccountInfo, {
-      accountNumber: accountInfo.account_number,
-      sequence: accountInfo.sequence,
-      balances: accountInfo.balances,
-    });
+    return accountInfo;
   }
 
   async getAccountPubkey(chainId: string, address: string): Promise<IPubkey> {
@@ -184,13 +175,13 @@ export class IndexerV2Client {
             limit: $limit
             where: {proposal_id: {_eq: $proposalId}}
             order_by: {proposal_id: $order}
-          ) {
+            ) {
+            proposal_id
             content
             count_vote
             deposit_end_time
             description
             initial_deposit
-            proposal_id
             proposer_address
             status
             submit_time
@@ -207,7 +198,7 @@ export class IndexerV2Client {
       }
     `;
     const result = await this.commonService.requestPost<
-      IndexerResponseDto<unknown>
+      IndexerResponseDto<IIndexerV2Response<IProposals>>
     >(new URL(selectedChain.indexerV2).href, {
       operationName,
       query: operatorDocs,
@@ -217,7 +208,7 @@ export class IndexerV2Client {
         proposalId,
       },
     });
-    const response = result?.data[selectedChain.indexerDb].proposal.map(
+    const response = result.data[selectedChain.indexerDb].proposal.map(
       (pro) => ({
         ...pro,
         custom_info: {

@@ -38,7 +38,6 @@ import {
   CreateTxResDto,
   DeleteTxRequestDto,
   GetAllTransactionsRequestDto,
-  GetMultisigSignaturesParamDto,
   GetSimulateAddressQueryDto,
   GetTxDetailQueryDto,
   MultisigTransactionHistoryResponseDto,
@@ -57,7 +56,6 @@ import { GetListConfirmResDto } from '../multisig-confirm/dto';
 import { IMessageUnknown } from '../../interfaces';
 import { EthermintHelper } from '../../chains/ethermint/ethermint.helper';
 import { SimulateResponse } from '../simulate/dtos';
-import { AccountInfo } from '../../common/dtos';
 import { ChainHelper } from '../../chains/chain.helper';
 import { ICw20Msg } from './interfaces';
 import { IndexerV2Client } from '../../shared/services/indexer-v2.service';
@@ -107,7 +105,7 @@ export class MultisigTransactionService {
 
       // get safe account info
       const {
-        accountNumber,
+        account_number: accountNumber,
         sequence: sequenceInIndexer,
         balances: accountBalance,
       } = await this.indexerV2.getAccount(chain.chainId, safe.safeAddress);
@@ -190,12 +188,7 @@ export class MultisigTransactionService {
         // calculate tx amount
         const txAmount = chainHelper.calculateAmount(aminoMsgs);
 
-        const balance = accountBalance.find((token) => {
-          if (denom.search('ibc/') > -1) {
-            return token.minimal_denom === denom;
-          }
-          return token.denom === denom;
-        });
+        const balance = accountBalance.find((token) => token.denom === denom);
         if (Number(balance.amount) < txAmount) {
           throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
         }
@@ -672,6 +665,7 @@ export class MultisigTransactionService {
       // get chain info
       const chain = await this.chainRepos.findChain(safeInfo.internalChainId);
       await this.simulateService.initialize(chain);
+      await this.simulateService.setSequenceAndAccountNumber();
 
       const result = await this.simulateService.simulate(
         messages,
@@ -928,7 +922,7 @@ export class MultisigTransactionService {
     //   chain.chainId,
     //   safe.safeAddress,
     // );
-    const accountInfo: AccountInfo = await this.indexerV2.getAccount(
+    const accountInfo = await this.indexerV2.getAccount(
       chain.chainId,
       safe.safeAddress,
     );
@@ -1014,6 +1008,6 @@ export class MultisigTransactionService {
     chainId: string,
   ): Promise<number> {
     const accountInfo = await this.indexerV2.getAccount(chainId, safeAddress);
-    return accountInfo.accountNumber;
+    return accountInfo.account_number;
   }
 }

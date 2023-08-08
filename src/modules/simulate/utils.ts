@@ -28,6 +28,7 @@ import { IEncodedObjectMsg, ISafePubkey } from './interfaces';
 import { IMessageUnknown } from '../../interfaces';
 import { Chain } from '../chain/entities/chain.entity';
 import { EthermintHelper } from '../../chains/ethermint/ethermint.helper';
+import { ChainInfo } from '../../utils/validations';
 
 export class SimulateUtils {
   public static makeBodyBytes(messages: IEncodedObjectMsg[]): Uint8Array {
@@ -44,7 +45,7 @@ export class SimulateUtils {
   }
 
   static makeAuthInfoBytes(
-    chain: Chain,
+    chainId: string,
     sequence: number,
     safePubkey: ISafePubkey,
     totalOwner: number,
@@ -55,7 +56,7 @@ export class SimulateUtils {
     const signers: boolean[] = Array.from({ length: totalOwner }).map(Boolean);
 
     const encodedPubkey =
-      chain.coinDecimals === 18
+      chainId.startsWith('evmos') || chainId.startsWith('canto')
         ? ethermintHelper.encodePubkeyEthermint(safePubkey)
         : encodePubkey(safePubkey);
 

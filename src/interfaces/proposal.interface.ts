@@ -84,5 +84,5 @@ export interface IProposal {
 }
 
 export interface IProposals {
-  proposals: IProposal[];
+  proposal: IProposal[];
 }
