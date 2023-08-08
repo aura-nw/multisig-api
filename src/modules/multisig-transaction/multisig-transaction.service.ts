@@ -243,8 +243,6 @@ export class MultisigTransactionService {
         safe.id,
         sequenceInIndexer,
       );
-      safe.accountNumber = accountNumber.toString();
-      safe.sequence = sequenceInIndexer.toString();
       await this.safeRepos.updateSafe(safe);
 
       // notify to another owners
@@ -299,7 +297,10 @@ export class MultisigTransactionService {
         internalChainId,
       );
 
-      const accountNumber = await this.getAccountNumber(safe, chain.chainId);
+      const accountNumber = await this.getAccountNumber(
+        safe.safeAddress,
+        chain.chainId,
+      );
 
       // verify data
       const chainHelper = new ChainHelper(chain);
@@ -563,27 +564,6 @@ export class MultisigTransactionService {
       }),
     );
     return result;
-  }
-
-  async getListMultisigConfirmById(
-    param: GetMultisigSignaturesParamDto,
-    status?: string,
-  ): Promise<ResponseDto<GetListConfirmResDto[]>> {
-    const { id } = param;
-    try {
-      const multisig = await this.multisigTransactionRepos.getMultisigTx(id);
-      if (!multisig) throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
-
-      const result =
-        await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-          id,
-          undefined,
-          status,
-        );
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
-    } catch (error) {
-      return ResponseDto.responseError(MultisigTransactionService.name, error);
-    }
   }
 
   /**
@@ -957,7 +937,6 @@ export class MultisigTransactionService {
       safe.id,
       accountInfo.sequence,
     );
-    safe.sequence = accountInfo.sequence.toString();
 
     await this.safeRepos.updateSafe(safe);
   }
@@ -1030,20 +1009,11 @@ export class MultisigTransactionService {
     return nextSeq.toString();
   }
 
-  async getAccountNumber(safe: Safe, chainId: string): Promise<number> {
-    let accountNumber = Number(safe.accountNumber);
-
-    if (Number.isNaN(accountNumber)) {
-      // const accountInfo = await this.indexer.getAccount(
-      //   chainId,
-      //   safe.safeAddress,
-      // );
-      const accountInfo = await this.indexerV2.getAccount(
-        chainId,
-        safe.safeAddress,
-      );
-      accountNumber = accountInfo.accountNumber;
-    }
-    return accountNumber;
+  async getAccountNumber(
+    safeAddress: string,
+    chainId: string,
+  ): Promise<number> {
+    const accountInfo = await this.indexerV2.getAccount(chainId, safeAddress);
+    return accountInfo.accountNumber;
   }
 }

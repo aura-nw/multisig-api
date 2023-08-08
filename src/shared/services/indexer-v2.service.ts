@@ -13,6 +13,7 @@ import { IndexerResponseDto } from '../dtos';
 import { CommonService } from './common.service';
 import { IAssetsWithType } from '../../interfaces/asset-by-owner.interface';
 import { ChainInfo } from '../../utils/validations';
+import { isNumber } from 'lodash';
 
 @Injectable()
 export class IndexerV2Client {
@@ -150,7 +151,7 @@ export class IndexerV2Client {
 
   async getAccount(chainId: string, address: string): Promise<AccountInfo> {
     const accountInfo = await this.getAccountInfo(chainId, address);
-    if (!accountInfo.sequence || !accountInfo.account_number) {
+    if (!isNumber(accountInfo.sequence) || !accountInfo.account_number) {
       throw new CustomError(ErrorMap.MISSING_ACCOUNT_AUTH);
     }
 

@@ -27,9 +27,6 @@ export class Safe extends BaseEntityAutoId {
   @Column({ name: 'Status' })
   status: string;
 
-  @Column({ name: 'Sequence', nullable: true })
-  sequence: string;
-
   @Column({ name: 'NextQueueSeq', nullable: true })
   nextQueueSeq: string;
 

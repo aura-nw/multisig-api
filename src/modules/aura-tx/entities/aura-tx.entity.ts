@@ -6,12 +6,6 @@ export class AuraTx extends BaseEntityAutoId {
   @Column({ name: 'Code' })
   code: string;
 
-  @Column({ name: 'CodeSpace' })
-  codeSpace: string;
-
-  @Column({ name: 'Data' })
-  data: string;
-
   @Column({ name: 'GasUsed', type: 'float' })
   gasUsed: number;
 
@@ -23,12 +17,6 @@ export class AuraTx extends BaseEntityAutoId {
 
   @Column({ name: 'Height' })
   height: number;
-
-  @Column({ name: 'Info' })
-  info: string;
-
-  @Column({ name: 'Logs' })
-  logs: string;
 
   @Column({ name: 'RawLogs' })
   rawLogs: string;
@@ -53,9 +41,6 @@ export class AuraTx extends BaseEntityAutoId {
 
   @Column({ name: 'TimeStamp', type: 'timestamp' })
   timeStamp: Date;
-
-  @Column({ name: 'Tx' })
-  tx: string;
 
   @Column({ name: 'TxHash' })
   txHash: string;

@@ -21,9 +21,6 @@ export class Chain extends BaseEntityAutoId {
   @Column({ name: 'IndexerV2' })
   indexerV2: string;
 
-  @Column({ name: 'ContractAPI' })
-  contractAPI: string;
-
   @Column({ name: 'Symbol' })
   symbol: string;
 
