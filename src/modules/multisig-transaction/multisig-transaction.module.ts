@@ -36,7 +36,7 @@ import { MultisigTxProcessor } from './multisig-transaction.processor';
   providers: [
     MultisigTransactionService,
     MultisigTransactionRepository,
-    MultisigTxProcessor,
+    // MultisigTxProcessor,
   ],
   exports: [MultisigTransactionRepository],
 })

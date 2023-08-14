@@ -40,7 +40,7 @@ export class MultisigTxProcessor {
 
   @Process('send-tx')
   async handleTranscode(job: Job<SendTx>) {
-    this.logger.debug('Start send-tx job...');
+    this.logger.log('Start send-tx job...');
     const { id } = job.data;
     const tx = await this.multisigRepo.getMultisigTx(id);
 
@@ -59,6 +59,7 @@ export class MultisigTxProcessor {
       tx.txHash = result.transactionHash;
       this.logger.log(`Broadcast tx ${tx.txHash} success`);
     } catch (error) {
+      this.logger.error(error);
       if (error instanceof TimeoutError) {
         tx.txHash = error.txId;
       } else {
