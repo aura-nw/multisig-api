@@ -20,21 +20,9 @@ import { ChainInfo } from '../../utils/validations';
 export class IndexerV2Client {
   private readonly logger = new Logger(IndexerV2Client.name);
 
-  indexerUrl: string;
-
-  indexerPathGraphql: string;
-
   chainInfos: ChainInfo[];
 
-  constructor(
-    private configService: ConfigService,
-    private commonService: CommonService,
-  ) {
-    this.indexerUrl = this.configService.get<string>('INDEXER_V2_URL');
-    this.indexerPathGraphql = this.configService.get<string>(
-      'INDEXER_V2_PATH_GRAPHQL',
-    );
-  }
+  constructor(private commonService: CommonService) {}
 
   async getAssetByOwnerAddress(
     ownerAddress: string,
@@ -79,7 +67,7 @@ export class IndexerV2Client {
 
     const result = await this.commonService.requestPost<
       IndexerResponseDto<IIndexerV2Response<IAssetsWithType>>
-    >(new URL(this.indexerPathGraphql, this.indexerUrl).href, {
+    >(new URL(selectedChain.indexerV2).href, {
       operationName,
       query: operatorDocs,
       variables: {
