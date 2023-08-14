@@ -381,7 +381,7 @@ export class MultisigTransactionService {
         internalChainId,
       );
 
-      await this.multisigTxQueue.add(
+      const job = await this.multisigTxQueue.add(
         'send-tx',
         {
           id: multisigTransaction.id,
@@ -390,6 +390,7 @@ export class MultisigTransactionService {
           backoff: 100,
         },
       );
+      this.logger.log(`Job ${job.id} added to queue`);
 
       return ResponseDto.response(ErrorMap.SUCCESSFUL);
     } catch (error) {

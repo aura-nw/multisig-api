@@ -1,7 +1,7 @@
 version: '3.5'
 
 services:
-  bullboard:
+  bullboardz:
     container_name: bullboard
     image: deadly0/bull-board
     restart: always
@@ -11,3 +11,5 @@ services:
       - REDIS_DB: 13
     ports:
       - 3333:3000
+    extra_hosts:
+      - host.docker.internal:host-gateway

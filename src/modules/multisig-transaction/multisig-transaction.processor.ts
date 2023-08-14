@@ -19,6 +19,7 @@ import { Chain } from '../chain/entities/chain.entity';
 import { EthermintHelper } from '../../chains/ethermint/ethermint.helper';
 import { SafeRepository } from '../safe/safe.repository';
 import { Safe } from '../safe/entities/safe.entity';
+import { TransactionStatus } from '../../common/constants/app.constant';
 
 type SendTx = {
   id: number;
@@ -56,10 +57,16 @@ export class MultisigTxProcessor {
       const client = await StargateClient.connect(chain.rpc);
       const result = await client.broadcastTx(txBroadcast);
       tx.txHash = result.transactionHash;
+      this.logger.log(`Broadcast tx ${tx.txHash} success`);
     } catch (error) {
       if (error instanceof TimeoutError) {
         tx.txHash = error.txId;
       } else {
+        if (!tx.status) {
+          tx.status = TransactionStatus.FAILED;
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+          tx.logs = error.message;
+        }
         safe.nextQueueSeq = await this.calculateNextSeq(
           safe.id,
           Number(tx.sequence) + 1,
