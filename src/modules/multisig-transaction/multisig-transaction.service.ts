@@ -753,7 +753,7 @@ export class MultisigTransactionService {
 
       if (
         txDetail.Status === TransactionStatus.FAILED &&
-        txDetail.Logs === ''
+        txDetail.Logs === null
       ) {
         txDetail.Logs = txDetail.RawLogs;
       }
