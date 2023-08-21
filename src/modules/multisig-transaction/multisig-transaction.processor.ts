@@ -1,12 +1,7 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bull';
-import {
-  StargateClient,
-  TimeoutError,
-  coins,
-  makeMultisignedTx,
-} from '@cosmjs/stargate';
+import { StargateClient, coins, makeMultisignedTx } from '@cosmjs/stargate';
 import { fromBase64 } from '@cosmjs/encoding';
 import { MultisigThresholdPubkey } from '@cosmjs/amino';
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
@@ -20,6 +15,7 @@ import { EthermintHelper } from '../../chains/ethermint/ethermint.helper';
 import { SafeRepository } from '../safe/safe.repository';
 import { Safe } from '../safe/entities/safe.entity';
 import { TransactionStatus } from '../../common/constants/app.constant';
+import { CommonUtil } from '../../utils/common.util';
 
 type SendTx = {
   id: number;
@@ -53,6 +49,8 @@ export class MultisigTxProcessor {
     // make tx
     const txBroadcast = await this.makeTx(tx, safe, chain);
 
+    let needReplaceTx = false;
+
     try {
       const client = await StargateClient.connect(chain.rpc);
       const result = await client.broadcastTx(txBroadcast);
@@ -60,28 +58,29 @@ export class MultisigTxProcessor {
       this.logger.log(`Broadcast tx ${tx.txHash} success`);
     } catch (error) {
       this.logger.error(error);
-      if (error instanceof TimeoutError) {
-        tx.txHash = error.txId;
-      } else {
-        if (!tx.status) {
-          tx.status = TransactionStatus.FAILED;
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-          tx.logs = error.message;
-        }
+      const txId = CommonUtil.getStrProp(error, 'txId');
+      this.logger.log(`TxHash: ${txId}`);
+      if (txId === undefined) {
+        tx.status = TransactionStatus.FAILED;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        tx.logs = error.message;
         safe.nextQueueSeq = await this.calculateNextSeq(
           safe.id,
           Number(tx.sequence) + 1,
         );
         await this.safeRepo.updateSafe(safe);
+      } else {
+        tx.txHash = txId;
       }
     }
 
     await this.multisigRepo.updateTx(tx);
 
-    await this.multisigRepo.updateQueueTxToReplaced(
-      tx.safeId,
-      Number(tx.sequence),
-    );
+    if (tx.txHash)
+      await this.multisigRepo.updateQueueTxToReplaced(
+        tx.safeId,
+        Number(tx.sequence),
+      );
   }
 
   async calculateNextSeq(
