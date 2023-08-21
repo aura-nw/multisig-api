@@ -270,6 +270,7 @@ export class MultisigTransactionRepository {
         'MT.Status as Status',
         'MT.Sequence as Sequence',
         'MT.Logs as Logs',
+        'AT.RawLogs as RawLogs',
         'MT.CreatedAt as CreatedAt',
         'MT.UpdatedAt as UpdatedAt',
         'AT.Timestamp as Timestamp',

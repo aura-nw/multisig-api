@@ -751,6 +751,13 @@ export class MultisigTransactionService {
         txDetail.Status = this.parseStatus(txDetail.Status);
       }
 
+      if (
+        txDetail.Status === TransactionStatus.FAILED &&
+        txDetail.Logs === ''
+      ) {
+        txDetail.Logs = txDetail.RawLogs;
+      }
+
       // get signed info
       const threshold = await this.safeRepos.getThreshold(safeAddress);
       txDetail.ConfirmationsRequired = threshold.ConfirmationsRequired;
