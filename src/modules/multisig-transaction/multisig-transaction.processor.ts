@@ -49,8 +49,6 @@ export class MultisigTxProcessor {
     // make tx
     const txBroadcast = await this.makeTx(tx, safe, chain);
 
-    let needReplaceTx = false;
-
     try {
       const client = await StargateClient.connect(chain.rpc);
       const result = await client.broadcastTx(txBroadcast);
