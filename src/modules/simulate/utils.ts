@@ -26,9 +26,7 @@ import {
 } from '../../common/constants/app.constant';
 import { IEncodedObjectMsg, ISafePubkey } from './interfaces';
 import { IMessageUnknown } from '../../interfaces';
-import { Chain } from '../chain/entities/chain.entity';
 import { EthermintHelper } from '../../chains/ethermint/ethermint.helper';
-import { ChainInfo } from '../../utils/validations';
 
 export class SimulateUtils {
   public static makeBodyBytes(messages: IEncodedObjectMsg[]): Uint8Array {

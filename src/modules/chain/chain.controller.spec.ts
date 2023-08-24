@@ -1,7 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
-import { chains, chains, networkList } from '../../mock/chain/chain.mock';
+import { chains } from '../../mock/chain/chain.mock';
 import { chainTestingModule } from './chain-testing.module';
 import { ChainController } from './chain.controller';
 import { ChainService } from './chain.service';

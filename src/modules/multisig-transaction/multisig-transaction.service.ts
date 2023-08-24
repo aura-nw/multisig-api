@@ -156,19 +156,11 @@ export class MultisigTransactionService {
           );
         }
 
-        // const cw20Assets = await this.indexer.getAssetByOwnerAddress(
-        //   safe.safeAddress,
-        //   'CW20',
-        //   chain.chainId,
-        // );
         const cw20Assets = await this.indexerV2.getAssetByOwnerAddress(
           safe.safeAddress,
           'CW20',
           chain.chainId,
         );
-        // const currentCw20Token = cw20Assets.CW20.asset.find(
-        //   (token) => token.contract_address === contractAddress,
-        // );
         const currentCw20Token = cw20Assets.cw20_holder.find(
           (token) =>
             token.cw20_contract.smart_contract.address === contractAddress,

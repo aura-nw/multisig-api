@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { isNumber } from 'lodash';
 import { CustomError } from '../../common/custom-error';
 import { ErrorMap } from '../../common/error.map';

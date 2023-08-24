@@ -98,7 +98,6 @@ export class SimulateService {
     const { ownerWallets } = this.currentWallet;
 
     const listSafe: SafeSimulate[] = [];
-    // const promises: Promise<AccountInfo>[] = [];
     for (let i = 1; i <= 20; i += 1) {
       const safe = new SafeSimulate();
       safe.setOwners(ownerWallets.slice(0, i), i, chain);
