@@ -3,7 +3,6 @@ import {
   Get,
   Post,
   Body,
-  Param,
   HttpStatus,
   HttpCode,
   Logger,
@@ -32,10 +31,8 @@ import {
   ConfirmTransactionRequestDto,
   CreateTransactionRequestDto,
   GetAllTransactionsRequestDto,
-  GetMultisigSignaturesParamDto,
   GetSimulateAddressQueryDto,
   GetTxDetailQueryDto,
-  MultisigSignatureResponseDto,
   RejectTransactionRequestDto,
   SendTransactionRequestDto,
   SimulateTxRequestDto,
@@ -109,26 +106,6 @@ export class MultisigTransactionController {
   async getAllTxs(@Body() request: GetAllTransactionsRequestDto) {
     this.logger.log('========== Get All Transactions ==========');
     return this.multisigTransactionService.getTransactionHistory(request);
-  }
-
-  @Get(URL_CONSTANTS.SIGNATURES)
-  @ApiOperation({
-    summary: 'Get the list of signatures for a multisig transaction',
-  })
-  @ApiOkResponse({
-    status: 200,
-    type: MultisigSignatureResponseDto,
-    description: 'List signature of multisig',
-    schema: {},
-  })
-  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
-  async getSignaturesOfMultisigTx(
-    @Param() param: GetMultisigSignaturesParamDto,
-  ) {
-    this.logger.log(
-      '========== Get Signatures of Multisig Transaction ==========',
-    );
-    return this.multisigTransactionService.getListMultisigConfirmById(param);
   }
 
   @CommonAuthPost({

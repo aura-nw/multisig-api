@@ -2,7 +2,6 @@ import { TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
 import { Repository } from 'typeorm';
-import _ from 'lodash';
 import { MockFactory } from '../../common/mock';
 import { MultisigTransactionRepository } from './multisig-transaction.repository';
 import { MultisigTransaction } from './entities/multisig-transaction.entity';
@@ -250,37 +249,6 @@ describe('MultisigTransactionRepository', () => {
         await multisigTransactionRepo.getBroadcastableTx(txId);
       } catch (error) {
         expect(error).toEqual(new CustomError(ErrorMap.TRANSACTION_NOT_VALID));
-      }
-
-      expect(repoSpy).toBeCalledTimes(1);
-    });
-  });
-
-  describe('updateTxToExecuting', () => {
-    it('should update tx to executing', async () => {
-      const txId = 1;
-      mockRepo.update = jest.fn().mockResolvedValue({
-        affected: 1,
-      });
-      const repoSpy = jest.spyOn(repo, 'update');
-
-      await multisigTransactionRepo.updateTxToExecuting(txId);
-      expect(repoSpy).toBeCalledTimes(1);
-    });
-
-    it('should throw transaction is executing', async () => {
-      const txId = 1;
-      mockRepo.update = jest.fn().mockResolvedValue({
-        affected: 0,
-      });
-      const repoSpy = jest.spyOn(repo, 'update');
-
-      try {
-        await multisigTransactionRepo.updateTxToExecuting(txId);
-      } catch (error) {
-        expect(error).toEqual(
-          new CustomError(ErrorMap.TRANSACTION_IS_EXECUTING),
-        );
       }
 
       expect(repoSpy).toBeCalledTimes(1);

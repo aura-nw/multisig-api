@@ -19,6 +19,12 @@ export class ChainInfo {
   explorer: string;
 
   @IsString()
+  indexerV2: string;
+
+  @IsString()
+  indexerDb: string;
+
+  @IsString()
   symbol: string;
 
   @IsString()

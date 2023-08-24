@@ -55,6 +55,7 @@ export class AuraTxRepository {
         'AT.Code as Status',
         'MT.Sequence as Sequence',
         'MT.Logs as Logs',
+        'AT.RawLogs as RawLogs',
         'AT.CreatedAt as CreatedAt',
         'AT.UpdatedAt as UpdatedAt',
         'AT.Timestamp as Timestamp',

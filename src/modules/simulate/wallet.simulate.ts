@@ -7,13 +7,14 @@ import { Chain } from '../chain/entities/chain.entity';
 import { Safe } from '../safe/entities/safe.entity';
 import { ISafePubkey } from './interfaces';
 import { IMessageUnknown } from '../../interfaces';
+import { ChainInfo } from '../../utils/validations';
 
 export class WalletSimulate {
   safeOwnerMap = new Map<number, SafeSimulate>();
 
   ownerWallets: OwnerSimulate[] = [];
 
-  constructor(public mnemonic: string, public chain: Chain) {}
+  constructor(public mnemonic: string, public chain: Chain | ChainInfo) {}
 
   /**
    * Create Secp256k1HdWallets

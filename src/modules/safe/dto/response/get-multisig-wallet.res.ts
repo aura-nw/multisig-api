@@ -1,4 +1,3 @@
-import { Coin } from '@cosmjs/amino';
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
 import { IAssetsWithType } from '../../../../interfaces/asset-by-owner.interface';
@@ -15,18 +14,6 @@ export class GetMultisigWalletResponseDto {
     example: 'aura1hj9ugatusgn2fcyrhtryx56tshneqqzlwu6d0k',
   })
   address: string;
-
-  @Expose()
-  @ApiProperty({
-    example: '41',
-  })
-  accountNumber: string;
-
-  @Expose()
-  @ApiProperty({
-    example: '94',
-  })
-  sequence: string;
 
   @Expose()
   @ApiProperty({
@@ -84,17 +71,6 @@ export class GetMultisigWalletResponseDto {
     example: 1,
   })
   internalChainId: number;
-
-  @Expose()
-  @ApiProperty({
-    example: [
-      {
-        denom: 'uaura',
-        amount: '0',
-      },
-    ],
-  })
-  balance: Coin[];
 
   @Expose()
   assets: IAssetsWithType;

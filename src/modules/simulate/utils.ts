@@ -26,7 +26,6 @@ import {
 } from '../../common/constants/app.constant';
 import { IEncodedObjectMsg, ISafePubkey } from './interfaces';
 import { IMessageUnknown } from '../../interfaces';
-import { Chain } from '../chain/entities/chain.entity';
 import { EthermintHelper } from '../../chains/ethermint/ethermint.helper';
 
 export class SimulateUtils {
@@ -44,7 +43,7 @@ export class SimulateUtils {
   }
 
   static makeAuthInfoBytes(
-    chain: Chain,
+    chainId: string,
     sequence: number,
     safePubkey: ISafePubkey,
     totalOwner: number,
@@ -55,7 +54,7 @@ export class SimulateUtils {
     const signers: boolean[] = Array.from({ length: totalOwner }).map(Boolean);
 
     const encodedPubkey =
-      chain.coinDecimals === 18
+      chainId.startsWith('evmos') || chainId.startsWith('canto')
         ? ethermintHelper.encodePubkeyEthermint(safePubkey)
         : encodePubkey(safePubkey);
 

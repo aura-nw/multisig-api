@@ -55,8 +55,7 @@ export const chainList: Chain[] = [
     rpc: 'https://rpc.dev.aura.network/',
     webSocket: 'wss://rpc.dev.aura.network/websocket',
     explorer: 'https://explorer.dev.aura.network',
-    contractAPI:
-      'https://explorer-api.dev.aura.network/api/v1/contracts/$contract_address',
+    indexerV2: '',
     symbol: 'TAURA',
     denom: 'utaura',
     tokenImg:

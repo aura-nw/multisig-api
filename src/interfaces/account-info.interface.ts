@@ -10,6 +10,12 @@ export interface IPubkey {
   ];
 }
 
+export interface IAccountBalance {
+  amount: number;
+  denom: string;
+  base_denom: string;
+}
+
 export interface IAccountDelegation {
   delegation: {
     delegator_address: string;
@@ -23,62 +29,16 @@ export interface IAccountDelegation {
 }
 
 export interface IAccountInfo {
-  account_auth: {
-    account: {
-      '@type': string;
-      address: string;
-      pub_key: IPubkey;
-      account_number: string;
-      sequence: string;
-      base_vesting_account?: {
-        base_account: {
-          account_number: string;
-          sequence: string;
-        };
-      };
-    };
-  };
+  account_number: number;
   address: string;
-  account_balances: [
-    {
-      denom: string;
-      amount: string;
-      minimal_denom?: string;
-    },
-  ];
-  account_delegations: IAccountDelegation[];
-  account_delegate_rewards: {
-    rewards: [
-      {
-        validator_address: string;
-        reward: [
-          {
-            denom: string;
-            amount: string;
-          },
-        ];
-      },
-    ];
-    total: [
-      {
-        denom: string;
-        amount: string;
-      },
-    ];
-  };
-  account_redelegations: [];
-  account_spendable_balances: [
-    {
-      denom: string;
-      amount: string;
-    },
-  ];
-  account_unbonding: [];
-  account_claimed_rewards: [
-    {
-      validator_address: string;
-      denom: string;
-      amount: string;
-    },
-  ];
+  balances: IAccountBalance[];
+  pubkey: IPubkey;
+  sequence: number;
+  spemdable_balances: IAccountBalance[];
+  type: string;
+  updated_at: string;
+}
+
+export interface IAccounts {
+  account: IAccountInfo[];
 }

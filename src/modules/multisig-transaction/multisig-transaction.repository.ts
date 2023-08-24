@@ -40,6 +40,14 @@ export class MultisigTransactionRepository {
   }
 
   /**
+   *updateTx
+   * @param tx
+   */
+  async updateTx(tx: MultisigTransaction): Promise<void> {
+    await this.repo.save(tx);
+  }
+
+  /**
    * Set status of transaction to CANCELLED
    * @param tx
    */
@@ -147,14 +155,14 @@ export class MultisigTransactionRepository {
     return multisigTransaction;
   }
 
-  async updateTxToExecuting(transactionId: number): Promise<void> {
+  async updateTxToPending(transactionId: number): Promise<void> {
     const updatedResult = await this.repo.update(
       {
         id: transactionId,
         status: TransactionStatus.AWAITING_EXECUTION,
       },
       {
-        status: TransactionStatus.EXECUTING,
+        status: TransactionStatus.PENDING,
       },
     );
 
@@ -262,6 +270,7 @@ export class MultisigTransactionRepository {
         'MT.Status as Status',
         'MT.Sequence as Sequence',
         'MT.Logs as Logs',
+        'AT.RawLogs as RawLogs',
         'MT.CreatedAt as CreatedAt',
         'MT.UpdatedAt as UpdatedAt',
         'AT.Timestamp as Timestamp',

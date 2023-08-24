@@ -17,9 +17,9 @@ import { DeleteSafePathParamsDto } from './dto/request/delete-multisig-wallet.re
 import { GetMultisigWalletResponseDto } from './dto/response/get-multisig-wallet.res';
 import { Chain } from '../chain/entities/chain.entity';
 import { GetSafeQueryDto } from './dto/request/get-safe-query.req';
-import { IndexerClient } from '../../shared/services/indexer.service';
 import { Safe } from './entities/safe.entity';
 import { EthermintHelper } from '../../chains/ethermint/ethermint.helper';
+import { IndexerV2Client } from '../../shared/services';
 
 @Injectable()
 export class SafeService {
@@ -30,7 +30,7 @@ export class SafeService {
   private commonUtil: CommonUtil = new CommonUtil();
 
   constructor(
-    private indexer: IndexerClient,
+    private indexerV2: IndexerV2Client,
     private safeRepo: SafeRepository,
     private safeOwnerRepo: SafeOwnerRepository,
     private chainRepo: ChainRepository,
@@ -137,7 +137,6 @@ export class SafeService {
       const safeInfo = new GetMultisigWalletResponseDto();
       safeInfo.id = safe.id;
       safeInfo.address = safe.safeAddress;
-      safeInfo.accountNumber = safe.accountNumber;
       safeInfo.txHistoryTag = safe.txHistoryTag;
       safeInfo.txQueuedTag = safe.txQueuedTag;
       safeInfo.pubkeys = safe.safePubkey;
@@ -147,62 +146,9 @@ export class SafeService {
       safeInfo.status = safe.status;
       safeInfo.internalChainId = safe.internalChainId;
       safeInfo.createdAddress = safe.creatorAddress;
+      safeInfo.nextQueueSeq = safe.nextQueueSeq;
 
       // get chainInfo
-      const { chainId, denom } = await this.chainRepo.findChain(
-        safe.internalChainId,
-      );
-      // if safe created => Get balance
-      if (safeInfo.address !== null) {
-        try {
-          const { sequence, balances } = await this.indexer.getAccount(
-            chainId,
-            safeInfo.address,
-          );
-
-          safeInfo.balance =
-            balances && balances.length > 0
-              ? balances
-              : [
-                  {
-                    amount: '0',
-                    denom,
-                  },
-                ];
-
-          safeInfo.sequence = sequence.toString();
-          safeInfo.nextQueueSeq =
-            safe.nextQueueSeq && Number(safe.nextQueueSeq) > sequence
-              ? safe.nextQueueSeq
-              : sequence.toString();
-        } catch (error) {
-          this.logger.error(error);
-          safeInfo.balance = [
-            {
-              denom,
-              amount: '-1',
-            },
-          ];
-        }
-
-        // get assets
-        const result = await Promise.all([
-          this.indexer.getAssetByOwnerAddress(
-            safeInfo.address,
-            'CW20',
-            chainId,
-          ),
-          this.indexer.getAssetByOwnerAddress(
-            safeInfo.address,
-            'CW721',
-            chainId,
-          ),
-        ]);
-        safeInfo.assets = {
-          ...result[0],
-          ...result[1],
-        };
-      }
       return ResponseDto.response(ErrorMap.SUCCESSFUL, safeInfo);
     } catch (error) {
       return ResponseDto.responseError(SafeService.name, error);

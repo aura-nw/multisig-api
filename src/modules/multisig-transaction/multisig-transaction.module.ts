@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { BullModule } from '@nestjs/bull';
 import { MultisigTransactionService } from './multisig-transaction.service';
 import { MultisigTransactionController } from './multisig-transaction.controller';
 import { MultisigTransactionRepository } from './multisig-transaction.repository';
@@ -13,9 +14,13 @@ import { MessageModule } from '../message/message.module';
 import { NotificationModule } from '../notification/notification.module';
 import { TransactionHistoryModule } from '../transaction-history/transaction-history.module';
 import { SimulateModule } from '../simulate/simulate.module';
+import { MultisigTxProcessor } from './multisig-transaction.processor';
 
 @Module({
   imports: [
+    BullModule.registerQueue({
+      name: 'multisig-tx',
+    }),
     TypeOrmModule.forFeature([MultisigTransaction]),
     AuraTxModule,
     MultisigConfirmModule,
@@ -28,7 +33,11 @@ import { SimulateModule } from '../simulate/simulate.module';
     SimulateModule,
   ],
   controllers: [MultisigTransactionController],
-  providers: [MultisigTransactionService, MultisigTransactionRepository],
+  providers: [
+    MultisigTransactionService,
+    MultisigTransactionRepository,
+    MultisigTxProcessor,
+  ],
   exports: [MultisigTransactionRepository],
 })
 export class MultisigTransactionModule {}

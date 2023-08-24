@@ -9,3 +9,4 @@ export * from './transaction.interface';
 export * from './message.interface';
 export * from './votes.interface';
 export * from './token-info.interface';
+export * from './indexer-v2.interface';

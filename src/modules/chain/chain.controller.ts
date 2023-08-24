@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Param,
-  HttpCode,
-  HttpStatus,
-} from '@nestjs/common';
+import { Controller, Post, HttpCode, HttpStatus } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -17,11 +10,7 @@ import {
   URL_CONSTANTS,
 } from '../../common/constants/api.constant';
 import { ChainService } from './chain.service';
-import {
-  ChainDto,
-  GetAccountOnchainParamDto,
-  GetAccountOnchainResponseDto,
-} from './dto';
+import { ChainDto } from './dto';
 
 @Controller(CONTROLLER_CONSTANTS.GENERAL)
 @ApiTags(CONTROLLER_CONSTANTS.GENERAL)
@@ -40,18 +29,5 @@ export class ChainController {
   @HttpCode(HttpStatus.OK)
   async showNetworkList() {
     return this.chainService.showNetworkList();
-  }
-
-  @Get(URL_CONSTANTS.ACCOUNT_ONCHAIN)
-  @ApiOperation({ summary: 'Get account onchain' })
-  @ApiOkResponse({
-    status: 200,
-    type: GetAccountOnchainResponseDto,
-    description: 'Show information of a multisig address',
-    schema: {},
-  })
-  @ApiBadRequestResponse({ description: 'Error: Bad Request', schema: {} })
-  async getAccountOnchain(@Param() param: GetAccountOnchainParamDto) {
-    return this.chainService.getAccountOnchain(param);
   }
 }

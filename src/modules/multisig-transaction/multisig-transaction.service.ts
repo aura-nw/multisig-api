@@ -3,15 +3,12 @@
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { Injectable, Logger } from '@nestjs/common';
 import { isNull } from 'lodash';
-import {
-  coins,
-  isAminoMsgSend,
-  makeMultisignedTx,
-  StargateClient,
-} from '@cosmjs/stargate';
+import { coins, isAminoMsgSend, makeMultisignedTx } from '@cosmjs/stargate';
 import { fromBase64, fromUtf8 } from '@cosmjs/encoding';
 import { MultisigThresholdPubkey } from '@cosmjs/amino';
 import { plainToInstance } from 'class-transformer';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import {
@@ -41,7 +38,6 @@ import {
   CreateTxResDto,
   DeleteTxRequestDto,
   GetAllTransactionsRequestDto,
-  GetMultisigSignaturesParamDto,
   GetSimulateAddressQueryDto,
   GetTxDetailQueryDto,
   MultisigTransactionHistoryResponseDto,
@@ -56,14 +52,13 @@ import { Chain } from '../chain/entities/chain.entity';
 import { Safe } from '../safe/entities/safe.entity';
 import { TransactionHistoryRepository } from '../transaction-history/transaction-history.repository';
 import { CommonUtil } from '../../utils/common.util';
-import { IndexerClient } from '../../shared/services/indexer.service';
 import { GetListConfirmResDto } from '../multisig-confirm/dto';
 import { IMessageUnknown } from '../../interfaces';
 import { EthermintHelper } from '../../chains/ethermint/ethermint.helper';
 import { SimulateResponse } from '../simulate/dtos';
-import { AccountInfo } from '../../common/dtos';
 import { ChainHelper } from '../../chains/chain.helper';
 import { ICw20Msg } from './interfaces';
+import { IndexerV2Client } from '../../shared/services/indexer-v2.service';
 
 @Injectable()
 export class MultisigTransactionService {
@@ -74,7 +69,7 @@ export class MultisigTransactionService {
   private ethermintHelper = new EthermintHelper();
 
   constructor(
-    private indexer: IndexerClient,
+    private indexerV2: IndexerV2Client,
     private multisigTransactionRepos: MultisigTransactionRepository,
     private auraTxRepo: AuraTxRepository,
     private multisigConfirmRepos: MultisigConfirmRepository,
@@ -85,6 +80,8 @@ export class MultisigTransactionService {
     private notificationRepo: NotificationRepository,
     private txHistoryRepo: TransactionHistoryRepository,
     private simulateService: SimulateService,
+    @InjectQueue('multisig-tx')
+    private readonly multisigTxQueue: Queue,
   ) {
     this.logger.log(
       '============== Constructor Multisig Transaction Service ==============',
@@ -108,10 +105,10 @@ export class MultisigTransactionService {
 
       // get safe account info
       const {
-        accountNumber,
+        account_number: accountNumber,
         sequence: sequenceInIndexer,
         balances: accountBalance,
-      } = await this.indexer.getAccount(chain.chainId, safe.safeAddress);
+      } = await this.indexerV2.getAccount(chain.chainId, safe.safeAddress);
 
       // decode data
       const chainHelper = new ChainHelper(chain);
@@ -159,34 +156,31 @@ export class MultisigTransactionService {
           );
         }
 
-        const cw20Assets = await this.indexer.getAssetByOwnerAddress(
+        const cw20Assets = await this.indexerV2.getAssetByOwnerAddress(
           safe.safeAddress,
           'CW20',
           chain.chainId,
         );
-        const currentCw20Token = cw20Assets.CW20.asset.find(
-          (token) => token.contract_address === contractAddress,
+        const currentCw20Token = cw20Assets.cw20_holder.find(
+          (token) =>
+            token.cw20_contract.smart_contract.address === contractAddress,
         );
 
         amount = Number(objectMsg.transfer.amount);
-        if (currentCw20Token.balance < amount) {
+        if (Number(currentCw20Token.amount) < amount) {
           throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
         }
 
-        denom = currentCw20Token.asset_info.data.symbol;
+        denom = currentCw20Token.cw20_contract.symbol;
 
-        transaction.contractAddress = currentCw20Token.contract_address;
+        transaction.contractAddress =
+          currentCw20Token.cw20_contract.smart_contract.address;
       } else {
         // other
         // calculate tx amount
         const txAmount = chainHelper.calculateAmount(aminoMsgs);
 
-        const balance = accountBalance.find((token) => {
-          if (denom.search('ibc/') > -1) {
-            return token.minimal_denom === denom;
-          }
-          return token.denom === denom;
-        });
+        const balance = accountBalance.find((token) => token.denom === denom);
         if (Number(balance.amount) < txAmount) {
           throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
         }
@@ -234,8 +228,6 @@ export class MultisigTransactionService {
         safe.id,
         sequenceInIndexer,
       );
-      safe.accountNumber = accountNumber.toString();
-      safe.sequence = sequenceInIndexer.toString();
       await this.safeRepos.updateSafe(safe);
 
       // notify to another owners
@@ -290,7 +282,10 @@ export class MultisigTransactionService {
         internalChainId,
       );
 
-      const accountNumber = await this.getAccountNumber(safe, chain.chainId);
+      const accountNumber = await this.getAccountNumber(
+        safe.safeAddress,
+        chain.chainId,
+      );
 
       // verify data
       const chainHelper = new ChainHelper(chain);
@@ -334,25 +329,25 @@ export class MultisigTransactionService {
       const authInfo = this.commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
 
-      const chain = await this.chainRepos.findChain(internalChainId);
-      const client: StargateClient = await StargateClient.connect(chain.rpc);
-
       // get tx
       const multisigTransaction =
         await this.multisigTransactionRepos.getBroadcastableTx(transactionId);
-
-      // update tx status
-      await this.multisigTransactionRepos.updateTxToExecuting(transactionId);
 
       // get safe & validate safe owner
       const safe = await this.safeRepos.getSafeByAddress(
         multisigTransaction.fromAddress,
         internalChainId,
       );
-      await this.safeOwnerRepo.isSafeOwner(creatorAddress, safe.id);
 
-      // Make tx
-      const txBroadcast = await this.makeTx(safe, chain, multisigTransaction);
+      const safeOwners = await this.safeOwnerRepo.getSafeOwnersWithError(
+        safe.id,
+      );
+      if (
+        safeOwners.filter((owner) => owner.ownerAddress === creatorAddress)
+          .length === 0
+      ) {
+        throw new CustomError(ErrorMap.PERMISSION_DENIED);
+      }
 
       // Record owner send transaction
       await this.multisigConfirmRepos.insertIntoMultisigConfirm(
@@ -364,75 +359,32 @@ export class MultisigTransactionService {
         MultisigConfirmStatus.SEND,
       );
 
-      try {
-        await client.broadcastTx(txBroadcast, 10);
-      } catch (error: unknown) {
-        // Update status and txhash
-        // TxHash is encoded transaction when send it to network
-        const txId = CommonUtil.getStrProp(error, 'txId');
-        this.logger.log(`TxHash: ${txId}`);
-        if (txId === undefined) {
-          await this.multisigTransactionRepos.updateExecutingTx(
-            multisigTransaction.id,
-            TransactionStatus.FAILED,
-            undefined,
-            (error as Error).message,
-          );
+      // update tx status
+      await this.multisigTransactionRepos.updateTxToPending(transactionId);
 
-          // re calculate next seq
-          safe.nextQueueSeq = await this.calculateNextSeq(
-            safe.id,
-            Number(multisigTransaction.sequence),
-          );
+      await this.safeRepos.updateQueuedTag(safe.id);
 
-          await this.safeRepos.updateSafe(safe);
+      await this.notificationRepo.notifyBroadcastedTx(
+        safe.id,
+        safe.safeAddress,
+        multisigTransaction.id,
+        Number(multisigTransaction.sequence),
+        safeOwners.map((safeOwner) => safeOwner.ownerAddress),
+        internalChainId,
+      );
 
-          throw CustomError.fromUnknown(
-            ErrorMap.SEND_TRANSACTION_FAILED,
-            error,
-          );
-        }
-        // update tx status to "pending"
-        await this.multisigTransactionRepos.updateExecutingTx(
-          multisigTransaction.id,
-          TransactionStatus.PENDING,
-          txId,
-        );
+      const job = await this.multisigTxQueue.add(
+        'send-tx',
+        {
+          id: multisigTransaction.id,
+        },
+        {
+          backoff: 100,
+        },
+      );
+      this.logger.log(`Job ${job.id} added to queue`);
 
-        // update queue tx have same sequence to "replaced"
-        await this.multisigTransactionRepos.updateQueueTxToReplaced(
-          multisigTransaction.safeId,
-          Number(multisigTransaction.sequence),
-        );
-
-        // update safe next queue sequence
-        safe.sequence = (Number(multisigTransaction.sequence) + 1).toString();
-        safe.nextQueueSeq = await this.calculateNextSeq(
-          safe.id,
-          Number(multisigTransaction.sequence) + 1,
-        );
-
-        // notify tx broadcasted
-        const safeOwners = await this.safeOwnerRepo.getSafeOwnersWithError(
-          safe.id,
-        );
-        await this.notificationRepo.notifyBroadcastedTx(
-          safe.id,
-          safe.safeAddress,
-          multisigTransaction.id,
-          Number(multisigTransaction.sequence),
-          safeOwners.map((safeOwner) => safeOwner.ownerAddress),
-          internalChainId,
-        );
-        await this.safeRepos.updateSafe(safe);
-
-        await this.safeRepos.updateQueuedTag(multisigTransaction.safeId);
-
-        return ResponseDto.response(ErrorMap.SUCCESSFUL, {
-          TxHash: txId,
-        });
-      }
-      return undefined;
+      return ResponseDto.response(ErrorMap.SUCCESSFUL);
     } catch (error) {
       return ResponseDto.responseError(MultisigTransactionService.name, error);
     }
@@ -600,27 +552,6 @@ export class MultisigTransactionService {
     return result;
   }
 
-  async getListMultisigConfirmById(
-    param: GetMultisigSignaturesParamDto,
-    status?: string,
-  ): Promise<ResponseDto<GetListConfirmResDto[]>> {
-    const { id } = param;
-    try {
-      const multisig = await this.multisigTransactionRepos.getMultisigTx(id);
-      if (!multisig) throw new CustomError(ErrorMap.TRANSACTION_NOT_EXIST);
-
-      const result =
-        await this.multisigConfirmRepos.getListConfirmMultisigTransaction(
-          id,
-          undefined,
-          status,
-        );
-      return ResponseDto.response(ErrorMap.SUCCESSFUL, result);
-    } catch (error) {
-      return ResponseDto.responseError(MultisigTransactionService.name, error);
-    }
-  }
-
   /**
    * changeSequence
    * @param request
@@ -727,6 +658,7 @@ export class MultisigTransactionService {
       // get chain info
       const chain = await this.chainRepos.findChain(safeInfo.internalChainId);
       await this.simulateService.initialize(chain);
+      await this.simulateService.setSequenceAndAccountNumber();
 
       const result = await this.simulateService.simulate(
         messages,
@@ -810,6 +742,13 @@ export class MultisigTransactionService {
         );
 
         txDetail.Status = this.parseStatus(txDetail.Status);
+      }
+
+      if (
+        txDetail.Status === TransactionStatus.FAILED &&
+        txDetail.Logs === null
+      ) {
+        txDetail.Logs = txDetail.RawLogs;
       }
 
       // get signed info
@@ -979,7 +918,11 @@ export class MultisigTransactionService {
     const chain = await this.chainRepos.findChain(internalChainId);
 
     // get safe account info
-    const accountInfo: AccountInfo = await this.indexer.getAccount(
+    // const accountInfo: AccountInfo = await this.indexer.getAccount(
+    //   chain.chainId,
+    //   safe.safeAddress,
+    // );
+    const accountInfo = await this.indexerV2.getAccount(
       chain.chainId,
       safe.safeAddress,
     );
@@ -988,7 +931,6 @@ export class MultisigTransactionService {
       safe.id,
       accountInfo.sequence,
     );
-    safe.sequence = accountInfo.sequence.toString();
 
     await this.safeRepos.updateSafe(safe);
   }
@@ -1061,16 +1003,11 @@ export class MultisigTransactionService {
     return nextSeq.toString();
   }
 
-  async getAccountNumber(safe: Safe, chainId: string): Promise<number> {
-    let accountNumber = Number(safe.accountNumber);
-
-    if (Number.isNaN(accountNumber)) {
-      const accountInfo = await this.indexer.getAccount(
-        chainId,
-        safe.safeAddress,
-      );
-      accountNumber = accountInfo.accountNumber;
-    }
-    return accountNumber;
+  async getAccountNumber(
+    safeAddress: string,
+    chainId: string,
+  ): Promise<number> {
+    const accountInfo = await this.indexerV2.getAccount(chainId, safeAddress);
+    return accountInfo.account_number;
   }
 }

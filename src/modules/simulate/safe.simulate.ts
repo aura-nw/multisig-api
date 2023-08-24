@@ -16,6 +16,7 @@ import { IEncodedObjectMsg, ISafePubkey } from './interfaces';
 import { IMessageUnknown } from '../../interfaces';
 import { EthermintHelper } from '../../chains/ethermint/ethermint.helper';
 import { TxTypeUrl } from '../../common/constants/app.constant';
+import { ChainInfo } from '../../utils/validations';
 
 @Injectable()
 export class SafeSimulate {
@@ -37,14 +38,18 @@ export class SafeSimulate {
 
   public threshold: number;
 
-  public chain: Chain;
+  public chain: Chain | ChainInfo;
 
   setAccountInfo(accountNumber: number, sequence: number) {
     this.accountNumber = accountNumber;
     this.sequence = sequence;
   }
 
-  setOwners(ownerSimulates: OwnerSimulate[], threshold: number, chain: Chain) {
+  setOwners(
+    ownerSimulates: OwnerSimulate[],
+    threshold: number,
+    chain: Chain | ChainInfo,
+  ) {
     // create pubkey and address
     this.pubkey = createMultisigThresholdPubkey(
       ownerSimulates.map((owner) => owner.pubkey),
@@ -148,7 +153,7 @@ export class SafeSimulate {
     const authInfoBytes = simulateAuthInfo
       ? fromBase64(simulateAuthInfo)
       : SimulateUtils.makeAuthInfoBytes(
-          this.chain,
+          this.chain.chainId,
           sequence,
           safePubkey,
           this.threshold,
