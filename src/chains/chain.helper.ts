@@ -25,6 +25,7 @@ import {
   IMessage,
   IMsgMultiSend,
   IDecodedMessage,
+  ICw20Msg,
 } from '../modules/multisig-transaction/interfaces';
 import { UserInfoDto } from '../modules/auth/dto';
 import { Chain } from '../modules/chain/entities/chain.entity';
@@ -32,6 +33,7 @@ import { CustomError } from '../common/custom-error';
 import { ErrorMap } from '../common/error.map';
 import { ChainGateway } from './chain.gateway';
 import { IMessageUnknown } from '../interfaces';
+import { MultisigTransaction } from '../modules/multisig-transaction/entities/multisig-transaction.entity';
 
 export class ChainHelper {
   constructor(public chain: Chain) {}
@@ -248,5 +250,40 @@ export class ChainHelper {
       }
     }
     return total;
+  }
+
+  getDataFromTx(
+    transaction: MultisigTransaction,
+    decodedMsgs: IMessageUnknown[],
+    aminoMsgs: AminoMsg[],
+  ): {
+    amount: number;
+    contractAddress?: string;
+  } {
+    if (
+      transaction.typeUrl === TxTypeUrl.EXECUTE_CONTRACT &&
+      transaction.toAddress !== '' &&
+      !(decodedMsgs[0].value instanceof Uint8Array) &&
+      decodedMsgs[0].value.msg instanceof Uint8Array
+    ) {
+      const contractAddress = decodedMsgs[0].value.contract;
+      const decodedMsg = fromUtf8(decodedMsgs[0].value.msg);
+      const objectMsg = JSON.parse(decodedMsg) as ICw20Msg;
+      if (objectMsg.transfer.recipient !== transaction.toAddress) {
+        throw new CustomError(
+          ErrorMap.TRANSACTION_NOT_VALID,
+          'recipient address is not match with address in msg',
+        );
+      }
+
+      return {
+        amount: Number(objectMsg.transfer.amount),
+        contractAddress,
+      };
+    }
+
+    return {
+      amount: this.calculateAmount(aminoMsgs),
+    };
   }
 }
