@@ -133,7 +133,10 @@ export class IndexerV2Client {
 
   async getAccount(chainId: string, address: string): Promise<IAccountInfo> {
     const accountInfo = await this.getAccountInfo(chainId, address);
-    if (!isNumber(accountInfo.sequence) || !accountInfo.account_number) {
+    if (
+      !isNumber(accountInfo.sequence) ||
+      !isNumber(accountInfo.account_number)
+    ) {
       throw new CustomError(ErrorMap.MISSING_ACCOUNT_AUTH);
     }
 
