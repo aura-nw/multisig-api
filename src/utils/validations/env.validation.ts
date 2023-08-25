@@ -32,9 +32,6 @@ class EnvironmentVariables {
 
   @IsString()
   JWT_EXPIRATION: string;
-
-  @IsString()
-  PREFIX_NETWORK: string;
 }
 
 export const validate = (config: Record<string, unknown>) => {
