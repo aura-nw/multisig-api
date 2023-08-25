@@ -894,7 +894,6 @@ export class MultisigTransactionService {
 
   /**
    * updateNextSeqAfterDeleteTx
-   * TODO: use computed field
    * @param safeId
    * @param internalChainId
    */
