@@ -68,7 +68,7 @@ export class MultisigTransactionService {
 
   private ethermintHelper = new EthermintHelper();
 
-  private useRpc = false;
+  private useHoroscope = true;
 
   constructor(
     private indexerV2: IndexerV2Client,
@@ -89,7 +89,8 @@ export class MultisigTransactionService {
     this.logger.log(
       '============== Constructor Multisig Transaction Service ==============',
     );
-    this.useRpc = this.configService.get<boolean>('USE_RPC');
+    this.useHoroscope =
+      /^true$/i.test(this.configService.get('USE_HOROSCOPE')) || true;
   }
 
   async createMultisigTransaction(
@@ -110,7 +111,7 @@ export class MultisigTransactionService {
       // get safe account info
       let { accountNumber, sequence } = request;
 
-      if (!this.useRpc) {
+      if (this.useHoroscope) {
         const account = await this.indexerV2.getAccount(
           chain.chainId,
           safe.safeAddress,
@@ -160,7 +161,7 @@ export class MultisigTransactionService {
         ? aminoMsgs[0].value.amount[0].denom
         : chain.denom;
 
-      if (!this.useRpc) {
+      if (this.useHoroscope) {
         // check balance
         await (contractAddress
           ? this.indexerV2.checkCw20Balance(
@@ -177,7 +178,7 @@ export class MultisigTransactionService {
             ));
       }
 
-      if (!this.useRpc && contractAddress) {
+      if (this.useHoroscope && contractAddress) {
         // get contract symbol
         const cw20Contract = await this.indexerV2.getCw20Contract(
           contractAddress,
@@ -311,7 +312,7 @@ export class MultisigTransactionService {
     request: SendTransactionRequestDto,
   ): Promise<ResponseDto<SendTxResDto>> {
     try {
-      const { internalChainId, transactionId } = request;
+      const { transactionId } = request;
       const authInfo = this.commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
 
@@ -322,7 +323,7 @@ export class MultisigTransactionService {
       // get safe & validate safe owner
       const safe = await this.safeRepos.getSafeByAddress(
         multisigTransaction.fromAddress,
-        internalChainId,
+        multisigTransaction.internalChainId,
       );
 
       const safeOwners = await this.safeOwnerRepo.getSafeOwnersWithError(
@@ -341,7 +342,7 @@ export class MultisigTransactionService {
         creatorAddress,
         '',
         '',
-        internalChainId,
+        multisigTransaction.internalChainId,
         MultisigConfirmStatus.SEND,
       );
 
@@ -356,7 +357,7 @@ export class MultisigTransactionService {
         multisigTransaction.id,
         Number(multisigTransaction.sequence),
         safeOwners.map((safeOwner) => safeOwner.ownerAddress),
-        internalChainId,
+        multisigTransaction.internalChainId,
       );
 
       const job = await this.multisigTxQueue.add(
@@ -898,7 +899,7 @@ export class MultisigTransactionService {
    * @param internalChainId
    */
   async updateNextSeqAfterDeleteTx(safeId: number, internalChainId: number) {
-    if (!this.useRpc) {
+    if (this.useHoroscope) {
       // get safe info
       const safe = await this.safeRepos.getSafeById(safeId);
       // get chain info

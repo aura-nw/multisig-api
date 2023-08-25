@@ -10,13 +10,4 @@ export class SendTransactionRequestDto {
     example: 14,
   })
   transactionId: number;
-
-  @IsNumber()
-  @Type(() => Number)
-  @ApiProperty({
-    description: 'Offchain Chain Id',
-    example: 4,
-  })
-  @Type(() => Number)
-  internalChainId: number;
 }
