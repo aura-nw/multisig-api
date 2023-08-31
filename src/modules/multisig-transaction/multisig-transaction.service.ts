@@ -89,8 +89,7 @@ export class MultisigTransactionService {
     this.logger.log(
       '============== Constructor Multisig Transaction Service ==============',
     );
-    this.useHoroscope =
-      /^true$/i.test(this.configService.get('USE_HOROSCOPE')) || true;
+    this.useHoroscope = /^true$/i.test(this.configService.get('USE_HOROSCOPE'));
   }
 
   async createMultisigTransaction(
