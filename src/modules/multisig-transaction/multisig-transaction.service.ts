@@ -4,11 +4,12 @@ import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { Injectable, Logger } from '@nestjs/common';
 import { isNull } from 'lodash';
 import { coins, isAminoMsgSend, makeMultisignedTx } from '@cosmjs/stargate';
-import { fromBase64, fromUtf8 } from '@cosmjs/encoding';
+import { fromBase64 } from '@cosmjs/encoding';
 import { MultisigThresholdPubkey } from '@cosmjs/amino';
 import { plainToInstance } from 'class-transformer';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
+import { ConfigService } from '@nestjs/config';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ErrorMap } from '../../common/error.map';
 import {
@@ -57,7 +58,6 @@ import { IMessageUnknown } from '../../interfaces';
 import { EthermintHelper } from '../../chains/ethermint/ethermint.helper';
 import { SimulateResponse } from '../simulate/dtos';
 import { ChainHelper } from '../../chains/chain.helper';
-import { ICw20Msg } from './interfaces';
 import { IndexerV2Client } from '../../shared/services/indexer-v2.service';
 
 @Injectable()
@@ -67,6 +67,8 @@ export class MultisigTransactionService {
   private readonly commonUtil: CommonUtil = new CommonUtil();
 
   private ethermintHelper = new EthermintHelper();
+
+  private useHoroscope = true;
 
   constructor(
     private indexerV2: IndexerV2Client,
@@ -82,10 +84,12 @@ export class MultisigTransactionService {
     private simulateService: SimulateService,
     @InjectQueue('multisig-tx')
     private readonly multisigTxQueue: Queue,
+    private readonly configService: ConfigService,
   ) {
     this.logger.log(
       '============== Constructor Multisig Transaction Service ==============',
     );
+    this.useHoroscope = /^true$/i.test(this.configService.get('USE_HOROSCOPE'));
   }
 
   async createMultisigTransaction(
@@ -104,11 +108,16 @@ export class MultisigTransactionService {
       const chain = await this.chainRepos.findChain(internalChainId);
 
       // get safe account info
-      const {
-        account_number: accountNumber,
-        sequence: sequenceInIndexer,
-        balances: accountBalance,
-      } = await this.indexerV2.getAccount(chain.chainId, safe.safeAddress);
+      let { accountNumber, sequence } = request;
+
+      if (this.useHoroscope) {
+        const account = await this.indexerV2.getAccount(
+          chain.chainId,
+          safe.safeAddress,
+        );
+        accountNumber = account.account_number;
+        sequence = account.sequence;
+      }
 
       // decode data
       const chainHelper = new ChainHelper(chain);
@@ -126,75 +135,6 @@ export class MultisigTransactionService {
         authInfo,
       );
 
-      const transaction = new MultisigTransaction();
-      transaction.typeUrl =
-        decodedMsgs.length > 1 ? TxTypeUrl.CUSTOM : decodedMsgs[0].typeUrl;
-      transaction.fromAddress = from;
-      transaction.toAddress = to || '';
-
-      // check balance
-      let amount = 0;
-      let denom = isAminoMsgSend(aminoMsgs[0])
-        ? aminoMsgs[0].value.amount[0].denom
-        : chain.denom;
-
-      // check account balance; if balance is not enough, throw error
-      if (
-        transaction.typeUrl === TxTypeUrl.EXECUTE_CONTRACT &&
-        transaction.toAddress !== '' &&
-        !(decodedMsgs[0].value instanceof Uint8Array) &&
-        decodedMsgs[0].value.msg instanceof Uint8Array
-      ) {
-        // cw20
-        const contractAddress = decodedMsgs[0].value.contract;
-        const decodedMsg = fromUtf8(decodedMsgs[0].value.msg);
-        const objectMsg = JSON.parse(decodedMsg) as ICw20Msg;
-        if (objectMsg.transfer.recipient !== to) {
-          throw new CustomError(
-            ErrorMap.TRANSACTION_NOT_VALID,
-            'recipient address is not match with address in msg',
-          );
-        }
-
-        // const cw20Assets = await this.indexer.getAssetByOwnerAddress(
-        //   safe.safeAddress,
-        //   'CW20',
-        //   chain.chainId,
-        // );
-        const cw20Assets = await this.indexerV2.getAssetByOwnerAddress(
-          safe.safeAddress,
-          'CW20',
-          chain.chainId,
-        );
-        // const currentCw20Token = cw20Assets.CW20.asset.find(
-        //   (token) => token.contract_address === contractAddress,
-        // );
-        const currentCw20Token = cw20Assets.cw20_holder.find(
-          (token) =>
-            token.cw20_contract.smart_contract.address === contractAddress,
-        );
-
-        amount = Number(objectMsg.transfer.amount);
-        if (Number(currentCw20Token.amount) < amount) {
-          throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
-        }
-
-        denom = currentCw20Token.cw20_contract.symbol;
-
-        transaction.contractAddress =
-          currentCw20Token.cw20_contract.smart_contract.address;
-      } else {
-        // other
-        // calculate tx amount
-        const txAmount = chainHelper.calculateAmount(aminoMsgs);
-
-        const balance = accountBalance.find((token) => token.denom === denom);
-        if (Number(balance.amount) < txAmount) {
-          throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
-        }
-        amount = txAmount;
-      }
-
       // is owner of safe
       const safeOwners = await this.safeOwnerRepo.getSafeOwnersWithError(
         safe.id,
@@ -202,12 +142,57 @@ export class MultisigTransactionService {
       if (!safeOwners.some((owner) => owner.ownerAddress === creatorAddress))
         throw new CustomError(ErrorMap.PERMISSION_DENIED);
 
+      const transaction = new MultisigTransaction();
+      transaction.typeUrl =
+        decodedMsgs.length > 1 ? TxTypeUrl.CUSTOM : decodedMsgs[0].typeUrl;
+      transaction.fromAddress = from;
+      transaction.toAddress = to || '';
+
+      // get balance
+      const { amount, contractAddress } = chainHelper.getDataFromTx(
+        transaction,
+        decodedMsgs,
+        aminoMsgs,
+      );
+
+      transaction.contractAddress = contractAddress;
+      const denom = isAminoMsgSend(aminoMsgs[0])
+        ? aminoMsgs[0].value.amount[0].denom
+        : chain.denom;
+
+      if (this.useHoroscope) {
+        // check balance
+        await (contractAddress
+          ? this.indexerV2.checkCw20Balance(
+              safe.safeAddress,
+              contractAddress,
+              amount,
+              chain.chainId,
+            )
+          : this.indexerV2.checkTokenBalance(
+              safe.safeAddress,
+              amount,
+              denom,
+              chain.chainId,
+            ));
+      }
+
+      if (this.useHoroscope && contractAddress) {
+        // get contract symbol
+        const cw20Contract = await this.indexerV2.getCw20Contract(
+          contractAddress,
+          chain.chainId,
+        );
+        transaction.denom = cw20Contract.cw20_contract?.symbol;
+      } else {
+        transaction.denom = denom;
+      }
+
       // save tx
       transaction.amount = amount > 0 ? amount : undefined;
       transaction.gas = decodedAuthInfo.fee.gasLimit.toNumber();
       transaction.fee = Number(decodedAuthInfo.fee.amount[0].amount);
       transaction.accountNumber = accountNumber;
-      transaction.denom = denom;
       transaction.status = TransactionStatus.AWAITING_CONFIRMATIONS;
       transaction.internalChainId = internalChainId;
       transaction.rawMessages = rawMsgs;
@@ -232,10 +217,7 @@ export class MultisigTransactionService {
       );
 
       // save account number & next queue sequence
-      safe.nextQueueSeq = await this.calculateNextSeq(
-        safe.id,
-        sequenceInIndexer,
-      );
+      safe.nextQueueSeq = await this.calculateNextSeq(safe.id, sequence);
       await this.safeRepos.updateSafe(safe);
 
       // notify to another owners
@@ -283,16 +265,12 @@ export class MultisigTransactionService {
       const pendingTx = await this.multisigTransactionRepos.getTransactionById(
         transactionId,
       );
+      const { accountNumber, fromAddress } = pendingTx;
 
       // get safe info
       const safe = await this.safeRepos.getSafeByAddress(
-        pendingTx.fromAddress,
+        fromAddress,
         internalChainId,
-      );
-
-      const accountNumber = await this.getAccountNumber(
-        safe.safeAddress,
-        chain.chainId,
       );
 
       // verify data
@@ -307,7 +285,7 @@ export class MultisigTransactionService {
 
       await this.multisigConfirmRepos.validateSafeOwner(
         creatorAddress,
-        pendingTx.fromAddress,
+        fromAddress,
         internalChainId,
       );
 
@@ -333,7 +311,7 @@ export class MultisigTransactionService {
     request: SendTransactionRequestDto,
   ): Promise<ResponseDto<SendTxResDto>> {
     try {
-      const { internalChainId, transactionId } = request;
+      const { transactionId } = request;
       const authInfo = this.commonUtil.getAuthInfo();
       const creatorAddress = authInfo.address;
 
@@ -344,7 +322,7 @@ export class MultisigTransactionService {
       // get safe & validate safe owner
       const safe = await this.safeRepos.getSafeByAddress(
         multisigTransaction.fromAddress,
-        internalChainId,
+        multisigTransaction.internalChainId,
       );
 
       const safeOwners = await this.safeOwnerRepo.getSafeOwnersWithError(
@@ -363,7 +341,7 @@ export class MultisigTransactionService {
         creatorAddress,
         '',
         '',
-        internalChainId,
+        multisigTransaction.internalChainId,
         MultisigConfirmStatus.SEND,
       );
 
@@ -378,7 +356,7 @@ export class MultisigTransactionService {
         multisigTransaction.id,
         Number(multisigTransaction.sequence),
         safeOwners.map((safeOwner) => safeOwner.ownerAddress),
-        internalChainId,
+        multisigTransaction.internalChainId,
       );
 
       const job = await this.multisigTxQueue.add(
@@ -919,28 +897,25 @@ export class MultisigTransactionService {
    * @param internalChainId
    */
   async updateNextSeqAfterDeleteTx(safeId: number, internalChainId: number) {
-    // get safe info
-    const safe = await this.safeRepos.getSafeById(safeId);
+    if (this.useHoroscope) {
+      // get safe info
+      const safe = await this.safeRepos.getSafeById(safeId);
+      // get chain info
+      const chain = await this.chainRepos.findChain(internalChainId);
 
-    // get chain info
-    const chain = await this.chainRepos.findChain(internalChainId);
+      // get safe account info
+      const accountInfo = await this.indexerV2.getAccount(
+        chain.chainId,
+        safe.safeAddress,
+      );
 
-    // get safe account info
-    // const accountInfo: AccountInfo = await this.indexer.getAccount(
-    //   chain.chainId,
-    //   safe.safeAddress,
-    // );
-    const accountInfo = await this.indexerV2.getAccount(
-      chain.chainId,
-      safe.safeAddress,
-    );
+      safe.nextQueueSeq = await this.calculateNextSeq(
+        safe.id,
+        accountInfo.sequence,
+      );
 
-    safe.nextQueueSeq = await this.calculateNextSeq(
-      safe.id,
-      accountInfo.sequence,
-    );
-
-    await this.safeRepos.updateSafe(safe);
+      await this.safeRepos.updateSafe(safe);
+    }
   }
 
   buildMessages(
@@ -1009,13 +984,5 @@ export class MultisigTransactionService {
       nextSeq += 1;
     }
     return nextSeq.toString();
-  }
-
-  async getAccountNumber(
-    safeAddress: string,
-    chainId: string,
-  ): Promise<number> {
-    const accountInfo = await this.indexerV2.getAccount(chainId, safeAddress);
-    return accountInfo.account_number;
   }
 }

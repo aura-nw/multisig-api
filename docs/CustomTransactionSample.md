@@ -265,6 +265,7 @@ This document contains the raw message samples for different transaction types.
         "value": "Uint8Array TextProposal"
       }
     }
+  }
 ]
 ```
 
@@ -279,6 +280,7 @@ This document contains the raw message samples for different transaction types.
       "proposalId": "5",
       "voter": "aura1yukgemvxtr8fv6899ntd65qfyhwgx25d2nhvj6",
     }
+  }
 ]
 ```
 
