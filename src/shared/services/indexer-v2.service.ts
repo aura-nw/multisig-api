@@ -5,6 +5,7 @@ import { ErrorMap } from '../../common/error.map';
 import {
   IAccountInfo,
   IAccounts,
+  IContractAddress,
   IIndexerV2Response,
   IProposal,
   IProposals,
@@ -22,6 +23,72 @@ export class IndexerV2Client {
   chainInfos: ChainInfo[];
 
   constructor(private commonService: CommonService) {}
+
+  async getCw20Contract(contractAddress: string, chainId: string) {
+    const chainInfos = await this.commonService.readConfigurationFile();
+    const selectedChain = chainInfos.find((e) => e.chainId === chainId);
+    const operationName = 'cw20';
+    const operatorDocs = `
+      query ${operationName}($address: String!) {
+        ${selectedChain.indexerDb} {
+          smart_contract(where: {address: {_eq: $address}}) {
+            cw20_contract {
+              symbol
+            }
+          }
+        }
+      }`;
+
+    const result = await this.commonService.requestPost<
+      IndexerResponseDto<IIndexerV2Response<IContractAddress>>
+    >(new URL(selectedChain.indexerV2).href, {
+      operationName,
+      query: operatorDocs,
+      variables: {
+        address: contractAddress,
+      },
+    });
+    return result?.data[selectedChain.indexerDb].smart_contract[0];
+  }
+
+  async checkTokenBalance(
+    safeAddress: string,
+    amount: number,
+    denom: string,
+    chainId: string,
+  ) {
+    const { balances } = await this.getAccount(chainId, safeAddress);
+
+    const balance = balances.find((token) => token.denom === denom);
+    if (balance && Number(balance.amount) >= amount) {
+      return true;
+    }
+
+    throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
+  }
+
+  async checkCw20Balance(
+    safeAddress: string,
+    contractAddress: string,
+    amount: number,
+    chainId: string,
+  ) {
+    const cw20Assets = await this.getAssetByOwnerAddress(
+      safeAddress,
+      'CW20',
+      chainId,
+    );
+
+    const currentCw20Token = cw20Assets.cw20_holder.find(
+      (token) => token.cw20_contract.smart_contract.address === contractAddress,
+    );
+
+    if (Number(currentCw20Token.amount) < amount) {
+      throw new CustomError(ErrorMap.BALANCE_NOT_ENOUGH);
+    }
+
+    return true;
+  }
 
   async getAssetByOwnerAddress(
     ownerAddress: string,
@@ -110,25 +177,6 @@ export class IndexerV2Client {
       },
     });
     return result?.data[selectedChain.indexerDb].account[0];
-  }
-
-  async getAccountBalances(chainId: string, address: string): Promise<any[]> {
-    const { balances: accountBalances } = await this.getAccountInfo(
-      chainId,
-      address,
-    );
-    if (accountBalances?.length > 0) {
-      return accountBalances.map((item) => {
-        if (!item.denom) return item;
-
-        return {
-          amount: item.amount,
-          denom: item.base_denom,
-          minimal_denom: item.denom,
-        };
-      });
-    }
-    return undefined;
   }
 
   async getAccount(chainId: string, address: string): Promise<IAccountInfo> {
