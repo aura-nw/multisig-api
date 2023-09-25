@@ -83,7 +83,6 @@ export class WalletSimulate {
         messages,
         sequence,
         safePubkey,
-        this.chain.prefix,
       );
 
     // build txBytes
