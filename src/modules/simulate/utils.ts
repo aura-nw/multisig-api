@@ -137,11 +137,10 @@ export class SimulateUtils {
    */
   static anyToEncodeMsgs(
     messages: IMessageUnknown[],
-    prefix: string,
   ): EncodeObject[] {
     const aminoTypes = new AminoTypes({
       ...createBankAminoConverters(),
-      ...createStakingAminoConverters(prefix),
+      ...createStakingAminoConverters(),
       ...createDistributionAminoConverters(),
       ...createGovAminoConverters(),
       ...createWasmAminoConverters(),
