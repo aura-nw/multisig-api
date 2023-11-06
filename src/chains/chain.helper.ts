@@ -36,7 +36,7 @@ import { IMessageUnknown } from '../interfaces';
 import { MultisigTransaction } from '../modules/multisig-transaction/entities/multisig-transaction.entity';
 
 export class ChainHelper {
-  constructor(public chain: Chain) {}
+  constructor(public chain: Chain) { }
 
   async decodeAndVerifyTxInfo(
     authInfoBytes: string,
@@ -45,7 +45,7 @@ export class ChainHelper {
     accountNumber: number,
     creatorInfo: UserInfoDto,
   ) {
-    const { chainId, prefix } = this.chain;
+    const { chainId } = this.chain;
 
     const authInfoEncode = fromBase64(authInfoBytes);
     const decodedAuthInfo = AuthInfo.decode(authInfoEncode);
@@ -121,9 +121,9 @@ export class ChainHelper {
           const codeId =
             decodeMsg.typeUrl === TxTypeUrl.INSTANTIATE_CONTRACT.toString()
               ? {
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-                  codeId: decodeMsg.value.codeId.toString(),
-                }
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+                codeId: decodeMsg.value.codeId.toString(),
+              }
               : {};
 
           // eslint-disable-next-line @typescript-eslint/no-unsafe-argument,
@@ -176,15 +176,15 @@ export class ChainHelper {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
           const timeoutHeight = decodeMsg.value.timeoutHeight
             ? {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                revisionHeight:
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                  decodeMsg.value.timeoutHeight?.revisionHeight.toString(),
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                revisionNumber:
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                  decodeMsg.value.timeoutHeight?.revisionHeight.toString(),
-              }
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+              revisionHeight:
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                decodeMsg.value.timeoutHeight?.revisionHeight.toString(),
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+              revisionNumber:
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                decodeMsg.value.timeoutHeight?.revisionHeight.toString(),
+            }
             : '';
 
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
