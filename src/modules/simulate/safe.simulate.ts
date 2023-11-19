@@ -116,11 +116,10 @@ export class SafeSimulate {
     messages: IMessageUnknown[],
     sequence: number,
     safePubkey: ISafePubkey,
-    prefix: string,
   ) {
     let simulateAuthInfo: string;
     // get simulate msgs base typeUrl and the messages given by user
-    const encodeMsgs = SimulateUtils.anyToEncodeMsgs(messages, prefix);
+    const encodeMsgs = SimulateUtils.anyToEncodeMsgs(messages);
 
     const updatedEncodeMsgs = encodeMsgs.map((msg) => {
       const updatedMsg = msg as IEncodedObjectMsg;

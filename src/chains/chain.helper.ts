@@ -60,7 +60,7 @@ export class ChainHelper {
     // stargate@0.28.11
     const aminoTypes = new AminoTypes({
       ...createBankAminoConverters(),
-      ...createStakingAminoConverters(prefix),
+      ...createStakingAminoConverters(),
       ...createDistributionAminoConverters(),
       ...createGovAminoConverters(),
       ...createWasmAminoConverters(),
