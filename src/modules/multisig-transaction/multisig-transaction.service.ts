@@ -127,6 +127,7 @@ export class MultisigTransactionService {
         aminoMsgs,
         rawMsgs,
         sequence: decodedSequence,
+        memo,
       } = await chainHelper.decodeAndVerifyTxInfo(
         authInfoBytes,
         bodyBytes,
@@ -147,6 +148,7 @@ export class MultisigTransactionService {
         decodedMsgs.length > 1 ? TxTypeUrl.CUSTOM : decodedMsgs[0].typeUrl;
       transaction.fromAddress = from;
       transaction.toAddress = to || '';
+      transaction.memo = memo;
 
       // get balance
       const { amount, contractAddress } = chainHelper.getDataFromTx(

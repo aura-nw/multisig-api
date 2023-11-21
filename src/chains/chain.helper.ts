@@ -36,7 +36,7 @@ import { IMessageUnknown } from '../interfaces';
 import { MultisigTransaction } from '../modules/multisig-transaction/entities/multisig-transaction.entity';
 
 export class ChainHelper {
-  constructor(public chain: Chain) { }
+  constructor(public chain: Chain) {}
 
   async decodeAndVerifyTxInfo(
     authInfoBytes: string,
@@ -105,6 +105,7 @@ export class ChainHelper {
       aminoMsgs: msgs,
       rawMsgs: this.getRawMsgs(decodedMsgs as IDecodedMessage[]),
       sequence,
+      memo,
     };
   }
 
@@ -121,9 +122,9 @@ export class ChainHelper {
           const codeId =
             decodeMsg.typeUrl === TxTypeUrl.INSTANTIATE_CONTRACT.toString()
               ? {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-                codeId: decodeMsg.value.codeId.toString(),
-              }
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+                  codeId: decodeMsg.value.codeId.toString(),
+                }
               : {};
 
           // eslint-disable-next-line @typescript-eslint/no-unsafe-argument,
@@ -176,15 +177,15 @@ export class ChainHelper {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
           const timeoutHeight = decodeMsg.value.timeoutHeight
             ? {
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-              revisionHeight:
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                decodeMsg.value.timeoutHeight?.revisionHeight.toString(),
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-              revisionNumber:
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                decodeMsg.value.timeoutHeight?.revisionHeight.toString(),
-            }
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                revisionHeight:
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                  decodeMsg.value.timeoutHeight?.revisionHeight.toString(),
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                revisionNumber:
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                  decodeMsg.value.timeoutHeight?.revisionHeight.toString(),
+              }
             : '';
 
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
