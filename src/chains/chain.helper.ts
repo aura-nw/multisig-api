@@ -45,7 +45,7 @@ export class ChainHelper {
     accountNumber: number,
     creatorInfo: UserInfoDto,
   ) {
-    const { chainId, prefix } = this.chain;
+    const { chainId } = this.chain;
 
     const authInfoEncode = fromBase64(authInfoBytes);
     const decodedAuthInfo = AuthInfo.decode(authInfoEncode);
@@ -105,6 +105,7 @@ export class ChainHelper {
       aminoMsgs: msgs,
       rawMsgs: this.getRawMsgs(decodedMsgs as IDecodedMessage[]),
       sequence,
+      memo,
     };
   }
 
