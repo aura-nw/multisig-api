@@ -29,6 +29,11 @@ export class TxDetailDto {
   Fee: string;
 
   @ApiProperty({
+    example: 'Send Token',
+  })
+  Memo: string;
+
+  @ApiProperty({
     example: '282500',
   })
   Gas: string;

@@ -127,6 +127,7 @@ export class MultisigTransactionService {
         aminoMsgs,
         rawMsgs,
         sequence: decodedSequence,
+        memo,
       } = await chainHelper.decodeAndVerifyTxInfo(
         authInfoBytes,
         bodyBytes,
@@ -147,6 +148,7 @@ export class MultisigTransactionService {
         decodedMsgs.length > 1 ? TxTypeUrl.CUSTOM : decodedMsgs[0].typeUrl;
       transaction.fromAddress = from;
       transaction.toAddress = to || '';
+      transaction.memo = memo;
 
       // get balance
       const { amount, contractAddress } = chainHelper.getDataFromTx(
@@ -481,19 +483,25 @@ export class MultisigTransactionService {
         ) {
           if (item.ToAddress === safe.safeAddress) {
             updatedItem.DisplayType = TxTypeUrl.RECEIVE;
-            updatedItem.Sequence = undefined;
           }
 
           if (item.FromAddress === safe.safeAddress && item.ToAddress !== '')
             // ignore case: mint cw20 token
             updatedItem.DisplayType = DisplayTypes.SEND;
+
+          // Unset sequence if display type tx is receive token
+          if (updatedItem.DisplayType === TxTypeUrl.RECEIVE) {
+            updatedItem.Sequence = undefined;
+          }
         }
 
-        updatedItem.Direction = this.getDirection(
-          item.TypeUrl,
-          item.ToAddress,
-          safeAddress,
-        );
+        if (isHistory) {
+          updatedItem.Direction = this.getDirection(
+            item.TypeUrl,
+            item.ToAddress,
+            safeAddress,
+          );
+        }
 
         updatedItem.FinalAmount =
           item.MultisigTxAmount || item.AuraTxAmount || item.AuraTxRewardAmount;

@@ -45,7 +45,7 @@ import { DeleteTxRequestDto } from './dto/request/delete-tx.req';
 export class MultisigTransactionController {
   public readonly logger = new Logger(MultisigTransactionController.name);
 
-  constructor(private multisigTransactionService: MultisigTransactionService) {}
+  constructor(private multisigTransactionService: MultisigTransactionService) { }
 
   @CommonAuthPost({
     url: URL_CONSTANTS.CREATE,

@@ -266,6 +266,7 @@ export class MultisigTransactionRepository {
         'AT.TxHash as TxHash',
         'MT.RawMessages as RawMessages',
         'MT.Fee as Fee',
+        'MT.Memo as Memo',
         'MT.Gas as Gas',
         'MT.Status as Status',
         'MT.Sequence as Sequence',
