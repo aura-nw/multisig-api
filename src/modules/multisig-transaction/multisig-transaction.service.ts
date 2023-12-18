@@ -92,6 +92,24 @@ export class MultisigTransactionService {
     this.useHoroscope = /^true$/i.test(this.configService.get('USE_HOROSCOPE'));
   }
 
+  async getNextSequence(safeId: number) {
+
+    const safe = await this.safeRepos.getSafeById(safeId);
+    // get chain info
+    const chain = await this.chainRepos.findChain(safe.internalChainId);
+
+    // get safe account info
+    const { sequence } = await this.indexerV2.getAccount(
+      chain.chainId,
+      safe.safeAddress,
+    );
+
+    const nextSequence = await this.calculateNextSeq(safeId, sequence)
+    return {
+      nextSequence
+    }
+  }
+
   async createMultisigTransaction(
     request: CreateTransactionRequestDto,
   ): Promise<ResponseDto<CreateTxResDto>> {
@@ -166,17 +184,17 @@ export class MultisigTransactionService {
         // check balance
         await (contractAddress
           ? this.indexerV2.checkCw20Balance(
-              safe.safeAddress,
-              contractAddress,
-              amount,
-              chain.chainId,
-            )
+            safe.safeAddress,
+            contractAddress,
+            amount,
+            chain.chainId,
+          )
           : this.indexerV2.checkTokenBalance(
-              safe.safeAddress,
-              amount,
-              denom,
-              chain.chainId,
-            ));
+            safe.safeAddress,
+            amount,
+            denom,
+            chain.chainId,
+          ));
       }
 
       if (this.useHoroscope && contractAddress) {
@@ -879,19 +897,19 @@ export class MultisigTransactionService {
     const executeTransaction =
       chainInfo.coinDecimals === 18
         ? this.ethermintHelper.makeMultisignedTxEthermint(
-            safePubkey,
-            Number(multisigTransaction.sequence),
-            sendFee,
-            encodedBodyBytes,
-            addressSignatureMap,
-          )
+          safePubkey,
+          Number(multisigTransaction.sequence),
+          sendFee,
+          encodedBodyBytes,
+          addressSignatureMap,
+        )
         : makeMultisignedTx(
-            safePubkey,
-            Number(multisigTransaction.sequence),
-            sendFee,
-            encodedBodyBytes,
-            addressSignatureMap,
-          );
+          safePubkey,
+          Number(multisigTransaction.sequence),
+          sendFee,
+          encodedBodyBytes,
+          addressSignatureMap,
+        );
 
     const encodeTransaction = Uint8Array.from(
       TxRaw.encode(executeTransaction).finish(),
@@ -984,13 +1002,16 @@ export class MultisigTransactionService {
     const queueSequences =
       await this.multisigTransactionRepos.findSequenceInQueue(safeId);
 
-    let nextSeq = currentSequence;
-    for (const seq of queueSequences) {
-      if (seq !== nextSeq) {
+    let estimateSeq = currentSequence;
+    for (const inQueueSeq of queueSequences) {
+      if (inQueueSeq < estimateSeq) {
+        // skip invalid queue tx
+      } else if (inQueueSeq === estimateSeq) {
+        estimateSeq += 1
+      } else {
         break;
       }
-      nextSeq += 1;
     }
-    return nextSeq.toString();
+    return estimateSeq.toString();
   }
 }

@@ -32,7 +32,7 @@ export class MultisigTxProcessor {
     private readonly chainRepos: ChainRepository,
     private readonly multisigConfirmRepos: MultisigConfirmRepository,
     private readonly safeRepo: SafeRepository,
-  ) {}
+  ) { }
 
   @Process('send-tx')
   async handleTranscode(job: Job<SendTx>) {
@@ -87,14 +87,17 @@ export class MultisigTxProcessor {
   ): Promise<string> {
     const queueSequences = await this.multisigRepo.findSequenceInQueue(safeId);
 
-    let nextSeq = currentSequence;
-    for (const seq of queueSequences) {
-      if (seq !== nextSeq) {
+    let estimateSeq = currentSequence;
+    for (const inQueueSeq of queueSequences) {
+      if (inQueueSeq < estimateSeq) {
+        // skip invalid queue tx
+      } else if (inQueueSeq === estimateSeq) {
+        estimateSeq += 1
+      } else {
         break;
       }
-      nextSeq += 1;
     }
-    return nextSeq.toString();
+    return estimateSeq.toString();
   }
 
   async makeTx(
@@ -129,19 +132,19 @@ export class MultisigTxProcessor {
     const executeTransaction =
       chain.chainId.startsWith('evmos') || chain.chainId.startsWith('canto')
         ? this.ethermintHelper.makeMultisignedTxEthermint(
-            safePubkey,
-            Number(multisigTransaction.sequence),
-            sendFee,
-            encodedBodyBytes,
-            addressSignatureMap,
-          )
+          safePubkey,
+          Number(multisigTransaction.sequence),
+          sendFee,
+          encodedBodyBytes,
+          addressSignatureMap,
+        )
         : makeMultisignedTx(
-            safePubkey,
-            Number(multisigTransaction.sequence),
-            sendFee,
-            encodedBodyBytes,
-            addressSignatureMap,
-          );
+          safePubkey,
+          Number(multisigTransaction.sequence),
+          sendFee,
+          encodedBodyBytes,
+          addressSignatureMap,
+        );
 
     const encodeTransaction = Uint8Array.from(
       TxRaw.encode(executeTransaction).finish(),

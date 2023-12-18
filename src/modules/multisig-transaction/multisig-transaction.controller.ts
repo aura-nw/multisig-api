@@ -31,6 +31,7 @@ import {
   ConfirmTransactionRequestDto,
   CreateTransactionRequestDto,
   GetAllTransactionsRequestDto,
+  GetNextSeqQueryDto,
   GetSimulateAddressQueryDto,
   GetTxDetailQueryDto,
   RejectTransactionRequestDto,
@@ -134,6 +135,18 @@ export class MultisigTransactionController {
   async getTransactionDetail(@Query() query: GetTxDetailQueryDto) {
     this.logger.log('========== Get details of a Transaction ==========');
     return this.multisigTransactionService.getTransactionDetail(query);
+  }
+
+
+
+  @CommonGet({
+    url: URL_CONSTANTS.GET_NEXT_SEQUENCE,
+    summary: 'Get simulate addresses',
+    description: 'Get simulate addresses',
+  })
+  async getNextSeq(@Query() request: GetNextSeqQueryDto) {
+    this.logger.log('========== Get next sequence ==========');
+    return this.multisigTransactionService.getNextSequence(request.safeId);
   }
 
   @CommonGet({
