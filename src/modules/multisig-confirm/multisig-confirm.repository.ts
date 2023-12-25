@@ -109,7 +109,6 @@ export class MultisigConfirmRepository {
         'multisigConfirm.createdAt as createdAt',
         'multisigConfirm.updatedAt as updatedAt',
         'multisigConfirm.ownerAddress as ownerAddress',
-        'multisigConfirm.signature as signature',
         'multisigConfirm.status as status',
       ])
       .orderBy('multisigConfirm.createdAt', 'ASC');
