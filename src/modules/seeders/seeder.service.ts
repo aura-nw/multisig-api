@@ -1,16 +1,18 @@
-import { Injectable } from '@nestjs/common';
 import { validate } from 'class-validator';
-import { ChainRepository } from '../chain/chain.repository';
+
+import { Injectable, OnModuleInit } from '@nestjs/common';
+
 import { CommonService } from '../../shared/services';
+import { ChainRepository } from '../chain/chain.repository';
 
 @Injectable()
-export class SeederService {
+export class SeederService implements OnModuleInit {
   constructor(
     private chainRepo: ChainRepository,
     private commonSvc: CommonService,
-  ) {}
+  ) { }
 
-  async seed() {
+  async onModuleInit() {
     await this.seedChain();
   }
 

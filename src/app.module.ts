@@ -1,21 +1,24 @@
-import { CacheModule, Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ScheduleModule } from '@nestjs/schedule';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bull';
-import { SharedModule } from './shared/shared.module';
-import { SeederModule } from './modules/seeders/seeder.module';
+import { CacheModule, Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { AuthModule } from './modules/auth/auth.module';
-import { SafeModule } from './modules/safe/safe.module';
+import { JwtStrategy } from './modules/auth/jwt.strategy';
 import { ChainModule } from './modules/chain/chain.module';
-import { MultisigTransactionModule } from './modules/multisig-transaction/multisig-transaction.module';
+import { NotifyProposalModule } from './modules/jobs/notify-proposal.module';
+import {
+  MultisigTransactionModule
+} from './modules/multisig-transaction/multisig-transaction.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { SafeOwnerModule } from './modules/safe-owner/safe-owner.module';
+import { SafeModule } from './modules/safe/safe.module';
+import { SeederModule } from './modules/seeders/seeder.module';
 import { UserModule } from './modules/user/user.module';
-import { JwtStrategy } from './modules/auth/jwt.strategy';
-import { NotifyProposalModule } from './modules/jobs/notify-proposal.module';
 import { CustomConfigService } from './shared/services/custom-config.service';
+import { SharedModule } from './shared/shared.module';
 
 @Module({
   imports: [
@@ -39,6 +42,11 @@ import { CustomConfigService } from './shared/services/custom-config.service';
           port: configService.get('REDIS_PORT'),
           db: configService.get('REDIS_DB'),
         },
+        prefix: 'multisig',
+        defaultJobOptions: {
+          removeOnComplete: true,
+          removeOnFail: true
+        }
       }),
       inject: [ConfigService],
     }),
@@ -58,7 +66,8 @@ import { CustomConfigService } from './shared/services/custom-config.service';
     SafeOwnerModule,
     UserModule,
     NotifyProposalModule,
+    SeederModule
   ],
   providers: [JwtStrategy],
 })
-export class AppModule {}
+export class AppModule { }
