@@ -239,9 +239,7 @@ export class ChainHelper {
           );
           break;
         }
-        case isAminoMsgDelegate(msg):
-        case isAminoMsgBeginRedelegate(msg):
-        case isAminoMsgUndelegate(msg): {
+        case isAminoMsgDelegate(msg): {
           total += Number(msg.value.amount.amount);
           break;
         }
