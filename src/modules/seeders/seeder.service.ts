@@ -10,7 +10,7 @@ export class SeederService implements OnModuleInit {
   constructor(
     private chainRepo: ChainRepository,
     private commonSvc: CommonService,
-  ) { }
+  ) {}
 
   async onModuleInit() {
     await this.seedChain();
