@@ -57,6 +57,13 @@ export class ChainDto {
   @Expose()
   @IsString()
   @ApiProperty({
+    example: 'xstaxy',
+  })
+  indexerDb: string;
+
+  @Expose()
+  @IsString()
+  @ApiProperty({
     example: 'TAURA',
   })
   symbol: string;

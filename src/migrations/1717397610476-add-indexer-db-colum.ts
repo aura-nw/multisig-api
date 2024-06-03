@@ -1,10 +1,9 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class removeOldChain1717382328993 implements MigrationInterface {
+export class addIndexerDbColum1717397610476 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-        DELETE FROM Chain WHERE id = 4;
-        update Chain set chainId = "aura_6322-2" where id = 3;`);
+        ALTER TABLE Chain ADD COLUMN IndexerDb VARCHAR(100) NULL AFTER IndexerV2`);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {}

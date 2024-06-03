@@ -1,20 +1,16 @@
-import { Injectable, Logger } from '@nestjs/common';
 import { isNumber } from 'lodash';
+
+import { Injectable, Logger } from '@nestjs/common';
+
 import { CustomError } from '../../common/custom-error';
 import { ErrorMap } from '../../common/error.map';
 import {
-  IAccountInfo,
-  IAccounts,
-  IContractAddress,
-  IIndexerV2Response,
-  IProposal,
-  IProposals,
-  IPubkey,
+  IAccountInfo, IAccounts, IContractAddress, IIndexerV2Response, IProposal, IProposals, IPubkey
 } from '../../interfaces';
-import { IndexerResponseDto } from '../dtos';
-import { CommonService } from './common.service';
 import { IAssetsWithType } from '../../interfaces/asset-by-owner.interface';
 import { ChainInfo } from '../../utils/validations';
+import { IndexerResponseDto } from '../dtos';
+import { CommonService } from './common.service';
 
 @Injectable()
 export class IndexerV2Client {
@@ -22,7 +18,7 @@ export class IndexerV2Client {
 
   chainInfos: ChainInfo[];
 
-  constructor(private commonService: CommonService) {}
+  constructor(private commonService: CommonService) { }
 
   async getCw20Contract(contractAddress: string, chainId: string) {
     const chainInfos = await this.commonService.readConfigurationFile();
@@ -205,6 +201,7 @@ export class IndexerV2Client {
   ): Promise<IProposal[]> {
     const chainInfos = await this.commonService.readConfigurationFile();
     const selectedChain = chainInfos.find((e) => e.chainId === chainId);
+    if (!selectedChain) return [];
     const operationName = 'proposal';
     const operatorDocs = `
       query ${operationName}($limit: Int = 10, $order: order_by = desc, $proposalId: Int = null) {
